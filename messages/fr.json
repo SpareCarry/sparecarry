@@ -1,0 +1,74 @@
+{
+  "common": {
+    "appName": "SpareCarry",
+    "browse": "Parcourir",
+    "postRequest": "Publier une Demande",
+    "postTrip": "Publier un Voyage",
+    "myStuff": "Mes Affaires",
+    "profile": "Profil",
+    "signOut": "Déconnexion",
+    "loading": "Chargement...",
+    "error": "Erreur",
+    "success": "Succès",
+    "cancel": "Annuler",
+    "save": "Enregistrer",
+    "submit": "Soumettre",
+    "close": "Fermer"
+  },
+  "subscription": {
+    "title": "SpareCarry Pro",
+    "monthly": "6,99 $/mois",
+    "yearly": "59 $/an",
+    "save": "Économisez 30%",
+    "benefits": "Avantages",
+    "zeroFee": "0% de frais de plateforme (économisez 15-18% sur chaque livraison)",
+    "priority": "Priorité dans le fil (apparaissez en premier dans les résultats de recherche)",
+    "verified": "Badge de vérification bleu (statut vérifié)",
+    "subscribe": "S'abonner",
+    "manage": "Gérer l'Abonnement",
+    "active": "Abonnement Actif"
+  },
+  "payment": {
+    "proceed": "Procéder au Paiement",
+    "breakdown": "Détails du Paiement",
+    "review": "Examiner avant de procéder",
+    "reward": "Récompense",
+    "itemCost": "Coût de l'Article",
+    "platformFee": "Frais de Plateforme",
+    "insurance": "Assurance Voyage Allianz",
+    "coverage": "Couverture",
+    "protects": "Protège contre la perte, les dommages et le vol pendant le transport",
+    "total": "Total",
+    "payEscrow": "Payer et Verrouiller en Dépôt",
+    "processing": "Traitement...",
+    "proWaived": "(Pro - exempté)",
+    "deliveries": "livraisons"
+  },
+  "referral": {
+    "title": "Programme de Parrainage",
+    "code": "Votre Code de Parrainage",
+    "share": "Partagez votre code et gagnez 50 $ lorsque quelqu'un complète sa première livraison",
+    "earned": "Crédits Gagnés",
+    "available": "Crédits Disponibles",
+    "totalReferrals": "Parrainages Totaux",
+    "enterCode": "Entrer le Code de Parrainage",
+    "apply": "Appliquer le Code",
+    "invalid": "Code de parrainage invalide",
+    "alreadyUsed": "Vous avez déjà utilisé un code de parrainage",
+    "cannotSelfRefer": "Vous ne pouvez pas vous parrainer vous-même"
+  },
+  "groupBuy": {
+    "title": "Achat Groupé",
+    "join": "Rejoindre l'Achat Groupé",
+    "create": "Créer un Achat Groupé",
+    "participants": "Participants",
+    "discount": "Remise par participant",
+    "maxParticipants": "Participants Maximum",
+    "currentParticipants": "Participants Actuels",
+    "status": "Statut",
+    "open": "Ouvert",
+    "full": "Complet",
+    "closed": "Fermé"
+  }
+}
+

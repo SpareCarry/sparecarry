@@ -1,0 +1,74 @@
+{
+  "common": {
+    "appName": "SpareCarry",
+    "browse": "Browse",
+    "postRequest": "Post Request",
+    "postTrip": "Post Trip",
+    "myStuff": "My Stuff",
+    "profile": "Profile",
+    "signOut": "Sign Out",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "cancel": "Cancel",
+    "save": "Save",
+    "submit": "Submit",
+    "close": "Close"
+  },
+  "subscription": {
+    "title": "SpareCarry Pro",
+    "monthly": "$6.99/month",
+    "yearly": "$59/year",
+    "save": "Save 30%",
+    "benefits": "Benefits",
+    "zeroFee": "0% platform fee (save 15-18% on every delivery)",
+    "priority": "Priority in feed (appear first in search results)",
+    "verified": "Blue check badge (verified status)",
+    "subscribe": "Subscribe",
+    "manage": "Manage Subscription",
+    "active": "Active Subscription"
+  },
+  "payment": {
+    "proceed": "Proceed to Payment",
+    "breakdown": "Payment Breakdown",
+    "review": "Review before proceeding",
+    "reward": "Reward",
+    "itemCost": "Item Cost",
+    "platformFee": "Platform Fee",
+    "insurance": "Allianz Travel Insurance",
+    "coverage": "Coverage",
+    "protects": "Protects against loss, damage, and theft during transport",
+    "total": "Total",
+    "payEscrow": "Pay & Lock in Escrow",
+    "processing": "Processing...",
+    "proWaived": "(Pro - waived)",
+    "deliveries": "deliveries"
+  },
+  "referral": {
+    "title": "Referral Program",
+    "code": "Your Referral Code",
+    "share": "Share your code and earn $50 when someone completes their first delivery",
+    "earned": "Credits Earned",
+    "available": "Credits Available",
+    "totalReferrals": "Total Referrals",
+    "enterCode": "Enter Referral Code",
+    "apply": "Apply Code",
+    "invalid": "Invalid referral code",
+    "alreadyUsed": "You've already used a referral code",
+    "cannotSelfRefer": "Cannot refer yourself"
+  },
+  "groupBuy": {
+    "title": "Group Buy",
+    "join": "Join Group Buy",
+    "create": "Create Group Buy",
+    "participants": "Participants",
+    "discount": "Discount per participant",
+    "maxParticipants": "Max Participants",
+    "currentParticipants": "Current Participants",
+    "status": "Status",
+    "open": "Open",
+    "full": "Full",
+    "closed": "Closed"
+  }
+}
+

@@ -1,0 +1,74 @@
+{
+  "common": {
+    "appName": "SpareCarry",
+    "browse": "Explorar",
+    "postRequest": "Publicar Solicitud",
+    "postTrip": "Publicar Viaje",
+    "myStuff": "Mis Cosas",
+    "profile": "Perfil",
+    "signOut": "Cerrar Sesión",
+    "loading": "Cargando...",
+    "error": "Error",
+    "success": "Éxito",
+    "cancel": "Cancelar",
+    "save": "Guardar",
+    "submit": "Enviar",
+    "close": "Cerrar"
+  },
+  "subscription": {
+    "title": "SpareCarry Pro",
+    "monthly": "$6.99/mes",
+    "yearly": "$59/año",
+    "save": "Ahorra 30%",
+    "benefits": "Beneficios",
+    "zeroFee": "0% de tarifa de plataforma (ahorra 15-18% en cada entrega)",
+    "priority": "Prioridad en el feed (aparece primero en los resultados de búsqueda)",
+    "verified": "Insignia de verificación azul (estado verificado)",
+    "subscribe": "Suscribirse",
+    "manage": "Administrar Suscripción",
+    "active": "Suscripción Activa"
+  },
+  "payment": {
+    "proceed": "Proceder al Pago",
+    "breakdown": "Desglose de Pago",
+    "review": "Revisar antes de proceder",
+    "reward": "Recompensa",
+    "itemCost": "Costo del Artículo",
+    "platformFee": "Tarifa de Plataforma",
+    "insurance": "Seguro de Viaje Allianz",
+    "coverage": "Cobertura",
+    "protects": "Protege contra pérdida, daño y robo durante el transporte",
+    "total": "Total",
+    "payEscrow": "Pagar y Bloquear en Depósito",
+    "processing": "Procesando...",
+    "proWaived": "(Pro - exento)",
+    "deliveries": "entregas"
+  },
+  "referral": {
+    "title": "Programa de Referidos",
+    "code": "Tu Código de Referido",
+    "share": "Comparte tu código y gana $50 cuando alguien complete su primera entrega",
+    "earned": "Créditos Ganados",
+    "available": "Créditos Disponibles",
+    "totalReferrals": "Referidos Totales",
+    "enterCode": "Ingresar Código de Referido",
+    "apply": "Aplicar Código",
+    "invalid": "Código de referido inválido",
+    "alreadyUsed": "Ya has usado un código de referido",
+    "cannotSelfRefer": "No puedes referirte a ti mismo"
+  },
+  "groupBuy": {
+    "title": "Compra Grupal",
+    "join": "Unirse a Compra Grupal",
+    "create": "Crear Compra Grupal",
+    "participants": "Participantes",
+    "discount": "Descuento por participante",
+    "maxParticipants": "Participantes Máximos",
+    "currentParticipants": "Participantes Actuales",
+    "status": "Estado",
+    "open": "Abierto",
+    "full": "Lleno",
+    "closed": "Cerrado"
+  }
+}
+

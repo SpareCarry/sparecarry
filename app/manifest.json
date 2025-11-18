@@ -1,0 +1,30 @@
+{
+  "name": "SpareCarry",
+  "short_name": "SpareCarry",
+  "description": "SpareCarry – The traveler & sailor courier app. Earn $200–$3,000 using spare space you already have.",
+  "start_url": "https://sparecarry.com/",
+  "display": "standalone",
+  "background_color": "#14b8a6",
+  "theme_color": "#14b8a6",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["travel", "shopping", "business"],
+  "lang": "en",
+  "dir": "ltr",
+  "scope": "https://sparecarry.com/",
+  "prefer_related_applications": false
+}
+

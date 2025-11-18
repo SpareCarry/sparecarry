@@ -1,0 +1,22 @@
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://sparecarry.com/sitemap.xml
+
+# Disallow admin and API routes
+Disallow: /admin/
+Disallow: /api/
+Disallow: /auth/
+Disallow: /onboarding/
+Disallow: /home/
+
+# Allow public pages
+Allow: /
+Allow: /terms
+Allow: /privacy
+Allow: /disclaimer
+Allow: /hall-of-fame
+Allow: /subscription
+Allow: /supporter
+

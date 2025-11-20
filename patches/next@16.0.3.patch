@@ -1,0 +1,26 @@
+diff --git a/dist/build/generate-build-id.js b/dist/build/generate-build-id.js
+index 846c68601f9534ea416a776c4fa18a2ce6d0326d..bbaec2125df928684ba7ba71acfe16a676b1f204 100644
+--- a/dist/build/generate-build-id.js
++++ b/dist/build/generate-build-id.js
+@@ -9,7 +9,8 @@ Object.defineProperty(exports, "generateBuildId", {
+     }
+ });
+ async function generateBuildId(generate, fallback) {
+-    let buildId = await generate();
++    const generator = typeof generate === 'function' ? generate : async ()=>null;
++    let buildId = await generator();
+     // If there's no buildId defined we'll fall back
+     if (buildId === null) {
+         // We also create a new buildId if it contains the word `ad` to avoid false
+diff --git a/dist/esm/build/generate-build-id.js b/dist/esm/build/generate-build-id.js
+index d0534d191559de354b7f1dace6ed13b576e9fb4b..80b044f4c331b8605276dabeb2f8a9e0472c4497 100644
+--- a/dist/esm/build/generate-build-id.js
++++ b/dist/esm/build/generate-build-id.js
+@@ -1,5 +1,6 @@
+ export async function generateBuildId(generate, fallback) {
+-    let buildId = await generate();
++    const generator = typeof generate === 'function' ? generate : async ()=>null;
++    let buildId = await generator();
+     // If there's no buildId defined we'll fall back
+     if (buildId === null) {
+         // We also create a new buildId if it contains the word `ad` to avoid false

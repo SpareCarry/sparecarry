@@ -9,10 +9,8 @@ const nextConfig = {
   },
   output: 'export',
   experimental: {
+    // Disable auto modularize imports on Windows to avoid SWC config crashes
     optimizePackageImports: false,
-  },
-  turbopack: {
-    root: process.cwd(),
   },
   images: {
     unoptimized: true,
@@ -48,5 +46,5 @@ const nextConfig = {
   },
 };
 
-export default nextConfig;
+module.exports = nextConfig;
 

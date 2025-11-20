@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "cross-env NEXT_DISABLE_SWC_NATIVE=1 NEXT_DISABLE_AUTO_MOD_IMPORTS=1 NODE_ENV=development next dev --webpack",
     "prebuild": "node scripts/pre-build-exclude-routes.js",
-    "build": "next build",
+    "build": "cross-env NEXT_DISABLE_SWC_NATIVE=1 NEXT_DISABLE_AUTO_MOD_IMPORTS=1 next build --webpack",
     "postbuild": "node scripts/fix-aliases.js && node scripts/pre-build-exclude-routes.js restore",
     "validate:export": "node scripts/validate-export.js",
     "mobile:sync": "npx cap sync",
@@ -24,9 +24,9 @@
     "generate:icons": "node scripts/generate-icons.js",
     "generate:splash": "node scripts/generate-splash.js",
     "generate:assets": "pnpm generate:icons && pnpm generate:splash",
-    "test": "vitest run",
-    "test:ui": "vitest --ui",
-    "test:watch": "vitest",
+    "test": "cross-env NODE_ENV=test vitest run",
+    "test:ui": "cross-env NODE_ENV=test vitest --ui",
+    "test:watch": "cross-env NODE_ENV=test vitest",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:docker": "docker-compose -f docker-compose.test.yml up --abort-on-container-exit",
@@ -56,8 +56,8 @@
     "release:notes": "node scripts/release-notes.js",
     "env:sync": "node scripts/sync-env-build.js",
     "loadtest": "cd load-tests && k6 run scenarios/steady.js",
-    "build:staging": "cross-env NEXT_PUBLIC_APP_ENV=staging next build",
-    "build:production": "cross-env NEXT_PUBLIC_APP_ENV=production next build",
+    "build:staging": "cross-env NEXT_DISABLE_SWC_NATIVE=1 NEXT_DISABLE_AUTO_MOD_IMPORTS=1 NEXT_PUBLIC_APP_ENV=staging next build --webpack",
+    "build:production": "cross-env NEXT_DISABLE_SWC_NATIVE=1 NEXT_DISABLE_AUTO_MOD_IMPORTS=1 NEXT_PUBLIC_APP_ENV=production next build --webpack",
     "mobile:build:staging": "cross-env NEXT_PUBLIC_APP_ENV=staging pnpm build:staging && pnpm validate:export && node scripts/inject-env-capacitor.js staging && pnpm mobile:sync",
     "mobile:build:production": "cross-env NEXT_PUBLIC_APP_ENV=production pnpm build:production && pnpm validate:export && node scripts/inject-env-capacitor.js production && pnpm mobile:sync"
   },
@@ -78,6 +78,7 @@
     "@radix-ui/react-select": "^2.0.0",
     "@radix-ui/react-slot": "^1.0.2",
     "@react-google-maps/api": "^2.19.3",
+    "@sentry/nextjs": "^7.114.0",
     "@stripe/react-stripe-js": "^2.4.0",
     "@stripe/stripe-js": "^2.4.0",
     "@supabase/ssr": "^0.1.0",
@@ -87,12 +88,12 @@
     "clsx": "^2.1.0",
     "date-fns": "^3.0.0",
     "dotenv": "^17.2.3",
-    "lucide-react": "^0.344.0",
-    "nanoid": "^3.3.11",
-    "next": "14.2.5",
+    "lucide-react": "0.309.0",
+    "nanoid": "3.3.7",
+    "next": "16.0.3",
     "next-intl": "^2.0.0",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
     "react-hook-form": "^7.49.3",
     "resend": "^3.2.0",
     "stripe": "^14.10.0",
@@ -135,14 +136,21 @@
   },
   "pnpm": {
     "overrides": {
-      "nanoid": "^3.3.7",
-      "react": "^18.2.0",
-      "react-dom": "^18.2.0"
+      "nanoid": "3.3.7",
+      "react": "18.3.1",
+      "react-dom": "18.3.1"
+    },
+    "patchedDependencies": {
+      "next@16.0.3": "patches/next@16.0.3.patch"
     }
   },
   "resolutions": {
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "nanoid": "3.3.7"
+  },
+  "overrides": {
+    "nanoid": "3.3.7"
   },
   "engines": {
     "node": ">=18.0.0",

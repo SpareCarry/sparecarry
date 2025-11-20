@@ -82,19 +82,23 @@ class TelemetryClientImpl implements TelemetryClient {
     try {
       const Sentry = await import('@sentry/nextjs');
       
+      if (!Sentry) return;
+      
       // Add event as breadcrumb
-      Sentry.addBreadcrumb({
-        category: 'telemetry',
-        message: eventData.event,
-        level: 'info',
-        data: {
-          ...eventData.metadata,
-          performance: eventData.performance,
-        },
-      });
+      if (Sentry.addBreadcrumb) {
+        Sentry.addBreadcrumb({
+          category: 'telemetry',
+          message: eventData.event,
+          level: 'info',
+          data: {
+            ...eventData.metadata,
+            performance: eventData.performance,
+          },
+        });
+      }
 
       // For error events, capture as exception
-      if (eventData.event.includes('error') || eventData.event.includes('failed')) {
+      if ((eventData.event.includes('error') || eventData.event.includes('failed')) && Sentry.captureMessage) {
         Sentry.captureMessage(`Telemetry: ${eventData.event}`, {
           level: 'error',
           extra: eventData.metadata,
@@ -102,7 +106,7 @@ class TelemetryClientImpl implements TelemetryClient {
       }
 
       // For performance events, add to transaction
-      if (eventData.performance && eventData.performance.duration) {
+      if (eventData.performance && eventData.performance.duration && Sentry.getCurrentHub) {
         const transaction = Sentry.getCurrentHub().getScope()?.getTransaction();
         if (transaction) {
           transaction.setData('telemetry', {
@@ -112,7 +116,7 @@ class TelemetryClientImpl implements TelemetryClient {
         }
       }
     } catch {
-      // Sentry not available
+      /* ignore if not installed */
     }
   }
 
@@ -152,14 +156,18 @@ class TelemetryClientImpl implements TelemetryClient {
     
     // Update Sentry user
     if (process.env.NEXT_PUBLIC_SENTRY_DSN) {
-      import('@sentry/nextjs').then((Sentry) => {
-        Sentry.setUser({
-          id: userId,
-          email,
+      import('@sentry/nextjs')
+        .then((Sentry) => {
+          if (Sentry?.setUser) {
+            Sentry.setUser({
+              id: userId,
+              email,
+            });
+          }
+        })
+        .catch(() => {
+          /* ignore if not installed */
         });
-      }).catch(() => {
-        // Sentry not available
-      });
     }
   }
 
@@ -170,11 +178,15 @@ class TelemetryClientImpl implements TelemetryClient {
     this.userId = null;
     
     if (process.env.NEXT_PUBLIC_SENTRY_DSN) {
-      import('@sentry/nextjs').then((Sentry) => {
-        Sentry.setUser(null);
-      }).catch(() => {
-        // Sentry not available
-      });
+      import('@sentry/nextjs')
+        .then((Sentry) => {
+          if (Sentry?.setUser) {
+            Sentry.setUser(null);
+          }
+        })
+        .catch(() => {
+          /* ignore if not installed */
+        });
     }
   }
 

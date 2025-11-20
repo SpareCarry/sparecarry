@@ -166,42 +166,45 @@ export async function setupNotificationHandlers() {
 
     // Handle push notification received
     PushNotifications.addListener("pushNotificationReceived", (notification) => {
-    console.log("Push notification received: ", notification);
-    
-    // Play sound based on notification data
-    const sound = notification.data?.sound as keyof typeof NATIVE_SOUNDS;
-    if (sound && NATIVE_SOUNDS[sound]) {
-      // Sound will be played automatically by the system
-      // But we can trigger haptic feedback
-      import("@capacitor/haptics").then(({ Haptics, ImpactStyle }) => {
-        Haptics.impact({ style: ImpactStyle.Medium });
-      });
-    }
-  });
+      console.log("Push notification received: ", notification);
+      
+      // Play sound based on notification data
+      const sound = notification.data?.sound as keyof typeof NATIVE_SOUNDS;
+      if (sound && NATIVE_SOUNDS[sound]) {
+        // Sound will be played automatically by the system
+        // But we can trigger haptic feedback
+        import("@capacitor/haptics").then(({ Haptics, ImpactStyle }) => {
+          Haptics.impact({ style: ImpactStyle.Medium });
+        });
+      }
+    });
 
-  // Handle push notification action
-  PushNotifications.addListener("pushNotificationActionPerformed", (action) => {
-    console.log("Push notification action performed", action);
-    const data = action.notification.data;
-    
-    // Navigate based on notification type
-    if (data?.matchId) {
-      import("@capacitor/app").then(({ App }) => {
-        // Navigation will be handled by the app router
+    // Handle push notification action
+    PushNotifications.addListener("pushNotificationActionPerformed", (action) => {
+      console.log("Push notification action performed", action);
+      const data = action.notification.data;
+      
+      // Navigate based on notification type
+      if (data?.matchId) {
+        import("@capacitor/app").then(({ App }) => {
+          // Navigation will be handled by the app router
+          window.location.href = `/home/messages/${data.matchId}`;
+        });
+      }
+    });
+
+    // Handle local notification action
+    LocalNotifications.addListener("localNotificationActionPerformed", (action) => {
+      console.log("Local notification action performed", action);
+      const data = action.notification.extra;
+      
+      if (data?.matchId) {
         window.location.href = `/home/messages/${data.matchId}`;
-      });
-    }
-  });
-
-  // Handle local notification action
-  LocalNotifications.addListener("localNotificationActionPerformed", (action) => {
-    console.log("Local notification action performed", action);
-    const data = action.notification.extra;
-    
-    if (data?.matchId) {
-      window.location.href = `/home/messages/${data.matchId}`;
-    }
-  });
+      }
+    });
+  } catch (error) {
+    console.error("Failed to setup notification handlers:", error);
+  }
 }
 
 // Initialize notification handlers when module loads (client-side only)

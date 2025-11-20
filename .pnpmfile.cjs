@@ -2,13 +2,13 @@
 function readPackage(pkg, context) {
   // Force React 18 for all dependencies
   if (pkg.dependencies) {
-    if (pkg.dependencies.react && pkg.dependencies.react !== '^18.2.0') {
-      context.log('Overriding react version in ' + pkg.name + ' to ^18.2.0');
-      pkg.dependencies.react = '^18.2.0';
+    if (pkg.dependencies.react && pkg.dependencies.react !== '18.3.1') {
+      context.log('Overriding react version in ' + pkg.name + ' to 18.3.1');
+      pkg.dependencies.react = '18.3.1';
     }
-    if (pkg.dependencies['react-dom'] && pkg.dependencies['react-dom'] !== '^18.2.0') {
-      context.log('Overriding react-dom version in ' + pkg.name + ' to ^18.2.0');
-      pkg.dependencies['react-dom'] = '^18.2.0';
+    if (pkg.dependencies['react-dom'] && pkg.dependencies['react-dom'] !== '18.3.1') {
+      context.log('Overriding react-dom version in ' + pkg.name + ' to 18.3.1');
+      pkg.dependencies['react-dom'] = '18.3.1';
     }
   }
   if (pkg.peerDependencies) {

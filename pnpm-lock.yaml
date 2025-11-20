@@ -13,7 +13,7 @@ pnpmfileChecksum: sha256-b77Y0PtlPbnwvicEz/lhGLhsLPdcqkDIQxyyslleRW4=
 
 patchedDependencies:
   next@16.0.3:
-    hash: 28ea00370b379498d8578c2319de4beeb4982e3c77a5f9bf9b3681f64ab21994
+    hash: 7b8d0e3f69118aa2a1ef2314033aaee5b7d29c2e1a2ec9df70e983e9d2fa44e9
     path: patches/next@16.0.3.patch
 
 importers:
@@ -70,7 +70,7 @@ importers:
         version: 2.20.7(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@sentry/nextjs':
         specifier: ^7.114.0
-        version: 7.120.4(next@16.0.3(patch_hash=28ea00370b379498d8578c2319de4beeb4982e3c77a5f9bf9b3681f64ab21994)(@babel/core@7.28.5)(@playwright/test@1.56.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)
+        version: 7.120.4(next@16.0.3(patch_hash=7b8d0e3f69118aa2a1ef2314033aaee5b7d29c2e1a2ec9df70e983e9d2fa44e9)(@babel/core@7.28.5)(@playwright/test@1.56.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)
       '@stripe/react-stripe-js':
         specifier: ^2.4.0
         version: 2.9.0(@stripe/stripe-js@2.4.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -106,10 +106,10 @@ importers:
         version: 3.3.7
       next:
         specifier: 16.0.3
-        version: 16.0.3(patch_hash=28ea00370b379498d8578c2319de4beeb4982e3c77a5f9bf9b3681f64ab21994)(@babel/core@7.28.5)(@playwright/test@1.56.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+        version: 16.0.3(patch_hash=7b8d0e3f69118aa2a1ef2314033aaee5b7d29c2e1a2ec9df70e983e9d2fa44e9)(@babel/core@7.28.5)(@playwright/test@1.56.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       next-intl:
         specifier: ^2.0.0
-        version: 2.22.3(next@16.0.3(patch_hash=28ea00370b379498d8578c2319de4beeb4982e3c77a5f9bf9b3681f64ab21994)(@babel/core@7.28.5)(@playwright/test@1.56.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)
+        version: 2.22.3(next@16.0.3(patch_hash=7b8d0e3f69118aa2a1ef2314033aaee5b7d29c2e1a2ec9df70e983e9d2fa44e9)(@babel/core@7.28.5)(@playwright/test@1.56.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)
       react:
         specifier: 18.3.1
         version: 18.3.1
@@ -6651,7 +6651,7 @@ snapshots:
       '@sentry/utils': 7.120.4
       localforage: 1.10.0
 
-  '@sentry/nextjs@7.120.4(next@16.0.3(patch_hash=28ea00370b379498d8578c2319de4beeb4982e3c77a5f9bf9b3681f64ab21994)(@babel/core@7.28.5)(@playwright/test@1.56.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)':
+  '@sentry/nextjs@7.120.4(next@16.0.3(patch_hash=7b8d0e3f69118aa2a1ef2314033aaee5b7d29c2e1a2ec9df70e983e9d2fa44e9)(@babel/core@7.28.5)(@playwright/test@1.56.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)':
     dependencies:
       '@rollup/plugin-commonjs': 24.0.0(rollup@2.79.2)
       '@sentry/core': 7.120.4
@@ -6663,7 +6663,7 @@ snapshots:
       '@sentry/vercel-edge': 7.120.4
       '@sentry/webpack-plugin': 1.21.0
       chalk: 3.0.0
-      next: 16.0.3(patch_hash=28ea00370b379498d8578c2319de4beeb4982e3c77a5f9bf9b3681f64ab21994)(@babel/core@7.28.5)(@playwright/test@1.56.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      next: 16.0.3(patch_hash=7b8d0e3f69118aa2a1ef2314033aaee5b7d29c2e1a2ec9df70e983e9d2fa44e9)(@babel/core@7.28.5)(@playwright/test@1.56.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       react: 18.3.1
       resolve: 1.22.8
       rollup: 2.79.2
@@ -9554,15 +9554,15 @@ snapshots:
 
   negotiator@0.6.4: {}
 
-  next-intl@2.22.3(next@16.0.3(patch_hash=28ea00370b379498d8578c2319de4beeb4982e3c77a5f9bf9b3681f64ab21994)(@babel/core@7.28.5)(@playwright/test@1.56.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1):
+  next-intl@2.22.3(next@16.0.3(patch_hash=7b8d0e3f69118aa2a1ef2314033aaee5b7d29c2e1a2ec9df70e983e9d2fa44e9)(@babel/core@7.28.5)(@playwright/test@1.56.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1):
     dependencies:
       '@formatjs/intl-localematcher': 0.2.32
       negotiator: 0.6.4
-      next: 16.0.3(patch_hash=28ea00370b379498d8578c2319de4beeb4982e3c77a5f9bf9b3681f64ab21994)(@babel/core@7.28.5)(@playwright/test@1.56.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      next: 16.0.3(patch_hash=7b8d0e3f69118aa2a1ef2314033aaee5b7d29c2e1a2ec9df70e983e9d2fa44e9)(@babel/core@7.28.5)(@playwright/test@1.56.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       react: 18.3.1
       use-intl: 2.22.3(react@18.3.1)
 
-  next@16.0.3(patch_hash=28ea00370b379498d8578c2319de4beeb4982e3c77a5f9bf9b3681f64ab21994)(@babel/core@7.28.5)(@playwright/test@1.56.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
+  next@16.0.3(patch_hash=7b8d0e3f69118aa2a1ef2314033aaee5b7d29c2e1a2ec9df70e983e9d2fa44e9)(@babel/core@7.28.5)(@playwright/test@1.56.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
     dependencies:
       '@next/env': 16.0.3
       '@swc/helpers': 0.5.15

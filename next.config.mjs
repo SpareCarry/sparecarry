@@ -8,9 +8,6 @@ const nextConfig = {
     return process.env.NEXT_BUILD_ID ?? `sparecarry-${Date.now().toString(36)}`;
   },
   output: 'export',
-  experimental: {
-    optimizePackageImports: false,
-  },
   turbopack: {
     root: process.cwd(),
   },

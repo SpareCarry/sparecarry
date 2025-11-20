@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Users, Package, Handshake, AlertTriangle, DollarSign } from "lucide-react";
+import { Users, Package, Hand, AlertTriangle, DollarSign } from "lucide-react";
 import { UsersTable } from "../../components/admin/users-table";
 import { RequestsTripsTable } from "../../components/admin/requests-trips-table";
 import { MatchesTable } from "../../components/admin/matches-table";
@@ -18,7 +18,7 @@ export default function AdminPage() {
   const tabs = [
     { id: "users" as Tab, label: "Users", icon: Users },
     { id: "requests-trips" as Tab, label: "Requests & Trips", icon: Package },
-    { id: "matches" as Tab, label: "Matches", icon: Handshake },
+    { id: "matches" as Tab, label: "Matches", icon: Hand },
     { id: "disputes" as Tab, label: "Disputes", icon: AlertTriangle },
     { id: "payouts" as Tab, label: "Payouts", icon: DollarSign },
   ];

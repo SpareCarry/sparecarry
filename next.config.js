@@ -8,10 +8,6 @@ const nextConfig = {
     return process.env.NEXT_BUILD_ID ?? `sparecarry-${Date.now().toString(36)}`;
   },
   output: 'export',
-  experimental: {
-    // Disable auto modularize imports on Windows to avoid SWC config crashes
-    optimizePackageImports: false,
-  },
   images: {
     unoptimized: true,
   },

@@ -1,4 +1,4 @@
-import { NextIntlProvider } from "next-intl";
+import { NextIntlClientProvider } from "next-intl";
 import { notFound } from "next/navigation";
 import { routing } from "../../i18n/routing";
 import { Providers } from "../providers";

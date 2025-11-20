@@ -1,14 +1,14 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { createClient } from "@/lib/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { createClient } from "../../../lib/supabase/client";
+import { Card, CardContent, CardHeader, CardTitle } from "../../../components/ui/card";
+import { Button } from "../../../components/ui/button";
 import { Loader2, User, Star, CreditCard } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { SubscriptionCard } from "@/components/subscription/subscription-card";
-import { SupporterCard } from "@/components/supporter/supporter-card";
-import { ReferralCard } from "@/components/referral/referral-card";
+import { SubscriptionCard } from "../../../components/subscription/subscription-card";
+import { SupporterCard } from "../../../components/supporter/supporter-card";
+import { ReferralCard } from "../../../components/referral/referral-card";
 
 export default function ProfilePage() {
   const supabase = createClient();

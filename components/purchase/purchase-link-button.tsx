@@ -1,10 +1,10 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "../ui/button";
+import { Card, CardContent } from "../ui/card";
 import { ExternalLink, Package, Copy, Check } from "lucide-react";
 import { useState } from "react";
-import { generatePurchaseLink, formatShippingAddress } from "@/lib/affiliate/affiliate-links";
+import { generatePurchaseLink, formatShippingAddress } from "../../lib/affiliate/affiliate-links";
 
 interface PurchaseLinkButtonProps {
   retailer: "west_marine" | "svb" | "amazon";

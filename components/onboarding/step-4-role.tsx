@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { createClient } from "@/lib/supabase/client";
+import { Button } from "../ui/button";
+import { Card, CardContent } from "../ui/card";
+import { createClient } from "../../lib/supabase/client";
 import { Loader2, Plane, Ship, Package, Users } from "lucide-react";
 
 interface OnboardingStep4Props {
@@ -72,7 +72,7 @@ export function OnboardingStep4({ onComplete }: OnboardingStep4Props) {
       if (updateError) throw updateError;
 
       onComplete();
-    } catch (err: any) {
+    } catch (err) {
       setError(err.message || "Failed to save role");
     } finally {
       setLoading(false);
@@ -84,7 +84,7 @@ export function OnboardingStep4({ onComplete }: OnboardingStep4Props) {
       <div className="space-y-2">
         <h3 className="text-lg font-semibold text-slate-900">Choose Your Primary Role</h3>
         <p className="text-slate-600">
-          Select how you'll primarily use CarrySpace. You can change this later.
+          Select how you&apos;ll primarily use CarrySpace. You can change this later.
         </p>
       </div>
 

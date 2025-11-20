@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
-import { generatePurchaseLink } from "@/lib/affiliate/affiliate-links";
+import { createClient } from "../../../lib/supabase/server";
+import { generatePurchaseLink } from "../../../lib/affiliate/affiliate-links";
 
 // Updates the purchase link in a request when match is confirmed
 // with the traveler's shipping address
@@ -91,10 +91,10 @@ export async function POST(request: NextRequest) {
       success: true,
       purchaseLink,
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error("Error updating purchase link:", error);
     return NextResponse.json(
-      { error: error.message || "Failed to update purchase link" },
+      { error: (error instanceof Error ? error.message :  "Failed to update purchase link" },
       { status: 500 }
     );
   }

@@ -2,7 +2,7 @@
 // This can be used in the mobile app to listen for emergency requests
 
 import { RealtimeChannel } from "@supabase/supabase-js";
-import { createClient } from "@/lib/supabase/client";
+import { createClient } from "../supabase/client";
 
 export function subscribeToEmergencyRequests(
   userId: string,

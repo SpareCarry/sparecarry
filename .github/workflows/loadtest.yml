@@ -1,0 +1,145 @@
+name: Load Testing
+
+on:
+  workflow_dispatch:
+    inputs:
+      scenario:
+        description: 'Load test scenario'
+        required: true
+        type: choice
+        options:
+          - ramp
+          - steady
+          - spike
+          - browse
+          - post_request
+          - match_flow
+          - chat_flow
+      environment:
+        description: 'Target environment'
+        required: true
+        type: choice
+        options:
+          - staging
+          - production
+      duration:
+        description: 'Test duration (e.g., 5m, 30m)'
+        required: false
+        type: string
+        default: '5m'
+  schedule:
+    # Run nightly load tests against staging at 2 AM UTC
+    - cron: '0 2 * * *'
+
+jobs:
+  load-test:
+    name: Load Test
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup k6
+        uses: grafana/setup-k6@v1
+        with:
+          version: latest
+
+      - name: Determine scenario
+        id: scenario
+        run: |
+          if [ "${{ github.event_name }}" == "schedule" ]; then
+            echo "scenario=steady" >> $GITHUB_OUTPUT
+            echo "environment=staging" >> $GITHUB_OUTPUT
+            echo "duration=30m" >> $GITHUB_OUTPUT
+          else
+            echo "scenario=${{ github.event.inputs.scenario }}" >> $GITHUB_OUTPUT
+            echo "environment=${{ github.event.inputs.environment }}" >> $GITHUB_OUTPUT
+            echo "duration=${{ github.event.inputs.duration || '5m' }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Set environment variables
+        run: |
+          if [ "${{ steps.scenario.outputs.environment }}" == "staging" ]; then
+            echo "BASE_URL=${{ secrets.STAGING_URL || 'https://staging.sparecarry.com' }}" >> $GITHUB_ENV
+            echo "TEST_USER_EMAIL=${{ secrets.STAGING_TEST_USER_EMAIL }}" >> $GITHUB_ENV
+            echo "TEST_USER_PASSWORD=${{ secrets.STAGING_TEST_USER_PASSWORD }}" >> $GITHUB_ENV
+          else
+            echo "BASE_URL=${{ secrets.PRODUCTION_URL || 'https://sparecarry.com' }}" >> $GITHUB_ENV
+            echo "TEST_USER_EMAIL=${{ secrets.PRODUCTION_TEST_USER_EMAIL }}" >> $GITHUB_ENV
+            echo "TEST_USER_PASSWORD=${{ secrets.PRODUCTION_TEST_USER_PASSWORD }}" >> $GITHUB_ENV
+          fi
+
+      - name: Run load test
+        id: run-test
+        run: |
+          cd load-tests
+          
+          SCENARIO="${{ steps.scenario.outputs.scenario }}"
+          DURATION="${{ steps.scenario.outputs.duration }}"
+          
+          # Determine script path
+          if [ "$SCENARIO" == "ramp" ] || [ "$SCENARIO" == "steady" ] || [ "$SCENARIO" == "spike" ]; then
+            SCRIPT="scenarios/${SCENARIO}.js"
+          else
+            SCRIPT="scripts/${SCENARIO}.js"
+          fi
+          
+          # Run k6 with JSON output
+          k6 run \
+            --out json=results.json \
+            --out cloud \
+            --tag environment="${{ steps.scenario.outputs.environment }}" \
+            --tag scenario="$SCENARIO" \
+            --tag duration="$DURATION" \
+            --duration "$DURATION" \
+            "$SCRIPT" || TEST_EXIT_CODE=$?
+          
+          echo "exit_code=${TEST_EXIT_CODE:-0}" >> $GITHUB_OUTPUT
+
+      - name: Generate HTML report
+        if: always()
+        run: |
+          cd load-tests
+          
+          # Install k6 HTML report generator if not available
+          if ! command -v k6-to-html &> /dev/null; then
+            npm install -g k6-to-html
+          fi
+          
+          # Generate HTML report
+          if [ -f results.json ]; then
+            k6-to-html results.json -o report.html || true
+          fi
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: load-test-results-${{ steps.scenario.outputs.scenario }}-${{ github.run_number }}
+          path: |
+            load-tests/results.json
+            load-tests/report.html
+          retention-days: 30
+
+      - name: Check thresholds
+        if: steps.run-test.outputs.exit_code != 0
+        run: |
+          echo "❌ Load test failed: Thresholds exceeded"
+          echo "Check the uploaded report for details"
+          exit 1
+
+      - name: Load test summary
+        if: always()
+        run: |
+          echo "## Load Test Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Metric | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Scenario | ${{ steps.scenario.outputs.scenario }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Environment | ${{ steps.scenario.outputs.environment }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Duration | ${{ steps.scenario.outputs.duration }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Status | ${{ steps.run-test.outputs.exit_code == 0 && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "📊 See uploaded artifacts for detailed results" >> $GITHUB_STEP_SUMMARY
+

@@ -1,14 +1,14 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
 import { Gift, Copy, Check } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { createClient } from "@/lib/supabase/client";
-import { getReferralStats, applyReferralCode } from "@/lib/referrals/referral-system";
+import { createClient } from "../../lib/supabase/client";
+import { getReferralStats, applyReferralCode } from "../../lib/referrals/referral-system";
 
 export function ReferralCard() {
   const t = useTranslations("referral");
@@ -57,7 +57,7 @@ export function ReferralCard() {
       } else {
         alert(result.error || "Failed to apply referral code");
       }
-    } catch (error: any) {
+    } catch (error) {
       alert(error.message || "Failed to apply referral code");
     } finally {
       setApplying(false);

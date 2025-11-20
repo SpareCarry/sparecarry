@@ -2,15 +2,15 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Steps } from "@/components/ui/steps";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { createClient } from "@/lib/supabase/client";
+import { Steps } from "../../components/ui/steps";
+import { Button } from "../../components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/ui/card";
+import { createClient } from "../../lib/supabase/client";
 import { Phone, CreditCard, Ship, User, Loader2 } from "lucide-react";
-import { OnboardingStep1 } from "@/components/onboarding/step-1-phone";
-import { OnboardingStep2 } from "@/components/onboarding/step-2-stripe";
-import { OnboardingStep3 } from "@/components/onboarding/step-3-sailor";
-import { OnboardingStep4 } from "@/components/onboarding/step-4-role";
+import { OnboardingStep1 } from "../../components/onboarding/step-1-phone";
+import { OnboardingStep2 } from "../../components/onboarding/step-2-stripe";
+import { OnboardingStep3 } from "../../components/onboarding/step-3-sailor";
+import { OnboardingStep4 } from "../../components/onboarding/step-4-role";
 
 const onboardingSteps = [
   {
@@ -88,7 +88,7 @@ export default function OnboardingPage() {
           .single();
 
         // If user might be a sailor but hasn't completed step 3
-        if (userData.role === "sailor" && !sailorProfile?.boat_name) {
+        if (userData?.role === "sailor" && !sailorProfile?.boat_name) {
           setCurrentStep(3);
         } else {
           setCurrentStep(4);
@@ -124,7 +124,7 @@ export default function OnboardingPage() {
           <h1 className="text-4xl font-bold text-white mb-2 text-center">
             Welcome to CarrySpace
           </h1>
-          <p className="text-white/90 text-center">Let's get you set up</p>
+          <p className="text-white/90 text-center">Let&apos;s get you set up</p>
         </div>
 
         <Card className="mb-8 bg-white/95 backdrop-blur">

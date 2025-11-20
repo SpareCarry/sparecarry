@@ -1,0 +1,19 @@
+name: CI Summary
+
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types:
+      - completed
+
+jobs:
+  summary:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion != 'success' }}
+    steps:
+      - name: Check CI Status
+        run: |
+          echo "## ⚠️ CI Pipeline Issues" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Some jobs in the CI pipeline failed. Please review the workflow run for details." >> $GITHUB_STEP_SUMMARY
+

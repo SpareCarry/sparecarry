@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { createClient } from "@/lib/supabase/client";
-import { Button } from "@/components/ui/button";
+import { createClient } from "../../lib/supabase/client";
+import { Button } from "../ui/button";
 import {
   Table,
   TableBody,
@@ -11,9 +11,9 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
+} from "../ui/table";
+import { Badge } from "../ui/badge";
+import { Input } from "../ui/input";
 import { CheckCircle2, XCircle, Loader2, Search, Ship } from "lucide-react";
 import { format } from "date-fns";
 

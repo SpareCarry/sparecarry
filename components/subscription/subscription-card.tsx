@@ -1,11 +1,11 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "../ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { CheckCircle2, Zap, Star, CreditCard } from "lucide-react";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { createClient } from "@/lib/supabase/client";
+import { createClient } from "../../lib/supabase/client";
 import { Loader2 } from "lucide-react";
 
 export function SubscriptionCard() {
@@ -55,7 +55,7 @@ export function SubscriptionCard() {
       } else {
         throw new Error(data.error || "Failed to create checkout");
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error:", error);
       alert(error.message || "Failed to start subscription");
     } finally {
@@ -76,7 +76,7 @@ export function SubscriptionCard() {
       } else {
         throw new Error(data.error || "Failed to open portal");
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error:", error);
       alert(error.message || "Failed to open subscription portal");
     } finally {

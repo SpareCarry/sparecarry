@@ -1,4 +1,4 @@
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent } from "../../components/ui/card";
 import Link from "next/link";
 
 export default function PrivacyPage() {
@@ -17,7 +17,7 @@ export default function PrivacyPage() {
           <CardContent className="p-8 prose prose-slate max-w-none">
             <p className="text-lg text-slate-700 leading-relaxed">
               Your privacy matters to us. This policy explains what information we collect, how we use it, 
-              and how we protect it. We're committed to being transparent and giving you control over your data.
+              and how we protect it. We&apos;re committed to being transparent and giving you control over your data.
             </p>
           </CardContent>
         </Card>
@@ -80,7 +80,7 @@ export default function PrivacyPage() {
                 <li><strong>Legal compliance:</strong> Meet legal obligations and respond to legal requests</li>
               </ul>
               <p className="text-slate-700 bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <strong>We never sell your personal information.</strong> We don't share it with third parties except as described 
+                <strong>We never sell your personal information.</strong> We don&apos;t share it with third parties except as described 
                 in this policy (e.g., Stripe for payments, service providers who help us operate the platform).
               </p>
             </CardContent>
@@ -110,7 +110,7 @@ export default function PrivacyPage() {
                     <li><strong>Expo:</strong> Push notifications (for mobile apps)</li>
                   </ul>
                   <p className="text-slate-700 text-sm mt-2">
-                    These providers are contractually required to protect your information and only use it for the services we've engaged them for.
+                    These providers are contractually required to protect your information and only use it for the services we&apos;ve engaged them for.
                   </p>
                 </div>
                 <div>
@@ -135,7 +135,7 @@ export default function PrivacyPage() {
             <CardContent className="p-8">
               <h2 className="text-2xl font-bold text-slate-900 mb-4">4. Data Security</h2>
               <p className="text-slate-700 mb-4">
-                We take security seriously. Here's what we do to protect your information:
+                We take security seriously. Here&apos;s what we do to protect your information:
               </p>
               <ul className="list-disc list-inside text-slate-700 space-y-2 mb-4">
                 <li><strong>Encryption:</strong> All data is encrypted in transit (HTTPS) and at rest</li>
@@ -146,7 +146,7 @@ export default function PrivacyPage() {
                 <li><strong>Regular audits:</strong> We regularly review and update our security practices</li>
               </ul>
               <p className="text-slate-700 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                <strong>Your part:</strong> Keep your account password secure and don't share it. Use a strong, unique password. 
+                <strong>Your part:</strong> Keep your account password secure and don&apos;t share it. Use a strong, unique password. 
                 If you suspect unauthorized access, contact us immediately.
               </p>
             </CardContent>
@@ -175,7 +175,7 @@ export default function PrivacyPage() {
                 <div>
                   <h3 className="font-semibold text-slate-900 mb-2">Opt Out of Communications</h3>
                   <p className="text-slate-700 text-sm">
-                    You can opt out of marketing emails (we'll still send important account and delivery updates). 
+                    You can opt out of marketing emails (we&apos;ll still send important account and delivery updates). 
                     You can also disable push notifications in your device settings.
                   </p>
                 </div>
@@ -214,10 +214,10 @@ export default function PrivacyPage() {
 
           <Card>
             <CardContent className="p-8">
-              <h2 className="text-2xl font-bold text-slate-900 mb-4">7. Children's Privacy</h2>
+              <h2 className="text-2xl font-bold text-slate-900 mb-4">7. Children&apos;s Privacy</h2>
               <p className="text-slate-700">
                 SpareCarry is not intended for users under 18 years of age. We do not knowingly collect information from children. 
-                If you believe we have collected information from a child, please contact us immediately and we'll delete it.
+                If you believe we have collected information from a child, please contact us immediately and we&apos;ll delete it.
               </p>
             </CardContent>
           </Card>
@@ -226,7 +226,7 @@ export default function PrivacyPage() {
             <CardContent className="p-8">
               <h2 className="text-2xl font-bold text-slate-900 mb-4">8. International Users</h2>
               <p className="text-slate-700 mb-4">
-                SpareCarry operates globally, but our servers are primarily located in the United States. If you're using SpareCarry 
+                SpareCarry operates globally, but our servers are primarily located in the United States. If you&apos;re using SpareCarry 
                 from outside the U.S., your information may be transferred to and stored in the U.S.
               </p>
               <p className="text-slate-700">
@@ -240,8 +240,8 @@ export default function PrivacyPage() {
             <CardContent className="p-8">
               <h2 className="text-2xl font-bold text-slate-900 mb-4">9. Changes to This Policy</h2>
               <p className="text-slate-700">
-                We may update this privacy policy from time to time. We'll notify you of significant changes via email or through 
-                the platform. The "Last updated" date at the top shows when this policy was last revised. Continued use of SpareCarry 
+                We may update this privacy policy from time to time. We&apos;ll notify you of significant changes via email or through 
+                the platform. The &quot;Last updated&quot; date at the top shows when this policy was last revised. Continued use of SpareCarry 
                 after changes constitutes acceptance of the updated policy.
               </p>
             </CardContent>
@@ -251,7 +251,7 @@ export default function PrivacyPage() {
             <CardContent className="p-8">
               <h2 className="text-2xl font-bold text-slate-900 mb-4">10. Contact Us</h2>
               <p className="text-slate-700 mb-4">
-                Questions about privacy? We're here to help:
+                Questions about privacy? We&apos;re here to help:
               </p>
               <ul className="list-none text-slate-700 space-y-2">
                 <li><strong>Privacy inquiries:</strong> privacy@sparecarry.com</li>
@@ -259,7 +259,7 @@ export default function PrivacyPage() {
                 <li><strong>General support:</strong> support@sparecarry.com</li>
               </ul>
               <p className="text-slate-700 mt-4 text-sm">
-                If you're in the EU and have concerns about how we handle your data, you can also contact your local data protection authority.
+                If you&apos;re in the EU and have concerns about how we handle your data, you can also contact your local data protection authority.
               </p>
             </CardContent>
           </Card>

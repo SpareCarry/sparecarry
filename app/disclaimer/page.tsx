@@ -1,4 +1,4 @@
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent } from "../../components/ui/card";
 import Link from "next/link";
 
 export default function DisclaimerPage() {
@@ -16,7 +16,7 @@ export default function DisclaimerPage() {
         <Card className="mb-6">
           <CardContent className="p-8 prose prose-slate max-w-none">
             <p className="text-lg text-slate-700 leading-relaxed">
-              This disclaimer explains what SpareCarry is responsible for (and what we're not). 
+              This disclaimer explains what SpareCarry is responsible for (and what we&apos;re not). 
               We want to be upfront about the risks and limitations of using a peer-to-peer marketplace.
             </p>
           </CardContent>
@@ -25,7 +25,7 @@ export default function DisclaimerPage() {
         <div className="space-y-6">
           <Card>
             <CardContent className="p-8">
-              <h2 className="text-2xl font-bold text-slate-900 mb-4">What SpareCarry Is (and Isn't)</h2>
+              <h2 className="text-2xl font-bold text-slate-900 mb-4">What SpareCarry Is (and Isn&apos;t)</h2>
               <p className="text-slate-700 mb-4">
                 <strong>SpareCarry is a technology platform</strong> that connects travelers with people who need items delivered. 
                 We provide:
@@ -41,14 +41,14 @@ export default function DisclaimerPage() {
               </p>
               <ul className="list-disc list-inside text-slate-700 space-y-2 mb-4">
                 <li>A shipping company or courier service</li>
-                <li>An employer of travelers (they're independent contractors)</li>
+                <li>An employer of travelers (they&apos;re independent contractors)</li>
                 <li>A guarantor of delivery success</li>
                 <li>An insurance provider (though we facilitate insurance purchases)</li>
                 <li>Responsible for customs, import/export, or legal compliance</li>
               </ul>
               <p className="text-slate-700 bg-teal-50 border border-teal-200 rounded-lg p-4">
                 <strong>Bottom line:</strong> The actual delivery is arranged directly between you and another user. 
-                We facilitate the connection and handle payments, but we don't control the delivery itself.
+                We facilitate the connection and handle payments, but we don&apos;t control the delivery itself.
               </p>
             </CardContent>
           </Card>
@@ -76,15 +76,15 @@ export default function DisclaimerPage() {
                 <div>
                   <h3 className="font-semibold text-slate-900 mb-2">Delivery Delays</h3>
                   <p className="text-slate-700 text-sm">
-                    Travel plans change. Weather happens. Customs can be slow. We're not responsible for delays in delivery, 
-                    even if they cause you inconvenience or financial loss. Travelers should communicate delays, but we can't 
+                    Travel plans change. Weather happens. Customs can be slow. We&apos;re not responsible for delays in delivery, 
+                    even if they cause you inconvenience or financial loss. Travelers should communicate delays, but we can&apos;t 
                     guarantee delivery times.
                   </p>
                 </div>
                 <div>
                   <h3 className="font-semibold text-slate-900 mb-2">Customs and Import/Export Issues</h3>
                   <p className="text-slate-700 text-sm">
-                    You are responsible for ensuring items comply with all customs, import, export, and other laws. We're not 
+                    You are responsible for ensuring items comply with all customs, import, export, and other laws. We&apos;re not 
                     responsible for items seized by customs, import duties, or legal issues related to cross-border shipping. 
                     Travelers should research requirements for their routes.
                   </p>
@@ -92,21 +92,21 @@ export default function DisclaimerPage() {
                 <div>
                   <h3 className="font-semibold text-slate-900 mb-2">Injuries or Accidents</h3>
                   <p className="text-slate-700 text-sm">
-                    We're not responsible for injuries, accidents, or property damage that occur during pickup, transport, 
+                    We&apos;re not responsible for injuries, accidents, or property damage that occur during pickup, transport, 
                     or delivery. Travelers should have appropriate insurance coverage.
                   </p>
                 </div>
                 <div>
                   <h3 className="font-semibold text-slate-900 mb-2">User Disputes</h3>
                   <p className="text-slate-700 text-sm">
-                    While we'll help mediate disputes, we're not responsible for disagreements between users. We'll investigate 
-                    disputes fairly, but our decisions are final and we're not liable for the outcome.
+                    While we&apos;ll help mediate disputes, we&apos;re not responsible for disagreements between users. We&apos;ll investigate 
+                    disputes fairly, but our decisions are final and we&apos;re not liable for the outcome.
                   </p>
                 </div>
                 <div>
                   <h3 className="font-semibold text-slate-900 mb-2">Platform Errors or Interruptions</h3>
                   <p className="text-slate-700 text-sm">
-                    We strive to keep SpareCarry running smoothly, but we're not liable for technical errors, downtime, 
+                    We strive to keep SpareCarry running smoothly, but we&apos;re not liable for technical errors, downtime, 
                     or interruptions that may affect your use of the platform.
                   </p>
                 </div>
@@ -123,8 +123,8 @@ export default function DisclaimerPage() {
             <CardContent className="p-8">
               <h2 className="text-2xl font-bold text-slate-900 mb-4">No Warranties</h2>
               <p className="text-slate-700 mb-4">
-                SpareCarry is provided "as is" and "as available" without warranties of any kind, either express or implied. 
-                We don't warrant that:
+                SpareCarry is provided &quot;as is&quot; and &quot;as available&quot; without warranties of any kind, either express or implied. 
+                We don&apos;t warrant that:
               </p>
               <ul className="list-disc list-inside text-slate-700 space-y-2 mb-4">
                 <li>The platform will be uninterrupted or error-free</li>
@@ -134,7 +134,7 @@ export default function DisclaimerPage() {
                 <li>The platform will meet your specific needs</li>
               </ul>
               <p className="text-slate-700">
-                You use SpareCarry at your own risk. We do our best to create a safe, reliable platform, but we can't guarantee 
+                You use SpareCarry at your own risk. We do our best to create a safe, reliable platform, but we can&apos;t guarantee 
                 perfect outcomes.
               </p>
             </CardContent>
@@ -188,7 +188,7 @@ export default function DisclaimerPage() {
                 <li>Any harm caused by items you post or deliver</li>
               </ul>
               <p className="text-slate-700">
-                In simple terms: if you cause problems, you're responsible for them, not us.
+                In simple terms: if you cause problems, you&apos;re responsible for them, not us.
               </p>
             </CardContent>
           </Card>
@@ -201,9 +201,9 @@ export default function DisclaimerPage() {
               </p>
               <ol className="list-decimal list-inside text-slate-700 space-y-2 mb-4">
                 <li><strong>Try to resolve it directly:</strong> Most issues can be solved through communication</li>
-                <li><strong>Contact support:</strong> We'll help mediate and investigate</li>
-                <li><strong>We'll make a decision:</strong> Based on evidence (photos, messages, GPS data), we'll decide how to resolve the dispute</li>
-                <li><strong>Our decision is final:</strong> While we'll be fair, our resolution is binding</li>
+                <li><strong>Contact support:</strong> We&apos;ll help mediate and investigate</li>
+                <li><strong>We&apos;ll make a decision:</strong> Based on evidence (photos, messages, GPS data), we&apos;ll decide how to resolve the dispute</li>
+                <li><strong>Our decision is final:</strong> While we&apos;ll be fair, our resolution is binding</li>
               </ol>
               <p className="text-slate-700 mb-4">
                 For legal disputes with SpareCarry (not other users), you agree to:
@@ -214,7 +214,7 @@ export default function DisclaimerPage() {
                 <li>Waive your right to a jury trial or class action lawsuit</li>
               </ul>
               <p className="text-slate-700 text-sm">
-                Some jurisdictions don't allow these limitations. If you're in such a jurisdiction, some of these terms may not apply to you.
+                Some jurisdictions don&apos;t allow these limitations. If you&apos;re in such a jurisdiction, some of these terms may not apply to you.
               </p>
             </CardContent>
           </Card>
@@ -234,7 +234,7 @@ export default function DisclaimerPage() {
                   <ul className="list-disc list-inside text-slate-700 space-y-1 text-sm ml-4 mt-2">
                     <li>Item value exceeds $500</li>
                     <li>Item is fragile or irreplaceable</li>
-                    <li>You can't afford to lose the item</li>
+                    <li>You can&apos;t afford to lose the item</li>
                   </ul>
                 </div>
                 <div>
@@ -246,8 +246,8 @@ export default function DisclaimerPage() {
                 </div>
               </div>
               <p className="text-slate-700 bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4">
-                <strong>Note:</strong> Insurance is optional but highly recommended. We're not an insurance provider and 
-                don't guarantee insurance coverage or claims.
+                <strong>Note:</strong> Insurance is optional but highly recommended. We&apos;re not an insurance provider and 
+                don&apos;t guarantee insurance coverage or claims.
               </p>
             </CardContent>
           </Card>
@@ -256,7 +256,7 @@ export default function DisclaimerPage() {
             <CardContent className="p-8">
               <h2 className="text-2xl font-bold text-slate-900 mb-4">Changes to This Disclaimer</h2>
               <p className="text-slate-700">
-                We may update this disclaimer from time to time. We'll notify you of significant changes via email or through 
+                We may update this disclaimer from time to time. We&apos;ll notify you of significant changes via email or through 
                 the platform. Continued use of SpareCarry after changes constitutes acceptance of the updated disclaimer.
               </p>
             </CardContent>
@@ -266,7 +266,7 @@ export default function DisclaimerPage() {
             <CardContent className="p-8">
               <h2 className="text-2xl font-bold text-slate-900 mb-4">Contact Us</h2>
               <p className="text-slate-700 mb-4">
-                Questions about this disclaimer? We're here to help:
+                Questions about this disclaimer? We&apos;re here to help:
               </p>
               <ul className="list-none text-slate-700 space-y-2">
                 <li><strong>Legal questions:</strong> legal@sparecarry.com</li>

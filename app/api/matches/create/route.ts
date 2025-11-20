@@ -1,28 +1,46 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { createClient } from "../../../lib/supabase/server";
+import { createMatchRequestSchema } from "../../../lib/zod/api-schemas";
+import { rateLimit, apiRateLimiter } from "@/lib/security/rate-limit";
+import { assertAuthenticated } from "@/lib/security/auth-guards";
+import { validateRequestBody } from "@/lib/security/validation";
+import { errorResponse, successResponse, authErrorResponse } from "@/lib/security/api-response";
+import { safeLog } from "@/lib/security/auth-guards";
+import { withApiErrorHandler } from "@/lib/api/error-handler";
 
-export async function POST(request: NextRequest) {
-  try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+export const POST = withApiErrorHandler(async function POST(request: NextRequest) {
+  // Rate limiting
+  const rateLimitResult = await rateLimit(request, apiRateLimiter);
+  if (!rateLimitResult.allowed) {
+    return NextResponse.json(
+      { error: rateLimitResult.error },
+      { status: 429, headers: rateLimitResult.headers }
+    );
+  }
 
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+  // Authentication
+  const user = await assertAuthenticated(request);
 
-    const body = await request.json();
-    const { tripId, requestId } = body;
+  // Validate request body
+  const body = await request.json();
+  const validation = validateRequestBody(createMatchRequestSchema, body);
+  if (!validation.success) {
+    return NextResponse.json(
+      { error: validation.error },
+      { status: 400 }
+    );
+  }
+
+  const { tripId, requestId } = validation.data;
 
     // Verify user owns the request
-    const { data: request } = await supabase
+    const { data: requestData } = await supabase
       .from("requests")
       .select("user_id, max_reward")
       .eq("id", requestId)
       .single();
 
-    if (!request || request.user_id !== user.id) {
+    if (!requestData || requestData.user_id !== user.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
@@ -56,7 +74,7 @@ export async function POST(request: NextRequest) {
         trip_id: tripId,
         request_id: requestId,
         status: "pending",
-        reward_amount: request.max_reward,
+        reward_amount: requestData.max_reward,
       })
       .select()
       .single();
@@ -72,20 +90,13 @@ export async function POST(request: NextRequest) {
           matchId: match.id,
           userId: trip.user_id,
           tripType: trip.type,
-          rewardAmount: request.max_reward,
+          rewardAmount: requestData.max_reward,
         }),
       });
     } catch (notifError) {
       console.error("Error sending match notification:", notifError);
     }
 
-    return NextResponse.json({ match });
-  } catch (error: any) {
-    console.error("Error creating match:", error);
-    return NextResponse.json(
-      { error: error.message || "Failed to create match" },
-      { status: 500 }
-    );
-  }
-}
+    return successResponse({ match });
+});
 

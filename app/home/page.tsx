@@ -2,15 +2,15 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useInfiniteQuery } from "@tanstack/react-query";
-import { FeedCard } from "@/components/feed/feed-card";
-import { FeedDetailModal } from "@/components/feed/feed-detail-modal";
+import { FeedCard } from "../../components/feed/feed-card";
+import { FeedDetailModal } from "../../components/feed/feed-detail-modal";
 import { Loader2 } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
-import { CreditBanner } from "@/components/referral/credit-banner";
-import { ReferralLeaderboard } from "@/components/referral/referral-leaderboard";
-import { calculateMatchScore, MatchScoreBreakdown } from "@/lib/matching/match-score";
-import { NotificationPermissionRequest } from "@/components/notifications/permission-request";
-import { TrustBanner } from "@/components/banners/trust-banner";
+import { createClient } from "../../lib/supabase/client";
+import { CreditBanner } from "../../components/referral/credit-banner";
+import { ReferralLeaderboard } from "../../components/referral/referral-leaderboard";
+import { calculateMatchScore, MatchScoreBreakdown } from "../../lib/matching/match-score";
+import { NotificationPermissionRequest } from "../../components/notifications/permission-request";
+import { TrustBanner } from "../../components/banners/trust-banner";
 
 interface FeedItem {
   id: string;

@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { createClient } from "@/lib/supabase/client";
-import { Button } from "@/components/ui/button";
+import { createClient } from "../../lib/supabase/client";
+import { Button } from "../ui/button";
 import {
   Table,
   TableBody,
@@ -11,9 +11,9 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
+} from "../ui/table";
+import { Badge } from "../ui/badge";
+import { Input } from "../ui/input";
 import { Search, Loader2, MessageSquare, CheckCircle2, XCircle } from "lucide-react";
 import { format } from "date-fns";
 
@@ -22,11 +22,33 @@ export function DisputesTable() {
   const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState("");
 
-  const { data: disputes, isLoading } = useQuery({
+  interface DisputeMatch {
+    id: string;
+    status: string;
+    reward_amount: number;
+    trips: {
+      from_location: string;
+      to_location: string;
+      users: { email: string } | null;
+    } | null;
+    requests: {
+      title: string;
+      from_location: string;
+      to_location: string;
+      users: { email: string } | null;
+    } | null;
+    deliveries: {
+      dispute_opened_at: string | null;
+      proof_photos: string[];
+    } | null;
+    updated_at: string;
+  }
+
+  const { data: disputes, isLoading } = useQuery<DisputeMatch[]>({
     queryKey: ["admin-disputes", searchQuery],
     queryFn: async () => {
       // Get matches with disputes (status = 'disputed')
-      let query = supabase
+      const query = supabase
         .from("matches")
         .select(
           `
@@ -41,7 +63,7 @@ export function DisputesTable() {
 
       const { data, error } = await query;
       if (error) throw error;
-      return data;
+      return (data || []) as DisputeMatch[];
     },
   });
 
@@ -67,7 +89,19 @@ export function DisputesTable() {
 
       if (error) throw error;
 
-      // TODO: Handle refunds via Stripe API if resolution === "refund"
+      // Handle refunds via Stripe API if resolution === "refund"
+      // TODO: requires Stripe API integration for refund processing
+      // This should:
+      // 1. Retrieve the payment intent ID from the match
+      // 2. Create a refund via Stripe API
+      // 3. Update match status and log refund transaction
+      if (resolution === "refund") {
+        // TODO: Implement Stripe refund logic
+        // const { stripe } = await import("@/lib/stripe/server");
+        // const paymentIntentId = match.payment_intent_id;
+        // await stripe.refunds.create({ payment_intent: paymentIntentId });
+        console.warn("Refund functionality requires Stripe API integration");
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-disputes"] });
@@ -111,7 +145,7 @@ export function DisputesTable() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {disputes?.map((dispute: any) => {
+            {disputes?.map((dispute) => {
               const trip = dispute.trips;
               const request = dispute.requests;
               const delivery = Array.isArray(dispute.deliveries) ? dispute.deliveries[0] : dispute.deliveries;

@@ -1,13 +1,13 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "../ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Anchor, CheckCircle2, Star, Moon, Sun, Trophy } from "lucide-react";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { createClient } from "@/lib/supabase/client";
+import { createClient } from "../../lib/supabase/client";
 import { Loader2 } from "lucide-react";
-import { SupporterBadge } from "@/components/badges/supporter-badge";
+import { SupporterBadge } from "../badges/supporter-badge";
 
 export function SupporterCard() {
   const supabase = createClient();
@@ -75,7 +75,7 @@ export function SupporterCard() {
               <div className="flex items-center gap-2 mb-2">
                 <CheckCircle2 className="h-5 w-5 text-blue-600" />
                 <span className="font-semibold text-blue-900">
-                  You're a Supporter!
+                  You&apos;re a Supporter!
                 </span>
               </div>
               <p className="text-sm text-blue-800">
@@ -100,7 +100,7 @@ export function SupporterCard() {
                 <li className="flex items-center gap-2">
                   <CheckCircle2 className="h-4 w-4 text-blue-600 flex-shrink-0" />
                   <span>
-                    <SupporterBadge size="sm" /> Blue anchor badge + "Supporter" title
+                    <SupporterBadge size="sm" /> Blue anchor badge + &quot;Supporter&quot; title
                   </span>
                 </li>
                 <li className="flex items-center gap-2">
@@ -113,7 +113,7 @@ export function SupporterCard() {
                 </li>
                 <li className="flex items-center gap-2">
                   <CheckCircle2 className="h-4 w-4 text-blue-600 flex-shrink-0" />
-                  <span>Name in "Hall of Fame" page</span>
+                  <span>Name in &quot;Hall of Fame&quot; page</span>
                 </li>
               </ul>
             </div>
@@ -155,7 +155,7 @@ export function SupporterCard() {
                 <li className="flex items-start gap-2">
                   <CheckCircle2 className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
                   <span>
-                    <SupporterBadge size="sm" /> Blue anchor badge + "Supporter" title
+                    <SupporterBadge size="sm" /> Blue anchor badge + &quot;Supporter&quot; title
                   </span>
                 </li>
                 <li className="flex items-start gap-2">

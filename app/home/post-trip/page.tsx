@@ -1,7 +1,7 @@
 "use client";
 
-import { PostTripForm } from "@/components/forms/post-trip-form";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { PostTripForm } from "../../../components/forms/post-trip-form";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../../components/ui/card";
 import { Plane } from "lucide-react";
 
 export default function PostTripPage() {

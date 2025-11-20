@@ -1,0 +1,96 @@
+﻿{
+    "timestamp":  "20251120_132755",
+    "errors":  [
+                   "Preflight \u0026 Environment Validation : ΓÜá∩╕Å  Git working directory clean: Uncommitted changes detected (non-blocking)",
+                   "Web Build (Staging) : Failed to compile.",
+                   "Database Migration \u0026 Seed : node:internal/modules/cjs/loader:1424"
+               ],
+    "overall":  "FAIL",
+    "score":  50,
+    "steps":  {
+                  "Preflight \u0026 Environment Validation":  {
+                                                                  "status":  "FAIL",
+                                                                  "timestamp":  "2025-11-20 13:27:56",
+                                                                  "message":  "ΓÜá∩╕Å  Git working directory clean: Uncommitted changes detected (non-blocking)",
+                                                                  "details":  {
+                                                                                  "error":  "ΓÜá∩╕Å  Git working directory clean: Uncommitted changes detected (non-blocking)",
+                                                                                  "stack":  "at \u003cScriptBlock\u003e, C:\\SpareCarry\\scripts\\run-full-beta-test.ps1: line 150\r\nat Test-Step, C:\\SpareCarry\\scripts\\run-full-beta-test.ps1: line 102\r\nat \u003cScriptBlock\u003e, C:\\SpareCarry\\scripts\\run-full-beta-test.ps1: line 131\r\nat \u003cScriptBlock\u003e, \u003cNo file\u003e: line 1"
+                                                                              }
+                                                              },
+                  "Health Check Endpoint":  {
+                                                "status":  "PASS",
+                                                "timestamp":  "2025-11-20 13:28:28",
+                                                "message":  "Completed successfully",
+                                                "details":  null
+                                            },
+                  "Sentry \u0026 Logging Verification":  {
+                                                             "status":  "PASS",
+                                                             "timestamp":  "2025-11-20 13:28:28",
+                                                             "message":  "Completed successfully",
+                                                             "details":  null
+                                                         },
+                  "Database Migration \u0026 Seed":  {
+                                                         "status":  "FAIL",
+                                                         "timestamp":  "2025-11-20 13:28:07",
+                                                         "message":  "node:internal/modules/cjs/loader:1424",
+                                                         "details":  {
+                                                                         "error":  "node:internal/modules/cjs/loader:1424",
+                                                                         "stack":  "at \u003cScriptBlock\u003e, C:\\Users\\admin\\AppData\\Roaming\\npm\\pnpm.ps1: line 24\r\nat \u003cScriptBlock\u003e, C:\\SpareCarry\\scripts\\run-full-beta-test.ps1: line 276\r\nat Test-Step, C:\\SpareCarry\\scripts\\run-full-beta-test.ps1: line 102\r\nat \u003cScriptBlock\u003e, C:\\SpareCarry\\scripts\\run-full-beta-test.ps1: line 264\r\nat \u003cScriptBlock\u003e, \u003cNo file\u003e: line 1"
+                                                                     }
+                                                     },
+                  "Health Check":  {
+                                       "status":  "WARN",
+                                       "timestamp":  "2025-11-20 13:28:28",
+                                       "message":  "Endpoint not accessible - server may not be running",
+                                       "details":  null
+                                   },
+                  "Feature Flags Verification":  {
+                                                     "status":  "PASS",
+                                                     "timestamp":  "2025-11-20 13:28:28",
+                                                     "message":  "Completed successfully",
+                                                     "details":  null
+                                                 },
+                  "Sentry \u0026 Logging":  {
+                                                "status":  "PASS",
+                                                "timestamp":  "2025-11-20 13:28:28",
+                                                "message":  "Sentry DSN configured",
+                                                "details":  null
+                                            },
+                  "Backup \u0026 Recovery":  {
+                                                 "status":  "WARN",
+                                                 "timestamp":  "2025-11-20 13:28:28",
+                                                 "message":  "Skipped - requires Supabase credentials",
+                                                 "details":  null
+                                             },
+                  "Backup \u0026 Recovery Verification":  {
+                                                              "status":  "PASS",
+                                                              "timestamp":  "2025-11-20 13:28:28",
+                                                              "message":  "Completed successfully",
+                                                              "details":  null
+                                                          },
+                  "Web Build (Staging)":  {
+                                              "status":  "FAIL",
+                                              "timestamp":  "2025-11-20 13:28:06",
+                                              "message":  "Failed to compile.",
+                                              "details":  {
+                                                              "error":  "Failed to compile.",
+                                                              "stack":  "at \u003cScriptBlock\u003e, C:\\Users\\admin\\AppData\\Roaming\\npm\\pnpm.ps1: line 24\r\nat \u003cScriptBlock\u003e, C:\\SpareCarry\\scripts\\run-full-beta-test.ps1: line 213\r\nat Test-Step, C:\\SpareCarry\\scripts\\run-full-beta-test.ps1: line 102\r\nat \u003cScriptBlock\u003e, C:\\SpareCarry\\scripts\\run-full-beta-test.ps1: line 174\r\nat \u003cScriptBlock\u003e, \u003cNo file\u003e: line 1"
+                                                          }
+                                          },
+                  "QA Simulation":  {
+                                        "status":  "PASS",
+                                        "timestamp":  "2025-11-20 13:28:27",
+                                        "message":  "Completed successfully",
+                                        "details":  null
+                                    },
+                  "Feature Flags":  {
+                                        "status":  "WARN",
+                                        "timestamp":  "2025-11-20 13:28:28",
+                                        "message":  "Skipped - requires Unleash server",
+                                        "details":  null
+                                    }
+              },
+    "warnings":  [
+
+                 ]
+}

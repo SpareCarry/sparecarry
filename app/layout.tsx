@@ -1,10 +1,9 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
 import "./globals.css";
 import Script from "next/script";
 import { Providers } from "./providers";
-
-const inter = Inter({ subsets: ["latin"] });
+import { ErrorBoundary } from "./_components/ErrorBoundary";
+import { TelemetryInitializer } from "./_components/TelemetryInitializer";
 
 export const metadata: Metadata = {
   title: "SpareCarry – Earn $200–$3,000 using spare space you already have",
@@ -25,7 +24,6 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "SpareCarry – Earn $200–$3,000 using spare space you already have",
     description: "Get anything delivered by people already going your way — by plane in days or by boat for 80% less.",
-    domain: "sparecarry.com",
   },
   robots: {
     index: true,
@@ -47,9 +45,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={inter.className}>
-        <Providers>
-          {children}
+      <body className="font-sans" style={{ fontFamily: "'Inter', system-ui, -apple-system, sans-serif" }}>
+        <ErrorBoundary>
+          <Providers>
+            <TelemetryInitializer />
+            {children}
           {/* Google Analytics 4 */}
         {process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID && (
           <>
@@ -85,6 +85,7 @@ export default function RootLayout({
               `}
             </Script>
             <noscript>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 height="1"
                 width="1"
@@ -96,8 +97,8 @@ export default function RootLayout({
           </>
         )}
         </Providers>
+        </ErrorBoundary>
       </body>
     </html>
   );
 }
-

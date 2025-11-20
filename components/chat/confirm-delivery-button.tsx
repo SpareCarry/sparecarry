@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
+import { Button } from "../ui/button";
 import { CheckCircle2, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
@@ -36,7 +36,7 @@ export function ConfirmDeliveryButton({ matchId }: ConfirmDeliveryButtonProps) {
       
       // Refresh to show rating modal
       router.refresh();
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error confirming delivery:", error);
       alert(error.message || "Failed to confirm delivery");
     } finally {

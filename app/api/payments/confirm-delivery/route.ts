@@ -1,44 +1,63 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
-import { stripe } from "@/lib/stripe/server";
+import { createClient } from "../../../lib/supabase/server";
+import { stripe } from "../../../lib/stripe/server";
+import { confirmDeliveryRequestSchema } from "../../../lib/zod/api-schemas";
+import { rateLimit, apiRateLimiter } from "@/lib/security/rate-limit";
+import { assertAuthenticated } from "@/lib/security/auth-guards";
+import { validateRequestBody } from "@/lib/security/validation";
+import { errorResponse, successResponse } from "@/lib/security/api-response";
+import { safeLog } from "@/lib/security/auth-guards";
+import { withApiErrorHandler } from "@/lib/api/error-handler";
 
-export async function POST(request: NextRequest) {
-  try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+export const POST = withApiErrorHandler(async function POST(request: NextRequest) {
+  // Rate limiting
+  const rateLimitResult = await rateLimit(request, apiRateLimiter);
+  if (!rateLimitResult.allowed) {
+    return NextResponse.json(
+      { error: rateLimitResult.error },
+      { status: 429, headers: rateLimitResult.headers }
+    );
+  }
 
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+  // Authentication
+  const user = await assertAuthenticated(request);
 
-    const body = await request.json();
-    const { matchId } = body;
+  // Validate request body
+  const body = await request.json();
+  const validation = validateRequestBody(confirmDeliveryRequestSchema, body);
+  if (!validation.success) {
+    return NextResponse.json(
+      { error: validation.error },
+      { status: 400 }
+    );
+  }
+
+  const supabase = await createClient();
+  const { matchId } = validation.data;
 
     // Get match details
-    const { data: match } = await supabase
+    const { data: matchData } = await supabase
       .from("matches")
       .select("*")
       .eq("id", matchId)
       .single();
 
-    if (!match) {
+    if (!matchData) {
       return NextResponse.json({ error: "Match not found" }, { status: 404 });
     }
 
     // Verify user is the requester
-    const { data: request } = await supabase
+    const { data: requestData } = await supabase
       .from("requests")
       .select("user_id")
-      .eq("id", match.request_id)
+      .eq("id", matchData.request_id)
       .single();
 
-    if (request?.user_id !== user.id) {
+    if (requestData?.user_id !== user.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
-    if (match.status !== "delivered") {
+    if (matchData.status !== "delivered") {
       return NextResponse.json(
         { error: "Match is not in delivered status" },
         { status: 400 }
@@ -46,13 +65,13 @@ export async function POST(request: NextRequest) {
     }
 
     // Release payment from escrow
-    if (match.escrow_payment_intent_id) {
+    if (matchData.escrow_payment_intent_id) {
       const paymentIntent = await stripe.paymentIntents.retrieve(
-        match.escrow_payment_intent_id
+        matchData.escrow_payment_intent_id
       );
 
       // Confirm the payment intent (release from escrow)
-      await stripe.paymentIntents.confirm(match.escrow_payment_intent_id);
+      await stripe.paymentIntents.confirm(matchData.escrow_payment_intent_id);
 
       // Update match status to completed
       await supabase
@@ -67,7 +86,7 @@ export async function POST(request: NextRequest) {
         .eq("match_id", matchId);
 
       // Process referral credits if this is user's first completed delivery
-      const { data: matchData } = await supabase
+      const { data: matchWithRelations } = await supabase
         .from("matches")
         .select(`
           requests(user_id),
@@ -76,28 +95,23 @@ export async function POST(request: NextRequest) {
         .eq("id", matchId)
         .single();
 
-      if (matchData) {
+      if (matchWithRelations) {
         // Process credits for requester
-        if (matchData.requests?.user_id) {
-          const { processReferralCredits } = await import("@/lib/referrals/referral-system");
-          await processReferralCredits(matchData.requests.user_id, matchId).catch(console.error);
+        const requests = Array.isArray(matchWithRelations.requests) ? matchWithRelations.requests[0] : matchWithRelations.requests;
+        if (requests?.user_id) {
+          const { processReferralCredits } = await import("../../../../lib/referrals/referral-system");
+          await processReferralCredits(requests.user_id, matchId).catch(console.error);
         }
 
         // Process credits for traveler
-        if (matchData.trips?.user_id) {
-          const { processReferralCredits } = await import("@/lib/referrals/referral-system");
-          await processReferralCredits(matchData.trips.user_id, matchId).catch(console.error);
+        const trips = Array.isArray(matchWithRelations.trips) ? matchWithRelations.trips[0] : matchWithRelations.trips;
+        if (trips?.user_id) {
+          const { processReferralCredits } = await import("../../../../lib/referrals/referral-system");
+          await processReferralCredits(trips.user_id, matchId).catch(console.error);
         }
       }
     }
 
-    return NextResponse.json({ success: true });
-  } catch (error: any) {
-    console.error("Error confirming delivery:", error);
-    return NextResponse.json(
-      { error: error.message || "Failed to confirm delivery" },
-      { status: 500 }
-    );
-  }
-}
+    return successResponse({ success: true });
+});
 

@@ -1,13 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "../ui/button";
+import { Card, CardContent } from "../ui/card";
 import { CheckCircle2, ArrowDownLeft, ArrowUpRight, DollarSign } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { createClient } from "@/lib/supabase/client";
+import { createClient } from "../../lib/supabase/client";
 import { useRouter } from "next/navigation";
-import { playNotificationSound } from "@/lib/notifications/expo-notifications";
+import { playNotificationSound } from "../../lib/notifications/expo-notifications";
 
 interface NegotiationButtonsProps {
   proposedAmount: number;

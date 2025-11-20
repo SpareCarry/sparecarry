@@ -1,13 +1,28 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "../../../lib/supabase/server";
 import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Lazy initialization to avoid errors during static export build
+function getResend() {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) {
+    throw new Error("RESEND_API_KEY is not set");
+  }
+  return new Resend(apiKey);
+}
 
-export async function POST(request: NextRequest) {
+import { waitlistRequestSchema } from "../../../lib/zod/api-schemas";
+import type { WaitlistRequest, WaitlistResponse } from "../../../types/api";
+import type { WaitlistEntry } from "../../../types/supabase";
+
+const supabase = createClient();
+
+export async function POST(request: NextRequest): Promise<NextResponse<WaitlistResponse>> {
   try {
+    const supabase = await createClient();
     const body = await request.json();
-    const { email, userType, tripFrom, tripTo, approximateDates, spareCapacity } = body;
+    const parsedBody = waitlistRequestSchema.parse(body);
+    const { email, userType, tripFrom, tripTo, approximateDates, spareCapacity } = parsedBody;
 
     // Validate email
     if (!email || !userType) {
@@ -29,14 +44,11 @@ export async function POST(request: NextRequest) {
         spare_capacity: spareCapacity || null,
       })
       .select()
-      .single();
+      .single<WaitlistEntry>();
 
     if (error) {
-      console.error("Supabase error:", error);
-      return NextResponse.json(
-        { error: "Failed to save to waitlist" },
-        { status: 500 }
-      );
+      safeLog('error', 'Waitlist: Supabase error', {});
+      return errorResponse(error, 500);
     }
 
     // Get position in waitlist (count of entries before this one)
@@ -49,7 +61,7 @@ export async function POST(request: NextRequest) {
 
     // Send welcome email
     try {
-      await resend.emails.send({
+      await getResend().emails.send({
         from: "SpareCarry <onboarding@sparecarry.com>",
         to: email,
         subject: "Welcome to SpareCarry ⚓✈",
@@ -61,17 +73,14 @@ export async function POST(request: NextRequest) {
         `,
       });
     } catch (emailError) {
-      console.error("Resend error:", emailError);
+      safeLog('warn', 'Waitlist: Email send failed', {});
       // Don't fail the request if email fails
     }
 
-    return NextResponse.json({ success: true, position });
+    return successResponse({ success: true, position });
   } catch (error) {
-    console.error("Error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    safeLog('error', 'Waitlist: Unexpected error', {});
+    return errorResponse(error, 500);
   }
 }
 

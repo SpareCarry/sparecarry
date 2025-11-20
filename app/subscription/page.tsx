@@ -1,7 +1,7 @@
 "use client";
 
-import { SubscriptionCard } from "@/components/subscription/subscription-card";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { SubscriptionCard } from "../../components/subscription/subscription-card";
+import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card";
 
 export default function SubscriptionPage() {
   return (
@@ -48,7 +48,7 @@ export default function SubscriptionPage() {
             <div>
               <h3 className="font-semibold mb-2">What happens if I cancel?</h3>
               <p className="text-sm text-slate-600">
-                You'll continue to have Pro benefits until your current billing
+                You&apos;ll continue to have Pro benefits until your current billing
                 period ends. After that, standard platform fees (15-18%) will apply
                 to new deliveries.
               </p>

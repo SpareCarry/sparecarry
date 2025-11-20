@@ -1,9 +1,8 @@
-import { NextIntlClientProvider } from "next-intl";
-import { getMessages } from "next-intl/server";
+import { NextIntlProvider } from "next-intl";
 import { notFound } from "next/navigation";
-import { routing } from "@/i18n/routing";
-import { Providers } from "@/app/providers";
-import { NotificationSetup } from "@/components/notifications/notification-setup";
+import { routing } from "../../i18n/routing";
+import { Providers } from "../providers";
+import { NotificationSetup } from "../../components/notifications/notification-setup";
 import "./globals.css";
 
 export function generateStaticParams() {
@@ -23,12 +22,13 @@ export default async function LocaleLayout({
     notFound();
   }
 
-  const messages = await getMessages();
+  // Load messages directly for static export compatibility (next-intl v2 pattern)
+  const messages = (await import(`../../messages/${locale}.json`)).default;
 
   return (
     <html lang={locale}>
       <body>
-        <NextIntlClientProvider messages={messages}>
+        <NextIntlClientProvider locale={locale} messages={messages}>
           <Providers>
             {children}
             <NotificationSetup />

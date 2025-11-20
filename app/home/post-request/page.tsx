@@ -1,7 +1,7 @@
 "use client";
 
-import { PostRequestForm } from "@/components/forms/post-request-form";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { PostRequestForm } from "../../../components/forms/post-request-form";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../../components/ui/card";
 import { Package } from "lucide-react";
 
 export default function PostRequestPage() {

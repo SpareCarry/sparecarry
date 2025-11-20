@@ -1,5 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { createClient } from "../../../lib/supabase/server";
+import { emergencyRequestNotificationSchema } from "../../../lib/zod/api-schemas";
+import { rateLimit, apiRateLimiter } from "@/lib/security/rate-limit";
+import { assertAuthenticated } from "@/lib/security/auth-guards";
+import { validateRequestBody } from "@/lib/security/validation";
+import { errorResponse, successResponse } from "@/lib/security/api-response";
+import { safeLog } from "@/lib/security/auth-guards";
+import { withApiErrorHandler } from "@/lib/api/error-handler";
 
 // Expo Push Notification API endpoint
 const EXPO_PUSH_URL = "https://exp.host/--/api/v2/push/send";
@@ -33,11 +40,31 @@ async function sendExpoPushNotification(messages: ExpoPushMessage[]) {
   return response.json();
 }
 
-export async function POST(request: NextRequest) {
-  try {
-    const supabase = await createClient();
-    const body = await request.json();
-    const { requestId, fromLocation, toLocation, reward, deadline } = body;
+export const POST = withApiErrorHandler(async function POST(request: NextRequest) {
+  // Rate limiting (stricter for emergency requests)
+  const rateLimitResult = await rateLimit(request, apiRateLimiter);
+  if (!rateLimitResult.allowed) {
+    return NextResponse.json(
+      { error: rateLimitResult.error },
+      { status: 429, headers: rateLimitResult.headers }
+    );
+  }
+
+  // Authentication
+  const user = await assertAuthenticated(request);
+
+  // Validate request body
+  const body = await request.json();
+  const validation = validateRequestBody(emergencyRequestNotificationSchema, body);
+  if (!validation.success) {
+    return NextResponse.json(
+      { error: validation.error },
+      { status: 400 }
+    );
+  }
+
+  const supabase = await createClient();
+  const { requestId, fromLocation, toLocation, reward, deadline } = validation.data;
 
     // Find all verified flyers (users with verified identity) who have:
     // 1. Active plane trips on matching route
@@ -133,20 +160,16 @@ export async function POST(request: NextRequest) {
     // Send push notifications
     const result = await sendExpoPushNotification(messages);
 
-    // Log notification sent (optional: create a notifications_log table)
-    console.log(`Sent ${messages.length} emergency push notifications`);
+    // Log notification sent
+    safeLog('info', `Sent ${messages.length} emergency push notifications`, {
+      requestId,
+      notified: messages.length,
+    });
 
-    return NextResponse.json({
+    return successResponse({
       success: true,
       notified: messages.length,
       result,
     });
-  } catch (error: any) {
-    console.error("Error sending emergency notifications:", error);
-    return NextResponse.json(
-      { error: error.message || "Failed to send notifications" },
-      { status: 500 }
-    );
-  }
-}
+});
 

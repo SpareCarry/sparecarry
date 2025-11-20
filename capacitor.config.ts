@@ -1,9 +1,11 @@
-import { CapacitorConfig } from "@capacitor/cli";
+// @ts-ignore - Capacitor types may not be available during static export build
+import type { CapacitorConfig } from "@capacitor/cli";
 
 const config: CapacitorConfig = {
-  appId: "com.sparecarry.app",
-  appName: "SpareCarry",
+  appId: "com.carryspace.app",
+  appName: "CarrySpace",
   webDir: "out",
+  bundledWebRuntime: false,
   server: {
     androidScheme: "https",
     iosScheme: "https",
@@ -39,10 +41,14 @@ const config: CapacitorConfig = {
       keystoreAlias: undefined,
       keystoreAliasPassword: undefined,
     },
+    allowMixedContent: false,
+    captureInput: true,
+    webContentsDebuggingEnabled: false,
   },
   ios: {
-    scheme: "SpareCarry",
+    scheme: "CarrySpace",
     contentInset: "automatic",
+    scrollEnabled: true,
   },
 };
 

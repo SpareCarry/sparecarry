@@ -10,17 +10,17 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+} from "./ui/dialog";
+import { Button } from "./ui/button";
+import { Input } from "./ui/input";
+import { Label } from "./ui/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from "./ui/select";
 
 const waitlistSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -102,7 +102,7 @@ export function WaitlistForm({ open, onOpenChange, travelType }: WaitlistFormPro
         <DialogHeader>
           <DialogTitle>Join the Waitlist</DialogTitle>
           <DialogDescription>
-            Be among the first to experience CarrySpace. We'll notify you when we launch!
+            Be among the first to experience CarrySpace. We&apos;ll notify you when we launch!
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">

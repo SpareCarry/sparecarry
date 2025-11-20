@@ -1,0 +1,71 @@
+{
+  "defaults": {
+    "vus": 50,
+    "duration": "5m",
+    "iterations": null,
+    "maxDuration": "1h",
+    "stages": null,
+    "thresholds": {
+      "http_req_duration": ["p(95)<500", "p(99)<1000"],
+      "http_req_failed": ["rate<0.005"],
+      "http_req_waiting": ["p(95)<400"],
+      "http_req_connecting": ["p(95)<100"]
+    },
+    "summaryTrendStats": [
+      "avg",
+      "min",
+      "med",
+      "max",
+      "p(90)",
+      "p(95)",
+      "p(99)",
+      "p(99.9)",
+      "p(99.99)",
+      "count"
+    ],
+    "summaryTimeUnit": "ms"
+  },
+  "scenarios": {
+    "ramp": {
+      "script": "scenarios/ramp.js",
+      "description": "Gradual ramp-up load test"
+    },
+    "steady": {
+      "script": "scenarios/steady.js",
+      "description": "Steady-state load test"
+    },
+    "spike": {
+      "script": "scenarios/spike.js",
+      "description": "Spike load test"
+    },
+    "browse": {
+      "script": "scripts/browse.js",
+      "description": "Browse-only load test"
+    },
+    "post_request": {
+      "script": "scripts/post_request.js",
+      "description": "Post request load test"
+    },
+    "match_flow": {
+      "script": "scripts/match_flow.js",
+      "description": "Match flow load test"
+    },
+    "chat_flow": {
+      "script": "scripts/chat_flow.js",
+      "description": "Chat flow load test"
+    }
+  },
+  "environments": {
+    "staging": {
+      "baseUrl": "https://staging.sparecarry.com",
+      "testUserEmail": "test@example.com",
+      "testUserPassword": "testpassword"
+    },
+    "production": {
+      "baseUrl": "https://sparecarry.com",
+      "testUserEmail": null,
+      "testUserPassword": null
+    }
+  }
+}
+

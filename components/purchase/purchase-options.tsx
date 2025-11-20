@@ -1,7 +1,7 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "../ui/button";
+import { Card, CardContent } from "../ui/card";
 import { ExternalLink, ShoppingCart, Package } from "lucide-react";
 import { useState } from "react";
 
@@ -122,8 +122,8 @@ export function PurchaseOptions({
           {selectedRetailer && (
             <div className="mt-4 p-3 bg-teal-50 border border-teal-200 rounded-md">
               <p className="text-xs text-teal-800">
-                <strong>Note:</strong> When your request is matched, we'll provide a
-                pre-filled shipping link with your traveler's address. You can purchase
+                <strong>Note:</strong> When your request is matched, we&apos;ll provide a
+                pre-filled shipping link with your traveler&apos;s address. You can purchase
                 now or wait until match confirmation.
               </p>
             </div>

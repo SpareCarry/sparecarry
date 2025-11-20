@@ -1,15 +1,15 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
+import { Label } from "../ui/label";
+import { Card, CardContent } from "../ui/card";
 import { MapPin, Camera, Loader2, Search } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
+import { createClient } from "../../lib/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { useLoadScript, GoogleMap, Marker, InfoWindow } from "@react-google-maps/api";
-import { searchMeetupLocations, meetupLocations, type MeetupLocation } from "@/lib/data/meetup-locations";
+import { searchMeetupLocations, meetupLocations, type MeetupLocation } from "../../lib/data/meetup-locations";
 
 interface DeliveryConfirmationProps {
   matchId: string;
@@ -232,7 +232,7 @@ export function DeliveryConfirmation({
       }
 
       onComplete();
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error confirming delivery:", error);
       alert(error.message || "Failed to confirm delivery");
     } finally {
@@ -408,6 +408,7 @@ export function DeliveryConfirmation({
             <div className="grid grid-cols-3 gap-2">
               {photos.map((photo, index) => (
                 <div key={index} className="relative aspect-square group">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={URL.createObjectURL(photo)}
                     alt={`Proof ${index + 1}`}

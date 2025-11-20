@@ -1,10 +1,10 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
+import { Button } from "../ui/button";
 import { Download, FileText } from "lucide-react";
-import { generateBoatDeclarationPDF, type BoatDeclarationData } from "@/lib/pdf/boat-declaration";
+import { generateBoatDeclarationPDF, type BoatDeclarationData } from "../../lib/pdf/boat-declaration";
 import { useState } from "react";
-import { createClient } from "@/lib/supabase/client";
+import { createClient } from "../../lib/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 
@@ -72,7 +72,7 @@ export function BoatDeclarationButton({ matchId }: BoatDeclarationButtonProps) {
       const profile = Array.isArray(trip.profiles) ? trip.profiles[0] : trip.profiles;
 
       // Parse dimensions if available
-      let dimensions: any = {};
+      let dimensions: { length?: number; width?: number; height?: number } = {};
       if (request.dimensions_cm) {
         try {
           dimensions = JSON.parse(request.dimensions_cm);

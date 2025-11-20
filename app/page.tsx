@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { WaitlistForm } from "@/components/waitlist-form";
+import { Button } from "../components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
+import { WaitlistForm } from "../components/waitlist-form";
 import {
   Plane,
   Ship,
@@ -47,14 +47,14 @@ export default function Home() {
               className="w-full sm:w-auto text-lg px-8 py-6 bg-teal-600 hover:bg-teal-700 text-white text-xl font-semibold"
               size="lg"
             >
-              ✈ I'm traveling by Plane
+              ✈ I&apos;m traveling by Plane
             </Button>
             <Button
               onClick={() => openWaitlist("boat")}
               className="w-full sm:w-auto text-lg px-8 py-6 bg-slate-900 hover:bg-slate-800 text-white text-xl font-semibold"
               size="lg"
             >
-              ⚓ I'm sailing by Boat
+              ⚓ I&apos;m sailing by Boat
             </Button>
           </div>
         </div>

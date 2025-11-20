@@ -1,9 +1,29 @@
 // Capacitor Push Notifications for Native iOS/Android
-import { PushNotifications } from "@capacitor/push-notifications";
-import { LocalNotifications } from "@capacitor/local-notifications";
-import { Capacitor } from "@capacitor/core";
+import { isNativePlatform } from "@/lib/utils/capacitor-safe";
 
-const isNative = Capacitor.isNativePlatform();
+// Lazy load Capacitor plugins only on native platforms
+let PushNotifications: any = null;
+let LocalNotifications: any = null;
+
+const isNative = typeof window !== 'undefined' ? isNativePlatform() : false;
+
+// Lazy load Capacitor plugins
+async function loadCapacitorPlugins() {
+  if (typeof window === 'undefined' || !isNative) {
+    return;
+  }
+  
+  if (!PushNotifications || !LocalNotifications) {
+    try {
+      const pushModule = await import("@capacitor/push-notifications");
+      const localModule = await import("@capacitor/local-notifications");
+      PushNotifications = pushModule.PushNotifications;
+      LocalNotifications = localModule.LocalNotifications;
+    } catch (error) {
+      console.warn('[Notifications] Failed to load Capacitor plugins:', error);
+    }
+  }
+}
 
 export interface NotificationSound {
   match: "boat_horn" | "airplane_ding";
@@ -20,9 +40,13 @@ const NATIVE_SOUNDS = {
 };
 
 export async function requestNotificationPermission(): Promise<boolean> {
+  if (typeof window === 'undefined') {
+    return false;
+  }
+
   if (!isNative) {
     // Fallback to web notifications
-    if (typeof window !== "undefined" && "Notification" in window) {
+    if ("Notification" in window) {
       const permission = await Notification.requestPermission();
       return permission === "granted";
     }
@@ -30,6 +54,10 @@ export async function requestNotificationPermission(): Promise<boolean> {
   }
 
   try {
+    await loadCapacitorPlugins();
+    if (!PushNotifications) {
+      return false;
+    }
     // Request permission
     const permResult = await PushNotifications.requestPermissions();
     return permResult.receive === "granted";
@@ -40,12 +68,17 @@ export async function requestNotificationPermission(): Promise<boolean> {
 }
 
 export async function registerForPushNotifications(): Promise<string | null> {
-  if (!isNative) {
+  if (typeof window === 'undefined' || !isNative) {
     // Web fallback
     return null;
   }
 
   try {
+    await loadCapacitorPlugins();
+    if (!PushNotifications) {
+      return null;
+    }
+
     const hasPermission = await requestNotificationPermission();
     if (!hasPermission) {
       return null;
@@ -78,9 +111,13 @@ export async function sendLocalNotification(
   sound: keyof typeof NATIVE_SOUNDS,
   data?: Record<string, any>
 ) {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
   if (!isNative) {
     // Fallback to web notifications
-    if (typeof window !== "undefined" && "Notification" in window) {
+    if ("Notification" in window) {
       new Notification(title, {
         body,
         icon: "/icon-192x192.png",
@@ -93,6 +130,10 @@ export async function sendLocalNotification(
   }
 
   try {
+    await loadCapacitorPlugins();
+    if (!LocalNotifications) {
+      return;
+    }
     await LocalNotifications.schedule({
       notifications: [
         {
@@ -112,13 +153,19 @@ export async function sendLocalNotification(
   }
 }
 
-export function setupNotificationHandlers() {
-  if (!isNative) {
+export async function setupNotificationHandlers() {
+  if (typeof window === 'undefined' || !isNative) {
     return;
   }
 
-  // Handle push notification received
-  PushNotifications.addListener("pushNotificationReceived", (notification) => {
+  try {
+    await loadCapacitorPlugins();
+    if (!PushNotifications || !LocalNotifications) {
+      return;
+    }
+
+    // Handle push notification received
+    PushNotifications.addListener("pushNotificationReceived", (notification) => {
     console.log("Push notification received: ", notification);
     
     // Play sound based on notification data
@@ -126,8 +173,8 @@ export function setupNotificationHandlers() {
     if (sound && NATIVE_SOUNDS[sound]) {
       // Sound will be played automatically by the system
       // But we can trigger haptic feedback
-      import("@capacitor/haptics").then(({ Haptics }) => {
-        Haptics.impact({ style: "medium" });
+      import("@capacitor/haptics").then(({ Haptics, ImpactStyle }) => {
+        Haptics.impact({ style: ImpactStyle.Medium });
       });
     }
   });
@@ -157,8 +204,8 @@ export function setupNotificationHandlers() {
   });
 }
 
-// Initialize notification handlers when module loads
-if (isNative && typeof window !== "undefined") {
-  setupNotificationHandlers();
+// Initialize notification handlers when module loads (client-side only)
+if (typeof window !== "undefined" && isNative) {
+  setupNotificationHandlers().catch(console.error);
 }
 

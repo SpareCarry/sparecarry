@@ -1,0 +1,287 @@
+name: Deploy to Staging
+
+on:
+  push:
+    branches:
+      - staging
+      - develop
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: 'Platform to deploy'
+        required: true
+        type: choice
+        options:
+          - web
+          - android
+          - ios
+          - all
+      skip_tests:
+        description: 'Skip tests'
+        required: false
+        type: boolean
+        default: false
+
+env:
+  NEXT_PUBLIC_APP_ENV: staging
+  NODE_ENV: production
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    if: ${{ !github.event.inputs.skip_tests }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run unit tests
+        run: pnpm test
+        env:
+          SUPABASE_MOCK_MODE: true
+
+      - name: Run integration tests
+        run: pnpm test
+        env:
+          SUPABASE_MOCK_MODE: true
+
+      - name: Run E2E tests
+        run: pnpm test:e2e
+        env:
+          NEXT_PUBLIC_APP_URL: http://localhost:3000
+
+  build-web:
+    name: Build Web (Staging)
+    runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.platform == 'web' || github.event.inputs.platform == 'all' || !github.event.inputs.platform }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build staging
+        run: pnpm build:staging
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.STAGING_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.STAGING_SUPABASE_ANON_KEY }}
+          NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${{ secrets.STAGING_STRIPE_PUBLISHABLE_KEY }}
+          NEXT_PUBLIC_APP_URL: ${{ secrets.STAGING_APP_URL }}
+          NEXT_PUBLIC_SENTRY_DSN: ${{ secrets.STAGING_SENTRY_DSN }}
+          NEXT_PUBLIC_UNLEASH_URL: ${{ secrets.STAGING_UNLEASH_URL }}
+          NEXT_PUBLIC_UNLEASH_CLIENT_KEY: ${{ secrets.STAGING_UNLEASH_CLIENT_KEY }}
+
+      - name: Validate export
+        run: pnpm validate:export
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: web-staging-build
+          path: out/
+          retention-days: 7
+
+  deploy-android-staging:
+    name: Deploy Android (Staging)
+    runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.platform == 'android' || github.event.inputs.platform == 'all' }}
+    needs: [test]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build staging
+        run: pnpm mobile:build:staging
+        env:
+          NEXT_PUBLIC_APP_ENV: staging
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.STAGING_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.STAGING_SUPABASE_ANON_KEY }}
+          NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${{ secrets.STAGING_STRIPE_PUBLISHABLE_KEY }}
+          NEXT_PUBLIC_APP_URL: ${{ secrets.STAGING_APP_URL }}
+          NEXT_PUBLIC_SENTRY_DSN: ${{ secrets.STAGING_SENTRY_DSN }}
+
+      - name: Setup Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v2
+
+      - name: Setup Android signing
+        run: |
+          mkdir -p android/app
+          echo "${{ secrets.STAGING_ANDROID_KEYSTORE }}" | base64 -d > android/app/release.keystore
+        env:
+          STAGING_ANDROID_KEYSTORE: ${{ secrets.STAGING_ANDROID_KEYSTORE }}
+
+      - name: Create keystore properties
+        run: |
+          cat > android/keystore.properties << EOF
+          storePassword=${{ secrets.STAGING_KEYSTORE_PASSWORD }}
+          keyPassword=${{ secrets.STAGING_KEY_PASSWORD }}
+          keyAlias=${{ secrets.STAGING_KEY_ALIAS }}
+          storeFile=app/release.keystore
+          EOF
+
+      - name: Setup Google Play service account
+        run: |
+          echo "${{ secrets.STAGING_GOOGLE_PLAY_JSON }}" > $HOME/google-play-service-account.json
+          export GOOGLE_PLAY_JSON_KEY_FILE=$HOME/google-play-service-account.json
+
+      - name: Install Fastlane
+        run: |
+          sudo gem install fastlane
+          fastlane --version
+
+      - name: Run Fastlane staging beta
+        working-directory: android
+        run: fastlane android beta_staging
+        env:
+          GOOGLE_PLAY_JSON_KEY_FILE: $HOME/google-play-service-account.json
+          CHANGELOG: "Staging build $(date +%Y-%m-%d)"
+          ANDROID_HOME: ${{ env.ANDROID_HOME }}
+          ANDROID_SDK_ROOT: ${{ env.ANDROID_SDK_ROOT }}
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: android-staging-release
+          path: |
+            android/app/build/outputs/bundle/stagingRelease/*.aab
+            android/app/build/outputs/apk/stagingRelease/*.apk
+          retention-days: 30
+
+  deploy-ios-staging:
+    name: Deploy iOS (Staging)
+    runs-on: macos-latest
+    if: ${{ github.event.inputs.platform == 'ios' || github.event.inputs.platform == 'all' }}
+    needs: [test]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build staging
+        run: pnpm mobile:build:staging
+        env:
+          NEXT_PUBLIC_APP_ENV: staging
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.STAGING_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.STAGING_SUPABASE_ANON_KEY }}
+          NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${{ secrets.STAGING_STRIPE_PUBLISHABLE_KEY }}
+          NEXT_PUBLIC_APP_URL: ${{ secrets.STAGING_APP_URL }}
+          NEXT_PUBLIC_SENTRY_DSN: ${{ secrets.STAGING_SENTRY_DSN }}
+
+      - name: Install CocoaPods
+        run: |
+          sudo gem install cocoapods
+          pod --version
+
+      - name: Install Fastlane
+        run: |
+          sudo gem install fastlane
+          fastlane --version
+
+      - name: Setup App Store Connect API Key
+        run: |
+          mkdir -p ~/.appstoreconnect/private_keys
+          echo "${{ secrets.STAGING_APP_STORE_CONNECT_KEY }}" > ~/.appstoreconnect/private_keys/AuthKey_${{ secrets.STAGING_APP_STORE_CONNECT_KEY_ID }}.p8
+          chmod 600 ~/.appstoreconnect/private_keys/AuthKey_${{ secrets.STAGING_APP_STORE_CONNECT_KEY_ID }}.p8
+
+      - name: Run Fastlane staging beta
+        working-directory: ios
+        run: fastlane ios beta_staging
+        env:
+          APPLE_ID: ${{ secrets.STAGING_APPLE_ID }}
+          APPLE_TEAM_ID: ${{ secrets.STAGING_APPLE_TEAM_ID }}
+          APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.STAGING_APP_STORE_CONNECT_KEY_ID }}
+          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.STAGING_APP_STORE_CONNECT_ISSUER_ID }}
+          APP_STORE_CONNECT_KEY_PATH: ~/.appstoreconnect/private_keys/AuthKey_${{ secrets.STAGING_APP_STORE_CONNECT_KEY_ID }}.p8
+          BUNDLE_IDENTIFIER: com.carryspace.app
+          IOS_PROVISIONING_PROFILE_NAME: ${{ secrets.STAGING_IOS_PROVISIONING_PROFILE_NAME }}
+          CHANGELOG: "Staging build $(date +%Y-%m-%d)"
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: ios-staging-release
+          path: |
+            ios/App/App/Build/*.ipa
+            ios/App/App/Build/*.app.dSYM.zip
+          retention-days: 30
+
+  summary:
+    name: Deployment Summary
+    runs-on: ubuntu-latest
+    needs: [build-web, deploy-android-staging, deploy-ios-staging]
+    if: always()
+    steps:
+      - name: Deployment Status
+        run: |
+          echo "## Staging Deployment Status" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Component | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Web Build | ${{ needs.build-web.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Android | ${{ needs.deploy-android-staging.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| iOS | ${{ needs.deploy-ios-staging.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Environment:** Staging" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+

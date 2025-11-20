@@ -2,10 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent } from "../../../components/ui/card";
 import { CheckCircle2, Anchor } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { SupporterBadge } from "@/components/badges/supporter-badge";
+import { Button } from "../../../components/ui/button";
+import { SupporterBadge } from "../../../components/badges/supporter-badge";
 
 export default function SupporterSuccessPage() {
   const searchParams = useSearchParams();

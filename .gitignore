@@ -28,6 +28,8 @@ yarn-error.log*
 # local env files
 .env*.local
 .env
+.env.production
+.env.staging
 
 # vercel
 .vercel
@@ -40,6 +42,29 @@ next-env.d.ts
 /ios/
 /android/
 .capacitor/
+
+# Detox
+.detox/
+*.log
+e2e/artifacts/
+
+# CI/CD
+.github/workflows/*.yml.bak
+playwright-report/
+test-results/
+
+# Mobile Deployment
+android/keystore.properties
+android/app/release.keystore
+android/app/*.keystore
+ios/fastlane/report.xml
+ios/fastlane/Preview.html
+ios/fastlane/screenshots
+ios/fastlane/test_output
+*.p8
+*.p12
+AuthKey_*.p8
+google-play-service-account.json
 
 # Generated assets
 /public/icon-source.png

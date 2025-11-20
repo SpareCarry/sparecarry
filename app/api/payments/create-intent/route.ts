@@ -1,24 +1,57 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
-import { stripe } from "@/lib/stripe/server";
-import { calculatePlatformFee, isPromoPeriodActive } from "@/lib/pricing/platform-fee";
+import { createClient } from "../../../lib/supabase/server";
+import { stripe } from "../../../lib/stripe/server";
+import { calculatePlatformFee } from "../../../lib/pricing/platform-fee";
+import { createPaymentIntentRequestSchema } from "../../../lib/zod/api-schemas";
+import type { CreatePaymentIntentRequest, CreatePaymentIntentResponse } from "../../../types/api";
+import type { MatchWithRelations, User } from "../../../types/supabase";
+import { rateLimit, apiRateLimiter } from "@/lib/security/rate-limit";
+import { assertAuthenticated } from "@/lib/security/auth-guards";
+import { validateRequestBody } from "@/lib/security/validation";
+import { errorResponse, successResponse, authErrorResponse, forbiddenResponse } from "@/lib/security/api-response";
+import { safeLog } from "@/lib/security/auth-guards";
+import { withApiErrorHandler } from "@/lib/api/error-handler";
+import { logger } from "@/lib/logger";
 
-export async function POST(request: NextRequest) {
-  try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+export const POST = withApiErrorHandler(async function POST(
+  request: NextRequest
+): Promise<NextResponse<CreatePaymentIntentResponse>> {
+    // Rate limiting
+    const rateLimitResult = await rateLimit(request, apiRateLimiter);
+    if (!rateLimitResult.allowed) {
+      return NextResponse.json(
+        { clientSecret: null, paymentIntentId: "", error: rateLimitResult.error },
+        { status: 429, headers: rateLimitResult.headers }
+      );
     }
 
+    // Authentication
+    const user = await assertAuthenticated(request);
+
+    // Validate request body
     const body = await request.json();
-    const { matchId, amount, insurance, useCredits } = body; // insurance: { policy_number, premium, coverage_amount } | null, useCredits: boolean
+    const validation = validateRequestBody(createPaymentIntentRequestSchema, body);
+    if (!validation.success) {
+      return NextResponse.json(
+        { clientSecret: null, paymentIntentId: "", error: validation.error },
+        { status: 400 }
+      );
+    }
+
+    const { matchId, amount, insurance, useCredits } = validation.data;
+
+    // Validate amount is positive and reasonable (server-side validation)
+    if (amount <= 0 || amount > 10000000) { // Max $100,000
+      return NextResponse.json(
+        { clientSecret: null, paymentIntentId: "", error: "Invalid amount" },
+        { status: 400 }
+      );
+    }
+
+    const supabase = await createClient();
 
     // Get match details
-    const { data: match } = await supabase
+    const { data: match, error: matchError } = await supabase
       .from("matches")
       .select(
         `
@@ -28,23 +61,38 @@ export async function POST(request: NextRequest) {
       `
       )
       .eq("id", matchId)
-      .single();
+      .single<MatchWithRelations>();
 
-    if (!match) {
-      return NextResponse.json({ error: "Match not found" }, { status: 404 });
+    if (matchError || !match) {
+      safeLog('warn', 'Create payment intent: Match not found', { matchId, userId: user.id });
+      return NextResponse.json({ clientSecret: null, paymentIntentId: "", error: "Match not found" }, { status: 404 });
     }
 
-    // Verify user is the requester
+    // Verify user is the requester (RLS check)
     if (match.requests.user_id !== user.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+      safeLog('warn', 'Create payment intent: Unauthorized access', { matchId, userId: user.id, requestUserId: match.requests.user_id });
+      return forbiddenResponse("Unauthorized");
+    }
+
+    // Verify match status is valid for payment
+    if (match.status !== 'pending' && match.status !== 'accepted') {
+      return NextResponse.json(
+        { clientSecret: null, paymentIntentId: "", error: "Match is not in a valid state for payment" },
+        { status: 400 }
+      );
     }
 
     // Get requester user data for dynamic fee calculation
-    const { data: requesterUser } = await supabase
+    const { data: requesterUser, error: userError } = await supabase
       .from("users")
-      .select("subscription_status, completed_deliveries_count, average_rating, supporter_status")
+      .select("subscription_status, completed_deliveries_count, average_rating, supporter_status, referral_credits")
       .eq("id", user.id)
-      .single();
+      .single<User>();
+
+    if (userError) {
+      safeLog('error', 'Create payment intent: Failed to fetch user data', { userId: user.id });
+      return errorResponse(userError, 500);
+    }
 
     const hasActiveSubscription =
       requesterUser?.subscription_status === "active" ||
@@ -76,7 +124,23 @@ export async function POST(request: NextRequest) {
     });
 
     // Calculate platform fee amount (already 0 if first delivery or promo period)
+    // IMPORTANT: All price calculations use server-side values only
     const platformFeeAmount = Math.round(amount * platformFeePercent);
+    
+    // Verify amount matches match reward (server-side validation)
+    const expectedAmount = Math.round(match.reward_amount * 100); // Convert to cents
+    if (Math.abs(amount - expectedAmount) > 100) { // Allow $1 tolerance for rounding
+      safeLog('warn', 'Create payment intent: Amount mismatch', {
+        providedAmount: amount,
+        expectedAmount,
+        matchId,
+        userId: user.id,
+      });
+      return NextResponse.json(
+        { clientSecret: null, paymentIntentId: "", error: "Amount does not match match reward" },
+        { status: 400 }
+      );
+    }
 
     // Apply referral credits if requested and available
     let creditsUsed = 0;
@@ -121,7 +185,13 @@ export async function POST(request: NextRequest) {
     // Create payment intent with application fee (already 0 if first delivery, promo period, or subscriber)
     const applicationFeeAmount = Math.max(0, Math.round(finalAmount * platformFeePercent));
 
-    const paymentIntentParams: any = {
+    const paymentIntentParams: {
+      amount: number;
+      currency: string;
+      transfer_data: { destination: string };
+      metadata: Record<string, string>;
+      application_fee_amount?: number;
+    } = {
       amount: finalAmount,
       currency: "usd",
       transfer_data: {
@@ -144,16 +214,11 @@ export async function POST(request: NextRequest) {
 
     const paymentIntent = await stripe.paymentIntents.create(paymentIntentParams);
 
-    return NextResponse.json({
-      clientSecret: paymentIntent.client_secret,
+    return successResponse({
+      clientSecret: paymentIntent.client_secret || '',
       paymentIntentId: paymentIntent.id,
     });
-  } catch (error: any) {
-    console.error("Error creating payment intent:", error);
-    return NextResponse.json(
-      { error: error.message || "Failed to create payment intent" },
-      { status: 500 }
-    );
-  }
-}
+  },
+  'Failed to create payment intent'
+);
 

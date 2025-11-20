@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription } from "@/components/ui/card";
-import { createClient } from "@/lib/supabase/client";
+import { Button } from "../ui/button";
+import { Card, CardContent, CardDescription } from "../ui/card";
+import { createClient } from "../../lib/supabase/client";
 import { Loader2, CheckCircle2, CreditCard } from "lucide-react";
 
 interface OnboardingStep2Props {
@@ -19,6 +19,7 @@ export function OnboardingStep2({ onComplete }: OnboardingStep2Props) {
 
   useEffect(() => {
     checkVerificationStatus();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const checkVerificationStatus = async () => {
@@ -76,7 +77,7 @@ export function OnboardingStep2({ onComplete }: OnboardingStep2Props) {
 
       // Open verification in new window
       window.open(url, "_blank", "width=600,height=800");
-    } catch (err: any) {
+    } catch (err) {
       setError(err.message || "Failed to start verification");
     } finally {
       setLoading(false);
@@ -128,7 +129,7 @@ export function OnboardingStep2({ onComplete }: OnboardingStep2Props) {
       } else {
         setError("Verification not yet complete. Please complete the verification process.");
       }
-    } catch (err: any) {
+    } catch (err) {
       setError(err.message || "Failed to check verification status");
     } finally {
       setLoading(false);

@@ -1,0 +1,118 @@
+name: Sentry Release
+
+on:
+  push:
+    branches:
+      - main
+      - staging
+      - develop
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g., 1.0.0)'
+        required: false
+        type: string
+      environment:
+        description: 'Environment'
+        required: true
+        type: choice
+        options:
+          - staging
+          - production
+
+jobs:
+  create-release:
+    name: Create Sentry Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Determine version
+        id: version
+        run: |
+          if [ -n "${{ github.event.inputs.version }}" ]; then
+            VERSION="${{ github.event.inputs.version }}"
+          elif [ "${{ github.ref_name }}" == "main" ]; then
+            VERSION="production-$(date +%Y%m%d)-${{ github.sha }}"
+          elif [ "${{ github.ref_name }}" == "staging" ]; then
+            VERSION="staging-$(date +%Y%m%d)-${{ github.sha }}"
+          else
+            VERSION="develop-$(date +%Y%m%d)-${{ github.sha }}"
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Version: $VERSION"
+
+      - name: Determine environment
+        id: env
+        run: |
+          if [ -n "${{ github.event.inputs.environment }}" ]; then
+            ENV="${{ github.event.inputs.environment }}"
+          elif [ "${{ github.ref_name }}" == "main" ]; then
+            ENV="production"
+          elif [ "${{ github.ref_name }}" == "staging" ]; then
+            ENV="staging"
+          else
+            ENV="development"
+          fi
+          echo "environment=$ENV" >> $GITHUB_OUTPUT
+          echo "Environment: $ENV"
+
+      - name: Determine Sentry project
+        id: project
+        run: |
+          if [ "${{ steps.env.outputs.environment }}" == "production" ]; then
+            PROJECT="${{ secrets.SENTRY_PROJECT_PRODUCTION }}"
+          else
+            PROJECT="${{ secrets.SENTRY_PROJECT_STAGING }}"
+          fi
+          echo "project=$PROJECT" >> $GITHUB_OUTPUT
+          echo "Sentry Project: $PROJECT"
+
+      - name: Create Sentry release
+        uses: getsentry/action-release@v1
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ steps.project.outputs.project }}
+        with:
+          environment: ${{ steps.env.outputs.environment }}
+          version: ${{ steps.version.outputs.version }}
+          finalize: false
+
+      - name: Upload sourcemaps (web)
+        if: ${{ steps.env.outputs.environment == 'staging' || steps.env.outputs.environment == 'production' }}
+        uses: getsentry/action-release@v1
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ steps.project.outputs.project }}
+        with:
+          environment: ${{ steps.env.outputs.environment }}
+          version: ${{ steps.version.outputs.version }}
+          sourcemaps: ./out
+          ignore: node_modules
+          ignore: .next
+
+      - name: Finalize Sentry release
+        uses: getsentry/action-release@v1
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ steps.project.outputs.project }}
+        with:
+          environment: ${{ steps.env.outputs.environment }}
+          version: ${{ steps.version.outputs.version }}
+          finalize: true
+
+      - name: Release Summary
+        run: |
+          echo "## Sentry Release Created" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Version:** ${{ steps.version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Environment:** ${{ steps.env.outputs.environment }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Project:** ${{ steps.project.outputs.project }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+

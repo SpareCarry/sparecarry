@@ -1,0 +1,150 @@
+name: Nightly Backup
+
+on:
+  schedule:
+    # Run daily at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      backup_type:
+        description: 'Type of backup to run'
+        required: true
+        type: choice
+        options:
+          - all
+          - db
+          - storage
+
+jobs:
+  backup:
+    name: Backup Database and Storage
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client jq curl
+
+      - name: Create backup directories
+        run: |
+          mkdir -p backups/db backups/storage
+
+      - name: Backup Database
+        if: github.event.inputs.backup_type != 'storage' || github.event_name == 'schedule'
+        env:
+          PGHOST: ${{ secrets.SUPABASE_DB_HOST }}
+          PGUSER: ${{ secrets.SUPABASE_DB_USER }}
+          PGPASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+          PGDATABASE: ${{ secrets.SUPABASE_DB_NAME }}
+          PGPORT: ${{ secrets.SUPABASE_DB_PORT || '5432' }}
+          BACKUP_DIR: ./backups
+          RETENTION_DAYS: ${{ secrets.BACKUP_RETENTION_DAYS || '30' }}
+          ENCRYPT: ${{ secrets.BACKUP_ENCRYPT || 'false' }}
+          GPG_RECIPIENT: ${{ secrets.BACKUP_GPG_RECIPIENT }}
+        run: |
+          chmod +x scripts/backup/*.sh
+          ./scripts/backup/backup_db.sh
+
+      - name: Backup Storage
+        if: github.event.inputs.backup_type != 'db' || github.event_name == 'schedule'
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          BACKUP_DIR: ./backups
+          BUCKETS_TO_BACKUP: ${{ secrets.BACKUP_BUCKETS || 'avatars,item-images,documents' }}
+          BACKUP_BUCKET: ${{ secrets.BACKUP_S3_BUCKET }}
+          BACKUP_S3_REGION: ${{ secrets.BACKUP_S3_REGION || 'us-east-1' }}
+          BACKUP_S3_ACCESS_KEY: ${{ secrets.BACKUP_S3_ACCESS_KEY }}
+          BACKUP_S3_SECRET_KEY: ${{ secrets.BACKUP_S3_SECRET_KEY }}
+          BACKUP_S3_ENDPOINT: ${{ secrets.BACKUP_S3_ENDPOINT }}
+        run: |
+          ./scripts/backup/backup_storage.sh
+
+      - name: Verify Backups
+        env:
+          BACKUP_DIR: ./backups
+        run: |
+          ./scripts/backup/verify_backup.sh --type all || true
+
+      - name: Rotate Old Backups
+        env:
+          BACKUP_DIR: ./backups
+          RETENTION_DAYS: ${{ secrets.BACKUP_RETENTION_DAYS || '30' }}
+        run: |
+          ./scripts/backup/rotate_backups.sh --days $RETENTION_DAYS
+
+      - name: Upload Backups to S3
+        if: env.BACKUP_S3_BUCKET != ''
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.BACKUP_S3_ACCESS_KEY }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.BACKUP_S3_SECRET_KEY }}
+          AWS_DEFAULT_REGION: ${{ secrets.BACKUP_S3_REGION || 'us-east-1' }}
+        run: |
+          # Install AWS CLI if not available
+          if ! command -v aws &> /dev/null; then
+            curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+            unzip awscliv2.zip
+            sudo ./aws/install
+          fi
+          
+          # Upload database backups
+          if [ -d "backups/db" ]; then
+            aws s3 sync backups/db/ s3://${{ secrets.BACKUP_S3_BUCKET }}/db/ \
+              --region ${{ secrets.BACKUP_S3_REGION || 'us-east-1' }} \
+              --storage-class STANDARD_IA \
+              ${secrets.BACKUP_S3_ENDPOINT && format('--endpoint-url %s', secrets.BACKUP_S3_ENDPOINT) || ''}
+          fi
+          
+          # Upload storage backups
+          if [ -d "backups/storage" ]; then
+            aws s3 sync backups/storage/ s3://${{ secrets.BACKUP_S3_BUCKET }}/storage/ \
+              --region ${{ secrets.BACKUP_S3_REGION || 'us-east-1' }} \
+              --storage-class STANDARD_IA \
+              ${secrets.BACKUP_S3_ENDPOINT && format('--endpoint-url %s', secrets.BACKUP_S3_ENDPOINT) || ''}
+          fi
+
+      - name: Upload Backups as Artifacts
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: backups-${{ github.run_number }}
+          path: |
+            backups/db/*.sql.gz
+            backups/db/*.sql
+            backups/storage/*.tar.gz
+          retention-days: 7
+          if-no-files-found: warn
+
+      - name: Backup Summary
+        if: always()
+        run: |
+          echo "## Backup Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Type | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|------|--------|" >> $GITHUB_STEP_SUMMARY
+          
+          if [ -d "backups/db" ] && [ "$(ls -A backups/db/*.sql.gz backups/db/*.sql 2>/dev/null)" ]; then
+            DB_COUNT=$(ls -1 backups/db/*.sql.gz backups/db/*.sql 2>/dev/null | wc -l)
+            DB_SIZE=$(du -sh backups/db | cut -f1)
+            echo "| Database | ✅ $DB_COUNT backups ($DB_SIZE) |" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "| Database | ⚠️  No backups found |" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          if [ -d "backups/storage" ] && [ "$(ls -A backups/storage/*.tar.gz 2>/dev/null)" ]; then
+            STORAGE_COUNT=$(ls -1 backups/storage/*.tar.gz 2>/dev/null | wc -l)
+            STORAGE_SIZE=$(du -sh backups/storage | cut -f1)
+            echo "| Storage | ✅ $STORAGE_COUNT backups ($STORAGE_SIZE) |" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "| Storage | ⚠️  No backups found |" >> $GITHUB_STEP_SUMMARY
+          fi
+

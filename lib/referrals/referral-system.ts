@@ -3,9 +3,17 @@
 
 import { createClient } from "@supabase/supabase-js";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
+// Lazy initialization to avoid errors during static export build
+function getSupabaseAdmin() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  
+  if (!supabaseUrl || !supabaseServiceKey) {
+    throw new Error("Supabase environment variables are not set");
+  }
+  
+  return createClient(supabaseUrl, supabaseServiceKey);
+}
 
 export function generateReferralCode(userId: string): string {
   // Generate unique referral code: first 8 chars of user ID + random 4 chars
@@ -18,7 +26,7 @@ export async function createReferralCode(userId: string): Promise<string> {
   const code = generateReferralCode(userId);
   
   // Update user with referral code (use admin client for service role)
-  const { error } = await supabaseAdmin
+  const { error } = await getSupabaseAdmin()
     .from("users")
     .update({ referral_code: code })
     .eq("id", userId);
@@ -31,6 +39,8 @@ export async function applyReferralCode(
   referredUserId: string,
   referralCode: string
 ): Promise<{ success: boolean; referrerId?: string; error?: string }> {
+  const supabaseAdmin = getSupabaseAdmin();
+  
   // Find referrer by code (use admin client)
   const { data: referrer, error: findError } = await supabaseAdmin
     .from("users")
@@ -81,6 +91,8 @@ export async function processReferralCredits(
   userId: string,
   matchId: string
 ): Promise<void> {
+  const supabaseAdmin = getSupabaseAdmin();
+  
   // Award $35 credit to referred user after ANY successful delivery
   const { data: user } = await supabaseAdmin
     .from("users")
@@ -152,6 +164,8 @@ export async function getReferralStats(userId: string): Promise<{
   creditsEarned: number;
   creditsAvailable: number;
 }> {
+  const supabaseAdmin = getSupabaseAdmin();
+  
   const { data: user } = await supabaseAdmin
     .from("users")
     .select("referral_code, referral_credits")

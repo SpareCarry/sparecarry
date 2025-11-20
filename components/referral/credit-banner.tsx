@@ -1,10 +1,10 @@
 "use client";
 
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "../ui/card";
+import { Button } from "../ui/button";
 import { Gift, Share2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { createClient } from "@/lib/supabase/client";
+import { createClient } from "../../lib/supabase/client";
 import { useState } from "react";
 import { ShareButtons } from "./share-buttons";
 

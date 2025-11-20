@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
-import { stripe } from "@/lib/stripe/server";
+import { createClient } from "../../../lib/supabase/server";
+import { stripe } from "../../../lib/stripe/server";
 
 const SUBSCRIPTION_PRICES = {
   monthly: process.env.STRIPE_MONTHLY_PRICE_ID!,
@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const body = await request.json();
+    const body = await request.json() as { priceId: "monthly" | "yearly" };
     const { priceId } = body; // 'monthly' or 'yearly'
 
     if (!priceId || (priceId !== "monthly" && priceId !== "yearly")) {
@@ -75,10 +75,10 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.json({ sessionId: session.id, url: session.url });
-  } catch (error: any) {
+  } catch (error) {
     console.error("Error creating subscription checkout:", error);
     return NextResponse.json(
-      { error: error.message || "Failed to create checkout session" },
+      { error: (error instanceof Error ? error.message :  "Failed to create checkout session" },
       { status: 500 }
     );
   }

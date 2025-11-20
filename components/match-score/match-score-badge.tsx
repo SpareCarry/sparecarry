@@ -1,9 +1,9 @@
 "use client";
 
-import { Badge } from "@/components/ui/badge";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Badge } from "../ui/badge";
+import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { Info, MapPin, Calendar, Package, Shield } from "lucide-react";
-import { MatchScoreBreakdown } from "@/lib/matching/match-score";
+import { MatchScoreBreakdown } from "../../lib/matching/match-score";
 
 interface MatchScoreBadgeProps {
   score: MatchScoreBreakdown;

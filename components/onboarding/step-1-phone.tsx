@@ -1,10 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { createClient } from "@/lib/supabase/client";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
+import { Label } from "../ui/label";
+import { createClient } from "../../lib/supabase/client";
 import { Loader2 } from "lucide-react";
 
 interface OnboardingStep1Props {
@@ -37,7 +37,7 @@ export function OnboardingStep1({ onComplete }: OnboardingStep1Props) {
       if (verifyError) throw verifyError;
 
       setStep("verify");
-    } catch (err: any) {
+    } catch (err) {
       setError(err.message || "Failed to send verification code");
     } finally {
       setLoading(false);
@@ -74,7 +74,7 @@ export function OnboardingStep1({ onComplete }: OnboardingStep1Props) {
       if (updateError) throw updateError;
 
       onComplete();
-    } catch (err: any) {
+    } catch (err) {
       setError(err.message || "Invalid verification code");
     } finally {
       setLoading(false);
@@ -97,7 +97,7 @@ export function OnboardingStep1({ onComplete }: OnboardingStep1Props) {
             className="bg-white"
           />
           <p className="text-sm text-slate-500">
-            We'll send you a verification code via SMS
+            We&apos;ll send you a verification code via SMS
           </p>
         </div>
 

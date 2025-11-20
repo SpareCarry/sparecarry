@@ -1,0 +1,27 @@
+{
+  "atLeast": 100,
+  "ignoreFiles": [
+    "**/*.d.ts",
+    "**/node_modules/**",
+    "**/.next/**",
+    "**/out/**",
+    "**/dist/**",
+    "**/build/**",
+    "**/android/**",
+    "**/ios/**",
+    "**/.capacitor/**",
+    "**/coverage/**",
+    "**/e2e/**",
+    "**/tests/**",
+    "**/*.config.*",
+    "**/next-env.d.ts",
+    "**/vitest.config.ts",
+    "**/playwright.config.ts",
+    "**/detox.config.js",
+    "**/jest.config.js"
+  ],
+  "ignoreCatch": false,
+  "ignoreUnread": false,
+  "strict": true
+}
+

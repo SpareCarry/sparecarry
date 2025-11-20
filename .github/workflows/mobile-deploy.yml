@@ -1,0 +1,221 @@
+name: Mobile Deployment
+
+on:
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: 'Platform to deploy'
+        required: true
+        type: choice
+        options:
+          - android
+          - ios
+          - both
+      track:
+        description: 'Deployment track (beta = TestFlight/Internal, release = App Store/Production)'
+        required: true
+        type: choice
+        options:
+          - beta
+          - release
+      version:
+        description: 'Version number (optional, auto-incremented if not provided)'
+        required: false
+        type: string
+      confirm_production:
+        description: 'Confirm production release (required for release track)'
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  deploy-android:
+    name: Deploy Android
+    runs-on: ubuntu-latest
+    if: ${{ (github.event.inputs.platform == 'android' || github.event.inputs.platform == 'both') && (github.event.inputs.track == 'beta' || github.event.inputs.confirm_production == true) }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build Next.js app
+        run: pnpm build
+        env:
+          NODE_ENV: production
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY }}
+          NEXT_PUBLIC_APP_URL: ${{ secrets.NEXT_PUBLIC_APP_URL }}
+
+      - name: Validate export
+        run: pnpm validate:export
+
+      - name: Setup Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v2
+
+      - name: Sync Capacitor
+        run: pnpm mobile:sync
+
+      - name: Setup Android signing
+        run: |
+          mkdir -p android/app
+          echo "${{ secrets.ANDROID_KEYSTORE }}" | base64 -d > android/app/release.keystore
+        env:
+          ANDROID_KEYSTORE: ${{ secrets.ANDROID_KEYSTORE }}
+
+      - name: Create keystore properties
+        run: |
+          cat > android/keystore.properties << EOF
+          storePassword=${{ secrets.KEYSTORE_PASSWORD }}
+          keyPassword=${{ secrets.KEY_PASSWORD }}
+          keyAlias=${{ secrets.KEY_ALIAS }}
+          storeFile=app/release.keystore
+          EOF
+
+      - name: Setup Google Play service account
+        run: |
+          echo "${{ secrets.GOOGLE_PLAY_JSON }}" > $HOME/google-play-service-account.json
+          export GOOGLE_PLAY_JSON_KEY_FILE=$HOME/google-play-service-account.json
+
+      - name: Install Fastlane
+        run: |
+          sudo gem install fastlane
+          fastlane --version
+
+      - name: Run Fastlane
+        working-directory: android
+        run: |
+          if [ "${{ github.event.inputs.track }}" == "release" ]; then
+            fastlane android release
+          else
+            fastlane android beta
+          fi
+        env:
+          GOOGLE_PLAY_JSON_KEY_FILE: $HOME/google-play-service-account.json
+          ANDROID_HOME: ${{ env.ANDROID_HOME }}
+          ANDROID_SDK_ROOT: ${{ env.ANDROID_SDK_ROOT }}
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: android-release
+          path: |
+            android/app/build/outputs/bundle/release/*.aab
+            android/app/build/outputs/apk/release/*.apk
+          retention-days: 30
+
+  deploy-ios:
+    name: Deploy iOS
+    runs-on: macos-latest
+    if: ${{ (github.event.inputs.platform == 'ios' || github.event.inputs.platform == 'both') && (github.event.inputs.track == 'beta' || github.event.inputs.confirm_production == true) }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build Next.js app
+        run: pnpm build
+        env:
+          NODE_ENV: production
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY }}
+          NEXT_PUBLIC_APP_URL: ${{ secrets.NEXT_PUBLIC_APP_URL }}
+
+      - name: Validate export
+        run: pnpm validate:export
+
+      - name: Install CocoaPods
+        run: |
+          sudo gem install cocoapods
+          pod --version
+
+      - name: Sync Capacitor
+        run: pnpm mobile:sync
+
+      - name: Install Fastlane
+        run: |
+          sudo gem install fastlane
+          fastlane --version
+
+      - name: Setup App Store Connect API Key
+        run: |
+          mkdir -p ~/.appstoreconnect/private_keys
+          echo "${{ secrets.APP_STORE_CONNECT_KEY }}" > ~/.appstoreconnect/private_keys/AuthKey_${{ secrets.APP_STORE_CONNECT_KEY_ID }}.p8
+          chmod 600 ~/.appstoreconnect/private_keys/AuthKey_${{ secrets.APP_STORE_CONNECT_KEY_ID }}.p8
+
+      - name: Run Fastlane
+        working-directory: ios
+        run: |
+          if [ "${{ github.event.inputs.track }}" == "release" ]; then
+            fastlane ios release
+          else
+            fastlane ios beta
+          fi
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          APP_STORE_CONNECT_KEY_PATH: ~/.appstoreconnect/private_keys/AuthKey_${{ secrets.APP_STORE_CONNECT_KEY_ID }}.p8
+          BUNDLE_IDENTIFIER: com.carryspace.app
+          PROVISIONING_PROFILE_NAME: ${{ secrets.IOS_PROVISIONING_PROFILE_NAME }}
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: ios-release
+          path: |
+            ios/App/App/Build/*.ipa
+            ios/App/App/Build/*.app.dSYM.zip
+          retention-days: 30
+
+  summary:
+    name: Deployment Summary
+    runs-on: ubuntu-latest
+    needs: [deploy-android, deploy-ios]
+    if: always()
+    steps:
+      - name: Deployment Status
+        run: |
+          echo "## Mobile Deployment Status" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Platform | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|----------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Android | ${{ needs.deploy-android.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| iOS | ${{ needs.deploy-ios.result }} |" >> $GITHUB_STEP_SUMMARY
+

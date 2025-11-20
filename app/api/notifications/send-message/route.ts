@@ -1,45 +1,68 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
-import * as Notifications from "expo-notifications";
+import { createClient } from "../../../lib/supabase/server";
+import { sendMessageNotificationRequestSchema } from "../../../lib/zod/api-schemas";
+import type { SendMessageNotificationRequest, NotificationResponse } from "../../../types/api";
+import type { Profile } from "../../../types/supabase";
+import { rateLimit, apiRateLimiter } from "@/lib/security/rate-limit";
+import { assertAuthenticated } from "@/lib/security/auth-guards";
+import { validateRequestBody } from "@/lib/security/validation";
+import { errorResponse, successResponse } from "@/lib/security/api-response";
+import { safeLog } from "@/lib/security/auth-guards";
 
-export async function POST(request: NextRequest) {
+export async function POST(request: NextRequest): Promise<NextResponse<NotificationResponse>> {
   try {
-    const supabase = await createClient();
+    // Rate limiting
+    const rateLimitResult = await rateLimit(request, apiRateLimiter);
+    if (!rateLimitResult.allowed) {
+      return NextResponse.json(
+        { success: false, error: rateLimitResult.error },
+        { status: 429, headers: rateLimitResult.headers }
+      );
+    }
+
+    // Authentication
+    const user = await assertAuthenticated(request);
+
+    // Validate request body
     const body = await request.json();
-    const { matchId, recipientId, senderName, messagePreview } = body;
+    const validation = validateRequestBody(sendMessageNotificationRequestSchema, body);
+    if (!validation.success) {
+      return NextResponse.json(
+        { success: false, error: validation.error },
+        { status: 400 }
+      );
+    }
+
+    const parsedBody = validation.data;
+    const supabase = await createClient();
+    const { matchId, recipientId, senderName, messagePreview } = parsedBody;
 
     // Get recipient's push token
-    const { data: profile } = await supabase
+    const { data: profile, error: profileError } = await supabase
       .from("profiles")
       .select("expo_push_token, push_notifications_enabled")
       .eq("user_id", recipientId)
-      .single();
+      .single<Pick<Profile, "expo_push_token" | "push_notifications_enabled">>();
 
     if (!profile?.expo_push_token || !profile.push_notifications_enabled) {
       return NextResponse.json({ success: false, error: "No push token" });
     }
 
-    // Send push notification with foghorn sound
-    await Notifications.sendPushNotificationAsync({
+    // Send push notification via notification service
+    // TODO: requires backend push notification service setup (FCM, OneSignal, etc.)
+    // For MVP, notifications are handled client-side via Capacitor PushNotifications plugin
+    const { sendPushNotification } = await import("../../../lib/notifications/push-service");
+    await sendPushNotification({
       to: profile.expo_push_token,
-      sound: "foghorn.mp3",
-      title: `💬 ${senderName}`,
-      body: messagePreview || "New message",
-      data: {
-        type: "message",
-        matchId,
-        sound: "foghorn",
-      },
-      priority: "high",
+      title: "New Message",
+      body: `${senderName}: ${messagePreview || "You have a new message"}`,
+      data: { matchId, type: "message" },
     });
 
-    return NextResponse.json({ success: true });
-  } catch (error: any) {
-    console.error("Error sending message notification:", error);
-    return NextResponse.json(
-      { error: error.message || "Failed to send notification" },
-      { status: 500 }
-    );
+    return successResponse({ success: true });
+  } catch (error) {
+    safeLog('error', 'Send message notification: Unexpected error', {});
+    return errorResponse(error, 500);
   }
 }
 

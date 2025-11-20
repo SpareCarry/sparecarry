@@ -1,11 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { Button } from "../ui/button";
 import { Bell, X } from "lucide-react";
-import { requestNotificationPermission, registerForPushNotifications } from "@/lib/notifications/expo-notifications";
-import { createClient } from "@/lib/supabase/client";
+import { requestNotificationPermission, registerForPushNotifications } from "../../lib/notifications/expo-notifications";
+import { createClient } from "../../lib/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 
 export function NotificationPermissionRequest() {

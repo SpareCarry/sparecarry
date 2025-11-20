@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
-import { stripe } from "@/lib/stripe/server";
+import { createClient } from "../../../lib/supabase/server";
+import { stripe } from "../../../lib/stripe/server";
 
 export async function POST(request: NextRequest) {
   try {
@@ -71,10 +71,10 @@ export async function POST(request: NextRequest) {
       transferId: transfer.id,
       amount: amount / 100, // Convert back to dollars
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error("Error processing payout:", error);
     return NextResponse.json(
-      { error: error.message || "Failed to process payout" },
+      { error: (error instanceof Error ? error.message :  "Failed to process payout" },
       { status: 500 }
     );
   }

@@ -1,0 +1,106 @@
+﻿{
+    "timestamp":  "20251120_100609",
+    "errors":  [
+                   "Preflight \u0026 Environment Validation : Γ¥î .env.staging exists: Create .env.staging from .env.local.example",
+                   "Web Build (Staging) : \u0027NEXT_PUBLIC_APP_ENV\u0027 is not recognized as an internal or external command,",
+                   "Database Migration \u0026 Seed : The term \u0027pnpm\u0027 is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling of the name, or if a path was included, verify that the path is correct and try again.",
+                   "QA Simulation : w\u0000s\u0000l\u0000:\u0000 \u0000U\u0000n\u0000k\u0000n\u0000o\u0000w\u0000n\u0000 \u0000k\u0000e\u0000y\u0000 \u0000\u0027\u0000a\u0000u\u0000t\u0000o\u0000m\u0000o\u0000u\u0000n\u0000t\u0000.\u0000c\u0000r\u0000o\u0000s\u0000s\u0000D\u0000i\u0000s\u0000t\u0000r\u0000o\u0000\u0027\u0000 \u0000i\u0000n\u0000 \u0000/\u0000e\u0000t\u0000c\u0000/\u0000w\u0000s\u0000l\u0000.\u0000c\u0000o\u0000n\u0000f\u0000:\u00003\u0000"
+               ],
+    "overall":  "FAIL",
+    "score":  30.8,
+    "steps":  {
+                  "Health Check":  {
+                                       "status":  "WARN",
+                                       "timestamp":  "2025-11-20 10:06:20",
+                                       "message":  "Endpoint not accessible - server may not be running",
+                                       "details":  null
+                                   },
+                  "Health Check Endpoint":  {
+                                                "status":  "PASS",
+                                                "timestamp":  "2025-11-20 10:06:20",
+                                                "message":  "Completed successfully",
+                                                "details":  null
+                                            },
+                  "Feature Flags":  {
+                                        "status":  "WARN",
+                                        "timestamp":  "2025-11-20 10:06:20",
+                                        "message":  "Skipped - requires Unleash server",
+                                        "details":  null
+                                    },
+                  "Preflight \u0026 Environment Validation":  {
+                                                                  "status":  "FAIL",
+                                                                  "timestamp":  "2025-11-20 10:06:09",
+                                                                  "message":  "Γ¥î .env.staging exists: Create .env.staging from .env.local.example",
+                                                                  "details":  {
+                                                                                  "error":  "Γ¥î .env.staging exists: Create .env.staging from .env.local.example",
+                                                                                  "stack":  "at \u003cScriptBlock\u003e, C:\\SpareCarry\\scripts\\run-full-beta-test.ps1: line 150\r\nat Test-Step, C:\\SpareCarry\\scripts\\run-full-beta-test.ps1: line 102\r\nat \u003cScriptBlock\u003e, C:\\SpareCarry\\scripts\\run-full-beta-test.ps1: line 131"
+                                                                              }
+                                                              },
+                  "Sentry \u0026 Logging":  {
+                                                "status":  "WARN",
+                                                "timestamp":  "2025-11-20 10:06:20",
+                                                "message":  "Environment file not found",
+                                                "details":  null
+                                            },
+                  "QA Simulation":  {
+                                        "status":  "FAIL",
+                                        "timestamp":  "2025-11-20 10:06:16",
+                                        "message":  "w\u0000s\u0000l\u0000:\u0000 \u0000U\u0000n\u0000k\u0000n\u0000o\u0000w\u0000n\u0000 \u0000k\u0000e\u0000y\u0000 \u0000\u0027\u0000a\u0000u\u0000t\u0000o\u0000m\u0000o\u0000u\u0000n\u0000t\u0000.\u0000c\u0000r\u0000o\u0000s\u0000s\u0000D\u0000i\u0000s\u0000t\u0000r\u0000o\u0000\u0027\u0000 \u0000i\u0000n\u0000 \u0000/\u0000e\u0000t\u0000c\u0000/\u0000w\u0000s\u0000l\u0000.\u0000c\u0000o\u0000n\u0000f\u0000:\u00003\u0000",
+                                        "details":  {
+                                                        "error":  "w\u0000s\u0000l\u0000:\u0000 \u0000U\u0000n\u0000k\u0000n\u0000o\u0000w\u0000n\u0000 \u0000k\u0000e\u0000y\u0000 \u0000\u0027\u0000a\u0000u\u0000t\u0000o\u0000m\u0000o\u0000u\u0000n\u0000t\u0000.\u0000c\u0000r\u0000o\u0000s\u0000s\u0000D\u0000i\u0000s\u0000t\u0000r\u0000o\u0000\u0027\u0000 \u0000i\u0000n\u0000 \u0000/\u0000e\u0000t\u0000c\u0000/\u0000w\u0000s\u0000l\u0000.\u0000c\u0000o\u0000n\u0000f\u0000:\u00003\u0000",
+                                                        "stack":  "at \u003cScriptBlock\u003e, C:\\SpareCarry\\scripts\\run-full-beta-test.ps1: line 317\r\nat Test-Step, C:\\SpareCarry\\scripts\\run-full-beta-test.ps1: line 102\r\nat \u003cScriptBlock\u003e, C:\\SpareCarry\\scripts\\run-full-beta-test.ps1: line 308"
+                                                    }
+                                    },
+                  "Web Build (Staging)":  {
+                                              "status":  "FAIL",
+                                              "timestamp":  "2025-11-20 10:06:10",
+                                              "message":  "\u0027NEXT_PUBLIC_APP_ENV\u0027 is not recognized as an internal or external command,",
+                                              "details":  {
+                                                              "error":  "\u0027NEXT_PUBLIC_APP_ENV\u0027 is not recognized as an internal or external command,",
+                                                              "stack":  "at \u003cScriptBlock\u003e, \u003cNo file\u003e: line 1\r\nat \u003cScriptBlock\u003e, C:\\Program Files\\nodejs\\npm.ps1: line 47\r\nat \u003cScriptBlock\u003e, C:\\SpareCarry\\scripts\\run-full-beta-test.ps1: line 216\r\nat Test-Step, C:\\SpareCarry\\scripts\\run-full-beta-test.ps1: line 102\r\nat \u003cScriptBlock\u003e, C:\\SpareCarry\\scripts\\run-full-beta-test.ps1: line 174"
+                                                          }
+                                          },
+                  "Backup \u0026 Recovery":  {
+                                                 "status":  "WARN",
+                                                 "timestamp":  "2025-11-20 10:06:20",
+                                                 "message":  "Skipped - requires Supabase credentials",
+                                                 "details":  null
+                                             },
+                  "Backup \u0026 Recovery Verification":  {
+                                                              "status":  "PASS",
+                                                              "timestamp":  "2025-11-20 10:06:20",
+                                                              "message":  "Completed successfully",
+                                                              "details":  null
+                                                          },
+                  "Sentry \u0026 Logging Verification":  {
+                                                             "status":  "PASS",
+                                                             "timestamp":  "2025-11-20 10:06:20",
+                                                             "message":  "Completed successfully",
+                                                             "details":  null
+                                                         },
+                  "Environment File Check":  {
+                                                 "status":  "WARN",
+                                                 "timestamp":  "2025-11-20 10:06:09",
+                                                 "message":  "Environment file not found - some checks skipped",
+                                                 "details":  null
+                                             },
+                  "Feature Flags Verification":  {
+                                                     "status":  "PASS",
+                                                     "timestamp":  "2025-11-20 10:06:20",
+                                                     "message":  "Completed successfully",
+                                                     "details":  null
+                                                 },
+                  "Database Migration \u0026 Seed":  {
+                                                         "status":  "FAIL",
+                                                         "timestamp":  "2025-11-20 10:06:10",
+                                                         "message":  "The term \u0027pnpm\u0027 is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling of the name, or if a path was included, verify that the path is correct and try again.",
+                                                         "details":  {
+                                                                         "error":  "The term \u0027pnpm\u0027 is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling of the name, or if a path was included, verify that the path is correct and try again.",
+                                                                         "stack":  "at \u003cScriptBlock\u003e, C:\\SpareCarry\\scripts\\run-full-beta-test.ps1: line 274\r\nat Test-Step, C:\\SpareCarry\\scripts\\run-full-beta-test.ps1: line 102\r\nat \u003cScriptBlock\u003e, C:\\SpareCarry\\scripts\\run-full-beta-test.ps1: line 264"
+                                                                     }
+                                                     }
+              },
+    "warnings":  [
+
+                 ]
+}

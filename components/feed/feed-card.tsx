@@ -1,16 +1,16 @@
 "use client";
 
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "../ui/card";
+import { Badge } from "../ui/badge";
 import { Plane, Ship, CheckCircle2, Clock, DollarSign, Zap } from "lucide-react";
 import { format, parseISO, differenceInDays, isValid } from "date-fns";
-import { cn } from "@/lib/utils";
-import { VerifiedSailorBadge } from "@/components/badges/verified-sailor-badge";
-import { VerifiedBadge } from "@/components/badges/verified-badge";
-import { VerifiedCheckBadge } from "@/components/badges/verified-check-badge";
-import { SupporterBadge } from "@/components/badges/supporter-badge";
-import { MatchScoreBadge } from "@/components/match-score/match-score-badge";
-import { MatchScoreBreakdown } from "@/lib/matching/match-score";
+import { cn } from "../../lib/utils";
+import { VerifiedSailorBadge } from "../badges/verified-sailor-badge";
+import { VerifiedBadge } from "../badges/verified-badge";
+import { VerifiedCheckBadge } from "../badges/verified-check-badge";
+import { SupporterBadge } from "../badges/supporter-badge";
+import { MatchScoreBadge } from "../match-score/match-score-badge";
+import { MatchScoreBreakdown } from "../../lib/matching/match-score";
 
 interface FeedItem {
   id: string;

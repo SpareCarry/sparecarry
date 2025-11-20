@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
-import { stripe } from "@/lib/stripe/server";
+import { createClient } from "../../../lib/supabase/server";
+import { stripe } from "../../../lib/stripe/server";
 
 export async function POST(request: NextRequest) {
   try {
@@ -46,10 +46,10 @@ export async function POST(request: NextRequest) {
       .eq("id", user.id);
 
     return NextResponse.json({ success: true });
-  } catch (error: any) {
+  } catch (error) {
     console.error("Error verifying supporter payment:", error);
     return NextResponse.json(
-      { error: error.message || "Failed to verify payment" },
+      { error: (error instanceof Error ? error.message :  "Failed to verify payment" },
       { status: 500 }
     );
   }

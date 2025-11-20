@@ -1,23 +1,10 @@
-// Expo Push Notifications Setup
-// Works on web + future mobile apps
+// Web Push Notifications Setup
+// Works on web
 // For native iOS/Android, use Capacitor Push Notifications instead
 
-import { Capacitor } from "@capacitor/core";
-import * as Notifications from "expo-notifications";
-import { Platform } from "react-native";
+import { isNativePlatform } from "@/lib/utils/capacitor-safe";
 
-const isNative = Capacitor.isNativePlatform();
-
-// Configure notification behavior (only if expo-notifications is available)
-if (Notifications && Notifications.setNotificationHandler) {
-  Notifications.setNotificationHandler({
-    handleNotification: async () => ({
-      shouldShowAlert: true,
-      shouldPlaySound: true,
-      shouldSetBadge: true,
-    }),
-  });
-}
+const isNative = typeof window !== 'undefined' ? isNativePlatform() : false;
 
 export interface NotificationSound {
   match: "boat_horn" | "airplane_ding";
@@ -27,10 +14,10 @@ export interface NotificationSound {
 
 // Sound files (will be loaded from public/sounds/)
 const SOUNDS = {
-  boat_horn: require("../../public/sounds/boat-horn.mp3"),
-  airplane_ding: require("../../public/sounds/airplane-ding.mp3"),
-  foghorn: require("../../public/sounds/foghorn.mp3"),
-  cash_register: require("../../public/sounds/cash-register.mp3"),
+  boat_horn: "boat_horn",
+  airplane_ding: "airplane_ding",
+  foghorn: "foghorn",
+  cash_register: "cash_register",
 };
 
 export async function requestNotificationPermission(): Promise<boolean> {
@@ -47,24 +34,9 @@ export async function requestNotificationPermission(): Promise<boolean> {
       return permission === "granted";
     }
 
-    // Expo Notifications (mobile)
-    if (Notifications && Notifications.getPermissionsAsync) {
-      const { status: existingStatus } = await Notifications.getPermissionsAsync();
-      let finalStatus = existingStatus;
-
-      if (existingStatus !== "granted") {
-        const { status } = await Notifications.requestPermissionsAsync({
-          ios: {
-            allowAlert: true,
-            allowBadge: true,
-            allowSound: true,
-            allowAnnouncements: false,
-          },
-        });
-        finalStatus = status;
-      }
-
-      return finalStatus === "granted";
+    // Native platforms should use Capacitor notifications
+    if (isNative) {
+      return false;
     }
 
     return false;
@@ -82,7 +54,7 @@ export async function registerForPushNotifications(): Promise<string | null> {
     }
 
     // Web: Generate a unique token (store in localStorage)
-    if (typeof window !== "undefined" && Platform.OS === "web") {
+    if (typeof window !== "undefined" && !isNative) {
       let token = localStorage.getItem("expo_push_token");
       if (!token) {
         token = `web_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`;
@@ -91,14 +63,7 @@ export async function registerForPushNotifications(): Promise<string | null> {
       return token;
     }
 
-    // Mobile: Get Expo push token
-    if (Notifications && Notifications.getExpoPushTokenAsync) {
-      const token = await Notifications.getExpoPushTokenAsync({
-        projectId: process.env.EXPO_PROJECT_ID || process.env.NEXT_PUBLIC_EXPO_PROJECT_ID,
-      });
-      return token.data;
-    }
-
+    // Native platforms should use Capacitor notifications
     return null;
   } catch (error) {
     console.error("Error registering for push notifications:", error);
@@ -113,16 +78,20 @@ export async function sendLocalNotification(
   data?: Record<string, any>
 ) {
   try {
-    await Notifications.scheduleNotificationAsync({
-      content: {
-        title,
-        body,
-        sound: SOUNDS[sound],
-        data,
-        priority: Notifications.AndroidNotificationPriority.HIGH,
-      },
-      trigger: null, // Show immediately
-    });
+    // Web: Use browser Notification API
+    if (typeof window !== "undefined" && !isNative && "Notification" in window) {
+      if (Notification.permission === "granted") {
+        new Notification(title, {
+          body,
+          icon: "/icon-192x192.png",
+          badge: "/icon-192x192.png",
+          tag: data?.matchId || "sparecarry",
+          data,
+        });
+        // Play sound
+        playNotificationSound(sound);
+      }
+    }
   } catch (error) {
     console.error("Error sending local notification:", error);
   }
@@ -174,25 +143,11 @@ export function setupNotificationHandlers() {
     });
   }
 
-  // Expo Notifications (mobile)
-  if (Notifications && Notifications.addNotificationReceivedListener) {
-    Notifications.addNotificationReceivedListener((notification: any) => {
-      const sound = notification.request.content.data?.sound as keyof typeof SOUNDS;
-      if (sound) {
-        playNotificationSound(sound);
-      }
-    });
-
-    Notifications.addNotificationResponseReceivedListener((response: any) => {
-      const data = response.notification.request.content.data;
-      if (data?.type === "match") {
-        window.location.href = `/home/messages/${data.matchId}`;
-      } else if (data?.type === "message") {
-        window.location.href = `/home/messages/${data.matchId}`;
-      } else if (data?.type === "counter_offer") {
-        window.location.href = `/home/messages/${data.matchId}`;
-      }
-    });
+  // Web: Listen for browser notification clicks
+  if (typeof window !== "undefined" && "Notification" in window) {
+    // Handle notification clicks (if supported)
+    // Note: Browser notifications don't have a built-in click handler
+    // This would typically be handled by a service worker
   }
 }
 

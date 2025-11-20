@@ -1,10 +1,10 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { createClient } from "@/lib/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { createClient } from "../../lib/supabase/client";
+import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card";
 import { Trophy, Anchor, Loader2 } from "lucide-react";
-import { SupporterBadge } from "@/components/badges/supporter-badge";
+import { SupporterBadge } from "../../components/badges/supporter-badge";
 import { format } from "date-fns";
 
 export default function HallOfFamePage() {

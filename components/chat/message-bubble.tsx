@@ -1,7 +1,7 @@
 "use client";
 
 import { format } from "date-fns";
-import { cn } from "@/lib/utils";
+import { cn } from "../../lib/utils";
 
 interface MessageBubbleProps {
   message: {

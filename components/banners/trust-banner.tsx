@@ -1,8 +1,8 @@
 "use client";
 
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent } from "../ui/card";
 import { Shield, Gift, Clock } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "../../lib/utils";
 
 interface TrustBannerProps {
   variant: "first-delivery" | "promo-period";
@@ -54,7 +54,7 @@ export function TrustBanner({ variant, className }: TrustBannerProps) {
               Zero platform fees for everyone until {promoEndDate.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
             </h3>
             <p className="text-sm text-slate-700 mb-2">
-              We're bootstrapping with you. Complete your deliveries now and save 15–18% on platform fees. 
+              We&apos;re bootstrapping with you. Complete your deliveries now and save 15–18% on platform fees. 
               {daysRemaining > 0 && (
                 <span className="font-semibold text-blue-700 ml-1">
                   {daysRemaining} {daysRemaining === 1 ? "day" : "days"} left!

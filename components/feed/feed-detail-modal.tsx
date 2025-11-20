@@ -7,14 +7,14 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+} from "../ui/dialog";
+import { Button } from "../ui/button";
+import { Badge } from "../ui/badge";
 import { Plane, Ship, CheckCircle2, Clock, DollarSign, MapPin, MessageCircle } from "lucide-react";
 import { format, parseISO, isValid } from "date-fns";
-import { createClient } from "@/lib/supabase/client";
+import { createClient } from "../../lib/supabase/client";
 import { useRouter } from "next/navigation";
-import { cn } from "@/lib/utils";
+import { cn } from "../../lib/utils";
 
 interface FeedItem {
   id: string;

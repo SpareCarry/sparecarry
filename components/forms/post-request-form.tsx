@@ -1,22 +1,22 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
+import { Label } from "../ui/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { createClient } from "@/lib/supabase/client";
+} from "../ui/select";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
+import { createClient } from "../../lib/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   Loader2,
@@ -30,7 +30,7 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { useLoadScript } from "@react-google-maps/api";
-import { PurchaseOptions } from "@/components/purchase/purchase-options";
+import { PurchaseOptions } from "../purchase/purchase-options";
 
 const postRequestSchema = z.object({
   title: z.string().min(1, "Title is required").max(200),
@@ -74,8 +74,8 @@ export function PostRequestForm() {
   const [loading, setLoading] = useState(false);
   const fromInputRef = useRef<HTMLInputElement>(null);
   const toInputRef = useRef<HTMLInputElement>(null);
-  const fromAutocompleteRef = useRef<any>(null);
-  const toAutocompleteRef = useRef<any>(null);
+  const fromAutocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
+  const toAutocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
 
   const { isLoaded } = useLoadScript({
     googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "",
@@ -89,6 +89,7 @@ export function PostRequestForm() {
     setValue,
     watch,
   } = useForm<PostRequestFormData>({
+    mode: "onChange",
     resolver: zodResolver(postRequestSchema),
     defaultValues: {
       preferred_method: "any",
@@ -100,6 +101,51 @@ export function PostRequestForm() {
   const weight = watch("weight_kg");
   const preferredMethod = watch("preferred_method");
   const maxReward = watch("max_reward");
+
+  // Calculate suggested reward
+  const calculateSuggestedReward = useCallback((
+    distKm: number,
+    weightKg: number,
+    method: string
+  ) => {
+    let suggested = 0;
+    if (method === "plane") {
+      suggested = distKm * 0.8 + weightKg * 5;
+      suggested = Math.max(suggested, 100); // Minimum $100
+    } else if (method === "boat") {
+      suggested = distKm * 0.15 + weightKg * 1;
+      suggested = Math.max(suggested, 80); // Minimum $80
+    } else {
+      // "any" - use the cheaper option (boat)
+      const boatPrice = Math.max(distKm * 0.15 + weightKg * 1, 80);
+      const planePrice = Math.max(distKm * 0.8 + weightKg * 5, 100);
+      suggested = Math.min(boatPrice, planePrice);
+    }
+    setSuggestedReward(Math.round(suggested));
+    setValue("max_reward", Math.round(suggested));
+  }, [setValue]);
+
+  // Calculate distance between two places
+  const calculateDistance = useCallback(async () => {
+    if (!fromPlace || !toPlace || !isLoaded || typeof window === "undefined" || !window.google) return;
+
+    const service = new window.google.maps.DistanceMatrixService();
+    service.getDistanceMatrix(
+      {
+        origins: [fromPlace.description],
+        destinations: [toPlace.description],
+        travelMode: window.google.maps.TravelMode.DRIVING,
+        unitSystem: window.google.maps.UnitSystem.METRIC,
+      },
+      (response: any, status: any) => {
+        if (status === "OK" && response?.rows[0]?.elements[0]) {
+          const distanceKm = response.rows[0].elements[0].distance.value / 1000;
+          setDistance(distanceKm);
+          calculateSuggestedReward(distanceKm, weight || 0, preferredMethod);
+        }
+      }
+    );
+  }, [fromPlace, toPlace, isLoaded, weight, preferredMethod, calculateSuggestedReward]);
 
   // Initialize Google Places Autocomplete
   useEffect(() => {
@@ -155,59 +201,14 @@ export function PostRequestForm() {
         window.google.maps.event.clearInstanceListeners(toAutocompleteRef.current);
       }
     };
-  }, [isLoaded, setValue]);
-
-  // Calculate distance between two places
-  const calculateDistance = async () => {
-    if (!fromPlace || !toPlace || !isLoaded || typeof window === "undefined" || !window.google) return;
-
-    const service = new window.google.maps.DistanceMatrixService();
-    service.getDistanceMatrix(
-      {
-        origins: [fromPlace.description],
-        destinations: [toPlace.description],
-        travelMode: window.google.maps.TravelMode.DRIVING,
-        unitSystem: window.google.maps.UnitSystem.METRIC,
-      },
-      (response: any, status: any) => {
-        if (status === "OK" && response?.rows[0]?.elements[0]) {
-          const distanceKm = response.rows[0].elements[0].distance.value / 1000;
-          setDistance(distanceKm);
-          calculateSuggestedReward(distanceKm, weight || 0, preferredMethod);
-        }
-      }
-    );
-  };
-
-  // Calculate suggested reward
-  const calculateSuggestedReward = (
-    distKm: number,
-    weightKg: number,
-    method: string
-  ) => {
-    let suggested = 0;
-    if (method === "plane") {
-      suggested = distKm * 0.8 + weightKg * 5;
-      suggested = Math.max(suggested, 100); // Minimum $100
-    } else if (method === "boat") {
-      suggested = distKm * 0.15 + weightKg * 1;
-      suggested = Math.max(suggested, 80); // Minimum $80
-    } else {
-      // "any" - use the cheaper option (boat)
-      const boatPrice = Math.max(distKm * 0.15 + weightKg * 1, 80);
-      const planePrice = Math.max(distKm * 0.8 + weightKg * 5, 100);
-      suggested = Math.min(boatPrice, planePrice);
-    }
-    setSuggestedReward(Math.round(suggested));
-    setValue("max_reward", Math.round(suggested));
-  };
+  }, [isLoaded, setValue, calculateDistance]);
 
   // Recalculate when weight or method changes
   useEffect(() => {
     if (distance && weight) {
       calculateSuggestedReward(distance, weight, preferredMethod);
     }
-  }, [weight, preferredMethod, distance]);
+  }, [weight, preferredMethod, distance, calculateSuggestedReward]);
 
   // Handle photo upload
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -338,7 +339,7 @@ export function PostRequestForm() {
 
       // Redirect to browse page
       router.push("/home");
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error creating request:", error);
       alert(error.message || "Failed to create request");
     } finally {
@@ -391,6 +392,7 @@ export function PostRequestForm() {
         <div className="grid grid-cols-3 gap-4">
           {photos.map((photo, index) => (
             <div key={index} className="relative aspect-square">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={URL.createObjectURL(photo)}
                 alt={`Photo ${index + 1}`}
@@ -497,8 +499,20 @@ export function PostRequestForm() {
             <MapPin className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
             <Input
               id="from_location"
-              ref={fromInputRef}
-              {...register("from_location")}
+              {...register("from_location", {
+                onChange: () => {},
+              })}
+              ref={(e) => {
+                if (e) {
+                  (fromInputRef as React.MutableRefObject<HTMLInputElement | null>).current = e;
+                }
+                const registerRef = register("from_location").ref;
+                if (typeof registerRef === "function") {
+                  registerRef(e);
+                } else if (registerRef) {
+                  (registerRef as React.MutableRefObject<HTMLInputElement | null>).current = e;
+                }
+              }}
               placeholder="City or location"
               className="bg-white pl-10"
               autoComplete="off"
@@ -514,8 +528,20 @@ export function PostRequestForm() {
             <MapPin className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
             <Input
               id="to_location"
-              ref={toInputRef}
-              {...register("to_location")}
+              {...register("to_location", {
+                onChange: () => {},
+              })}
+              ref={(e) => {
+                if (e) {
+                  (toInputRef as React.MutableRefObject<HTMLInputElement | null>).current = e;
+                }
+                const registerRef = register("to_location").ref;
+                if (typeof registerRef === "function") {
+                  registerRef(e);
+                } else if (registerRef) {
+                  (registerRef as React.MutableRefObject<HTMLInputElement | null>).current = e;
+                }
+              }}
               placeholder="City or location"
               className="bg-white pl-10"
               autoComplete="off"
@@ -590,7 +616,7 @@ export function PostRequestForm() {
       <div className="space-y-4">
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <Label htmlFor="max_reward">Max You're Willing to Pay *</Label>
+            <Label htmlFor="max_reward">Max You&apos;re Willing to Pay *</Label>
             <span className="text-sm font-semibold text-teal-600">
               ${maxReward?.toLocaleString() || 0}
             </span>

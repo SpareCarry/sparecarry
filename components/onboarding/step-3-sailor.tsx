@@ -1,11 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription } from "@/components/ui/card";
-import { createClient } from "@/lib/supabase/client";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
+import { Label } from "../ui/label";
+import { Card, CardContent, CardDescription } from "../ui/card";
+import { createClient } from "../../lib/supabase/client";
 import { Loader2, Ship, CheckCircle2 } from "lucide-react";
 
 interface OnboardingStep3Props {
@@ -79,7 +79,7 @@ export function OnboardingStep3({ onComplete }: OnboardingStep3Props) {
       }
 
       onComplete();
-    } catch (err: any) {
+    } catch (err) {
       setError(err.message || "Failed to save information");
     } finally {
       setLoading(false);
@@ -109,7 +109,7 @@ export function OnboardingStep3({ onComplete }: OnboardingStep3Props) {
             onClick={() => setIsSailor(true)}
             className="flex-1 bg-teal-600 hover:bg-teal-700"
           >
-            Yes, I'm a Sailor
+            Yes, I&apos;m a Sailor
           </Button>
           <Button
             onClick={() => setIsSailor(false)}
@@ -230,7 +230,7 @@ export function OnboardingStep3({ onComplete }: OnboardingStep3Props) {
           <CardContent className="pt-4">
             <p className="text-sm text-blue-800">
               <strong>Note:</strong> Your sailor verification will be reviewed by our admin team.
-              You'll receive a "Verified Sailor" badge once approved.
+              You&apos;ll receive a &quot;Verified Sailor&quot; badge once approved.
             </p>
           </CardContent>
         </Card>

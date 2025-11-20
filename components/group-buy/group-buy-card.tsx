@@ -1,12 +1,12 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { Button } from "../ui/button";
+import { Badge } from "../ui/badge";
 import { Users, Percent, MapPin } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
-import { createClient } from "@/lib/supabase/client";
+import { createClient } from "../../lib/supabase/client";
 
 interface GroupBuyCardProps {
   groupBuy: {
@@ -54,7 +54,7 @@ export function GroupBuyCard({ groupBuy, onJoin }: GroupBuyCardProps) {
 
       // Create request and match (simplified - in production, user selects item details)
       onJoin?.();
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error joining group buy:", error);
       alert(error.message || "Failed to join group buy");
     } finally {

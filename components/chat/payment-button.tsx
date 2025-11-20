@@ -2,15 +2,15 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "../ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
 import { DollarSign, AlertCircle, Shield } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
+import { createClient } from "../../lib/supabase/client";
 import { loadStripe } from "@stripe/stripe-js";
 import { useQuery } from "@tanstack/react-query";
-import { calculatePlatformFee, isPromoPeriodActive } from "@/lib/pricing/platform-fee";
-import { getInsuranceQuote, purchaseInsurance } from "@/lib/insurance/allianz";
-import { TrustBanner } from "@/components/banners/trust-banner";
+import { calculatePlatformFee, isPromoPeriodActive } from "../../lib/pricing/platform-fee";
+import { getInsuranceQuote, purchaseInsurance } from "../../lib/insurance/allianz";
+import { TrustBanner } from "../banners/trust-banner";
 
 const stripePromise = loadStripe(
   process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
@@ -98,6 +98,9 @@ export function PaymentButton({ match }: PaymentButtonProps) {
   const [insuranceQuote, setInsuranceQuote] = useState<{
     premium: number;
     coverage_amount: number;
+    item_value: number;
+    route_from: string;
+    route_to: string;
   } | null>(null);
   const [insuranceLoading, setInsuranceLoading] = useState(false);
 
@@ -112,11 +115,14 @@ export function PaymentButton({ match }: PaymentButtonProps) {
         setInsuranceQuote({
           premium: quote.premium,
           coverage_amount: quote.coverage_amount,
+          item_value: itemCost,
+          route_from: request.from_location,
+          route_to: request.to_location,
         });
         setInsuranceLoading(false);
       });
     }
-  }, [itemCost, request.from_location, request.to_location]);
+  }, [itemCost, request.from_location, request.to_location, insuranceLoading, insuranceQuote]);
 
   const insuranceCost = insurance && insuranceQuote ? insuranceQuote.premium : 0;
   
@@ -186,7 +192,7 @@ export function PaymentButton({ match }: PaymentButtonProps) {
       if (error) throw error;
 
       router.refresh();
-    } catch (error: any) {
+    } catch (error) {
       console.error("Payment error:", error);
       alert(error.message || "Payment failed");
     } finally {

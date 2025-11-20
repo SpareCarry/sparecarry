@@ -1,7 +1,7 @@
 "use client";
 
 import { Anchor } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "../../lib/utils";
 
 interface SupporterBadgeProps {
   className?: string;

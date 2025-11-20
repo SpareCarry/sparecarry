@@ -5,11 +5,11 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent } from "@/components/ui/card";
-import { createClient } from "@/lib/supabase/client";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
+import { Label } from "../ui/label";
+import { Card, CardContent } from "../ui/card";
+import { createClient } from "../../lib/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   Loader2,
@@ -20,9 +20,9 @@ import {
   Search,
 } from "lucide-react";
 import { format, addDays } from "date-fns";
-import { popularPorts, searchPorts } from "@/lib/data/ports";
-import { cn } from "@/lib/utils";
-import { LithiumWarningModal } from "@/components/modals/lithium-warning-modal";
+import { popularPorts, searchPorts } from "../../lib/data/ports";
+import { cn } from "../../lib/utils";
+import { LithiumWarningModal } from "../modals/lithium-warning-modal";
 
 const planeTripSchema = z.object({
   type: z.literal("plane"),
@@ -187,12 +187,7 @@ export function PostTripForm() {
     defaultValues: {
       type: "plane",
       can_take_lithium_batteries: false,
-      can_take_outboard: false,
-      can_take_spar: false,
-      can_take_dinghy: false,
-      can_oversize: false,
-      can_take_hazardous: false,
-    },
+    } as TripFormData,
   });
 
   const watchedType = watch("type");
@@ -209,6 +204,8 @@ export function PostTripForm() {
         return;
       }
 
+      let tripData: { id: string } | null = null;
+
       if (data.type === "plane") {
         // Calculate ETA window for plane (same day as departure)
         const departureDate = new Date(data.departure_date);
@@ -224,7 +221,7 @@ export function PostTripForm() {
           height_cm: data.max_height_cm,
         });
 
-        const { data: tripData, error } = await supabase
+        const { data: insertedTrip, error } = await supabase
           .from("trips")
           .insert({
             user_id: user.id,
@@ -248,9 +245,10 @@ export function PostTripForm() {
           .single();
 
         if (error) throw error;
+        tripData = insertedTrip;
       } else {
         // Boat trip
-        const { data: boatData, error } = await supabase
+        const { data: insertedTrip, error } = await supabase
           .from("trips")
           .insert({
             user_id: user.id,
@@ -273,21 +271,15 @@ export function PostTripForm() {
           .single();
 
         if (error) throw error;
-
-        // Trigger auto-matching
-        await fetch("/api/matches/auto-match", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ type: "boat", id: boatData.id }),
-        });
+        tripData = insertedTrip;
       }
 
-      // Trigger auto-matching for plane trips
-      if (data.type === "plane") {
+      // Trigger auto-matching
+      if (tripData) {
         await fetch("/api/matches/auto-match", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ type: "plane", id: tripData.id }),
+          body: JSON.stringify({ type: data.type, id: tripData.id }),
         });
       }
 
@@ -296,7 +288,7 @@ export function PostTripForm() {
 
       // Redirect to browse page
       router.push("/home");
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error creating trip:", error);
       alert(error.message || "Failed to create trip");
     } finally {
@@ -328,7 +320,7 @@ export function PostTripForm() {
                 </div>
                 <h4 className="font-semibold text-lg">✈ Plane</h4>
                 <p className="text-sm text-slate-600">
-                  I'm flying and can carry items
+                  I&apos;m flying and can carry items
                 </p>
               </div>
             </CardContent>
@@ -359,7 +351,7 @@ export function PostTripForm() {
                 </div>
                 <h4 className="font-semibold text-lg">⚓ Boat</h4>
                 <p className="text-sm text-slate-600">
-                  I'm sailing and can carry items
+                  I&apos;m sailing and can carry items
                 </p>
               </div>
             </CardContent>
@@ -466,9 +458,9 @@ export function PostTripForm() {
                 min={format(new Date(), "yyyy-MM-dd")}
                 className="bg-white"
               />
-              {errors.departure_date && (
-                <p className="text-sm text-red-600">{errors.departure_date.message}</p>
-              )}
+               {watchedType === "plane" && "departure_date" in errors && errors.departure_date && (
+                 <p className="text-sm text-red-600">{errors.departure_date.message}</p>
+               )}
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -582,14 +574,14 @@ export function PostTripForm() {
                 onChange={(value) => setValue("from_location", value)}
                 placeholder="Select from port"
                 label="From Port *"
-                error={errors.from_location?.message}
+                 error={watchedType === "boat" && "from_location" in errors ? errors.from_location?.message : undefined}
               />
               <PortSelect
                 value={watch("to_location") || ""}
                 onChange={(value) => setValue("to_location", value)}
                 placeholder="Select to port"
                 label="To Port *"
-                error={errors.to_location?.message}
+                error={watchedType === "boat" && "to_location" in errors ? errors.to_location?.message : undefined}
               />
             </div>
 
@@ -603,7 +595,7 @@ export function PostTripForm() {
                   min={format(new Date(), "yyyy-MM-dd")}
                   className="bg-white"
                 />
-                {errors.eta_window_start && (
+                {watchedType === "boat" && "eta_window_start" in errors && errors.eta_window_start && (
                   <p className="text-sm text-red-600">{errors.eta_window_start.message}</p>
                 )}
               </div>
@@ -616,7 +608,7 @@ export function PostTripForm() {
                   min={watch("eta_window_start") || format(new Date(), "yyyy-MM-dd")}
                   className="bg-white"
                 />
-                {errors.eta_window_end && (
+                {watchedType === "boat" && "eta_window_end" in errors && errors.eta_window_end && (
                   <p className="text-sm text-red-600">{errors.eta_window_end.message}</p>
                 )}
               </div>

@@ -1,24 +1,43 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
-import { stripe } from "@/lib/stripe/server";
+import { createClient } from "../../../lib/supabase/server";
+import { stripe } from "../../../lib/stripe/server";
+import { createStripeVerificationRequestSchema } from "../../../lib/zod/api-schemas";
+import { rateLimit, apiRateLimiter } from "@/lib/security/rate-limit";
+import { assertAuthenticated } from "@/lib/security/auth-guards";
+import { validateRequestBody } from "@/lib/security/validation";
+import { errorResponse, successResponse } from "@/lib/security/api-response";
+import { safeLog } from "@/lib/security/auth-guards";
+import { withApiErrorHandler } from "@/lib/api/error-handler";
 
-export async function POST(request: NextRequest) {
-  try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+export const POST = withApiErrorHandler(async function POST(request: NextRequest) {
+  // Rate limiting (stricter for verification)
+  const rateLimitResult = await rateLimit(request, apiRateLimiter);
+  if (!rateLimitResult.allowed) {
+    return NextResponse.json(
+      { error: rateLimitResult.error },
+      { status: 429, headers: rateLimitResult.headers }
+    );
+  }
 
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+  // Authentication
+  const user = await assertAuthenticated(request);
 
-    const body = await request.json();
-    const { userId, email } = body;
+  // Validate request body
+  const body = await request.json();
+  const validation = validateRequestBody(createStripeVerificationRequestSchema, body);
+  if (!validation.success) {
+    return NextResponse.json(
+      { error: validation.error },
+      { status: 400 }
+    );
+  }
 
-    if (userId !== user.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+  const supabase = await createClient();
+  const { userId, email } = validation.data;
+
+  if (userId !== user.id) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+  }
 
     // Create Stripe Identity VerificationSession
     const verificationSession = await stripe.identity.verificationSessions.create({
@@ -42,16 +61,9 @@ export async function POST(request: NextRequest) {
       })
       .eq("user_id", user.id);
 
-    return NextResponse.json({
+    return successResponse({
       verificationUrl: verificationSession.url,
       sessionId: verificationSession.id,
     });
-  } catch (error: any) {
-    console.error("Error creating verification session:", error);
-    return NextResponse.json(
-      { error: error.message || "Failed to create verification session" },
-      { status: 500 }
-    );
-  }
-}
+});
 

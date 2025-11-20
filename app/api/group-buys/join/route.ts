@@ -1,19 +1,38 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { createClient } from "../../../lib/supabase/server";
+import { joinGroupBuyRequestSchema } from "../../../lib/zod/api-schemas";
+import { rateLimit, apiRateLimiter } from "@/lib/security/rate-limit";
+import { assertAuthenticated } from "@/lib/security/auth-guards";
+import { validateRequestBody } from "@/lib/security/validation";
+import { errorResponse, successResponse } from "@/lib/security/api-response";
+import { safeLog } from "@/lib/security/auth-guards";
+import { withApiErrorHandler } from "@/lib/api/error-handler";
 
-export async function POST(request: NextRequest) {
-  try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+export const POST = withApiErrorHandler(async function POST(request: NextRequest) {
+  // Rate limiting
+  const rateLimitResult = await rateLimit(request, apiRateLimiter);
+  if (!rateLimitResult.allowed) {
+    return NextResponse.json(
+      { error: rateLimitResult.error },
+      { status: 429, headers: rateLimitResult.headers }
+    );
+  }
 
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+  // Authentication
+  const user = await assertAuthenticated(request);
 
-    const body = await request.json();
-    const { groupBuyId, requestId } = body;
+  // Validate request body
+  const body = await request.json();
+  const validation = validateRequestBody(joinGroupBuyRequestSchema, body);
+  if (!validation.success) {
+    return NextResponse.json(
+      { error: validation.error },
+      { status: 400 }
+    );
+  }
+
+  const supabase = await createClient();
+  const { groupBuyId, requestId } = validation.data;
 
     // Get group buy
     const { data: groupBuy, error: groupBuyError } = await supabase
@@ -73,13 +92,13 @@ export async function POST(request: NextRequest) {
     if (updateError) throw updateError;
 
     // Create match with group buy reference
-    const { data: request } = await supabase
+    const { data: requestData } = await supabase
       .from("requests")
       .select("*, trips!inner(id)")
       .eq("id", requestId)
       .single();
 
-    if (!request) {
+    if (!requestData) {
       return NextResponse.json(
         { error: "Request not found" },
         { status: 404 }
@@ -101,7 +120,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Calculate discounted reward
-    const baseReward = request.max_reward;
+    const baseReward = requestData.max_reward;
     const discountedReward =
       baseReward * (1 - (groupBuy.discount_percent || 0) / 100);
 
@@ -120,13 +139,6 @@ export async function POST(request: NextRequest) {
 
     if (matchError) throw matchError;
 
-    return NextResponse.json({ success: true, match });
-  } catch (error: any) {
-    console.error("Error joining group buy:", error);
-    return NextResponse.json(
-      { error: error.message || "Failed to join group buy" },
-      { status: 500 }
-    );
-  }
-}
+    return successResponse({ success: true, match });
+});
 

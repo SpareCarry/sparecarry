@@ -1,4 +1,4 @@
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent } from "../../components/ui/card";
 import Link from "next/link";
 
 export default function TermsPage() {
@@ -16,7 +16,7 @@ export default function TermsPage() {
         <Card className="mb-6">
           <CardContent className="p-8 prose prose-slate max-w-none">
             <p className="text-lg text-slate-700 leading-relaxed">
-              Welcome to SpareCarry! We're a peer-to-peer marketplace connecting travelers with people who need items delivered. 
+              Welcome to SpareCarry! We&apos;re a peer-to-peer marketplace connecting travelers with people who need items delivered. 
               These terms help keep our community safe and make sure everyone knows what to expect.
             </p>
           </CardContent>
@@ -32,7 +32,7 @@ export default function TermsPage() {
                 courier service, or delivery service ourselves.
               </p>
               <p className="text-slate-700">
-                When you use SpareCarry, you're using a marketplace platform. The actual delivery is arranged directly between you and another user.
+                When you use SpareCarry, you&apos;re using a marketplace platform. The actual delivery is arranged directly between you and another user.
               </p>
             </CardContent>
           </Card>
@@ -50,7 +50,7 @@ export default function TermsPage() {
                 <li>Travelers are not entitled to employee benefits</li>
               </ul>
               <p className="text-slate-700">
-                Requesters are also independent users of the platform. You're responsible for accurately describing your items, 
+                Requesters are also independent users of the platform. You&apos;re responsible for accurately describing your items, 
                 providing correct addresses, and being available for pickup/delivery.
               </p>
             </CardContent>
@@ -79,7 +79,7 @@ export default function TermsPage() {
                     <li>Explosives or flammable materials</li>
                     <li>Toxic or radioactive substances</li>
                     <li>Corrosive materials</li>
-                    <li>Batteries that don't meet airline regulations</li>
+                    <li>Batteries that don&apos;t meet airline regulations</li>
                     <li>Perishable food without proper handling</li>
                   </ul>
                 </div>
@@ -103,7 +103,7 @@ export default function TermsPage() {
                 </div>
               </div>
               <p className="text-slate-700 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                <strong>Important:</strong> If you're unsure whether an item is allowed, please contact us before posting. 
+                <strong>Important:</strong> If you&apos;re unsure whether an item is allowed, please contact us before posting. 
                 Violations may result in account suspension and legal action. Travelers should refuse to carry prohibited items, 
                 even if already matched.
               </p>
@@ -114,7 +114,7 @@ export default function TermsPage() {
             <CardContent className="p-8">
               <h2 className="text-2xl font-bold text-slate-900 mb-4">4. Escrow and Payments</h2>
               <p className="text-slate-700 mb-4">
-                We use Stripe to hold payments in escrow until delivery is confirmed. Here's how it works:
+                We use Stripe to hold payments in escrow until delivery is confirmed. Here&apos;s how it works:
               </p>
               <ol className="list-decimal list-inside text-slate-700 space-y-3 mb-4">
                 <li><strong>Payment:</strong> When you accept a match, payment (item cost + reward + platform fee) is held in escrow</li>
@@ -131,7 +131,7 @@ export default function TermsPage() {
                 <li>Subscription or Supporter status (may reduce or eliminate fees)</li>
               </ul>
               <p className="text-slate-700 bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <strong>First 1,000 Deliveries:</strong> We're waiving platform fees for the first 1,000 completed deliveries on the platform 
+                <strong>First 1,000 Deliveries:</strong> We&apos;re waiving platform fees for the first 1,000 completed deliveries on the platform 
                 as part of our launch promotion. After that, normal fees apply. This promotion may end early if we reach 1,000 deliveries.
               </p>
             </CardContent>
@@ -141,28 +141,28 @@ export default function TermsPage() {
             <CardContent className="p-8">
               <h2 className="text-2xl font-bold text-slate-900 mb-4">5. Refund Policy</h2>
               <p className="text-slate-700 mb-4">
-                We want you to have a great experience. Here's our refund policy:
+                We want you to have a great experience. Here&apos;s our refund policy:
               </p>
               <div className="space-y-4 mb-4">
                 <div>
                   <h3 className="font-semibold text-slate-900 mb-2">Before Delivery</h3>
                   <p className="text-slate-700 text-sm">
-                    If a match is canceled before delivery begins, you'll receive a full refund of all fees and the item cost (if applicable). 
+                    If a match is canceled before delivery begins, you&apos;ll receive a full refund of all fees and the item cost (if applicable). 
                     Platform fees are refunded in full.
                   </p>
                 </div>
                 <div>
                   <h3 className="font-semibold text-slate-900 mb-2">Disputed Deliveries</h3>
                   <p className="text-slate-700 text-sm">
-                    If you dispute a delivery (item damaged, wrong item, not delivered), we'll investigate. If the dispute is resolved in your favor, 
-                    you'll receive a refund of the item cost and reward. Platform fees are non-refundable unless the dispute is due to platform error.
+                    If you dispute a delivery (item damaged, wrong item, not delivered), we&apos;ll investigate. If the dispute is resolved in your favor, 
+                    you&apos;ll receive a refund of the item cost and reward. Platform fees are non-refundable unless the dispute is due to platform error.
                   </p>
                 </div>
                 <div>
                   <h3 className="font-semibold text-slate-900 mb-2">First 1,000 Deliveries</h3>
                   <p className="text-slate-700 text-sm">
-                    For the first 1,000 deliveries on the platform, we offer enhanced refund protection. If you're not satisfied with a delivery 
-                    from this period, contact us within 7 days and we'll work with you to resolve the issue, including full refunds when appropriate.
+                    For the first 1,000 deliveries on the platform, we offer enhanced refund protection. If you&apos;re not satisfied with a delivery 
+                    from this period, contact us within 7 days and we&apos;ll work with you to resolve the issue, including full refunds when appropriate.
                   </p>
                 </div>
               </div>
@@ -183,7 +183,7 @@ export default function TermsPage() {
                 <li>Delays in delivery (travel plans change, weather happens)</li>
                 <li>Customs issues or import/export problems</li>
                 <li>Injuries or accidents during delivery</li>
-                <li>Disputes between users (though we'll help mediate)</li>
+                <li>Disputes between users (though we&apos;ll help mediate)</li>
                 <li>Items that violate these terms or local laws</li>
               </ul>
               <p className="text-slate-700 mb-4">
@@ -252,8 +252,8 @@ export default function TermsPage() {
             <CardContent className="p-8">
               <h2 className="text-2xl font-bold text-slate-900 mb-4">9. Changes to Terms</h2>
               <p className="text-slate-700">
-                We may update these terms from time to time. We'll notify you of significant changes via email or through the platform. 
-                Continued use of SpareCarry after changes constitutes acceptance of the new terms. If you don't agree with changes, 
+                We may update these terms from time to time. We&apos;ll notify you of significant changes via email or through the platform. 
+                Continued use of SpareCarry after changes constitutes acceptance of the new terms. If you don&apos;t agree with changes, 
                 you can close your account.
               </p>
             </CardContent>
@@ -263,7 +263,7 @@ export default function TermsPage() {
             <CardContent className="p-8">
               <h2 className="text-2xl font-bold text-slate-900 mb-4">10. Contact Us</h2>
               <p className="text-slate-700 mb-4">
-                Questions about these terms? We're here to help:
+                Questions about these terms? We&apos;re here to help:
               </p>
               <ul className="list-none text-slate-700 space-y-2">
                 <li><strong>Email:</strong> legal@sparecarry.com</li>

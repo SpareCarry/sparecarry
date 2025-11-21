@@ -57,26 +57,33 @@ export async function POST(request: NextRequest) {
           // For MVP, notifications are handled client-side via Capacitor PushNotifications plugin
           const { sendNotifications } = await import("../../../../lib/notifications/push-service");
           // Get requester's profile for notifications
-          const { data: requesterProfile } = await supabase
-            .from("profiles")
-            .select("expo_push_token, push_notifications_enabled")
-            .eq("user_id", req.user_id)
-            .single();
+          const [{ data: requesterProfile }, { data: requesterUser }] = await Promise.all([
+            supabase
+              .from("profiles")
+              .select("expo_push_token, push_notifications_enabled")
+              .eq("user_id", req.user_id)
+              .single(),
+            supabase
+              .from("users")
+              .select("email")
+              .eq("id", req.user_id)
+              .single(),
+          ]);
           
           if (requesterProfile?.expo_push_token && requesterProfile.push_notifications_enabled) {
-            await sendNotifications(
-              {
+            await sendNotifications({
+              push: {
                 to: requesterProfile.expo_push_token,
                 title: "New Match Found!",
                 body: `A trip matches your request from ${req.from_location} to ${req.to_location}`,
                 data: { matchId: req.id, type: "match" },
               },
-              {
-                to: req.user_id, // Will need to get email from users table
+              email: requesterUser?.email ? {
+                to: requesterUser.email,
                 subject: "New Match Found on SpareCarry",
                 html: `<p>A trip matches your request from ${req.from_location} to ${req.to_location}.</p>`,
-              }
-            );
+              } : null,
+            });
           }
         }
       }
@@ -128,27 +135,34 @@ export async function POST(request: NextRequest) {
           // TODO: requires backend push notification service setup
           // For MVP, notifications are handled client-side via Capacitor PushNotifications plugin
           const { sendNotifications } = await import("../../../../lib/notifications/push-service");
-          // Get requester's profile for notifications
-          const { data: requesterProfile } = await supabase
-            .from("profiles")
-            .select("expo_push_token, push_notifications_enabled")
-            .eq("user_id", requestData.user_id)
-            .single();
+          // Get requester's profile and email for notifications
+          const [{ data: requesterProfile }, { data: requesterUser }] = await Promise.all([
+            supabase
+              .from("profiles")
+              .select("expo_push_token, push_notifications_enabled")
+              .eq("user_id", requestData.user_id)
+              .single(),
+            supabase
+              .from("users")
+              .select("email")
+              .eq("id", requestData.user_id)
+              .single(),
+          ]);
           
           if (requesterProfile?.expo_push_token && requesterProfile.push_notifications_enabled) {
-            await sendNotifications(
-              {
+            await sendNotifications({
+              push: {
                 to: requesterProfile.expo_push_token,
                 title: "New Match Found!",
                 body: `A trip matches your request from ${requestData.from_location} to ${requestData.to_location}`,
                 data: { matchId: requestData.id, type: "match" },
               },
-              {
-                to: requestData.user_id, // Will need to get email from users table
+              email: requesterUser?.email ? {
+                to: requesterUser.email,
                 subject: "New Match Found on SpareCarry",
                 html: `<p>A trip matches your request from ${requestData.from_location} to ${requestData.to_location}.</p>`,
-              }
-            );
+              } : null,
+            });
           }
         }
       }

@@ -205,7 +205,7 @@ class UnleashClient {
         // For mobile, use Capacitor Preferences (dynamic import, client-side only)
         // Use eval to prevent Next.js from statically analyzing the import
         try {
-          // eslint-disable-next-line @typescript-eslint/no-implied-eval
+          // eslint-disable-next-line no-implied-eval
           const importPromise = new Function('return import("@capacitor/preferences")')() as Promise<any>;
           importPromise
             .then((module: any) => {
@@ -283,7 +283,7 @@ class UnleashClient {
         // For mobile, use Capacitor Preferences (dynamic import, client-side only)
         // Use eval to prevent Next.js from statically analyzing the import
         try {
-          // eslint-disable-next-line @typescript-eslint/no-implied-eval
+          // eslint-disable-next-line no-implied-eval
           const importPromise = new Function('return import("@capacitor/preferences")')() as Promise<any>;
           importPromise
             .then((module: any) => {

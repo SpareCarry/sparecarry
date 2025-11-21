@@ -24,8 +24,8 @@ async function loadPushNotifications() {
   
   if (!PushNotifications) {
     try {
-      const module = await import("@capacitor/push-notifications");
-      PushNotifications = module.PushNotifications;
+      const pushModule = await import("@capacitor/push-notifications");
+      PushNotifications = pushModule.PushNotifications;
     } catch (error) {
       console.warn('[Expo Push] Failed to load Capacitor plugin:', error);
     }
@@ -80,15 +80,18 @@ export async function registerForExpoPushNotifications(): Promise<string | null>
 
     // Return a promise that resolves when we get the token
     return new Promise((resolve) => {
-      const tokenListener = PushNotificationsPlugin.addListener("registration", (token) => {
+      const tokenListener = PushNotificationsPlugin.addListener(
+        "registration",
+        (token: { value: string }) => {
         // Format token for Expo (Expo expects tokens in format: ExponentPushToken[...])
         // Capacitor tokens are already in the correct format for FCM/APNS
         // We'll need to convert them to Expo format on the backend
         resolve(token.value);
         tokenListener.remove();
-      });
+        }
+      );
 
-      const errorListener = PushNotificationsPlugin.addListener("registrationError", (error) => {
+      const errorListener = PushNotificationsPlugin.addListener("registrationError", (error: unknown) => {
         console.error("Push notification registration error:", error);
         resolve(null);
         errorListener.remove();
@@ -176,21 +179,27 @@ export async function setupExpoPushNotificationListeners() {
     }
 
     // Handle notification received while app is in foreground
-    PushNotificationsPlugin.addListener("pushNotificationReceived", (notification) => {
+    PushNotificationsPlugin.addListener(
+      "pushNotificationReceived",
+      (notification: { data?: Record<string, unknown> }) => {
       console.log("Push notification received:", notification);
       // You can show a custom in-app notification here
-    });
+      }
+    );
 
     // Handle notification tapped
-    PushNotificationsPlugin.addListener("pushNotificationActionPerformed", (action) => {
-      console.log("Push notification action performed:", action);
-      const data = action.notification.data;
-      
-      // Navigate based on notification data
-      if (data?.matchId) {
-        window.location.href = `/home/messages/${data.matchId}`;
+    PushNotificationsPlugin.addListener(
+      "pushNotificationActionPerformed",
+      (action: { notification: { data?: Record<string, unknown> } }) => {
+        console.log("Push notification action performed:", action);
+        const data = action.notification.data;
+        
+        // Navigate based on notification data
+        if (data?.matchId) {
+          window.location.href = `/home/messages/${data.matchId}`;
+        }
       }
-    });
+    );
   } catch (error) {
     console.warn('[Expo Push] Failed to setup listeners:', error);
   }

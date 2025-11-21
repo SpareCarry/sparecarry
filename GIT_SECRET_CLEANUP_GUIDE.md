@@ -14,7 +14,7 @@ The following secrets were found in the repository and need to be removed from G
 
 ### Stripe Keys
 1. Go to [Stripe Dashboard](https://dashboard.stripe.com/test/apikeys)
-2. **Revoke** the exposed test secret key: `sk_test_51SVMG2Gf57CmEub7dYxGCVXuJWqkRRurenoAYDFEP0dzvwmaY8yKJOX7ROle6jRBwAMhfu0Yg7lXwRyOjdHtZFkQ008Fjplm1u`
+2. **Revoke** the exposed test secret key: `__REDACTED__`
 3. **Create new test keys**
 4. Update your `.env.local` and `.env.staging` with new keys
 
@@ -58,7 +58,7 @@ git bundle create backup.bundle --all
 ```powershell
 # Remove Stripe secret key from all commits
 git filter-repo --path STRIPE_WEBHOOK_SETUP.md --invert-paths
-git filter-repo --path STRIPE_WEBHOOK_SETUP.md --replace-text <(echo "sk_test_51SVMG2Gf57CmEub7dYxGCVXuJWqkRRurenoAYDFEP0dzvwmaY8yKJOX7ROle6jRBwAMhfu0Yg7lXwRyOjdHtZFkQ008Fjplm1u==>sk_test_REDACTED")
+git filter-repo --path STRIPE_WEBHOOK_SETUP.md --replace-text <(echo "__REDACTED__==>sk_test_REDACTED")
 
 # Remove Stripe publishable key
 git filter-repo --path STRIPE_WEBHOOK_SETUP.md --replace-text <(echo "pk_test_51SVMG2Gf57CmEub7fSsGPRCSQ0JqXIW78GYQxPr4C3KPxXFECs9uLjkAEhetXqWeoyQb53YDN5uwZobtRuZ1iY4K00IxU9wB7W==>pk_test_REDACTED")
@@ -71,7 +71,7 @@ git filter-repo --path STRIPE_WEBHOOK_SETUP.md --replace-text <(echo "35ixAaJhD2
 ```powershell
 # Create replacement file
 @"
-sk_test_51SVMG2Gf57CmEub7dYxGCVXuJWqkRRurenoAYDFEP0dzvwmaY8yKJOX7ROle6jRBwAMhfu0Yg7lXwRyOjdHtZFkQ008Fjplm1u==>sk_test_REDACTED
+__REDACTED__==>sk_test_REDACTED
 pk_test_51SVMG2Gf57CmEub7fSsGPRCSQ0JqXIW78GYQxPr4C3KPxXFECs9uLjkAEhetXqWeoyQb53YDN5uwZobtRuZ1iY4K00IxU9wB7W==>pk_test_REDACTED
 35ixAaJhD2Yw64bd7g33EMNQZ7f_6Zfba4weJ1Qy3PmQWeoCW==>YOUR_NGROK_AUTH_TOKEN
 "@ | Out-File -FilePath replacements.txt -Encoding utf8
@@ -95,7 +95,7 @@ git clone --mirror https://github.com/SpareCarry/sparecarry-dev-fixed.git sparec
 
 # Create passwords file
 @"
-sk_test_51SVMG2Gf57CmEub7dYxGCVXuJWqkRRurenoAYDFEP0dzvwmaY8yKJOX7ROle6jRBwAMhfu0Yg7lXwRyOjdHtZFkQ008Fjplm1u
+__REDACTED__
 pk_test_51SVMG2Gf57CmEub7fSsGPRCSQ0JqXIW78GYQxPr4C3KPxXFECs9uLjkAEhetXqWeoyQb53YDN5uwZobtRuZ1iY4K00IxU9wB7W
 35ixAaJhD2Yw64bd7g33EMNQZ7f_6Zfba4weJ1Qy3PmQWeoCW
 "@ | Out-File -FilePath passwords.txt -Encoding utf8
@@ -131,7 +131,7 @@ git filter-branch --force --index-filter `
 git log --all --full-history -- STRIPE_WEBHOOK_SETUP.md
 
 # Check that secrets are gone
-git log -p --all | Select-String -Pattern "sk_test_51SVMG2Gf57CmEub7dYxGCVXuJWqkRRurenoAYDFEP0dzvwmaY8yKJOX7ROle6jRBwAMhfu0Yg7lXwRyOjdHtZFkQ008Fjplm1u"
+git log -p --all | Select-String -Pattern "__REDACTED__"
 # Should return nothing
 
 # Force push (if branch protection allows, or temporarily disable it)
@@ -244,4 +244,5 @@ git secrets --add 'whsec_[A-Za-z0-9]{32,}'
 
 **Last Updated**: 2024-12-19
 **Status**: Secrets removed from current files ✅ | Git history cleanup required ⚠️
+
 

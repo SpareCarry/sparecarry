@@ -38,7 +38,9 @@ export function OnboardingStep1({ onComplete }: OnboardingStep1Props) {
 
       setStep("verify");
     } catch (err) {
-      setError(err.message || "Failed to send verification code");
+      const message =
+        err instanceof Error ? err.message : "Failed to send verification code";
+      setError(message);
     } finally {
       setLoading(false);
     }
@@ -75,7 +77,9 @@ export function OnboardingStep1({ onComplete }: OnboardingStep1Props) {
 
       onComplete();
     } catch (err) {
-      setError(err.message || "Invalid verification code");
+      const message =
+        err instanceof Error ? err.message : "Invalid verification code";
+      setError(message);
     } finally {
       setLoading(false);
     }

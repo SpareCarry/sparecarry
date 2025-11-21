@@ -44,6 +44,7 @@
   "exclude": [
     "node_modules",
     "app/api/**/*",
+    "app/_api_temp/**/*",
     "supabase/functions/**/*"
   ]
 }

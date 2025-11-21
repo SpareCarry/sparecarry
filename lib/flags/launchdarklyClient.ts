@@ -49,7 +49,7 @@ class LaunchDarklyClient {
 
     try {
       // Dynamic import to avoid bundling if not used
-      const { initialize, LDClient } = await import('launchdarkly-js-client-sdk');
+      const { initialize } = await import('launchdarkly-js-client-sdk');
 
       const user = this.config.user || {
         key: 'anonymous',

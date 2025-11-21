@@ -341,7 +341,9 @@ export function PostRequestForm() {
       router.push("/home");
     } catch (error) {
       console.error("Error creating request:", error);
-      alert(error.message || "Failed to create request");
+      const message =
+        error instanceof Error ? error.message : "Failed to create request";
+      alert(message);
     } finally {
       setLoading(false);
     }

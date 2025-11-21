@@ -99,7 +99,7 @@ git log --oneline -1
 # Should show: 81fe8a8 Fix React version conflicts for Vercel build
 
 # Verify no secrets
-git show HEAD:STRIPE_WEBHOOK_SETUP.md | Select-String -Pattern "sk_test_51SVMG2Gf57CmEub7dYxGCVXuJWqkRRurenoAYDFEP0dzvwmaY8yKJOX7ROle6jRBwAMhfu0Yg7lXwRyOjdHtZFkQ008Fjplm1u"
+git show HEAD:STRIPE_WEBHOOK_SETUP.md | Select-String -Pattern "__REDACTED__"
 # Should return nothing
 ```
 
@@ -131,4 +131,5 @@ If network issues persist:
 ---
 
 **The commit is safe and ready. Once you have internet connectivity, the push will work.**
+
 

@@ -3,6 +3,8 @@
  * @deprecated Use supabase from '@/tests/mocks/supabase/mockClient' instead
  */
 
+import { vi } from 'vitest';
+
 // Re-export from new mock system for backward compatibility
 export {
   createMockSupabaseClient,

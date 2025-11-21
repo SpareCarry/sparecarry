@@ -74,7 +74,7 @@ Write-Host ""
 Write-Host "📝 Step 3: Creating replacement patterns..." -ForegroundColor Cyan
 
 $replacements = @"
-sk_test_51SVMG2Gf57CmEub7dYxGCVXuJWqkRRurenoAYDFEP0dzvwmaY8yKJOX7ROle6jRBwAMhfu0Yg7lXwRyOjdHtZFkQ008Fjplm1u==>sk_test_REDACTED
+__REDACTED__==>sk_test_REDACTED
 pk_test_51SVMG2Gf57CmEub7fSsGPRCSQ0JqXIW78GYQxPr4C3KPxXFECs9uLjkAEhetXqWeoyQb53YDN5uwZobtRuZ1iY4K00IxU9wB7W==>pk_test_REDACTED
 35ixAaJhD2Yw64bd7g33EMNQZ7f_6Zfba4weJ1Qy3PmQWeoCW==>YOUR_NGROK_AUTH_TOKEN
 "@
@@ -119,7 +119,7 @@ Write-Host ""
 Write-Host "✅ Step 5: Verifying cleanup..." -ForegroundColor Cyan
 
 if (-not $DryRun) {
-    $secretsInHistory = git log --all --full-history -p | Select-String -Pattern "sk_test_51SVMG2Gf57CmEub7dYxGCVXuJWqkRRurenoAYDFEP0dzvwmaY8yKJOX7ROle6jRBwAMhfu0Yg7lXwRyOjdHtZFkQ008Fjplm1u"
+    $secretsInHistory = git log --all --full-history -p | Select-String -Pattern "__REDACTED__"
     
     if ($secretsInHistory) {
         Write-Host "⚠️  Warning: Secrets may still exist in history" -ForegroundColor Yellow
@@ -140,4 +140,5 @@ Write-Host "   3. Force push (if ready): git push origin --force --all" -Foregro
 Write-Host "   4. Rotate exposed keys in Stripe/ngrok dashboards" -ForegroundColor White
 Write-Host ""
 Write-Host "📚 See GIT_SECRET_CLEANUP_GUIDE.md for detailed instructions" -ForegroundColor Cyan
+
 

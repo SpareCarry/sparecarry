@@ -80,7 +80,9 @@ export function OnboardingStep3({ onComplete }: OnboardingStep3Props) {
 
       onComplete();
     } catch (err) {
-      setError(err.message || "Failed to save information");
+      const message =
+        err instanceof Error ? err.message : "Failed to save information";
+      setError(message);
     } finally {
       setLoading(false);
     }

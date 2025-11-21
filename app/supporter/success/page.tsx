@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Card, CardContent } from "../../../components/ui/card";
 import { CheckCircle2, Anchor } from "lucide-react";
@@ -8,6 +8,14 @@ import { Button } from "../../../components/ui/button";
 import { SupporterBadge } from "../../../components/badges/supporter-badge";
 
 export default function SupporterSuccessPage() {
+  return (
+    <Suspense fallback={<SupporterProcessingState />}>
+      <SupporterSuccessContent />
+    </Suspense>
+  );
+}
+
+function SupporterSuccessContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const sessionId = searchParams.get("session_id");
@@ -87,6 +95,21 @@ export default function SupporterSuccessPage() {
               </div>
             </div>
           )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+function SupporterProcessingState() {
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-teal-50 to-white flex items-center justify-center p-4">
+      <Card className="max-w-md w-full border-blue-200 shadow-xl">
+        <CardContent className="p-8 text-center">
+          <div className="space-y-4">
+            <div className="animate-spin h-12 w-12 border-4 border-blue-600 border-t-transparent rounded-full mx-auto" />
+            <p className="text-slate-600">Verifying your payment...</p>
+          </div>
         </CardContent>
       </Card>
     </div>

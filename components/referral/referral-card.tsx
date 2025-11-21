@@ -58,7 +58,9 @@ export function ReferralCard() {
         alert(result.error || "Failed to apply referral code");
       }
     } catch (error) {
-      alert(error.message || "Failed to apply referral code");
+      const message =
+        error instanceof Error ? error.message : "Failed to apply referral code";
+      alert(message);
     } finally {
       setApplying(false);
     }

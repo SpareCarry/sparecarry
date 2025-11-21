@@ -39,7 +39,7 @@ interface MockQueryBuilder {
   then: (callback: (result: { data: unknown[]; error: null }) => unknown) => Promise<unknown>;
 }
 
-const mockDataStore: Record<string, unknown[]> = {};
+const mockDataStore: Record<string, Record<string, unknown>[]> = {};
 
 export function createMockSupabaseClient(): MockSupabaseClient {
   const createQueryBuilder = (table: string): MockQueryBuilder => {
@@ -127,7 +127,7 @@ export function createMockSupabaseClient(): MockSupabaseClient {
       then: async (callback) => {
         if (query.type === 'insert' && query.data) {
           const newId = `mock-${Date.now()}`;
-          const newRecord = { ...(query.data as Record<string, unknown>), id: newId };
+          const newRecord: Record<string, unknown> = { ...(query.data as Record<string, unknown>), id: newId };
           if (!mockDataStore[table]) {
             mockDataStore[table] = [];
           }
@@ -151,10 +151,27 @@ export function createMockSupabaseClient(): MockSupabaseClient {
             result.sort((a: Record<string, unknown>, b: Record<string, unknown>) => {
               const aVal = a[query.orderBy!.column];
               const bVal = b[query.orderBy!.column];
-              if (query.orderBy!.ascending) {
-                return aVal > bVal ? 1 : -1;
+              const normalize = (value: unknown): number | string => {
+                if (typeof value === 'number' || typeof value === 'string') {
+                  return value;
+                }
+                if (value instanceof Date) {
+                  return value.getTime();
+                }
+                return String(value ?? '');
+              };
+              const normalizedA = normalize(aVal);
+              const normalizedB = normalize(bVal);
+
+              if (normalizedA === normalizedB) {
+                return 0;
               }
-              return aVal < bVal ? 1 : -1;
+
+              if (query.orderBy!.ascending) {
+                return normalizedA > normalizedB ? 1 : -1;
+              }
+
+              return normalizedA < normalizedB ? 1 : -1;
             });
           }
 
@@ -210,6 +227,6 @@ export function resetMockDataStore(): void {
 /**
  * Seed mock data for testing
  */
-export function seedMockData(table: string, data: unknown[]): void {
+export function seedMockData(table: string, data: Record<string, unknown>[]): void {
   mockDataStore[table] = data;
 }

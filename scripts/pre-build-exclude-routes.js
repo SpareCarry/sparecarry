@@ -13,6 +13,9 @@ const path = require('path');
 
 const PROJECT_ROOT = path.resolve(__dirname, '..');
 const TEMP_DIR = path.join(PROJECT_ROOT, '.routes-temp');
+const isVercelBuild = process.env.VERCEL === '1';
+const shouldSkipForEnv =
+  isVercelBuild || process.env.SKIP_ROUTE_EXCLUSION === '1';
 
 // Routes to exclude from static export
 const ROUTES_TO_EXCLUDE = [
@@ -96,6 +99,14 @@ function restoreRoutes() {
 
 // Main execution
 const command = process.argv[2];
+
+if (command !== 'restore' && shouldSkipForEnv) {
+  const reason = isVercelBuild
+    ? 'Detected Vercel build (server functions must stay in place)'
+    : 'SKIP_ROUTE_EXCLUSION flag is set';
+  console.log(`⚠️  Skipping route exclusion: ${reason}`);
+  process.exit(0);
+}
 
 if (command === 'restore') {
   console.log('🔄 Restoring excluded routes...');

@@ -2,8 +2,7 @@
 export default {
   reactStrictMode: true,
   experimental: {},
-  turbo: false,
-  webpack(config, { isServer }) {
+  webpack(config) {
     return config;
-  }
+  },
 };

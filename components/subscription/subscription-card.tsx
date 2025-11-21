@@ -57,7 +57,9 @@ export function SubscriptionCard() {
       }
     } catch (error) {
       console.error("Error:", error);
-      alert(error.message || "Failed to start subscription");
+      const message =
+        error instanceof Error ? error.message : "Failed to start subscription";
+      alert(message);
     } finally {
       setLoading(null);
     }
@@ -78,7 +80,11 @@ export function SubscriptionCard() {
       }
     } catch (error) {
       console.error("Error:", error);
-      alert(error.message || "Failed to open subscription portal");
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Failed to open subscription portal";
+      alert(message);
     } finally {
       setLoading(null);
     }

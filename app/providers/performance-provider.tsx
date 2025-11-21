@@ -10,6 +10,7 @@ import { useEffect } from 'react';
 import { webProfiler } from '@/lib/performance/web-profiler';
 import { mobileProfiler } from '@/lib/performance/mobile-profiler';
 import { performanceLogger } from '@/lib/performance/logger';
+import { mobileLogger } from '@/lib/logger/mobile';
 
 export function PerformanceProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {

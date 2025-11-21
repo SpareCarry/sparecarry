@@ -63,7 +63,14 @@ class TelemetryClientImpl implements TelemetryClient {
 
       // Log in development
       if (getAppEnvironment() === 'development') {
-        logger.debug('Telemetry Event', eventData);
+        const logPayload: Record<string, unknown> = {
+          event: eventData.event,
+          metadata: eventData.metadata,
+          performance: eventData.performance,
+          userId: eventData.userId,
+          sessionId: eventData.sessionId,
+        };
+        logger.debug('Telemetry Event', logPayload);
       }
     } catch (error) {
       // Silently fail - telemetry should never break the app

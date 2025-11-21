@@ -290,7 +290,9 @@ export function PostTripForm() {
       router.push("/home");
     } catch (error) {
       console.error("Error creating trip:", error);
-      alert(error.message || "Failed to create trip");
+      const message =
+        error instanceof Error ? error.message : "Failed to create trip";
+      alert(message);
     } finally {
       setLoading(false);
     }

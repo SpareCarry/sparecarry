@@ -1,12 +1,20 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Card, CardContent } from "../../../components/ui/card";
 import { CheckCircle2, Loader2 } from "lucide-react";
 import { Button } from "../../../components/ui/button";
 
 export default function SubscriptionSuccessPage() {
+  return (
+    <Suspense fallback={<ProcessingState />}>
+      <SubscriptionSuccessContent />
+    </Suspense>
+  );
+}
+
+function SubscriptionSuccessContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const sessionId = searchParams.get("session_id");
@@ -59,6 +67,21 @@ export default function SubscriptionSuccessPage() {
               </Button>
             </div>
           )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+function ProcessingState() {
+  return (
+    <div className="max-w-2xl mx-auto px-4 py-12">
+      <Card className="border-green-200 bg-green-50">
+        <CardContent className="pt-6">
+          <div className="text-center py-8">
+            <Loader2 className="h-8 w-8 animate-spin text-teal-600 mx-auto mb-4" />
+            <p className="text-slate-600">Processing your subscription...</p>
+          </div>
         </CardContent>
       </Card>
     </div>

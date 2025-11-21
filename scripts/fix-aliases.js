@@ -12,6 +12,17 @@ const path = require('path');
 
 const OUT_DIR = path.resolve(__dirname, '..', 'out');
 const PROJECT_ROOT = path.resolve(__dirname, '..');
+const shouldSkipAliasFix =
+  process.env.VERCEL === '1' || process.env.SKIP_ALIAS_FIX === '1';
+
+if (shouldSkipAliasFix) {
+  const reason =
+    process.env.VERCEL === '1'
+      ? 'Detected Vercel build (using Next.js server output)'
+      : 'SKIP_ALIAS_FIX flag is set';
+  console.log(`⚠️  Skipping alias fix script: ${reason}`);
+  process.exit(0);
+}
 
 // Track statistics
 const stats = {
@@ -307,8 +318,8 @@ function main() {
   console.log('🔧 Fixing @/ path aliases in static export...\n');
 
   if (!fs.existsSync(OUT_DIR)) {
-    console.error(`❌ Error: ${OUT_DIR} does not exist. Run 'npm run build' first.`);
-    process.exit(1);
+    console.log(`ℹ️  ${OUT_DIR} does not exist. Skipping alias fix step.`);
+    return;
   }
 
   // Build path map

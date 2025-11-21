@@ -51,7 +51,7 @@ If GitHub still blocks the push, it may be detecting secrets in **older commits*
 
 ```powershell
 # Verify commit is clean
-git show HEAD:STRIPE_WEBHOOK_SETUP.md | Select-String -Pattern "sk_test_51SVMG2Gf57CmEub7dYxGCVXuJWqkRRurenoAYDFEP0dzvwmaY8yKJOX7ROle6jRBwAMhfu0Yg7lXwRyOjdHtZFkQ008Fjplm1u"
+git show HEAD:STRIPE_WEBHOOK_SETUP.md | Select-String -Pattern "__REDACTED__"
 # Should return nothing
 
 # Push
@@ -64,4 +64,5 @@ git push origin --force main
 ---
 
 **Status**: ✅ Commit amended, ready to push
+
 

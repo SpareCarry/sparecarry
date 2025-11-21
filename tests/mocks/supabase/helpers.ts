@@ -47,7 +47,8 @@ export function mockUserLogout(): void {
 export function mockInsert<T = unknown>(table: string, data: T | T[]): T[] {
   const dataArray = Array.isArray(data) ? data : [data];
   const inserted = dataArray.map((item) => {
-    const record = item as Record<string, unknown>;
+    const record = { ...(item as Record<string, unknown>) };
+
     if (!record.id) {
       record.id = `mock-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     }
@@ -57,9 +58,10 @@ export function mockInsert<T = unknown>(table: string, data: T | T[]): T[] {
     if (!record.updated_at) {
       record.updated_at = new Date().toISOString();
     }
-    return addMockData(table, record);
+
+    return addMockData(table, record) as T;
   });
-  return inserted;
+  return inserted as T[];
 }
 
 /**
@@ -138,7 +140,7 @@ export async function mockDelete(
   filter: { column: string; value: unknown }
 ): Promise<number> {
   const query = supabase.from(table).delete().eq(filter.column, filter.value);
-  const result = await query.then((r) => r.data || []);
+  const result = (await query.then((r) => r.data || [])) as unknown[];
   return result.length;
 }
 

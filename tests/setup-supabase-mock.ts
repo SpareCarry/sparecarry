@@ -12,17 +12,18 @@ const USE_MOCK = process.env.SUPABASE_MOCK_MODE === 'true' ||
                  process.env.NEXT_PUBLIC_SUPABASE_URL.includes('test');
 
 if (USE_MOCK) {
+  (function setupSupabaseMock() {
   // Conditional import for vitest
-  let vi: typeof import('vitest').vi;
+  let vi: typeof import('vitest').vi | null = null;
   try {
     const vitest = require('vitest');
     vi = vitest.vi;
   } catch {
-    // Not in test environment - skip mocking
-    vi = {
-      fn: () => () => {},
-      mock: () => {},
-    } as typeof import('vitest').vi;
+    // Not running inside Vitest; skip setting up mocks.
+  }
+
+  if (!vi) {
+    return;
   }
 
   // Mock Supabase client module
@@ -61,4 +62,5 @@ if (USE_MOCK) {
   } catch {
     // Module doesn't exist, skip
   }
+  })();
 }

@@ -56,7 +56,9 @@ export function GroupBuyCard({ groupBuy, onJoin }: GroupBuyCardProps) {
       onJoin?.();
     } catch (error) {
       console.error("Error joining group buy:", error);
-      alert(error.message || "Failed to join group buy");
+      const message =
+        error instanceof Error ? error.message : "Failed to join group buy";
+      alert(message);
     } finally {
       setJoining(false);
     }

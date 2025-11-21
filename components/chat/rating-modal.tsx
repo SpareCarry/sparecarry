@@ -101,7 +101,9 @@ export function RatingModal({
       router.refresh();
     } catch (error) {
       console.error("Error submitting rating:", error);
-      alert(error.message || "Failed to submit rating");
+      const message =
+        error instanceof Error ? error.message : "Failed to submit rating";
+      alert(message);
     } finally {
       setLoading(false);
     }

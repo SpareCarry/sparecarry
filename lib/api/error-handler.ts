@@ -64,14 +64,23 @@ export function createErrorResponse(
     details: apiError.details,
   });
 
+  const errorPayload: {
+    code: string;
+    message: string;
+    details?: unknown;
+  } = {
+    code: apiError.code,
+    message: apiError.message,
+  };
+
+  if (process.env.NODE_ENV === 'development' && apiError.details) {
+    errorPayload.details = apiError.details;
+  }
+
   return NextResponse.json(
     {
       ok: false,
-      error: {
-        code: apiError.code,
-        message: apiError.message,
-        ...(process.env.NODE_ENV === 'development' && apiError.details && { details: apiError.details }),
-      },
+      error: errorPayload,
     },
     { status: apiError.statusCode }
   );

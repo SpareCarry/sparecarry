@@ -10,7 +10,7 @@ import { createMockAuth } from './mockAuth';
 import { createMockQueryBuilder } from './mockQueryBuilder';
 import { createMockStorage } from './mockStorage';
 import { createMockRealtime } from './mockRealtime';
-import { mockDataStore, resetMockDataStore, seedMockData } from './mockDataStore';
+import { mockDataStore, resetMockDataStore, seedMockData, addMockData } from './mockDataStore';
 
 /**
  * Create a mock Supabase client instance
@@ -36,7 +36,7 @@ export const supabase = createMockSupabaseClient();
 /**
  * Re-export helper functions
  */
-export { resetMockDataStore, seedMockData, mockDataStore };
+export { resetMockDataStore, seedMockData, mockDataStore, addMockData };
 
 /**
  * Type export for use in tests

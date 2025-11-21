@@ -3,9 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "cross-env NEXT_DISABLE_SWC_NATIVE=1 NEXT_DISABLE_AUTO_MOD_IMPORTS=1 NODE_ENV=development next dev --webpack",
+    "dev": "cross-env NEXT_DISABLE_SWC_NATIVE=1 NEXT_DISABLE_AUTO_MOD_IMPORTS=1 NODE_ENV=development next dev --no-turbopack",
+    "dev:webpack": "cross-env NEXT_DISABLE_SWC_NATIVE=1 NEXT_DISABLE_AUTO_MOD_IMPORTS=1 pnpm dev -- --no-turbopack",
     "prebuild": "node scripts/pre-build-exclude-routes.js",
-    "build": "cross-env NEXT_DISABLE_SWC_NATIVE=1 NEXT_DISABLE_AUTO_MOD_IMPORTS=1 next build --webpack",
+    "build": "cross-env NEXT_DISABLE_SWC_NATIVE=1 NEXT_DISABLE_AUTO_MOD_IMPORTS=1 next build",
     "postbuild": "node scripts/fix-aliases.js && node scripts/pre-build-exclude-routes.js restore",
     "validate:export": "node scripts/validate-export.js",
     "mobile:sync": "npx cap sync",
@@ -56,8 +57,8 @@
     "release:notes": "node scripts/release-notes.js",
     "env:sync": "node scripts/sync-env-build.js",
     "loadtest": "cd load-tests && k6 run scenarios/steady.js",
-    "build:staging": "cross-env NEXT_DISABLE_SWC_NATIVE=1 NEXT_DISABLE_AUTO_MOD_IMPORTS=1 NEXT_PUBLIC_APP_ENV=staging next build --webpack",
-    "build:production": "cross-env NEXT_DISABLE_SWC_NATIVE=1 NEXT_DISABLE_AUTO_MOD_IMPORTS=1 NEXT_PUBLIC_APP_ENV=production next build --webpack",
+    "build:staging": "cross-env NEXT_DISABLE_SWC_NATIVE=1 NEXT_DISABLE_AUTO_MOD_IMPORTS=1 NEXT_PUBLIC_APP_ENV=staging next build",
+    "build:production": "cross-env NEXT_DISABLE_SWC_NATIVE=1 NEXT_DISABLE_AUTO_MOD_IMPORTS=1 NEXT_PUBLIC_APP_ENV=production next build",
     "mobile:build:staging": "cross-env NEXT_PUBLIC_APP_ENV=staging pnpm build:staging && pnpm validate:export && node scripts/inject-env-capacitor.js staging && pnpm mobile:sync",
     "mobile:build:production": "cross-env NEXT_PUBLIC_APP_ENV=production pnpm build:production && pnpm validate:export && node scripts/inject-env-capacitor.js production && pnpm mobile:sync"
   },
@@ -79,10 +80,10 @@
     "@radix-ui/react-slot": "^1.0.2",
     "@react-google-maps/api": "^2.19.3",
     "@sentry/nextjs": "^7.114.0",
-    "@stripe/react-stripe-js": "^2.4.0",
-    "@stripe/stripe-js": "^2.4.0",
-    "@supabase/ssr": "^0.1.0",
-    "@supabase/supabase-js": "^2.39.0",
+    "@stripe/react-stripe-js": "2.9.0",
+    "@stripe/stripe-js": "2.4.0",
+    "@supabase/ssr": "0.1.0",
+    "@supabase/supabase-js": "2.83.0",
     "@tanstack/react-query": "^5.17.0",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.0",
@@ -90,7 +91,7 @@
     "dotenv": "^17.2.3",
     "lucide-react": "0.309.0",
     "nanoid": "3.3.7",
-    "next": "16.0.3",
+    "next": "14.2.5",
     "next-intl": "^2.0.0",
     "react": "18.3.1",
     "react-dom": "18.3.1",
@@ -111,6 +112,8 @@
     "@types/node": "^24.10.1",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
+    "@typescript-eslint/eslint-plugin": "7.2.0",
+    "@typescript-eslint/parser": "7.2.0",
     "@vitejs/plugin-react": "^4.2.1",
     "@vitest/coverage-v8": "^1.0.4",
     "@vitest/ui": "^1.0.4",
@@ -138,10 +141,9 @@
     "overrides": {
       "nanoid": "3.3.7",
       "react": "18.3.1",
-      "react-dom": "18.3.1"
-    },
-    "patchedDependencies": {
-      "next@16.0.3": "patches/next@16.0.3.patch"
+      "react-dom": "18.3.1",
+      "@swc/core": "1.3.71",
+      "lucide-react": "0.309.0"
     }
   },
   "resolutions": {
@@ -153,7 +155,7 @@
     "nanoid": "3.3.7"
   },
   "engines": {
-    "node": ">=18.0.0",
+    "node": "18.20.x",
     "pnpm": ">=8.0.0"
   }
 }

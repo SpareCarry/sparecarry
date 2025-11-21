@@ -34,7 +34,7 @@ Even though secrets are removed from Git, they were exposed in commit history. Y
 ### Stripe Keys
 1. Go to: https://dashboard.stripe.com/test/apikeys
 2. **Revoke** the exposed test keys:
-   - `sk_test_51SVMG2Gf57CmEub7dYxGCVXuJWqkRRurenoAYDFEP0dzvwmaY8yKJOX7ROle6jRBwAMhfu0Yg7lXwRyOjdHtZFkQ008Fjplm1u`
+   - `__REDACTED__`
    - `pk_test_51SVMG2Gf57CmEub7fSsGPRCSQ0JqXIW78GYQxPr4C3KPxXFECs9uLjkAEhetXqWeoyQb53YDN5uwZobtRuZ1iY4K00IxU9wB7W`
 3. **Create new test keys**
 4. Update `.env.local` and `.env.staging` with new keys
@@ -88,4 +88,5 @@ Even though secrets are removed from Git, they were exposed in commit history. Y
 ---
 
 **Congratulations! Your repository is now ready for deployment.** 🚀
+
 

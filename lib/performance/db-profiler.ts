@@ -5,7 +5,17 @@
  * Records query name, time taken, and warns on slow queries
  */
 
-import type { PostgrestQueryBuilder, PostgrestFilterBuilder } from '@supabase/supabase-js';
+type PostgrestQueryBuilder = {
+  select: (...args: any[]) => PostgrestFilterBuilder;
+  insert: (...args: any[]) => PostgrestFilterBuilder;
+  update: (...args: any[]) => PostgrestFilterBuilder;
+  delete: (...args: any[]) => PostgrestFilterBuilder;
+};
+
+type PostgrestFilterBuilder = {
+  then?: (...args: any[]) => Promise<any>;
+  single?: (...args: any[]) => Promise<any>;
+};
 
 interface QueryMetric {
   table: string;
@@ -199,10 +209,10 @@ export const dbProfiler = new DatabaseProfiler();
 /**
  * Create a profiled Supabase query builder
  */
-export function createProfiledQuery<T>(
+export function createProfiledQuery(
   table: string,
-  queryBuilder: PostgrestQueryBuilder<any, any, any>
-): PostgrestQueryBuilder<any, any, any> {
+  queryBuilder: PostgrestQueryBuilder
+): PostgrestQueryBuilder {
   // Wrap the query builder methods
   const originalSelect = queryBuilder.select.bind(queryBuilder);
   const originalInsert = queryBuilder.insert.bind(queryBuilder);
@@ -239,11 +249,11 @@ export function createProfiledQuery<T>(
 /**
  * Wrap filter builder with performance tracking
  */
-function wrapFilterBuilder<T>(
-  builder: PostgrestFilterBuilder<any, any, any>,
+function wrapFilterBuilder(
+  builder: PostgrestFilterBuilder,
   table: string,
   operation: string
-): PostgrestFilterBuilder<any, any, any> {
+): PostgrestFilterBuilder {
   const originalThen = builder.then?.bind(builder);
   const originalSingle = builder.single?.bind(builder);
 

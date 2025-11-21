@@ -5,7 +5,7 @@
 **Before cleaning Git history, you MUST rotate these keys:**
 
 1. **Stripe Dashboard**: https://dashboard.stripe.com/test/apikeys
-   - Revoke: `sk_test_51SVMG2Gf57CmEub7dYxGCVXuJWqkRRurenoAYDFEP0dzvwmaY8yKJOX7ROle6jRBwAMhfu0Yg7lXwRyOjdHtZFkQ008Fjplm1u`
+   - Revoke: `__REDACTED__`
    - Create new test keys
    - Update `.env.local` and `.env.staging`
 
@@ -70,7 +70,7 @@ git filter-repo --version
 ```powershell
 # Create replacement file
 @"
-sk_test_51SVMG2Gf57CmEub7dYxGCVXuJWqkRRurenoAYDFEP0dzvwmaY8yKJOX7ROle6jRBwAMhfu0Yg7lXwRyOjdHtZFkQ008Fjplm1u==>sk_test_REDACTED
+__REDACTED__==>sk_test_REDACTED
 pk_test_51SVMG2Gf57CmEub7fSsGPRCSQ0JqXIW78GYQxPr4C3KPxXFECs9uLjkAEhetXqWeoyQb53YDN5uwZobtRuZ1iY4K00IxU9wB7W==>pk_test_REDACTED
 35ixAaJhD2Yw64bd7g33EMNQZ7f_6Zfba4weJ1Qy3PmQWeoCW==>YOUR_NGROK_AUTH_TOKEN
 "@ | Out-File -FilePath replacements.txt -Encoding utf8
@@ -98,7 +98,7 @@ Remove-Item replacements.txt
 
 ```powershell
 # Check Git history for secrets (should return nothing)
-git log --all --full-history -p | Select-String -Pattern "sk_test_51SVMG2Gf57CmEub7dYxGCVXuJWqkRRurenoAYDFEP0dzvwmaY8yKJOX7ROle6jRBwAMhfu0Yg7lXwRyOjdHtZFkQ008Fjplm1u"
+git log --all --full-history -p | Select-String -Pattern "__REDACTED__"
 
 # Check for publishable key (should return nothing)
 git log --all --full-history -p | Select-String -Pattern "pk_test_51SVMG2Gf57CmEub7fSsGPRCSQ0JqXIW78GYQxPr4C3KPxXFECs9uLjkAEhetXqWeoyQb53YDN5uwZobtRuZ1iY4K00IxU9wB7W"
@@ -165,7 +165,7 @@ git branch backup-before-cleanup-$(Get-Date -Format 'yyyyMMdd-HHmmss')
 
 # Step 5: Create replacement file
 @"
-sk_test_51SVMG2Gf57CmEub7dYxGCVXuJWqkRRurenoAYDFEP0dzvwmaY8yKJOX7ROle6jRBwAMhfu0Yg7lXwRyOjdHtZFkQ008Fjplm1u==>sk_test_REDACTED
+__REDACTED__==>sk_test_REDACTED
 pk_test_51SVMG2Gf57CmEub7fSsGPRCSQ0JqXIW78GYQxPr4C3KPxXFECs9uLjkAEhetXqWeoyQb53YDN5uwZobtRuZ1iY4K00IxU9wB7W==>pk_test_REDACTED
 35ixAaJhD2Yw64bd7g33EMNQZ7f_6Zfba4weJ1Qy3PmQWeoCW==>YOUR_NGROK_AUTH_TOKEN
 "@ | Out-File -FilePath replacements.txt -Encoding utf8
@@ -174,7 +174,7 @@ pk_test_51SVMG2Gf57CmEub7fSsGPRCSQ0JqXIW78GYQxPr4C3KPxXFECs9uLjkAEhetXqWeoyQb53Y
 git filter-repo --path STRIPE_WEBHOOK_SETUP.md --replace-text replacements.txt
 
 # Step 7: Verify
-git log --all --full-history -p | Select-String -Pattern "sk_test_51SVMG2Gf57CmEub7dYxGCVXuJWqkRRurenoAYDFEP0dzvwmaY8yKJOX7ROle6jRBwAMhfu0Yg7lXwRyOjdHtZFkQ008Fjplm1u"
+git log --all --full-history -p | Select-String -Pattern "__REDACTED__"
 .\scripts\scan-secrets.ps1
 
 # Step 8: Force push (COORDINATE WITH TEAM FIRST!)
@@ -268,4 +268,5 @@ Should show:
 ---
 
 **See `GIT_SECRET_CLEANUP_GUIDE.md` for detailed explanations.**
+
 

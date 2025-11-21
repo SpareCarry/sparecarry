@@ -89,12 +89,12 @@ export async function registerForPushNotifications(): Promise<string | null> {
 
     // Listen for registration
     return new Promise((resolve) => {
-      PushNotifications.addListener("registration", (token) => {
+      PushNotifications.addListener("registration", (token: { value: string }) => {
         console.log("Push registration success, token: " + token.value);
         resolve(token.value);
       });
 
-      PushNotifications.addListener("registrationError", (error) => {
+      PushNotifications.addListener("registrationError", (error: unknown) => {
         console.error("Error on registration: " + JSON.stringify(error));
         resolve(null);
       });
@@ -165,7 +165,9 @@ export async function setupNotificationHandlers() {
     }
 
     // Handle push notification received
-    PushNotifications.addListener("pushNotificationReceived", (notification) => {
+    PushNotifications.addListener(
+      "pushNotificationReceived",
+      (notification: { data?: Record<string, unknown> }) => {
       console.log("Push notification received: ", notification);
       
       // Play sound based on notification data
@@ -180,7 +182,9 @@ export async function setupNotificationHandlers() {
     });
 
     // Handle push notification action
-    PushNotifications.addListener("pushNotificationActionPerformed", (action) => {
+    PushNotifications.addListener(
+      "pushNotificationActionPerformed",
+      (action: { notification: { data?: Record<string, unknown> } }) => {
       console.log("Push notification action performed", action);
       const data = action.notification.data;
       
@@ -194,7 +198,9 @@ export async function setupNotificationHandlers() {
     });
 
     // Handle local notification action
-    LocalNotifications.addListener("localNotificationActionPerformed", (action) => {
+    LocalNotifications.addListener(
+      "localNotificationActionPerformed",
+      (action: { notification: { extra?: Record<string, unknown> } }) => {
       console.log("Local notification action performed", action);
       const data = action.notification.extra;
       

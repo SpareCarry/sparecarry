@@ -5,9 +5,9 @@
  * Tracks render counts, useEffect timing, and Suspense fallback timing
  */
 
-'use client';
+"use client";
 
-import { useEffect, useRef, Profiler, type ProfilerOnRenderCallback } from 'react';
+import React, { useEffect, useRef, Profiler, type ProfilerOnRenderCallback } from 'react';
 import { webProfiler } from './web-profiler';
 
 interface ComponentRenderMetrics {
@@ -139,7 +139,7 @@ export function useRenderCount(componentName: string): number {
 
   useEffect(() => {
     reactProfiler.recordRender(componentName, 0, { phase: 'mount' });
-  }, []);
+  }, [componentName]);
 
   return renderCount.current;
 }
@@ -152,6 +152,7 @@ export function usePerfEffect(
   deps: React.DependencyList,
   effectName?: string
 ): void {
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     const name = effectName || 'useEffect';
     webProfiler.mark(name);
@@ -172,6 +173,7 @@ export function usePerfEffectAsync(
   deps: React.DependencyList,
   effectName?: string
 ): void {
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     const name = effectName || 'useEffect-async';
     webProfiler.mark(name);

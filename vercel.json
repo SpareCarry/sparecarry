@@ -3,7 +3,6 @@
   "devCommand": "pnpm dev",
   "installCommand": "pnpm install --no-frozen-lockfile",
   "framework": "nextjs",
-  "outputDirectory": "out",
   "rewrites": [
     {
       "source": "/api/:path*",

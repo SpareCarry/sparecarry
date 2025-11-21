@@ -132,7 +132,7 @@ export async function POST(request: NextRequest) {
           const { data: requesterProfile } = await supabase
             .from("profiles")
             .select("expo_push_token, push_notifications_enabled")
-            .eq("user_id", req.user_id)
+            .eq("user_id", requestData.user_id)
             .single();
           
           if (requesterProfile?.expo_push_token && requesterProfile.push_notifications_enabled) {
@@ -140,13 +140,13 @@ export async function POST(request: NextRequest) {
               {
                 to: requesterProfile.expo_push_token,
                 title: "New Match Found!",
-                body: `A trip matches your request from ${req.from_location} to ${req.to_location}`,
-                data: { matchId: req.id, type: "match" },
+                body: `A trip matches your request from ${requestData.from_location} to ${requestData.to_location}`,
+                data: { matchId: requestData.id, type: "match" },
               },
               {
-                to: req.user_id, // Will need to get email from users table
+                to: requestData.user_id, // Will need to get email from users table
                 subject: "New Match Found on SpareCarry",
-                html: `<p>A trip matches your request from ${req.from_location} to ${req.to_location}.</p>`,
+                html: `<p>A trip matches your request from ${requestData.from_location} to ${requestData.to_location}.</p>`,
               }
             );
           }

@@ -100,10 +100,6 @@ export const registerPushTokenRequestSchema = z.object({
   enableNotifications: z.boolean().optional().default(true),
 });
 
-export const confirmDeliveryRequestSchema = z.object({
-  matchId: z.string().uuid(),
-});
-
 export const updatePurchaseLinkRequestSchema = z.object({
   matchId: z.string().uuid(),
 });
@@ -201,7 +197,6 @@ export type CreateMatchRequest = z.infer<typeof createMatchRequestSchema>;
 export type InsuranceInfo = z.infer<typeof insuranceInfoSchema>;
 export type CreatePaymentIntentRequest = z.infer<typeof createPaymentIntentRequestSchema>;
 export type CreatePaymentIntentResponse = z.infer<typeof createPaymentIntentResponseSchema>;
-export type ConfirmDeliveryRequest = z.infer<typeof confirmDeliveryRequestSchema>;
 export type SendMessageNotificationRequest = z.infer<typeof sendMessageNotificationRequestSchema>;
 export type SendMatchNotificationRequest = z.infer<typeof sendMatchNotificationRequestSchema>;
 export type SendCounterOfferNotificationRequest = z.infer<typeof sendCounterOfferNotificationRequestSchema>;
@@ -212,7 +207,6 @@ export type CreateGroupBuyRequest = z.infer<typeof createGroupBuyRequestSchema>;
 export type JoinGroupBuyRequest = z.infer<typeof joinGroupBuyRequestSchema>;
 export type StripeVerificationRequest = z.infer<typeof stripeVerificationRequestSchema>;
 export type RegisterPushTokenRequest = z.infer<typeof registerPushTokenRequestSchema>;
-export type ConfirmDeliveryRequest = z.infer<typeof confirmDeliveryRequestSchema>;
 export type UpdatePurchaseLinkRequest = z.infer<typeof updatePurchaseLinkRequestSchema>;
 export type CreateSubscriptionCheckoutRequest = z.infer<typeof createSubscriptionCheckoutRequestSchema>;
 export type VerifySupporterPaymentRequest = z.infer<typeof verifySupporterPaymentRequestSchema>;

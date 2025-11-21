@@ -54,6 +54,10 @@ export function FeatureFlagProvider({ children }: FeatureFlagProviderProps) {
         return;
       }
 
+      const subscriptionStatus =
+        (user?.user_metadata as { subscription_status?: string } | undefined)
+          ?.subscription_status;
+
       await initializeUnleash(
         {
           url: unleashUrl,
@@ -65,7 +69,7 @@ export function FeatureFlagProvider({ children }: FeatureFlagProviderProps) {
         user?.id,
         {
           email: user?.email,
-          subscription_status: user?.subscription_status,
+          subscription_status: subscriptionStatus,
         }
       );
 

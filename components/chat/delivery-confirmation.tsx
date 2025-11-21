@@ -234,7 +234,9 @@ export function DeliveryConfirmation({
       onComplete();
     } catch (error) {
       console.error("Error confirming delivery:", error);
-      alert(error.message || "Failed to confirm delivery");
+      const message =
+        error instanceof Error ? error.message : "Failed to confirm delivery";
+      alert(message);
     } finally {
       setLoading(false);
     }

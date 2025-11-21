@@ -194,7 +194,9 @@ export function PaymentButton({ match }: PaymentButtonProps) {
       router.refresh();
     } catch (error) {
       console.error("Payment error:", error);
-      alert(error.message || "Payment failed");
+      const message =
+        error instanceof Error ? error.message : "Payment failed";
+      alert(message);
     } finally {
       setLoading(false);
     }

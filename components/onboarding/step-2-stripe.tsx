@@ -78,7 +78,9 @@ export function OnboardingStep2({ onComplete }: OnboardingStep2Props) {
       // Open verification in new window
       window.open(url, "_blank", "width=600,height=800");
     } catch (err) {
-      setError(err.message || "Failed to start verification");
+      const message =
+        err instanceof Error ? err.message : "Failed to start verification";
+      setError(message);
     } finally {
       setLoading(false);
     }
@@ -130,7 +132,11 @@ export function OnboardingStep2({ onComplete }: OnboardingStep2Props) {
         setError("Verification not yet complete. Please complete the verification process.");
       }
     } catch (err) {
-      setError(err.message || "Failed to check verification status");
+      const message =
+        err instanceof Error
+          ? err.message
+          : "Failed to check verification status";
+      setError(message);
     } finally {
       setLoading(false);
     }

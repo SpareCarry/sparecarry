@@ -146,8 +146,21 @@ export function createMockQueryBuilder(table: string): MockQueryBuilder {
       const aVal = aRecord[query.orderBy!.column];
       const bVal = bRecord[query.orderBy!.column];
 
-      if (aVal === bVal) return 0;
-      const comparison = aVal > bVal ? 1 : -1;
+      const normalize = (value: unknown): number | string => {
+        if (typeof value === 'number' || typeof value === 'string') {
+          return value;
+        }
+        if (value instanceof Date) {
+          return value.getTime();
+        }
+        return String(value ?? '');
+      };
+
+      const normalizedA = normalize(aVal);
+      const normalizedB = normalize(bVal);
+
+      if (normalizedA === normalizedB) return 0;
+      const comparison = normalizedA > normalizedB ? 1 : -1;
       return query.orderBy!.ascending ? comparison : -comparison;
     });
 

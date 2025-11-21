@@ -58,7 +58,7 @@ class PerformanceLogger {
     return {
       timestamp: Date.now(),
       web: webProfiler.getSummary(),
-      mobile: typeof window !== 'undefined' && window.Capacitor
+      mobile: typeof window !== 'undefined' && (window as typeof window & { Capacitor?: unknown }).Capacitor
         ? mobileProfiler.getSummary()
         : undefined,
       database: dbProfiler.getSummary(),

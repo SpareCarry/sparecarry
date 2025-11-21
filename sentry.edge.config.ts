@@ -21,3 +21,5 @@ if (SENTRY_DSN) {
   });
 }
 
+export {};
+

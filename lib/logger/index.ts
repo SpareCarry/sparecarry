@@ -44,7 +44,7 @@ class Logger {
 
     try {
       // Use Function constructor to prevent Next.js from statically analyzing the import
-      // eslint-disable-next-line @typescript-eslint/no-implied-eval
+      // eslint-disable-next-line no-implied-eval
       const importPromise = new Function('return import("@sentry/nextjs")')() as Promise<any>;
       importPromise.then((Sentry: any) => {
         Sentry.init({
@@ -313,7 +313,7 @@ class Logger {
 
     try {
       // Use Function constructor to prevent Next.js from statically analyzing the import
-      // eslint-disable-next-line @typescript-eslint/no-implied-eval
+      // eslint-disable-next-line no-implied-eval
       const importPromise = new Function('return import("@sentry/nextjs")')() as Promise<any>;
       const Sentry = await importPromise;
       Sentry.captureMessage(message, {
@@ -338,7 +338,7 @@ class Logger {
 
     try {
       // Use Function constructor to prevent Next.js from statically analyzing the import
-      // eslint-disable-next-line @typescript-eslint/no-implied-eval
+      // eslint-disable-next-line no-implied-eval
       const importPromise = new Function('return import("@sentry/nextjs")')() as Promise<any>;
       const Sentry = await importPromise;
 
@@ -372,7 +372,7 @@ class Logger {
 
     try {
       // Use Function constructor to prevent Next.js from statically analyzing the import
-      // eslint-disable-next-line @typescript-eslint/no-implied-eval
+      // eslint-disable-next-line no-implied-eval
       const importPromise = new Function('return import("@sentry/nextjs")')() as Promise<any>;
       const Sentry = await importPromise;
       Sentry.setUser(user ? {
@@ -399,7 +399,7 @@ class Logger {
 
     try {
       // Use Function constructor to prevent Next.js from statically analyzing the import
-      // eslint-disable-next-line @typescript-eslint/no-implied-eval
+      // eslint-disable-next-line no-implied-eval
       const importPromise = new Function('return import("@sentry/nextjs")')() as Promise<any>;
       const Sentry = await importPromise;
       Sentry.addBreadcrumb({

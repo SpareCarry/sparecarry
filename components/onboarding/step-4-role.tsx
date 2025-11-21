@@ -73,7 +73,9 @@ export function OnboardingStep4({ onComplete }: OnboardingStep4Props) {
 
       onComplete();
     } catch (err) {
-      setError(err.message || "Failed to save role");
+      const message =
+        err instanceof Error ? err.message : "Failed to save role";
+      setError(message);
     } finally {
       setLoading(false);
     }

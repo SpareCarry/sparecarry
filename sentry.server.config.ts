@@ -57,16 +57,19 @@ if (SENTRY_DSN) {
         }
         
         // Redact sensitive query parameters
-        if (event.request.query_string) {
+        const originalQueryString = event.request.query_string;
+        if (typeof originalQueryString === 'string') {
+          let sanitizedQueryString = originalQueryString;
           const sensitiveParams = ['token', 'key', 'secret', 'password', 'api_key'];
           sensitiveParams.forEach((param) => {
-            if (event.request!.query_string!.includes(param)) {
-              event.request!.query_string = event.request!.query_string!.replace(
+            if (sanitizedQueryString.includes(param)) {
+              sanitizedQueryString = sanitizedQueryString.replace(
                 new RegExp(`${param}=[^&]*`, 'gi'),
                 `${param}=[REDACTED]`
               );
             }
           });
+          event.request.query_string = sanitizedQueryString;
         }
       }
       
@@ -88,3 +91,5 @@ if (SENTRY_DSN) {
     console.warn('[Sentry] Failed to initialize:', error);
   });
 }
+
+export {};

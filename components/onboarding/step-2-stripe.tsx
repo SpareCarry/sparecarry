@@ -10,11 +10,15 @@ interface OnboardingStep2Props {
   onComplete: () => void;
 }
 
+const identityEnabled =
+  process.env.NEXT_PUBLIC_ENABLE_STRIPE_IDENTITY !== "false";
+
 export function OnboardingStep2({ onComplete }: OnboardingStep2Props) {
   const [loading, setLoading] = useState(false);
   const [verificationUrl, setVerificationUrl] = useState<string | null>(null);
   const [verified, setVerified] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [sessionStatus, setSessionStatus] = useState<string | null>(null);
   const supabase = createClient();
 
   useEffect(() => {
@@ -45,6 +49,11 @@ export function OnboardingStep2({ onComplete }: OnboardingStep2Props) {
   };
 
   const handleStartVerification = async () => {
+    if (!identityEnabled) {
+      setError("Identity verification is disabled. Please contact support.");
+      return;
+    }
+
     setLoading(true);
     setError(null);
 
@@ -72,7 +81,16 @@ export function OnboardingStep2({ onComplete }: OnboardingStep2Props) {
         throw new Error(data.error || "Failed to create verification session");
       }
 
-      const { verificationUrl: url } = await response.json();
+      const data = await response.json();
+      if (data.alreadyVerified) {
+        setSessionStatus("verified");
+        setVerified(true);
+        onComplete();
+        return;
+      }
+
+      const url = data.verificationUrl;
+      setSessionStatus(data.status ?? null);
       setVerificationUrl(url);
 
       // Open verification in new window
@@ -113,23 +131,17 @@ export function OnboardingStep2({ onComplete }: OnboardingStep2Props) {
         throw new Error(data.error || "Failed to check verification status");
       }
 
-      const { verified: isVerified } = await response.json();
-
+      const { verified: isVerified, status } = await response.json();
+      setSessionStatus(status ?? null);
       if (isVerified) {
-        // Update profile
-        const { error: updateError } = await supabase
-          .from("profiles")
-          .update({ stripe_identity_verified_at: new Date().toISOString() })
-          .eq("user_id", user.id);
-
-        if (updateError) throw updateError;
-
         setVerified(true);
         setTimeout(() => {
           onComplete();
         }, 1500);
       } else {
-        setError("Verification not yet complete. Please complete the verification process.");
+        setError(
+          "Verification not yet complete. Please complete the verification process and try again."
+        );
       }
     } catch (err) {
       const message =
@@ -169,6 +181,18 @@ export function OnboardingStep2({ onComplete }: OnboardingStep2Props) {
                 <span className="text-slate-400">•</span>
                 <span>Test Mode</span>
               </div>
+              {!identityEnabled && (
+                <p className="text-sm text-amber-700 mt-3">
+                  Identity verification is temporarily unavailable. Please email{" "}
+                  <a
+                    className="underline"
+                    href={`mailto:${process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "support@sparecarry.com"}`}
+                  >
+                    support
+                  </a>{" "}
+                  so we can verify you manually.
+                </p>
+              )}
             </div>
           </div>
         </CardContent>
@@ -179,12 +203,17 @@ export function OnboardingStep2({ onComplete }: OnboardingStep2Props) {
           {error}
         </div>
       )}
+      {sessionStatus && (
+        <div className="p-3 rounded-md bg-slate-50 border border-slate-200 text-sm">
+          Current status: <strong className="uppercase">{sessionStatus}</strong>
+        </div>
+      )}
 
       {!verificationUrl ? (
         <Button
           onClick={handleStartVerification}
           className="w-full bg-teal-600 hover:bg-teal-700"
-          disabled={loading}
+          disabled={loading || !identityEnabled}
         >
           {loading ? (
             <>
@@ -192,7 +221,9 @@ export function OnboardingStep2({ onComplete }: OnboardingStep2Props) {
               Starting Verification...
             </>
           ) : (
-            "Start Identity Verification"
+            identityEnabled
+              ? "Start Identity Verification"
+              : "Identity Verification Unavailable"
           )}
         </Button>
       ) : (

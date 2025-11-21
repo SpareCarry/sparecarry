@@ -3,61 +3,34 @@
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Trophy, Users } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { createClient } from "../../lib/supabase/client";
+
+interface LeaderboardEntry {
+  userId: string;
+  displayName: string;
+  count: number;
+}
 
 export function ReferralLeaderboard() {
-  const supabase = createClient();
-
-  const { data: leaderboard } = useQuery({
+  const { data: leaderboard } = useQuery<LeaderboardEntry[]>({
     queryKey: ["referral-leaderboard"],
     queryFn: async () => {
-      // Get top referrers by total referrals
-      const { data: referrals } = await supabase
-        .from("referrals")
-        .select("referrer_id")
-        .limit(100);
+      try {
+        const response = await fetch("/api/referrals/leaderboard", {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+          cache: "no-store",
+        });
 
-      if (!referrals) return [];
+        if (!response.ok) {
+          return [];
+        }
 
-      // Count referrals per referrer
-      const referralCounts = new Map<string, number>();
-      referrals.forEach((r) => {
-        const count = referralCounts.get(r.referrer_id) || 0;
-        referralCounts.set(r.referrer_id, count + 1);
-      });
-
-      // Get user profiles for top referrers
-      const topReferrerIds = Array.from(referralCounts.entries())
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 10)
-        .map(([userId]) => userId);
-
-      if (topReferrerIds.length === 0) return [];
-
-      const { data: users } = await supabase
-        .from("users")
-        .select("id, email, profiles(boat_name)")
-        .in("id", topReferrerIds);
-
-      if (!users) return [];
-
-      // Map to leaderboard entries
-      return users
-        .map((user) => {
-          const profile = Array.isArray(user.profiles) ? user.profiles[0] : user.profiles;
-          const displayName = profile?.boat_name || 
-            user.email?.split("@")[0]?.replace(/[^a-zA-Z0-9_]/g, "_") || 
-            "User";
-          
-          return {
-            userId: user.id,
-            displayName: displayName.length > 25 ? displayName.slice(0, 25) + "..." : displayName,
-            count: referralCounts.get(user.id) || 0,
-          };
-        })
-        .sort((a, b) => b.count - a.count)
-        .slice(0, 5);
+        return (await response.json()) as LeaderboardEntry[];
+      } catch {
+        return [];
+      }
     },
+    retry: false,
   });
 
   if (!leaderboard || leaderboard.length === 0) {

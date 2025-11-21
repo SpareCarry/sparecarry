@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
@@ -11,24 +11,60 @@ interface OnboardingStep1Props {
   onComplete: () => void;
 }
 
+const phoneAuthEnabled =
+  process.env.NEXT_PUBLIC_ENABLE_PHONE_AUTH !== "false";
+const supportEmail =
+  process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "support@sparecarry.com";
+
+const E164_REGEX = /^\+[1-9]\d{7,14}$/;
+
 export function OnboardingStep1({ onComplete }: OnboardingStep1Props) {
   const [phone, setPhone] = useState("");
   const [code, setCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState<"phone" | "verify">("phone");
   const [error, setError] = useState<string | null>(null);
+  const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  const [cooldown, setCooldown] = useState(0);
   const supabase = createClient();
+
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const timer = setInterval(() => {
+      setCooldown((prev) => Math.max(prev - 1, 0));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [cooldown]);
 
   const handleSendCode = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!phoneAuthEnabled) {
+      setError(
+        "Phone verification is temporarily disabled. Please contact support if you need access."
+      );
+      return;
+    }
+
+    const normalizedPhone = phone.startsWith("+")
+      ? phone
+      : `+${phone.replace(/\D/g, "")}`;
+
+    if (!E164_REGEX.test(normalizedPhone)) {
+      setError(
+        "Please enter a valid phone number in international format (e.g., +15551234567)."
+      );
+      return;
+    }
+
     setLoading(true);
     setError(null);
+    setStatusMessage(null);
 
     try {
       // Using Supabase's built-in phone verification
       // Note: You'll need to configure this in Supabase Dashboard
       const { error: verifyError } = await supabase.auth.signInWithOtp({
-        phone,
+        phone: normalizedPhone,
         options: {
           channel: "sms",
         },
@@ -36,11 +72,23 @@ export function OnboardingStep1({ onComplete }: OnboardingStep1Props) {
 
       if (verifyError) throw verifyError;
 
+      setPhone(normalizedPhone);
       setStep("verify");
+      setStatusMessage(
+        "Verification code sent! It may take up to a minute to arrive."
+      );
+      setCooldown(60);
     } catch (err) {
       const message =
         err instanceof Error ? err.message : "Failed to send verification code";
-      setError(message);
+
+      if (message.toLowerCase().includes("sms is not enabled")) {
+        setError(
+          "SMS delivery is not enabled on this project. Please contact support so we can enable phone verification."
+        );
+      } else {
+        setError(message);
+      }
     } finally {
       setLoading(false);
     }
@@ -50,17 +98,33 @@ export function OnboardingStep1({ onComplete }: OnboardingStep1Props) {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    setStatusMessage(null);
+
+    if (!phoneAuthEnabled) {
+      setError("Phone verification is disabled.");
+      setLoading(false);
+      return;
+    }
 
     try {
-      const {
+    const {
         data: { user },
       } = await supabase.auth.getUser();
 
       if (!user) throw new Error("User not found");
 
       // Verify the code and update profile
+      const normalizedPhone =
+        phone.startsWith("+") || phone === ""
+          ? phone
+          : `+${phone.replace(/\D/g, "")}`;
+
+      if (!normalizedPhone) {
+        throw new Error("Missing phone number. Please restart verification.");
+      }
+
       const { error: verifyError } = await supabase.auth.verifyOtp({
-        phone,
+        phone: normalizedPhone,
         token: code,
         type: "sms",
       });
@@ -70,11 +134,12 @@ export function OnboardingStep1({ onComplete }: OnboardingStep1Props) {
       // Update profile with phone number
       const { error: updateError } = await supabase
         .from("profiles")
-        .update({ phone })
+        .update({ phone: normalizedPhone })
         .eq("user_id", user.id);
 
       if (updateError) throw updateError;
 
+      setStatusMessage("Phone number verified successfully!");
       onComplete();
     } catch (err) {
       const message =
@@ -87,9 +152,9 @@ export function OnboardingStep1({ onComplete }: OnboardingStep1Props) {
 
   if (step === "phone") {
     return (
-      <form onSubmit={handleSendCode} className="space-y-4">
+    <form onSubmit={handleSendCode} className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="phone">Phone Number</Label>
+        <Label htmlFor="phone">Phone Number</Label>
           <Input
             id="phone"
             type="tel"
@@ -97,12 +162,21 @@ export function OnboardingStep1({ onComplete }: OnboardingStep1Props) {
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
             required
-            disabled={loading}
+          disabled={loading || !phoneAuthEnabled}
             className="bg-white"
           />
           <p className="text-sm text-slate-500">
-            We&apos;ll send you a verification code via SMS
+          Enter your number in international format. Standard carrier rates apply.
           </p>
+        {!phoneAuthEnabled && (
+          <p className="text-sm text-amber-600">
+            Phone verification is currently disabled. Please email{" "}
+            <a className="underline" href={`mailto:${supportEmail}`}>
+              {supportEmail}
+            </a>{" "}
+            if you need access.
+          </p>
+        )}
         </div>
 
         {error && (
@@ -110,11 +184,16 @@ export function OnboardingStep1({ onComplete }: OnboardingStep1Props) {
             {error}
           </div>
         )}
+      {statusMessage && !error && (
+        <div className="p-3 rounded-md bg-teal-50 text-teal-800 border border-teal-200 text-sm">
+          {statusMessage}
+        </div>
+      )}
 
         <Button
           type="submit"
           className="w-full bg-teal-600 hover:bg-teal-700"
-          disabled={loading}
+        disabled={loading || !phoneAuthEnabled || cooldown > 0}
         >
           {loading ? (
             <>
@@ -122,7 +201,14 @@ export function OnboardingStep1({ onComplete }: OnboardingStep1Props) {
               Sending...
             </>
           ) : (
-            "Send Verification Code"
+          <>
+            Send Verification Code
+            {cooldown > 0 && (
+              <span className="ml-2 text-xs font-semibold">
+                ({cooldown}s)
+              </span>
+            )}
+          </>
           )}
         </Button>
       </form>

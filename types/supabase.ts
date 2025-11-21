@@ -25,6 +25,11 @@ export interface Database {
         Insert: TripInsert;
         Update: TripUpdate;
       };
+      group_buys: {
+        Row: GroupBuy;
+        Insert: GroupBuyInsert;
+        Update: GroupBuyUpdate;
+      };
       requests: {
         Row: Request;
         Insert: RequestInsert;
@@ -50,6 +55,37 @@ export interface Database {
         Insert: DeliveryInsert;
         Update: DeliveryUpdate;
       };
+      referrals: {
+        Row: Referral;
+        Insert: ReferralInsert;
+        Update: ReferralUpdate;
+      };
+export interface Referral {
+  id: string;
+  referrer_id: string;
+  referred_id: string;
+  referrer_credit_earned: number | null;
+  referred_credit_earned: number | null;
+  first_delivery_completed_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ReferralInsert {
+  referrer_id: string;
+  referred_id: string;
+  referrer_credit_earned?: number | null;
+  referred_credit_earned?: number | null;
+  first_delivery_completed_at?: string | null;
+}
+
+export interface ReferralUpdate {
+  referrer_id?: string;
+  referred_id?: string;
+  referrer_credit_earned?: number | null;
+  referred_credit_earned?: number | null;
+  first_delivery_completed_at?: string | null;
+}
       waitlist: {
         Row: WaitlistEntry;
         Insert: WaitlistEntryInsert;
@@ -204,6 +240,46 @@ export interface TripUpdate {
 }
 
 // ============================================
+// Group Buy Types
+// ============================================
+
+export interface GroupBuy {
+  id: string;
+  trip_id: string;
+  organizer_id: string;
+  from_location: string;
+  to_location: string;
+  max_participants: number;
+  current_participants: number;
+  discount_percent: number;
+  status: "open" | "full" | "closed" | "cancelled";
+  created_at: string;
+  updated_at: string;
+}
+
+export interface GroupBuyInsert {
+  trip_id: string;
+  organizer_id: string;
+  from_location: string;
+  to_location: string;
+  max_participants?: number;
+  current_participants?: number;
+  discount_percent?: number;
+  status?: GroupBuy["status"];
+}
+
+export interface GroupBuyUpdate {
+  trip_id?: string;
+  organizer_id?: string;
+  from_location?: string;
+  to_location?: string;
+  max_participants?: number;
+  current_participants?: number;
+  discount_percent?: number;
+  status?: GroupBuy["status"];
+}
+
+// ============================================
 // Request Types
 // ============================================
 
@@ -280,12 +356,15 @@ export interface Match {
   id: string;
   trip_id: string;
   request_id: string;
-  status: "pending" | "accepted" | "rejected" | "completed" | "cancelled" | "disputed";
+  group_buy_id?: string | null;
+  status: "pending" | "chatting" | "escrow_paid" | "delivered" | "completed" | "cancelled" | "disputed";
   reward_amount: number;
   platform_fee_percent?: number | null;
   insurance_policy_number?: string | null;
   insurance_premium?: number | null;
-  payment_intent_id?: string | null;
+  escrow_payment_intent_id?: string | null;
+  conversation_id?: string | null;
+  delivered_at?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -293,21 +372,27 @@ export interface Match {
 export interface MatchInsert {
   trip_id: string;
   request_id: string;
+  group_buy_id?: string | null;
   status?: Match["status"];
   reward_amount: number;
   platform_fee_percent?: number | null;
   insurance_policy_number?: string | null;
   insurance_premium?: number | null;
-  payment_intent_id?: string | null;
+  escrow_payment_intent_id?: string | null;
+  conversation_id?: string | null;
+  delivered_at?: string | null;
 }
 
 export interface MatchUpdate {
   status?: Match["status"];
+  group_buy_id?: string | null;
   reward_amount?: number;
   platform_fee_percent?: number | null;
   insurance_policy_number?: string | null;
   insurance_premium?: number | null;
-  payment_intent_id?: string | null;
+  escrow_payment_intent_id?: string | null;
+  conversation_id?: string | null;
+  delivered_at?: string | null;
 }
 
 // ============================================
@@ -386,30 +471,30 @@ export interface DeliveryUpdate {
 export interface WaitlistEntry {
   id: string;
   email: string;
-  user_type: "traveler" | "requester" | "both";
+  user_type: string;
   trip_from?: string | null;
   trip_to?: string | null;
   approximate_dates?: string | null;
-  spare_capacity?: number | null;
+  spare_capacity?: string | null;
   created_at: string;
 }
 
 export interface WaitlistEntryInsert {
   email: string;
-  user_type: "traveler" | "requester" | "both";
+  user_type: string;
   trip_from?: string | null;
   trip_to?: string | null;
   approximate_dates?: string | null;
-  spare_capacity?: number | null;
+  spare_capacity?: string | null;
 }
 
 export interface WaitlistEntryUpdate {
   email?: string;
-  user_type?: "traveler" | "requester" | "both";
+  user_type?: string;
   trip_from?: string | null;
   trip_to?: string | null;
   approximate_dates?: string | null;
-  spare_capacity?: number | null;
+  spare_capacity?: string | null;
 }
 
 // ============================================

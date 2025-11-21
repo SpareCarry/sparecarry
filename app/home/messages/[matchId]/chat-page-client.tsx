@@ -15,6 +15,8 @@ import {
   Camera,
   CheckCircle2,
   Star,
+  AlertTriangle,
+  LifeBuoy,
 } from "lucide-react";
 import { format } from "date-fns";
 import { MessageBubble } from "../../../../components/chat/message-bubble";
@@ -28,6 +30,24 @@ import { detectPriceProposal } from "../../../../components/chat/price-proposal-
 import { NegotiationButtons } from "../../../../components/chat/negotiation-buttons";
 import { NegotiationTemplates } from "../../../../components/chat/negotiation-templates";
 
+const supportEmail = process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "support@sparecarry.com";
+
+type RatingRecord = {
+  id: string;
+  rating: number;
+  comment?: string | null;
+};
+
+type DisputeRecord = {
+  id: string;
+  match_id: string;
+  opened_by: string;
+  reason: string;
+  status: "open" | "resolved" | "rejected";
+  resolution_notes?: string | null;
+  created_at: string;
+};
+
 export function ChatPageClient() {
   const params = useParams();
   const router = useRouter();
@@ -37,7 +57,11 @@ export function ChatPageClient() {
   const [message, setMessage] = useState("");
   const [sending, setSending] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const [showRating, setShowRating] = useState(false);
+  const [ratingModalOpen, setRatingModalOpen] = useState(false);
+  const [hasAutoPromptedRating, setHasAutoPromptedRating] = useState(false);
+  const [disputeReason, setDisputeReason] = useState("");
+  const [supportError, setSupportError] = useState<string | null>(null);
+  const [supportSuccess, setSupportSuccess] = useState<string | null>(null);
 
   const { data: user } = useQuery({
     queryKey: ["current-user"],
@@ -104,6 +128,50 @@ export function ChatPageClient() {
     refetchInterval: 2000, // Poll every 2 seconds
   });
 
+  const { data: ratingRecord, isFetching: ratingFetching } = useQuery<RatingRecord | null>({
+    queryKey: ["rating", matchId, user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      try {
+        const { data, error } = await supabase
+          .from("ratings")
+          .select("*")
+          .eq("match_id", matchId)
+          .eq("rater_id", user.id)
+          .maybeSingle();
+
+        if (error && error.code !== "PGRST116") throw error;
+        return (data as RatingRecord) || null;
+      } catch (queryError) {
+        console.warn("Unable to load rating", queryError);
+        return null;
+      }
+    },
+    enabled: !!user?.id && !!matchId,
+  });
+
+  const { data: disputeRecord, isFetching: disputeFetching } = useQuery<DisputeRecord | null>({
+    queryKey: ["dispute", matchId],
+    queryFn: async () => {
+      try {
+        const { data, error } = await supabase
+          .from("disputes")
+          .select("*")
+          .eq("match_id", matchId)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (error && error.code !== "PGRST116") throw error;
+        return (data as DisputeRecord) || null;
+      } catch (queryError) {
+        console.warn("Unable to load dispute", queryError);
+        return null;
+      }
+    },
+    enabled: !!matchId,
+  });
+
   const sendMessageMutation = useMutation({
     mutationFn: async (content: string) => {
       if (!conversation) throw new Error("No conversation found");
@@ -154,6 +222,42 @@ export function ChatPageClient() {
     },
   });
 
+  const openDisputeMutation = useMutation({
+    mutationFn: async (reason: string) => {
+      if (!reason.trim()) {
+        throw new Error("Please describe what went wrong.");
+      }
+
+      const {
+        data: { user: currentUser },
+      } = await supabase.auth.getUser();
+
+      if (!currentUser) throw new Error("Not authenticated");
+
+      const { error } = await supabase.from("disputes").insert({
+        match_id: matchId,
+        opened_by: currentUser.id,
+        reason: reason.trim(),
+        status: "open",
+      });
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      setDisputeReason("");
+      setSupportError(null);
+      setSupportSuccess("Dispute submitted. Our support team will reach out shortly.");
+      queryClient.invalidateQueries({ queryKey: ["dispute", matchId] });
+      queryClient.invalidateQueries({ queryKey: ["match", matchId] });
+    },
+    onError: (mutationError) => {
+      const message =
+        mutationError instanceof Error ? mutationError.message : "Unable to submit dispute. Please try again.";
+      setSupportError(message);
+      setSupportSuccess(null);
+    },
+  });
+
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!message.trim() || sending) return;
@@ -172,9 +276,35 @@ export function ChatPageClient() {
     setMessage(template);
   };
 
+  const handleDisputeSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setSupportError(null);
+    setSupportSuccess(null);
+    try {
+      await openDisputeMutation.mutateAsync(disputeReason);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Unable to submit dispute. Please try again.";
+      setSupportError(message);
+    }
+  };
+
+  const handleRatingPrompt = () => {
+    setRatingModalOpen(true);
+    setHasAutoPromptedRating(true);
+  };
+
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [conversation?.messages]);
+
+  const shouldPromptRating = match?.status === "completed";
+
+  useEffect(() => {
+    if (shouldPromptRating && !ratingRecord && !hasAutoPromptedRating) {
+      setRatingModalOpen(true);
+      setHasAutoPromptedRating(true);
+    }
+  }, [shouldPromptRating, ratingRecord, hasAutoPromptedRating]);
 
   if (!match || !conversation) {
     return (
@@ -184,14 +314,16 @@ export function ChatPageClient() {
     );
   }
 
-  const trip = match.trips;
-  const request = match.requests;
-  const isRequester = request.user_id === user?.id;
-  const isTraveler = trip.user_id === user?.id;
+  const trip = Array.isArray(match.trips) ? match.trips[0] : match.trips;
+  const request = Array.isArray(match.requests) ? match.requests[0] : match.requests;
+  const isRequester = request?.user_id === user?.id;
+  const isTraveler = trip?.user_id === user?.id;
   const canPay = isRequester && (match.status === "chatting" || match.status === "pending");
   const canConfirmDelivery = isRequester && match.status === "delivered";
   const showDeliveryForm = isTraveler && match.status === "escrow_paid";
   const showRatingAfterCompletion = match.status === "completed";
+  const canOpenDispute = ["escrow_paid", "delivered", "completed", "disputed"].includes(match.status);
+  const otherUserId = isRequester ? trip?.user_id : request?.user_id;
 
   return (
     <div className="flex flex-col h-screen bg-slate-50">
@@ -318,6 +450,123 @@ export function ChatPageClient() {
       {/* Delivery Confirmation Button (Requester) */}
       {canConfirmDelivery && <ConfirmDeliveryButton matchId={matchId} />}
 
+      {/* Rating Prompt */}
+      {showRatingAfterCompletion && (
+        <div className="px-4 py-3">
+          <div className="rounded-lg border border-slate-200 bg-white p-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-semibold text-slate-900">Rate this delivery</p>
+                <p className="text-xs text-slate-500">
+                  {ratingRecord ? "Update your feedback anytime." : "Share feedback so others know what to expect."}
+                </p>
+              </div>
+              <Star className="h-5 w-5 text-yellow-400 fill-yellow-400" />
+            </div>
+
+            {ratingFetching ? (
+              <div className="flex items-center gap-2 text-sm text-slate-500">
+                <Loader2 className="h-4 w-4 animate-spin text-teal-600" />
+                Checking for existing rating...
+              </div>
+            ) : ratingRecord ? (
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <div className="flex items-center gap-1">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <Star
+                        key={star}
+                        className={`h-4 w-4 ${
+                          star <= ratingRecord.rating ? "text-yellow-400 fill-yellow-400" : "text-slate-200"
+                        }`}
+                      />
+                    ))}
+                  </div>
+                  {ratingRecord.comment && (
+                    <p className="text-sm text-slate-600 mt-2">&ldquo;{ratingRecord.comment}&rdquo;</p>
+                  )}
+                </div>
+                <Button variant="outline" size="sm" onClick={handleRatingPrompt} disabled={!otherUserId}>
+                  Update rating
+                </Button>
+              </div>
+            ) : (
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <p className="text-sm text-slate-600">
+                  It only takes a few seconds and helps us keep SpareCarry safe.
+                </p>
+                <Button size="sm" onClick={handleRatingPrompt} disabled={!otherUserId}>
+                  Leave a rating
+                </Button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Support & disputes */}
+      {(canOpenDispute || disputeRecord) && (
+        <div className="px-4 pb-4">
+          <div className="rounded-lg border border-slate-200 bg-white p-4 space-y-3">
+            <div className="flex items-center gap-2 text-slate-900 font-semibold">
+              <LifeBuoy className="h-5 w-5 text-teal-600" />
+              Need help?
+            </div>
+
+            {disputeFetching ? (
+              <div className="flex items-center gap-2 text-sm text-slate-500">
+                <Loader2 className="h-4 w-4 animate-spin text-teal-600" />
+                Checking for disputes...
+              </div>
+            ) : disputeRecord ? (
+              <div className="rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900 space-y-1">
+                <div className="flex items-center gap-2 font-semibold">
+                  <AlertTriangle className="h-4 w-4" />
+                  {disputeRecord.status === "open" ? "Dispute under review" : "Dispute update"}
+                </div>
+                <p>{disputeRecord.reason}</p>
+                <p className="text-xs text-amber-800">
+                  Filed {format(new Date(disputeRecord.created_at), "MMM d, yyyy HH:mm")}
+                </p>
+              </div>
+            ) : canOpenDispute ? (
+              <form className="space-y-3" onSubmit={handleDisputeSubmit}>
+                <label className="text-sm font-medium text-slate-900">Tell us what&apos;s wrong</label>
+                <textarea
+                  value={disputeReason}
+                  onChange={(e) => {
+                    setDisputeReason(e.target.value);
+                    setSupportError(null);
+                    setSupportSuccess(null);
+                  }}
+                  rows={3}
+                  className="w-full rounded-md border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  placeholder="Describe the issue so we can help..."
+                  disabled={openDisputeMutation.isPending}
+                />
+                {supportError && <p className="text-sm text-red-600">{supportError}</p>}
+                {supportSuccess && <p className="text-sm text-emerald-600">{supportSuccess}</p>}
+                <div className="flex flex-wrap items-center gap-3">
+                  <Button type="submit" disabled={openDisputeMutation.isPending}>
+                    {openDisputeMutation.isPending ? "Sending..." : "Open dispute"}
+                  </Button>
+                  <p className="text-xs text-slate-500">
+                    Escrow stays frozen while the team reviews your ticket.
+                  </p>
+                </div>
+              </form>
+            ) : null}
+
+            <p className="text-xs text-slate-500">
+              Prefer email?{" "}
+              <a href={`mailto:${supportEmail}`} className="text-teal-600 underline">
+                Contact support
+              </a>
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Message Input */}
       {(match.status === "chatting" || match.status === "pending") && (
         <form onSubmit={handleSend} className="bg-white border-t border-slate-200 p-4">
@@ -345,11 +594,15 @@ export function ChatPageClient() {
       )}
 
       {/* Rating Modal */}
-      {(showRating || showRatingAfterCompletion) && (
+      {ratingModalOpen && otherUserId && (
         <RatingModal
           matchId={matchId}
-          otherUserId={isRequester ? trip.user_id : request.user_id}
-          onClose={() => setShowRating(false)}
+          otherUserId={otherUserId}
+          existingRating={ratingRecord || undefined}
+          onClose={() => setRatingModalOpen(false)}
+          onSubmitted={() => {
+            queryClient.invalidateQueries({ queryKey: ["rating", matchId, user?.id] });
+          }}
         />
       )}
     </div>

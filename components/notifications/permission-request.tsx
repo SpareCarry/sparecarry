@@ -5,6 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Button } from "../ui/button";
 import { Bell, X } from "lucide-react";
 import { requestNotificationPermission, registerForPushNotifications } from "../../lib/notifications/expo-notifications";
+import { registerForExpoPushNotifications } from "../../lib/notifications/expo-push-service";
+import { Capacitor } from "@capacitor/core";
 import { createClient } from "../../lib/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 
@@ -51,27 +53,33 @@ export function NotificationPermissionRequest() {
   const handleAllow = async () => {
     setRequesting(true);
     try {
-      const hasPermission = await requestNotificationPermission();
+      const isNative = Capacitor.isNativePlatform();
+      let token: string | null = null;
       
-      if (hasPermission) {
-        const token = await registerForPushNotifications();
-        
-        if (token && user) {
-          // Save token to database
-          await supabase
-            .from("profiles")
-            .update({
-              expo_push_token: token,
-              push_notifications_enabled: true,
-            })
-            .eq("user_id", user.id);
+      if (isNative) {
+        // Use Expo push service for native platforms
+        token = await registerForExpoPushNotifications();
+      } else {
+        // Use web notifications for web platform
+        const hasPermission = await requestNotificationPermission();
+        if (hasPermission) {
+          token = await registerForPushNotifications();
+        }
+      }
+      
+      if (token && user) {
+        // Register token with backend (which saves to database)
+        const response = await fetch("/api/notifications/register-token", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            expoPushToken: token,
+            enableNotifications: true,
+          }),
+        });
 
-          // Register token with backend
-          await fetch("/api/notifications/register-token", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ token }),
-          });
+        if (!response.ok) {
+          throw new Error("Failed to register token");
         }
       }
 

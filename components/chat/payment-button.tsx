@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui
 import { DollarSign, AlertCircle, Shield } from "lucide-react";
 import { createClient } from "../../lib/supabase/client";
 import { loadStripe } from "@stripe/stripe-js";
+import { Elements, PaymentElement, useElements, useStripe } from "@stripe/react-stripe-js";
 import { useQuery } from "@tanstack/react-query";
 import { calculatePlatformFee, isPromoPeriodActive } from "../../lib/pricing/platform-fee";
 import { getInsuranceQuote, purchaseInsurance } from "../../lib/insurance/allianz";
@@ -23,10 +24,12 @@ interface PaymentButtonProps {
 export function PaymentButton({ match }: PaymentButtonProps) {
   const router = useRouter();
   const supabase = createClient();
-  const [loading, setLoading] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
   const [insurance, setInsurance] = useState(false);
   const [useCredits, setUseCredits] = useState(false);
+  const [creatingIntent, setCreatingIntent] = useState(false);
+  const [clientSecret, setClientSecret] = useState<string | null>(null);
+  const [checkoutError, setCheckoutError] = useState<string | null>(null);
 
   // Check if user has active subscription
   const { data: user } = useQuery({
@@ -78,8 +81,8 @@ export function PaymentButton({ match }: PaymentButtonProps) {
 
   const trip = match.trips;
   const request = match.requests;
-  const reward = match.reward_amount;
-  const itemCost = request.value_usd || 0;
+  const reward = Number(match.reward_amount ?? 0);
+  const itemCost = Number(request.value_usd ?? 0);
 
   // Calculate dynamic platform fee
   const platformFeePercent = calculatePlatformFee({
@@ -125,81 +128,84 @@ export function PaymentButton({ match }: PaymentButtonProps) {
   }, [itemCost, request.from_location, request.to_location, insuranceLoading, insuranceQuote]);
 
   const insuranceCost = insurance && insuranceQuote ? insuranceQuote.premium : 0;
-  
-  // Calculate credits available to use
+
+  const subtotal = reward + itemCost + insuranceCost;
+  const totalBeforeCredits = subtotal + platformFee;
+
   const availableCredits = userHistory?.referral_credits || 0;
   const maxCreditsUsable = Math.min(
     availableCredits,
     platformFee + reward // Credits can only be used on platform fee or reward
   );
   const creditsToUse = useCredits ? maxCreditsUsable : 0;
-  
-  const total = Math.max(0, reward + itemCost + platformFee + insuranceCost - creditsToUse);
+
+  const total = Math.max(0, totalBeforeCredits - creditsToUse);
+  const creditLimitDisplay = Math.max(0, maxCreditsUsable);
+  const canSubmitPayment = total > 0;
+  const formattedPlatformFeePercent = `${(platformFeePercent * 100).toFixed(1)}%`;
+
+  useEffect(() => {
+    if (maxCreditsUsable <= 0 && useCredits) {
+      setUseCredits(false);
+    }
+  }, [maxCreditsUsable, useCredits]);
 
   const handlePayment = async () => {
-    setLoading(true);
+    setCreatingIntent(true);
+    setCheckoutError(null);
+    setClientSecret(null);
     try {
-      // Purchase insurance if selected
       let insurancePolicyNumber = null;
       if (insurance && insuranceQuote) {
-        const policy = await purchaseInsurance(
-          insuranceQuote,
-          match.id,
-          user!.id
-        );
+        const policy = await purchaseInsurance(insuranceQuote, match.id, user!.id);
         insurancePolicyNumber = policy.policy_number;
       }
 
-      // Create payment intent
       const response = await fetch("/api/payments/create-intent", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           matchId: match.id,
-          amount: Math.round((reward + itemCost + platformFee + insuranceCost) * 100), // Original amount before credits
-          useCredits: useCredits && availableCredits > 0,
-          insurance: insurance && insuranceQuote ? {
-            policy_number: insurancePolicyNumber,
-            premium: insuranceQuote.premium,
-            coverage_amount: insuranceQuote.coverage_amount,
-          } : null,
+          useCredits: useCredits && creditsToUse > 0,
+          insurance:
+            insurance && insuranceQuote
+              ? {
+                  policy_number: insurancePolicyNumber,
+                  premium: insuranceQuote.premium,
+                  coverage_amount: insuranceQuote.coverage_amount,
+                }
+              : null,
         }),
       });
 
-      if (!response.ok) throw new Error("Failed to create payment");
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data.error || "Failed to create payment");
+      }
 
-      const { clientSecret, paymentIntentId } = await response.json();
-
-      // Update match with payment intent ID
-      await supabase
-        .from("matches")
-        .update({
-          escrow_payment_intent_id: paymentIntentId,
-          status: "escrow_paid",
-        })
-        .eq("id", match.id);
-
-      // Redirect to Stripe Checkout
-      const stripe = await stripePromise;
-      if (!stripe) throw new Error("Stripe not loaded");
-
-      const { error } = await stripe.confirmCardPayment(clientSecret, {
-        payment_method: {
-          card: { token: "tok_visa" }, // In production, use actual card element
-        },
-      });
-
-      if (error) throw error;
-
-      router.refresh();
+      const { clientSecret: secret } = await response.json();
+      setClientSecret(secret);
     } catch (error) {
       console.error("Payment error:", error);
-      const message =
-        error instanceof Error ? error.message : "Payment failed";
-      alert(message);
+      const message = error instanceof Error ? error.message : "Payment failed";
+      setCheckoutError(message);
     } finally {
-      setLoading(false);
+      setCreatingIntent(false);
     }
+  };
+
+  const handlePaymentSuccess = async (paymentIntentId: string) => {
+    await supabase
+      .from("matches")
+      .update({ status: "escrow_paid", escrow_payment_intent_id: paymentIntentId })
+      .eq("id", match.id);
+    setClientSecret(null);
+    router.refresh();
+  };
+
+  const handleCheckoutClose = () => {
+    setClientSecret(null);
+    setCheckoutError(null);
   };
 
   return (
@@ -237,7 +243,7 @@ export function PaymentButton({ match }: PaymentButtonProps) {
             )}
             <div className="flex justify-between text-sm">
               <span>
-                Platform Fee ({platformFeePercent * 100}%)
+                Platform Fee ({formattedPlatformFeePercent})
                 {hasActiveSubscription && (
                   <span className="ml-2 text-xs text-green-600 font-medium">
                     (Pro - waived)
@@ -253,9 +259,14 @@ export function PaymentButton({ match }: PaymentButtonProps) {
                     (Promo - waived)
                   </span>
                 )}
+                {isSupporter && (
+                  <span className="ml-2 text-xs text-blue-600 font-medium">
+                    (Supporter perk)
+                  </span>
+                )}
               </span>
               <span>
-                {platformFeePercent === 0 ? (
+                {platformFee <= 0 ? (
                   <span className="text-green-600 font-medium">$0.00</span>
                 ) : (
                   `$${platformFee.toFixed(2)}`
@@ -302,7 +313,7 @@ export function PaymentButton({ match }: PaymentButtonProps) {
             )}
             
             {/* Referral Credits */}
-            {availableCredits > 0 && !hasActiveSubscription && (
+            {availableCredits > 0 && !hasActiveSubscription && !isSupporter && (
               <div className="border-t pt-3 mt-3">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
@@ -312,9 +323,10 @@ export function PaymentButton({ match }: PaymentButtonProps) {
                       checked={useCredits}
                       onChange={(e) => setUseCredits(e.target.checked)}
                       className="h-4 w-4"
+                      disabled={creditLimitDisplay <= 0}
                     />
                     <label htmlFor="useCredits" className="text-sm font-medium cursor-pointer">
-                      Use ${availableCredits.toFixed(0)} referral credit
+                      Use up to ${creditLimitDisplay.toFixed(2)} referral credit
                     </label>
                   </div>
                   {useCredits && (
@@ -323,11 +335,15 @@ export function PaymentButton({ match }: PaymentButtonProps) {
                     </span>
                   )}
                 </div>
-                {useCredits && (
+                {creditLimitDisplay <= 0 ? (
+                  <p className="text-xs text-slate-500">
+                    No eligible fees to apply credits to at the moment.
+                  </p>
+                ) : useCredits ? (
                   <p className="text-xs text-slate-500">
                     Credits can only be used on platform fees or rewards
                   </p>
-                )}
+                ) : null}
               </div>
             )}
             
@@ -335,17 +351,111 @@ export function PaymentButton({ match }: PaymentButtonProps) {
               <span>Total</span>
               <span>${total.toFixed(2)}</span>
             </div>
-            <Button
-              onClick={handlePayment}
-              disabled={loading}
-              className="w-full bg-teal-600 hover:bg-teal-700"
-            >
-              {loading ? "Processing..." : "Pay & Lock in Escrow"}
-            </Button>
+            {!canSubmitPayment && (
+              <p className="text-xs text-red-600">
+                Total must be greater than $0 to continue.
+              </p>
+            )}
+            {checkoutError && (
+              <p className="text-xs text-red-600">{checkoutError}</p>
+            )}
+            {clientSecret ? (
+              <div className="space-y-3 border border-slate-200 rounded-md p-4">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-medium">Enter payment details</p>
+                  <Button variant="ghost" size="sm" onClick={handleCheckoutClose}>
+                    Cancel
+                  </Button>
+                </div>
+                <Elements
+                  stripe={stripePromise}
+                  options={{
+                    clientSecret,
+                    appearance: {
+                      theme: "stripe",
+                    },
+                  }}
+                  key={clientSecret}
+                >
+                  <CheckoutForm
+                    onSuccess={handlePaymentSuccess}
+                    onError={(message) => setCheckoutError(message)}
+                  />
+                </Elements>
+              </div>
+            ) : (
+              <Button
+                onClick={handlePayment}
+                disabled={creatingIntent || !canSubmitPayment}
+                className="w-full bg-teal-600 hover:bg-teal-700"
+              >
+                {creatingIntent
+                  ? "Preparing checkout..."
+                  : `Pay $${total.toFixed(2)} & Lock in Escrow`}
+              </Button>
+            )}
           </CardContent>
         </Card>
       )}
     </div>
+  );
+}
+
+function CheckoutForm({
+  onSuccess,
+  onError,
+}: {
+  onSuccess: (paymentIntentId: string) => Promise<void>;
+  onError: (message: string) => void;
+}) {
+  const stripe = useStripe();
+  const elements = useElements();
+  const [submitting, setSubmitting] = useState(false);
+  const [localError, setLocalError] = useState<string | null>(null);
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!stripe || !elements) return;
+
+    setSubmitting(true);
+    setLocalError(null);
+    onError("");
+
+    const { error, paymentIntent } = await stripe.confirmPayment({
+      elements,
+      redirect: "if_required",
+    });
+
+    if (error) {
+      const message = error.message || "Payment failed";
+      setLocalError(message);
+      onError(message);
+      setSubmitting(false);
+      return;
+    }
+
+    if (paymentIntent?.status === "succeeded") {
+      await onSuccess(paymentIntent.id);
+    } else {
+      const message = "Payment did not complete. Please try again.";
+      setLocalError(message);
+      onError(message);
+    }
+    setSubmitting(false);
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-3">
+      <PaymentElement id="payment-element" />
+      {localError && <p className="text-xs text-red-600">{localError}</p>}
+      <Button
+        type="submit"
+        className="w-full bg-teal-600 hover:bg-teal-700"
+        disabled={!stripe || submitting}
+      >
+        {submitting ? "Processing..." : "Confirm Payment"}
+      </Button>
+    </form>
   );
 }
 

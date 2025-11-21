@@ -1,0 +1,142 @@
+{
+  "info": {
+    "name": "SpareCarry Notifications",
+    "description": "Test collection for SpareCarry notification endpoints",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Register Push Token",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"expoPushToken\": \"ExponentPushToken[xxxxxxxxxxxxxxxxxxxxxx]\",\n  \"enableNotifications\": true\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/notifications/register-token",
+          "host": ["{{base_url}}"],
+          "path": ["api", "notifications", "register-token"]
+        },
+        "description": "Register an Expo push token for the authenticated user"
+      }
+    },
+    {
+      "name": "Send Message Notification",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"matchId\": \"{{match_id}}\",\n  \"recipientId\": \"{{recipient_id}}\",\n  \"senderName\": \"Test User\",\n  \"messagePreview\": \"This is a test message notification\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/notifications/send-message",
+          "host": ["{{base_url}}"],
+          "path": ["api", "notifications", "send-message"]
+        },
+        "description": "Send a push and/or email notification for a new message"
+      }
+    },
+    {
+      "name": "Send Match Notification",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"matchId\": \"{{match_id}}\",\n  \"recipientId\": \"{{recipient_id}}\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/notifications/send-match",
+          "host": ["{{base_url}}"],
+          "path": ["api", "notifications", "send-match"]
+        },
+        "description": "Send a push and/or email notification for a new match"
+      }
+    },
+    {
+      "name": "Send Counter Offer Notification",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"matchId\": \"{{match_id}}\",\n  \"recipientId\": \"{{recipient_id}}\",\n  \"amount\": 150.00\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/notifications/send-counter-offer",
+          "host": ["{{base_url}}"],
+          "path": ["api", "notifications", "send-counter-offer"]
+        },
+        "description": "Send a push and/or email notification for a counter offer"
+      }
+    },
+    {
+      "name": "Emergency Request Notification",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"requestId\": \"{{request_id}}\",\n  \"fromLocation\": \"Grenada\",\n  \"toLocation\": \"Saint Lucia\",\n  \"deadline\": \"2024-12-31\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/notifications/emergency-request",
+          "host": ["{{base_url}}"],
+          "path": ["api", "notifications", "emergency-request"]
+        },
+        "description": "Send emergency request notifications to all verified travelers"
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "match_id",
+      "value": "test-match-id",
+      "type": "string"
+    },
+    {
+      "key": "recipient_id",
+      "value": "user-id-here",
+      "type": "string"
+    },
+    {
+      "key": "request_id",
+      "value": "request-id-here",
+      "type": "string"
+    }
+  ]
+}
+

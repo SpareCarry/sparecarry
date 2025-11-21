@@ -85,6 +85,24 @@ CREATE TABLE IF NOT EXISTS public.trips (
 );
 
 -- ============================================================================
+-- GROUP_BUYS TABLE
+-- ============================================================================
+
+CREATE TABLE IF NOT EXISTS public.group_buys (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  trip_id UUID REFERENCES public.trips(id) ON DELETE CASCADE NOT NULL,
+  organizer_id UUID REFERENCES public.users(id) ON DELETE CASCADE NOT NULL,
+  from_location TEXT NOT NULL,
+  to_location TEXT NOT NULL,
+  max_participants INTEGER NOT NULL DEFAULT 10,
+  current_participants INTEGER NOT NULL DEFAULT 0,
+  discount_percent DECIMAL(5,2) NOT NULL DEFAULT 0,
+  status TEXT NOT NULL CHECK (status IN ('open','full','closed','cancelled')) DEFAULT 'open',
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- ============================================================================
 -- REQUESTS TABLE
 -- ============================================================================
 
@@ -109,6 +127,37 @@ CREATE TABLE IF NOT EXISTS public.requests (
   status TEXT DEFAULT 'open' CHECK (status IN ('open', 'matched', 'fulfilled', 'cancelled')),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- ============================================================================
+-- REFERRALS TABLE
+-- ============================================================================
+
+CREATE TABLE IF NOT EXISTS public.referrals (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  referrer_id UUID REFERENCES public.users(id) ON DELETE CASCADE NOT NULL,
+  referred_id UUID REFERENCES public.users(id) ON DELETE CASCADE NOT NULL,
+  referrer_credit_earned DECIMAL(10, 2) DEFAULT 0,
+  referred_credit_earned DECIMAL(10, 2) DEFAULT 0,
+  first_delivery_completed_at TIMESTAMP WITH TIME ZONE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  UNIQUE(referrer_id, referred_id)
+);
+
+-- ============================================================================
+-- WAITLIST TABLE
+-- ============================================================================
+
+CREATE TABLE IF NOT EXISTS public.waitlist (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  email TEXT NOT NULL,
+  user_type TEXT NOT NULL,
+  trip_from TEXT,
+  trip_to TEXT,
+  approximate_dates TEXT,
+  spare_capacity TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
 -- ============================================================================
@@ -231,6 +280,10 @@ CREATE INDEX IF NOT EXISTS idx_trips_departure_date ON public.trips(departure_da
 CREATE INDEX IF NOT EXISTS idx_trips_status ON public.trips(status);
 CREATE INDEX IF NOT EXISTS idx_trips_eta_window ON public.trips(eta_window_start, eta_window_end);
 
+-- Group buys indexes
+CREATE INDEX IF NOT EXISTS idx_group_buys_trip_id ON public.group_buys(trip_id);
+CREATE INDEX IF NOT EXISTS idx_group_buys_status ON public.group_buys(status);
+
 -- Requests indexes
 CREATE INDEX IF NOT EXISTS idx_requests_user_id ON public.requests(user_id);
 CREATE INDEX IF NOT EXISTS idx_requests_from_location ON public.requests(from_location);
@@ -238,6 +291,13 @@ CREATE INDEX IF NOT EXISTS idx_requests_to_location ON public.requests(to_locati
 CREATE INDEX IF NOT EXISTS idx_requests_deadline_latest ON public.requests(deadline_latest);
 CREATE INDEX IF NOT EXISTS idx_requests_status ON public.requests(status);
 CREATE INDEX IF NOT EXISTS idx_requests_preferred_method ON public.requests(preferred_method);
+CREATE INDEX IF NOT EXISTS idx_referrals_referrer_id ON public.referrals(referrer_id);
+CREATE INDEX IF NOT EXISTS idx_referrals_referred_id ON public.referrals(referred_id);
+
+-- Waitlist indexes
+CREATE INDEX IF NOT EXISTS idx_waitlist_email ON public.waitlist(email);
+CREATE INDEX IF NOT EXISTS idx_waitlist_created_at ON public.waitlist(created_at);
+CREATE INDEX IF NOT EXISTS idx_waitlist_user_type ON public.waitlist(user_type);
 
 -- Matches indexes
 CREATE INDEX IF NOT EXISTS idx_matches_trip_id ON public.matches(trip_id);
@@ -273,6 +333,7 @@ CREATE INDEX IF NOT EXISTS idx_ratings_ratee_id ON public.ratings(ratee_id);
 ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.trips ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.group_buys ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.requests ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.matches ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.conversations ENABLE ROW LEVEL SECURITY;
@@ -280,6 +341,8 @@ ALTER TABLE public.messages ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.deliveries ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.meetup_locations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.ratings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.referrals ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.waitlist ENABLE ROW LEVEL SECURITY;
 
 -- Users policies
 CREATE POLICY "Users can view their own data"
@@ -336,6 +399,37 @@ CREATE POLICY "Users can update their own requests"
 CREATE POLICY "Users can delete their own requests"
   ON public.requests FOR DELETE
   USING (auth.uid() = user_id);
+
+-- Referrals policies
+CREATE POLICY "Referrals are viewable by participants"
+  ON public.referrals FOR SELECT
+  USING (auth.uid() = referrer_id OR auth.uid() = referred_id);
+
+-- Group buys policies
+CREATE POLICY "Group buys readable by everyone"
+  ON public.group_buys FOR SELECT
+  USING (true);
+
+CREATE POLICY "Users can create group buys"
+  ON public.group_buys FOR INSERT
+  WITH CHECK (auth.uid() = organizer_id);
+
+CREATE POLICY "Authenticated users can update group buys"
+  ON public.group_buys FOR UPDATE
+  USING (auth.role() = 'authenticated');
+
+CREATE POLICY "Group buys deletable by organizer"
+  ON public.group_buys FOR DELETE
+  USING (auth.uid() = organizer_id);
+
+-- Waitlist policies
+CREATE POLICY "Waitlist readable by everyone"
+  ON public.waitlist FOR SELECT
+  USING (true);
+
+CREATE POLICY "Public can join waitlist"
+  ON public.waitlist FOR INSERT
+  WITH CHECK (true);
 
 -- Matches policies
 CREATE POLICY "Matches are viewable by participants"
@@ -483,7 +577,12 @@ CREATE TRIGGER update_profiles_updated_at BEFORE UPDATE ON public.profiles
 CREATE TRIGGER update_trips_updated_at BEFORE UPDATE ON public.trips
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+CREATE TRIGGER update_group_buys_updated_at BEFORE UPDATE ON public.group_buys
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
 CREATE TRIGGER update_requests_updated_at BEFORE UPDATE ON public.requests
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER update_referrals_updated_at BEFORE UPDATE ON public.referrals
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 CREATE TRIGGER update_matches_updated_at BEFORE UPDATE ON public.matches

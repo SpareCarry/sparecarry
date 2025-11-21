@@ -8,7 +8,13 @@ import { useTranslations } from "next-intl";
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { createClient } from "../../lib/supabase/client";
-import { getReferralStats, applyReferralCode } from "../../lib/referrals/referral-system";
+
+interface ReferralStats {
+  referralCode: string | null;
+  totalReferrals: number;
+  creditsEarned: number;
+  creditsAvailable: number;
+}
 
 export function ReferralCard() {
   const t = useTranslations("referral");
@@ -27,11 +33,30 @@ export function ReferralCard() {
     },
   });
 
-  const { data: stats, refetch } = useQuery({
+  const {
+    data: stats,
+    refetch,
+    isLoading: statsLoading,
+  } = useQuery<ReferralStats | null>({
     queryKey: ["referral-stats", user?.id],
     queryFn: async () => {
       if (!user) return null;
-      return getReferralStats(user.id);
+      const response = await fetch("/api/referrals/stats", {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+        cache: "no-store",
+      });
+
+      if (response.status === 401) {
+        return null;
+      }
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data.error || "Failed to load referral stats");
+      }
+
+      return (await response.json()) as ReferralStats;
     },
     enabled: !!user,
   });
@@ -49,14 +74,21 @@ export function ReferralCard() {
 
     setApplying(true);
     try {
-      const result = await applyReferralCode(user.id, referralCodeInput.trim());
-      if (result.success) {
-        alert("Referral code applied! You'll both earn $35 credit after your first completed delivery.");
-        setReferralCodeInput("");
-        refetch();
-      } else {
-        alert(result.error || "Failed to apply referral code");
+      const response = await fetch("/api/referrals/apply", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: referralCodeInput.trim() }),
+      });
+
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to apply referral code");
       }
+
+      alert("Referral code applied! You'll both earn $35 credit after your first completed delivery.");
+      setReferralCodeInput("");
+      refetch();
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "Failed to apply referral code";
@@ -75,7 +107,9 @@ export function ReferralCard() {
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        {stats?.referralCode ? (
+        {statsLoading ? (
+          <p className="text-sm text-slate-500">Loading referral data…</p>
+        ) : stats?.referralCode ? (
           <>
             <div>
               <label className="text-sm font-medium text-slate-700 mb-2 block">

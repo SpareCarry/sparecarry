@@ -5,7 +5,6 @@ import { useParams, useRouter } from "next/navigation";
 import { Card, CardContent } from "../../../components/ui/card";
 import { Loader2, CheckCircle2 } from "lucide-react";
 import { createClient } from "../../../lib/supabase/client";
-import { applyReferralCode } from "../../../lib/referrals/referral-system";
 import { Button } from "../../../components/ui/button";
 
 export function ReferralLandingPageClient() {
@@ -29,18 +28,23 @@ export function ReferralLandingPageClient() {
           return;
         }
 
-        const result = await applyReferralCode(user.id, code);
+        const response = await fetch("/api/referrals/apply", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ code }),
+        });
 
-        if (result.success) {
-          setStatus("success");
-          setMessage("Referral code applied! You'll both earn $35 credit after your first delivery.");
-          setTimeout(() => {
-            router.push("/home");
-          }, 3000);
-        } else {
-          setStatus("error");
-          setMessage(result.error || "Failed to apply referral code");
+        const data = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+          throw new Error(data.error || "Failed to apply referral code");
         }
+
+        setStatus("success");
+        setMessage("Referral code applied! You'll both earn $35 credit after your first delivery.");
+        setTimeout(() => {
+          router.push("/home");
+        }, 3000);
       } catch (error: any) {
         setStatus("error");
         setMessage(error.message || "An error occurred");

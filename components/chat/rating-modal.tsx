@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
 import {
   Dialog,
   DialogContent,
@@ -14,16 +13,26 @@ import { Star } from "lucide-react";
 import { createClient } from "../../lib/supabase/client";
 import { useRouter } from "next/navigation";
 
+interface RatingRecord {
+  id: string;
+  rating: number;
+  comment?: string | null;
+}
+
 interface RatingModalProps {
   matchId: string;
   otherUserId: string;
+  existingRating?: RatingRecord | null;
   onClose: () => void;
+  onSubmitted?: () => void;
 }
 
 export function RatingModal({
   matchId,
   otherUserId,
+  existingRating,
   onClose,
+  onSubmitted,
 }: RatingModalProps) {
   const router = useRouter();
   const supabase = createClient();
@@ -32,30 +41,13 @@ export function RatingModal({
   const [comment, setComment] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Check if user has already rated
-  const { data: existingRating } = useQuery({
-    queryKey: ["rating", matchId],
-    queryFn: async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) return null;
-
-      const { data } = await supabase
-        .from("ratings")
-        .select("*")
-        .eq("match_id", matchId)
-        .eq("rater_id", user.id)
-        .single();
-
-      return data;
-    },
-  });
-
   useEffect(() => {
     if (existingRating) {
       setRating(existingRating.rating);
       setComment(existingRating.comment || "");
+    } else {
+      setRating(0);
+      setComment("");
     }
   }, [existingRating]);
 
@@ -94,9 +86,7 @@ export function RatingModal({
         if (error) throw error;
       }
 
-      // Note: Match status is already "completed" after delivery confirmation
-      // Ratings are independent - both parties can rate
-
+      onSubmitted?.();
       onClose();
       router.refresh();
     } catch (error) {
@@ -156,7 +146,7 @@ export function RatingModal({
             disabled={rating === 0 || loading}
             className="w-full bg-teal-600 hover:bg-teal-700"
           >
-            {loading ? "Submitting..." : "Submit Rating"}
+            {loading ? "Submitting..." : existingRating ? "Update Rating" : "Submit Rating"}
           </Button>
         </form>
       </DialogContent>

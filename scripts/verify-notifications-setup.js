@@ -49,7 +49,7 @@ if (RESEND_API_KEY && RESEND_API_KEY.length > 20) {
   allGood = false;
 }
 
-if (NOTIFICATIONS_EMAIL_FROM) {
+if (NOTIFICATIONS_EMAIL_FROM && NOTIFICATIONS_EMAIL_FROM.trim().length > 0) {
   const emailMatch = NOTIFICATIONS_EMAIL_FROM.match(/<([^>]+)>/) || NOTIFICATIONS_EMAIL_FROM.match(/(\S+@\S+\.\S+)/);
   if (emailMatch) {
     console.log(`   ✅ NOTIFICATIONS_EMAIL_FROM is set: ${NOTIFICATIONS_EMAIL_FROM}`);
@@ -58,8 +58,9 @@ if (NOTIFICATIONS_EMAIL_FROM) {
     results.envVars.issues.push('NOTIFICATIONS_EMAIL_FROM format may be incorrect');
   }
 } else {
-  console.log('   ⚠️  NOTIFICATIONS_EMAIL_FROM not set (will use default)');
-  results.envVars.issues.push('NOTIFICATIONS_EMAIL_FROM not set (optional)');
+  console.log('   ⚠️  NOTIFICATIONS_EMAIL_FROM not set (will use default: SpareCarry <notifications@sparecarry.com>)');
+  console.log('   ℹ️  This is optional - the code has a default value');
+  results.envVars.issues.push('NOTIFICATIONS_EMAIL_FROM not set (optional, has default)');
 }
 
 results.envVars.status = results.envVars.issues.length === 0 ? 'pass' : results.envVars.issues.some(i => i.includes('missing')) ? 'fail' : 'warning';

@@ -168,7 +168,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true, message: "Auto-match completed successfully" });
   } catch (error: any) {
     console.error("Error auto-matching:", error);
     return NextResponse.json(

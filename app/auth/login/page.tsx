@@ -36,11 +36,14 @@ export default function LoginPage() {
 
       // Check for auth errors in URL params
       const errorParam = searchParams.get("error");
+      const errorMessage = searchParams.get("message");
       if (errorParam) {
         if (errorParam === "auth_failed") {
           setMessage({
             type: "error",
-            text: "Authentication failed. Please try again.",
+            text: errorMessage 
+              ? decodeURIComponent(errorMessage)
+              : "Authentication failed. Please try again.",
           });
         } else if (errorParam === "no_code") {
           setMessage({

@@ -38,15 +38,19 @@ export async function GET(request: NextRequest) {
       }
     );
 
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
+    const { data, error } = await supabase.auth.exchangeCodeForSession(code);
     
     if (error) {
       console.error("Error exchanging code for session:", error);
+      console.error("Error details:", JSON.stringify(error, null, 2));
       // Redirect to login with error message
       const loginUrl = new URL("/auth/login", request.url);
       loginUrl.searchParams.set("error", "auth_failed");
+      loginUrl.searchParams.set("message", encodeURIComponent(error.message || "Authentication failed"));
       return NextResponse.redirect(loginUrl);
     }
+    
+    console.log("Successfully exchanged code for session:", data?.user?.email);
 
     // Successfully authenticated - redirect to intended page with cookies set
     const redirectUrl = new URL(redirectTo, request.url);

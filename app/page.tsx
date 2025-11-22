@@ -15,6 +15,7 @@ import {
   CreditCard,
   MapPin,
   FileCheck,
+  Loader2,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -81,19 +82,37 @@ export default function Home() {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <Button
-              onClick={() => handleTravelClick("plane")}
+              onClick={() => {
+                console.log("Plane button clicked");
+                handleTravelClick("plane");
+              }}
               disabled={loading}
               className="w-full sm:w-auto text-lg px-8 py-6 bg-teal-600 hover:bg-teal-700 text-white text-xl font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
               size="lg"
+              type="button"
             >
+              {loading && travelType === "plane" ? (
+                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+              ) : (
+                <Plane className="mr-2 h-5 w-5" />
+              )}
               ✈ I&apos;m traveling by Plane
             </Button>
             <Button
-              onClick={() => handleTravelClick("boat")}
+              onClick={() => {
+                console.log("Boat button clicked");
+                handleTravelClick("boat");
+              }}
               disabled={loading}
               className="w-full sm:w-auto text-lg px-8 py-6 bg-slate-900 hover:bg-slate-800 text-white text-xl font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
               size="lg"
+              type="button"
             >
+              {loading && travelType === "boat" ? (
+                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+              ) : (
+                <Ship className="mr-2 h-5 w-5" />
+              )}
               ⚓ I&apos;m sailing by Boat
             </Button>
           </div>

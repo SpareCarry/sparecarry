@@ -28,7 +28,7 @@ if (USE_MOCK) {
 
   // Mock Supabase client module
   vi.mock('@/lib/supabase/client', () => {
-    const { createMockSupabaseClient } = require('@/tests/mocks/supabase/mockClient');
+    const { createMockSupabaseClient } = require('../../tests/mocks/supabase/mockClient');
     return {
       createClient: vi.fn(() => createMockSupabaseClient()),
     };
@@ -36,7 +36,7 @@ if (USE_MOCK) {
 
   // Mock Supabase server module
   vi.mock('@/lib/supabase/server', () => {
-    const { createMockSupabaseClient } = require('@/tests/mocks/supabase/mockClient');
+    const { createMockSupabaseClient } = require('../../tests/mocks/supabase/mockClient');
     return {
       createClient: vi.fn(async () => createMockSupabaseClient()),
     };
@@ -44,7 +44,7 @@ if (USE_MOCK) {
 
   // Mock Supabase SSR
   vi.mock('@supabase/ssr', () => {
-    const { createMockSupabaseClient } = require('@/tests/mocks/supabase/mockClient');
+    const { createMockSupabaseClient } = require('../../tests/mocks/supabase/mockClient');
     return {
       createBrowserClient: vi.fn(() => createMockSupabaseClient()),
       createServerClient: vi.fn(async () => createMockSupabaseClient()),
@@ -54,7 +54,7 @@ if (USE_MOCK) {
   // Mock legacy supabase module if it exists
   try {
     vi.mock('@/lib/supabase', () => {
-      const { createMockSupabaseClient } = require('@/tests/mocks/supabase/mockClient');
+      const { createMockSupabaseClient } = require('../../tests/mocks/supabase/mockClient');
       return {
         supabase: createMockSupabaseClient(),
       };

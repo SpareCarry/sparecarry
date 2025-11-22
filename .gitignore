@@ -31,6 +31,9 @@ yarn-error.log*
 .env.production
 .env.staging
 
+# Vercel env files (contain secrets)
+vercel-env-variables.env
+
 # vercel
 .vercel
 

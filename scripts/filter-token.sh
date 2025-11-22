@@ -1,7 +1,8 @@
 #!/bin/bash
 # Remove Sentry token from git history
+# Note: This script is kept for reference but the token has been removed from all files
 
-TOKEN="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"
+TOKEN="your_sentry_auth_token_here"
 REPLACEMENT="your_sentry_auth_token_here"
 
 git filter-branch --force --tree-filter "

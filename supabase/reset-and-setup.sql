@@ -95,16 +95,14 @@ DO $$
 DECLARE
     r RECORD;
 BEGIN
-    -- Only drop policies for tables that actually exist
+    -- Only drop policies for tables that actually exist (using JOIN instead of EXISTS with r)
     FOR r IN (
-        SELECT schemaname, tablename, policyname 
-        FROM pg_policies 
-        WHERE schemaname = 'public'
-        AND EXISTS (
-            SELECT 1 FROM information_schema.tables 
-            WHERE table_schema = r.schemaname 
-            AND table_name = r.tablename
-        )
+        SELECT p.schemaname, p.tablename, p.policyname 
+        FROM pg_policies p
+        JOIN information_schema.tables t 
+            ON t.table_schema = p.schemaname 
+            AND t.table_name = p.tablename
+        WHERE p.schemaname = 'public'
     ) LOOP
         BEGIN
             EXECUTE 'DROP POLICY IF EXISTS ' || quote_ident(r.policyname) || ' ON ' || quote_ident(r.schemaname) || '.' || quote_ident(r.tablename);
@@ -255,7 +253,7 @@ CREATE TABLE public.waitlist (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- MATCHES TABLE
+-- MATCHES TABLE (created before conversations to break circular dependency)
 CREATE TABLE public.matches (
   id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
   trip_id UUID REFERENCES public.trips(id) ON DELETE CASCADE NOT NULL,
@@ -267,20 +265,27 @@ CREATE TABLE public.matches (
   escrow_payment_intent_id TEXT,
   insurance_policy_number TEXT,
   insurance_premium DECIMAL(10, 2),
-  conversation_id UUID REFERENCES public.conversations(id),
+  conversation_id UUID, -- Will add foreign key constraint after conversations table is created
   delivered_at TIMESTAMP WITH TIME ZONE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   UNIQUE(trip_id, request_id)
 );
 
--- CONVERSATIONS TABLE
+-- CONVERSATIONS TABLE (created after matches since it references matches)
 CREATE TABLE public.conversations (
   id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
   match_id UUID REFERENCES public.matches(id) ON DELETE CASCADE UNIQUE NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+
+-- Add foreign key constraint to matches.conversation_id after conversations table exists
+ALTER TABLE public.matches 
+  ADD CONSTRAINT matches_conversation_id_fkey 
+  FOREIGN KEY (conversation_id) 
+  REFERENCES public.conversations(id) 
+  ON DELETE SET NULL;
 
 -- MESSAGES TABLE
 CREATE TABLE public.messages (

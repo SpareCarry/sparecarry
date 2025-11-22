@@ -17,10 +17,8 @@ export default defineConfig({
       "**/*.spec.ts", // Exclude Playwright tests (they use .spec.ts)
       "**/playwright.config.*",
     ],
-    include: [
-      "**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}",
-      "!**/*.spec.ts", // Exclude Playwright .spec.ts files
-    ],
+    // Only include .test.ts files - Playwright uses .spec.ts
+    include: ["**/*.test.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"],
   },
   resolve: {
     alias: {

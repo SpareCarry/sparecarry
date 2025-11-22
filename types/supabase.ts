@@ -60,32 +60,6 @@ export interface Database {
         Insert: ReferralInsert;
         Update: ReferralUpdate;
       };
-export interface Referral {
-  id: string;
-  referrer_id: string;
-  referred_id: string;
-  referrer_credit_earned: number | null;
-  referred_credit_earned: number | null;
-  first_delivery_completed_at: string | null;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface ReferralInsert {
-  referrer_id: string;
-  referred_id: string;
-  referrer_credit_earned?: number | null;
-  referred_credit_earned?: number | null;
-  first_delivery_completed_at?: string | null;
-}
-
-export interface ReferralUpdate {
-  referrer_id?: string;
-  referred_id?: string;
-  referrer_credit_earned?: number | null;
-  referred_credit_earned?: number | null;
-  first_delivery_completed_at?: string | null;
-}
       waitlist: {
         Row: WaitlistEntry;
         Insert: WaitlistEntryInsert;
@@ -462,6 +436,37 @@ export interface DeliveryUpdate {
   gps_latitude?: number | null;
   gps_longitude?: number | null;
   dispute_opened_at?: string | null;
+}
+
+// ============================================
+// Referral Types
+// ============================================
+
+export interface Referral {
+  id: string;
+  referrer_id: string;
+  referred_id: string;
+  referrer_credit_earned: number | null;
+  referred_credit_earned: number | null;
+  first_delivery_completed_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ReferralInsert {
+  referrer_id: string;
+  referred_id: string;
+  referrer_credit_earned?: number | null;
+  referred_credit_earned?: number | null;
+  first_delivery_completed_at?: string | null;
+}
+
+export interface ReferralUpdate {
+  referrer_id?: string;
+  referred_id?: string;
+  referrer_credit_earned?: number | null;
+  referred_credit_earned?: number | null;
+  first_delivery_completed_at?: string | null;
 }
 
 // ============================================

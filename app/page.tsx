@@ -26,18 +26,27 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
 
   const handleTravelClick = async (type: "plane" | "boat") => {
+    console.log("Button clicked:", type);
     setLoading(true);
+    setTravelType(type);
+    
     try {
+      console.log("Checking authentication...");
       // Check if user is authenticated
       const {
         data: { user },
+        error: authError,
       } = await supabase.auth.getUser();
+
+      console.log("Auth check result:", { user: user?.email, error: authError });
 
       if (user) {
         // User is authenticated - navigate to browse page
+        console.log("User authenticated, navigating to /home");
         router.push("/home");
       } else {
         // User is not authenticated - navigate to login with redirect
+        console.log("User not authenticated, navigating to login");
         router.push(`/auth/login?redirect=/home`);
       }
     } catch (error) {

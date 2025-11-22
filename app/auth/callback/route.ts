@@ -26,6 +26,20 @@ export async function GET(request: NextRequest) {
   });
 
   if (code) {
+    // IMPORTANT: Read all cookies FIRST to force Next.js to read them
+    // This is critical for PKCE flow - the code verifier might be in cookies
+    // In Next.js 14+, cookies are lazy-loaded, so we must read them first
+    const allCookies = request.cookies.getAll();
+    console.log("All cookies:", allCookies.map((c) => c.name));
+    
+    // Check for code verifier in cookies (Supabase stores it with various names)
+    const codeVerifierFromCookie = allCookies.find(
+      (cookie) => 
+        cookie.name.includes("code-verifier") || 
+        cookie.name.includes("pkce") ||
+        cookie.name.includes("verifier")
+    )?.value;
+
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -50,19 +64,44 @@ export async function GET(request: NextRequest) {
       }
     );
 
+    // Try code verifier from URL first, then from cookies
+    const finalCodeVerifier = codeVerifier || codeVerifierFromCookie;
+
+    console.log("Code verifier sources:", {
+      fromUrl: !!codeVerifier,
+      fromCookie: !!codeVerifierFromCookie,
+      final: !!finalCodeVerifier,
+      cookieNames: allCookies.map((c) => c.name),
+    });
+
     // Exchange code for session
-    // If code_verifier is present, it means PKCE flow - use it
-    // Otherwise, use regular code exchange
     let exchangeResult;
-    if (codeVerifier) {
+    if (finalCodeVerifier) {
       // PKCE flow - exchange with code verifier
+      console.log("Using PKCE flow with code verifier");
       exchangeResult = await supabase.auth.exchangeCodeForSession({
         authCode: code,
-        codeVerifier: codeVerifier,
+        codeVerifier: finalCodeVerifier,
       });
     } else {
-      // Regular flow - just exchange code
-      exchangeResult = await supabase.auth.exchangeCodeForSession(code);
+      // Try regular code exchange (might work if PKCE is disabled)
+      console.log("Attempting regular code exchange (no code verifier found)");
+      
+      try {
+        exchangeResult = await supabase.auth.exchangeCodeForSession(code);
+      } catch (e: any) {
+        // If regular exchange fails with PKCE error, provide helpful message
+        if (e?.message?.includes("code verifier") || e?.message?.includes("code_verifier")) {
+          console.error("PKCE required but no code verifier found");
+          console.error("Available cookies:", allCookies.map((c) => c.name));
+          console.error("Error:", e.message);
+          throw new Error(
+            "Authentication failed: Code verifier missing. " +
+            "Please request a new magic link and click it in the same browser session where you requested it."
+          );
+        }
+        throw e;
+      }
     }
     
     const { data, error } = exchangeResult;

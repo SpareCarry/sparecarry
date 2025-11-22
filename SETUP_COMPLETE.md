@@ -55,7 +55,7 @@ The Sentry token was exposed in an old commit in git history. I've removed it fr
 
 #### Option A: Rotate the Token (Recommended)
 1. Go to Sentry Dashboard → Settings → Auth Tokens
-2. Delete the old token: `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`
+2. Delete the old exposed token
 3. Create a new token
 4. Update it in `.env.local` and Vercel
 5. The old token will stop working, so no security risk

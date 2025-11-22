@@ -21,10 +21,15 @@ export default function SignupPage() {
     setMessage(null);
 
     try {
+      // Use the current window location to detect the correct port dynamically
+      const callbackUrl = `${window.location.origin}/auth/callback`;
+      console.log("Sending magic link to:", email);
+      console.log("Callback URL:", callbackUrl);
+      
       const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
+          emailRedirectTo: callbackUrl,
         },
       });
 

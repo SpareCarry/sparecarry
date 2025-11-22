@@ -11,6 +11,8 @@ export async function GET(request: NextRequest) {
     redirectTo,
     url: requestUrl.toString(),
     origin: requestUrl.origin,
+    host: requestUrl.host,
+    port: requestUrl.port || (requestUrl.protocol === "https:" ? "443" : "80"),
   });
 
   // Create response object for cookie handling (like middleware does)

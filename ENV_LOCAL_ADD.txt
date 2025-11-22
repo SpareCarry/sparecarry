@@ -1,0 +1,15 @@
+# Add these lines to your .env.local file
+
+# ============================================================================
+# REQUIRED - Cron Jobs (for auto-release feature)
+# ============================================================================
+CRON_SECRET=8e56e58b97401b0f1dd3102ccdcc433ceeba2618a9275c2f82b91c4feba3fae4
+
+# ============================================================================
+# REQUIRED - Phone & Identity Features
+# ============================================================================
+# Phone auth disabled for free Supabase tier
+NEXT_PUBLIC_ENABLE_PHONE_AUTH=false
+NEXT_PUBLIC_ENABLE_STRIPE_IDENTITY=true
+NEXT_PUBLIC_SUPPORT_EMAIL=support@sparecarry.com
+

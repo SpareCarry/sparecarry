@@ -26,39 +26,56 @@ if (USE_MOCK) {
     return;
   }
 
-  // Mock Supabase client module
-  vi.mock('@/lib/supabase/client', () => {
-    const { createMockSupabaseClient } = require('../../tests/mocks/supabase/mockClient');
+  // Create a simple mock client if the real one doesn't exist
+  const createMockSupabaseClient = () => {
     return {
-      createClient: vi.fn(() => createMockSupabaseClient()),
+      auth: {
+        getUser: vi.fn(() => Promise.resolve({ data: { user: null }, error: null })),
+        signInWithOtp: vi.fn(() => Promise.resolve({ data: {}, error: null })),
+        signInWithOAuth: vi.fn(() => Promise.resolve({ data: {}, error: null })),
+        signOut: vi.fn(() => Promise.resolve({ error: null })),
+        exchangeCodeForSession: vi.fn(() => Promise.resolve({ data: { user: null }, error: null })),
+      },
+      from: vi.fn(() => ({
+        select: vi.fn(() => ({
+          eq: vi.fn(() => ({
+            single: vi.fn(() => Promise.resolve({ data: null, error: null })),
+          })),
+        })),
+        insert: vi.fn(() => ({
+          select: vi.fn(() => Promise.resolve({ data: null, error: null })),
+        })),
+        update: vi.fn(() => ({
+          eq: vi.fn(() => Promise.resolve({ data: null, error: null })),
+        })),
+        delete: vi.fn(() => ({
+          eq: vi.fn(() => Promise.resolve({ data: null, error: null })),
+        })),
+      })),
     };
-  });
+  };
+
+  // Mock Supabase client module
+  vi.mock('@/lib/supabase/client', () => ({
+    createClient: vi.fn(() => createMockSupabaseClient()),
+  }));
 
   // Mock Supabase server module
-  vi.mock('@/lib/supabase/server', () => {
-    const { createMockSupabaseClient } = require('../../tests/mocks/supabase/mockClient');
-    return {
-      createClient: vi.fn(async () => createMockSupabaseClient()),
-    };
-  });
+  vi.mock('@/lib/supabase/server', () => ({
+    createClient: vi.fn(async () => createMockSupabaseClient()),
+  }));
 
   // Mock Supabase SSR
-  vi.mock('@supabase/ssr', () => {
-    const { createMockSupabaseClient } = require('../../tests/mocks/supabase/mockClient');
-    return {
-      createBrowserClient: vi.fn(() => createMockSupabaseClient()),
-      createServerClient: vi.fn(async () => createMockSupabaseClient()),
-    };
-  });
+  vi.mock('@supabase/ssr', () => ({
+    createBrowserClient: vi.fn(() => createMockSupabaseClient()),
+    createServerClient: vi.fn(async () => createMockSupabaseClient()),
+  }));
 
   // Mock legacy supabase module if it exists
   try {
-    vi.mock('@/lib/supabase', () => {
-      const { createMockSupabaseClient } = require('../../tests/mocks/supabase/mockClient');
-      return {
-        supabase: createMockSupabaseClient(),
-      };
-    });
+    vi.mock('@/lib/supabase', () => ({
+      supabase: createMockSupabaseClient(),
+    }));
   } catch {
     // Module doesn't exist, skip
   }

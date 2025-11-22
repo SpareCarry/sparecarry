@@ -207,6 +207,27 @@ CREATE TABLE IF NOT EXISTS public.messages (
 );
 
 -- ============================================================================
+-- MEETUP_LOCATIONS TABLE
+-- ============================================================================
+-- Note: Created before deliveries table because deliveries references it
+
+CREATE TABLE IF NOT EXISTS public.meetup_locations (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  name TEXT NOT NULL,
+  type TEXT NOT NULL CHECK (type IN ('airport', 'marina', 'fuel_dock')),
+  latitude DECIMAL(10, 8) NOT NULL,
+  longitude DECIMAL(11, 8) NOT NULL,
+  address TEXT,
+  city TEXT,
+  country TEXT,
+  phone TEXT,
+  website TEXT,
+  notes TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- ============================================================================
 -- DELIVERIES TABLE
 -- ============================================================================
 
@@ -237,26 +258,6 @@ CREATE TABLE IF NOT EXISTS public.ratings (
   comment TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   UNIQUE(match_id, rater_id)
-);
-
--- ============================================================================
--- MEETUP_LOCATIONS TABLE
--- ============================================================================
-
-CREATE TABLE IF NOT EXISTS public.meetup_locations (
-  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-  name TEXT NOT NULL,
-  type TEXT NOT NULL CHECK (type IN ('airport', 'marina', 'fuel_dock')),
-  latitude DECIMAL(10, 8) NOT NULL,
-  longitude DECIMAL(11, 8) NOT NULL,
-  address TEXT,
-  city TEXT,
-  country TEXT,
-  phone TEXT,
-  website TEXT,
-  notes TEXT,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
 -- ============================================================================

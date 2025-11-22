@@ -40,7 +40,13 @@ if (fs.existsSync(envPath)) {
   console.log('⚠️  .env.local not found at:', envPath);
 }
 
-const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+// Use localhost when testing locally (if NEXT_PUBLIC_APP_URL points to production)
+const DEFAULT_LOCAL_URL = 'http://localhost:3001'; // Default to 3001 (3000 often in use)
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || DEFAULT_LOCAL_URL;
+// If APP_URL is production URL, use localhost for local testing
+const BASE_URL = APP_URL.includes('localhost') || APP_URL.includes('127.0.0.1') 
+  ? APP_URL 
+  : DEFAULT_LOCAL_URL;
 const CRON_SECRET = process.env.CRON_SECRET || '';
 
 const results = [];

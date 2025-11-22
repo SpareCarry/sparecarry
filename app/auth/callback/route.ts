@@ -4,15 +4,18 @@ import { createServerClient } from "@supabase/ssr";
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get("code");
+  const codeVerifier = requestUrl.searchParams.get("code_verifier");
   const redirectTo = requestUrl.searchParams.get("redirect") || "/home";
   
   console.log("Auth callback received:", {
     code: code ? "present" : "missing",
+    codeVerifier: codeVerifier ? "present" : "missing",
     redirectTo,
     url: requestUrl.toString(),
     origin: requestUrl.origin,
     host: requestUrl.host,
     port: requestUrl.port || (requestUrl.protocol === "https:" ? "443" : "80"),
+    allParams: Object.fromEntries(requestUrl.searchParams),
   });
 
   // Create response object for cookie handling (like middleware does)
@@ -47,11 +50,28 @@ export async function GET(request: NextRequest) {
       }
     );
 
-    const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+    // Exchange code for session
+    // If code_verifier is present, it means PKCE flow - use it
+    // Otherwise, use regular code exchange
+    let exchangeResult;
+    if (codeVerifier) {
+      // PKCE flow - exchange with code verifier
+      exchangeResult = await supabase.auth.exchangeCodeForSession({
+        authCode: code,
+        codeVerifier: codeVerifier,
+      });
+    } else {
+      // Regular flow - just exchange code
+      exchangeResult = await supabase.auth.exchangeCodeForSession(code);
+    }
+    
+    const { data, error } = exchangeResult;
     
     if (error) {
       console.error("Error exchanging code for session:", error);
       console.error("Error details:", JSON.stringify(error, null, 2));
+      console.error("Code present:", !!code);
+      console.error("Code verifier present:", !!codeVerifier);
       // Redirect to login with error message
       const loginUrl = new URL("/auth/login", request.url);
       loginUrl.searchParams.set("error", "auth_failed");

@@ -26,16 +26,33 @@ export default function LoginPage() {
     const checkAuth = async () => {
       const {
         data: { user },
+        error,
       } = await supabase.auth.getUser();
 
-      if (user) {
+      if (user && !error) {
         // User is already logged in, redirect them
         router.push(redirectTo);
+      }
+
+      // Check for auth errors in URL params
+      const errorParam = searchParams.get("error");
+      if (errorParam) {
+        if (errorParam === "auth_failed") {
+          setMessage({
+            type: "error",
+            text: "Authentication failed. Please try again.",
+          });
+        } else if (errorParam === "no_code") {
+          setMessage({
+            type: "error",
+            text: "Invalid authentication link. Please request a new one.",
+          });
+        }
       }
     };
 
     checkAuth();
-  }, [router, redirectTo, supabase]);
+  }, [router, redirectTo, supabase, searchParams]);
 
   const handleMagicLink = async (e: React.FormEvent) => {
     e.preventDefault();

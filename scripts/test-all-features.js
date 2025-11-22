@@ -5,30 +5,46 @@
  */
 
 // Load environment variables from .env.local
-try {
-  require('dotenv').config({ path: '.env.local' });
-} catch (error) {
-  // dotenv not available, try to load manually
+const fs = require('fs');
+const path = require('path');
+
+const envPath = path.join(__dirname, '..', '.env.local');
+
+// Always try to load .env.local
+if (fs.existsSync(envPath)) {
   try {
-    const fs = require('fs');
-    const path = require('path');
-    const envPath = path.join(__dirname, '..', '.env.local');
-    if (fs.existsSync(envPath)) {
+    // Try using dotenv first (more reliable)
+    const dotenv = require('dotenv');
+    const result = dotenv.config({ path: envPath });
+    if (result.error) {
+      console.log('⚠️  dotenv error:', result.error.message);
+    } else {
+      console.log('✅ Loaded .env.local using dotenv');
+    }
+  } catch (error) {
+    // Fallback to manual loading
+    try {
       const envContent = fs.readFileSync(envPath, 'utf-8');
+      let loadedCount = 0;
       envContent.split('\n').forEach(line => {
         const trimmed = line.trim();
         if (trimmed && !trimmed.startsWith('#') && trimmed.includes('=')) {
           const [key, ...valueParts] = trimmed.split('=');
-          const value = valueParts.join('=').replace(/^["']|["']$/g, '');
-          if (key && value && !process.env[key]) {
-            process.env[key] = value;
+          const keyTrimmed = key.trim();
+          const value = valueParts.join('=').replace(/^["']|["']$/g, '').trim();
+          if (keyTrimmed && value) {
+            process.env[keyTrimmed] = value;
+            loadedCount++;
           }
         }
       });
+      console.log(`✅ Loaded .env.local manually (${loadedCount} variables)`);
+    } catch (err) {
+      console.log('⚠️  Error loading .env.local:', err.message);
     }
-  } catch (err) {
-    // Continue without .env.local
   }
+} else {
+  console.log('⚠️  .env.local not found at:', envPath);
 }
 
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
@@ -50,6 +66,27 @@ async function testFeature(name, fn) {
 
 // Test 1: Environment variables
 async function testEnvironmentVariables() {
+  // Re-load .env.local to ensure fresh load
+  if (fs.existsSync(envPath)) {
+    try {
+      require('dotenv').config({ path: envPath, override: true });
+    } catch (err) {
+      // Manual reload
+      const envContent = fs.readFileSync(envPath, 'utf-8');
+      envContent.split('\n').forEach(line => {
+        const trimmed = line.trim();
+        if (trimmed && !trimmed.startsWith('#') && trimmed.includes('=')) {
+          const [key, ...valueParts] = trimmed.split('=');
+          const keyTrimmed = key.trim();
+          const value = valueParts.join('=').replace(/^["']|["']$/g, '').trim();
+          if (keyTrimmed && value) {
+            process.env[keyTrimmed] = value;
+          }
+        }
+      });
+    }
+  }
+
   const required = [
     'NEXT_PUBLIC_SUPABASE_URL',
     'NEXT_PUBLIC_SUPABASE_ANON_KEY',
@@ -61,23 +98,42 @@ async function testEnvironmentVariables() {
     'CRON_SECRET',
   ];
 
-  const missing = required.filter(key => !process.env[key]);
-  const present = required.filter(key => process.env[key]);
+  // Check which variables are present and not empty/placeholder
+  const missing = [];
+  const present = [];
   
-  // In local testing, warn but don't fail for missing vars
-  // This allows testing infrastructure without all production secrets
-  if (missing.length > 0 && process.env.CI !== 'true') {
-    console.log(`   ⚠️  Missing: ${missing.join(', ')}`);
-    console.log(`   ✅ Present: ${present.join(', ')}`);
-    console.log(`   ℹ️  Note: Some features may not work without these variables`);
-    return { allPresent: false, missing, present, warning: true };
-  }
-  
+  required.forEach(key => {
+    const value = process.env[key];
+    if (!value || value.trim() === '' || 
+        value.includes('your_') || 
+        value.includes('placeholder') ||
+        value.includes('replace_with')) {
+      missing.push(key);
+    } else {
+      present.push(key);
+    }
+  });
+
   if (missing.length > 0) {
-    throw new Error(`Missing environment variables: ${missing.join(', ')}`);
+    if (process.env.CI === 'true') {
+      throw new Error(`Missing or invalid environment variables: ${missing.join(', ')}`);
+    } else {
+      console.log(`   ⚠️  Missing/Invalid: ${missing.join(', ')}`);
+      if (present.length > 0) {
+        console.log(`   ✅ Present: ${present.join(', ')}`);
+      }
+      console.log(`   ℹ️  Checking .env.local file...`);
+      if (fs.existsSync(envPath)) {
+        console.log(`   ℹ️  .env.local exists at: ${envPath}`);
+        // Show sample of .env.local to debug
+        const lines = fs.readFileSync(envPath, 'utf-8').split('\n').slice(0, 5);
+        console.log(`   ℹ️  First few lines: ${lines.join(' | ')}`);
+      }
+      return { allPresent: false, missing, present, warning: true };
+    }
   }
 
-  return { allPresent: true, present };
+  return { allPresent: true, count: present.length };
 }
 
 // Test 2: API Endpoints

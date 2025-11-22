@@ -1,32 +1,38 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
-import { cookies } from "next/headers";
 
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get("code");
   const redirectTo = requestUrl.searchParams.get("redirect") || "/home";
 
+  // Create response object for cookie handling (like middleware does)
+  let response = NextResponse.next({
+    request: {
+      headers: request.headers,
+    },
+  });
+
   if (code) {
-    const cookieStore = cookies();
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
       {
         cookies: {
           getAll() {
-            return cookieStore.getAll();
+            return request.cookies.getAll();
           },
           setAll(cookiesToSet) {
-            try {
-              cookiesToSet.forEach(({ name, value, options }) =>
-                cookieStore.set(name, value, options)
-              );
-            } catch (error) {
-              // The `setAll` method was called from a Server Component.
-              // This can be ignored if you have middleware refreshing
-              // user sessions.
-            }
+            cookiesToSet.forEach(({ name, value, options }) =>
+              request.cookies.set(name, value)
+            );
+            // Update response cookies
+            response = NextResponse.next({
+              request,
+            });
+            cookiesToSet.forEach(({ name, value, options }) =>
+              response.cookies.set(name, value, options)
+            );
           },
         },
       }
@@ -42,8 +48,24 @@ export async function GET(request: NextRequest) {
       return NextResponse.redirect(loginUrl);
     }
 
-    // Successfully authenticated - redirect to intended page
-    return NextResponse.redirect(new URL(redirectTo, request.url));
+    // Successfully authenticated - redirect to intended page with cookies set
+    const redirectUrl = new URL(redirectTo, request.url);
+    const redirectResponse = NextResponse.redirect(redirectUrl);
+    
+    // Copy all cookies from the response to the redirect response
+    // This ensures session cookies are persisted
+    response.cookies.getAll().forEach((cookie) => {
+      redirectResponse.cookies.set(cookie.name, cookie.value, {
+        path: cookie.path,
+        domain: cookie.domain,
+        sameSite: cookie.sameSite as any,
+        secure: cookie.secure,
+        httpOnly: cookie.httpOnly,
+        maxAge: cookie.maxAge,
+      });
+    });
+    
+    return redirectResponse;
   }
 
   // No code provided - redirect to login

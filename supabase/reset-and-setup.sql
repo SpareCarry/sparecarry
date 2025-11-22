@@ -10,22 +10,48 @@
 -- STEP 1: DROP ALL EXISTING OBJECTS (SAFELY)
 -- ============================================================================
 
--- Drop triggers first (they depend on tables and functions)
-DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users CASCADE;
-DROP TRIGGER IF EXISTS update_users_updated_at ON public.users CASCADE;
-DROP TRIGGER IF EXISTS update_profiles_updated_at ON public.profiles CASCADE;
-DROP TRIGGER IF EXISTS update_trips_updated_at ON public.trips CASCADE;
-DROP TRIGGER IF EXISTS update_group_buys_updated_at ON public.group_buys CASCADE;
-DROP TRIGGER IF EXISTS update_requests_updated_at ON public.requests CASCADE;
-DROP TRIGGER IF EXISTS update_referrals_updated_at ON public.referrals CASCADE;
-DROP TRIGGER IF EXISTS update_matches_updated_at ON public.matches CASCADE;
-DROP TRIGGER IF EXISTS update_conversations_updated_at ON public.conversations CASCADE;
-DROP TRIGGER IF EXISTS update_deliveries_updated_at ON public.deliveries CASCADE;
-DROP TRIGGER IF EXISTS update_meetup_locations_updated_at ON public.meetup_locations CASCADE;
-DROP TRIGGER IF EXISTS update_delivery_stats_trigger ON public.matches CASCADE;
-DROP TRIGGER IF EXISTS on_match_created ON public.matches CASCADE;
+-- Drop triggers first (only if tables exist)
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'users') THEN
+        DROP TRIGGER IF EXISTS update_users_updated_at ON public.users CASCADE;
+    END IF;
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'profiles') THEN
+        DROP TRIGGER IF EXISTS update_profiles_updated_at ON public.profiles CASCADE;
+    END IF;
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'trips') THEN
+        DROP TRIGGER IF EXISTS update_trips_updated_at ON public.trips CASCADE;
+    END IF;
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'group_buys') THEN
+        DROP TRIGGER IF EXISTS update_group_buys_updated_at ON public.group_buys CASCADE;
+    END IF;
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'requests') THEN
+        DROP TRIGGER IF EXISTS update_requests_updated_at ON public.requests CASCADE;
+    END IF;
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'referrals') THEN
+        DROP TRIGGER IF EXISTS update_referrals_updated_at ON public.referrals CASCADE;
+    END IF;
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'matches') THEN
+        DROP TRIGGER IF EXISTS update_matches_updated_at ON public.matches CASCADE;
+        DROP TRIGGER IF EXISTS update_delivery_stats_trigger ON public.matches CASCADE;
+        DROP TRIGGER IF EXISTS on_match_created ON public.matches CASCADE;
+    END IF;
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'conversations') THEN
+        DROP TRIGGER IF EXISTS update_conversations_updated_at ON public.conversations CASCADE;
+    END IF;
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'deliveries') THEN
+        DROP TRIGGER IF EXISTS update_deliveries_updated_at ON public.deliveries CASCADE;
+    END IF;
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'meetup_locations') THEN
+        DROP TRIGGER IF EXISTS update_meetup_locations_updated_at ON public.meetup_locations CASCADE;
+    END IF;
+END $$;
 
--- Drop tables in reverse dependency order
+-- Drop auth trigger separately
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users CASCADE;
+
+-- Drop tables in reverse dependency order (CASCADE handles dependencies)
+-- Using IF EXISTS to avoid errors if tables don't exist
 DROP TABLE IF EXISTS public.deliveries CASCADE;
 DROP TABLE IF EXISTS public.messages CASCADE;
 DROP TABLE IF EXISTS public.conversations CASCADE;
@@ -40,6 +66,22 @@ DROP TABLE IF EXISTS public.waitlist CASCADE;
 DROP TABLE IF EXISTS public.profiles CASCADE;
 DROP TABLE IF EXISTS public.users CASCADE;
 
+-- Double-check: Drop any remaining tables in public schema (except system tables)
+DO $$
+DECLARE
+    r RECORD;
+BEGIN
+    FOR r IN (
+        SELECT tablename 
+        FROM pg_tables 
+        WHERE schemaname = 'public'
+        AND tablename NOT LIKE 'pg_%'
+        AND tablename NOT IN ('users', 'profiles', 'trips', 'group_buys', 'requests', 'referrals', 'waitlist', 'matches', 'conversations', 'messages', 'meetup_locations', 'deliveries', 'ratings')
+    ) LOOP
+        EXECUTE 'DROP TABLE IF EXISTS public.' || quote_ident(r.tablename) || ' CASCADE';
+    END LOOP;
+END $$;
+
 -- Drop functions
 DROP FUNCTION IF EXISTS public.handle_new_user() CASCADE;
 DROP FUNCTION IF EXISTS public.handle_new_match() CASCADE;
@@ -48,13 +90,28 @@ DROP FUNCTION IF EXISTS public.use_referral_credit(UUID, DECIMAL) CASCADE;
 DROP FUNCTION IF EXISTS public.update_user_delivery_stats() CASCADE;
 DROP FUNCTION IF EXISTS update_updated_at_column() CASCADE;
 
--- Drop all policies (they will be recreated)
+-- Drop all policies (they will be recreated) - safer approach
 DO $$
 DECLARE
     r RECORD;
 BEGIN
-    FOR r IN (SELECT schemaname, tablename, policyname FROM pg_policies WHERE schemaname = 'public') LOOP
-        EXECUTE 'DROP POLICY IF EXISTS ' || quote_ident(r.policyname) || ' ON ' || quote_ident(r.schemaname) || '.' || quote_ident(r.tablename) || ' CASCADE';
+    -- Only drop policies for tables that actually exist
+    FOR r IN (
+        SELECT schemaname, tablename, policyname 
+        FROM pg_policies 
+        WHERE schemaname = 'public'
+        AND EXISTS (
+            SELECT 1 FROM information_schema.tables 
+            WHERE table_schema = r.schemaname 
+            AND table_name = r.tablename
+        )
+    ) LOOP
+        BEGIN
+            EXECUTE 'DROP POLICY IF EXISTS ' || quote_ident(r.policyname) || ' ON ' || quote_ident(r.schemaname) || '.' || quote_ident(r.tablename);
+        EXCEPTION WHEN OTHERS THEN
+            -- Ignore errors if table/policy doesn't exist
+            NULL;
+        END;
     END LOOP;
 END $$;
 

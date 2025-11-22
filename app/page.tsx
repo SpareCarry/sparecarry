@@ -1,9 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "../components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
 import { WaitlistForm } from "../components/waitlist-form";
+import { createClient } from "../lib/supabase/client";
 import {
   Plane,
   Ship,
@@ -17,8 +19,35 @@ import {
 import Link from "next/link";
 
 export default function Home() {
+  const router = useRouter();
+  const supabase = createClient();
   const [waitlistOpen, setWaitlistOpen] = useState(false);
   const [travelType, setTravelType] = useState<"plane" | "boat" | undefined>();
+  const [loading, setLoading] = useState(false);
+
+  const handleTravelClick = async (type: "plane" | "boat") => {
+    setLoading(true);
+    try {
+      // Check if user is authenticated
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (user) {
+        // User is authenticated - navigate to browse page
+        router.push("/home");
+      } else {
+        // User is not authenticated - navigate to login with redirect
+        router.push(`/auth/login?redirect=/home`);
+      }
+    } catch (error) {
+      console.error("Error checking authentication:", error);
+      // Fallback to login
+      router.push(`/auth/login?redirect=/home`);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const openWaitlist = (type: "plane" | "boat") => {
     setTravelType(type);
@@ -43,15 +72,17 @@ export default function Home() {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <Button
-              onClick={() => openWaitlist("plane")}
-              className="w-full sm:w-auto text-lg px-8 py-6 bg-teal-600 hover:bg-teal-700 text-white text-xl font-semibold"
+              onClick={() => handleTravelClick("plane")}
+              disabled={loading}
+              className="w-full sm:w-auto text-lg px-8 py-6 bg-teal-600 hover:bg-teal-700 text-white text-xl font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
               size="lg"
             >
               ✈ I&apos;m traveling by Plane
             </Button>
             <Button
-              onClick={() => openWaitlist("boat")}
-              className="w-full sm:w-auto text-lg px-8 py-6 bg-slate-900 hover:bg-slate-800 text-white text-xl font-semibold"
+              onClick={() => handleTravelClick("boat")}
+              disabled={loading}
+              className="w-full sm:w-auto text-lg px-8 py-6 bg-slate-900 hover:bg-slate-800 text-white text-xl font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
               size="lg"
             >
               ⚓ I&apos;m sailing by Boat

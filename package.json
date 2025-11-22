@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "cross-env NEXT_DISABLE_SWC_NATIVE=1 NEXT_DISABLE_AUTO_MOD_IMPORTS=1 NODE_ENV=development next dev --no-turbopack",
+    "dev": "cross-env NEXT_DISABLE_SWC_NATIVE=1 NEXT_DISABLE_AUTO_MOD_IMPORTS=1 NODE_ENV=development next dev",
     "dev:webpack": "cross-env NEXT_DISABLE_SWC_NATIVE=1 NEXT_DISABLE_AUTO_MOD_IMPORTS=1 pnpm dev -- --no-turbopack",
     "prebuild": "node scripts/pre-build-exclude-routes.js",
     "build": "cross-env NEXT_DISABLE_SWC_NATIVE=1 NEXT_DISABLE_AUTO_MOD_IMPORTS=1 next build",

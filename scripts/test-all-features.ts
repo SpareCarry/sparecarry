@@ -273,13 +273,16 @@ async function runAllTests() {
   }
 }
 
-// Run if called directly
-if (require.main === module) {
+// Run if called directly (Node.js)
+if (typeof require !== 'undefined' && require.main === module) {
   runAllTests().catch(error => {
     console.error('Fatal error:', error);
     process.exit(1);
   });
 }
+
+// Export for use as module
+export default runAllTests;
 
 export { runAllTests, testFeature };
 

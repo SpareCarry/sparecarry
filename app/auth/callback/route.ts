@@ -75,33 +75,27 @@ export async function GET(request: NextRequest) {
     });
 
     // Exchange code for session
+    // Supabase SSR handles PKCE automatically if code verifier is in cookies/storage
+    // We just pass the code string - Supabase will find the code verifier automatically
+    console.log("Exchanging code for session...");
     let exchangeResult;
-    if (finalCodeVerifier) {
-      // PKCE flow - exchange with code verifier
-      console.log("Using PKCE flow with code verifier");
-      exchangeResult = await supabase.auth.exchangeCodeForSession({
-        authCode: code,
-        codeVerifier: finalCodeVerifier,
-      });
-    } else {
-      // Try regular code exchange (might work if PKCE is disabled)
-      console.log("Attempting regular code exchange (no code verifier found)");
-      
-      try {
-        exchangeResult = await supabase.auth.exchangeCodeForSession(code);
-      } catch (e: any) {
-        // If regular exchange fails with PKCE error, provide helpful message
-        if (e?.message?.includes("code verifier") || e?.message?.includes("code_verifier")) {
-          console.error("PKCE required but no code verifier found");
-          console.error("Available cookies:", allCookies.map((c) => c.name));
-          console.error("Error:", e.message);
-          throw new Error(
-            "Authentication failed: Code verifier missing. " +
-            "Please request a new magic link and click it in the same browser session where you requested it."
-          );
-        }
-        throw e;
+    
+    try {
+      // Pass code as string - Supabase SSR automatically handles PKCE if code verifier is available
+      exchangeResult = await supabase.auth.exchangeCodeForSession(code);
+    } catch (e: any) {
+      // If exchange fails with PKCE error, provide helpful message
+      if (e?.message?.includes("code verifier") || e?.message?.includes("code_verifier") || e?.message?.includes("cannot unmarshal")) {
+        console.error("PKCE exchange failed");
+        console.error("Available cookies:", allCookies.map((c) => c.name));
+        console.error("Code verifier from cookie:", !!codeVerifierFromCookie);
+        console.error("Error:", e.message);
+        throw new Error(
+          "Authentication failed: Code verifier missing. " +
+          "Please request a new magic link and click it in the same browser session where you requested it."
+        );
       }
+      throw e;
     }
     
     const { data, error } = exchangeResult;

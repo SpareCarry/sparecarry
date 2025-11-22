@@ -5,6 +5,13 @@ export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get("code");
   const redirectTo = requestUrl.searchParams.get("redirect") || "/home";
+  
+  console.log("Auth callback received:", {
+    code: code ? "present" : "missing",
+    redirectTo,
+    url: requestUrl.toString(),
+    origin: requestUrl.origin,
+  });
 
   // Create response object for cookie handling (like middleware does)
   let response = NextResponse.next({

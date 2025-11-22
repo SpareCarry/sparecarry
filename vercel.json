@@ -3,6 +3,12 @@
   "devCommand": "pnpm dev",
   "installCommand": "pnpm install --no-frozen-lockfile",
   "framework": "nextjs",
+  "crons": [
+    {
+      "path": "/api/payments/auto-release",
+      "schedule": "0 * * * *"
+    }
+  ],
   "rewrites": [
     {
       "source": "/api/:path*",
@@ -32,4 +38,3 @@
     "NEXT_PUBLIC_APP_ENV": "production"
   }
 }
-

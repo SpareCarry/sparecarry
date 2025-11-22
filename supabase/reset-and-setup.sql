@@ -45,6 +45,9 @@ BEGIN
     IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'meetup_locations') THEN
         DROP TRIGGER IF EXISTS update_meetup_locations_updated_at ON public.meetup_locations CASCADE;
     END IF;
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'disputes') THEN
+        DROP TRIGGER IF EXISTS update_disputes_updated_at ON public.disputes CASCADE;
+    END IF;
 END $$;
 
 -- Drop auth trigger separately
@@ -56,6 +59,7 @@ DROP TABLE IF EXISTS public.deliveries CASCADE;
 DROP TABLE IF EXISTS public.messages CASCADE;
 DROP TABLE IF EXISTS public.conversations CASCADE;
 DROP TABLE IF EXISTS public.ratings CASCADE;
+DROP TABLE IF EXISTS public.disputes CASCADE;
 DROP TABLE IF EXISTS public.matches CASCADE;
 DROP TABLE IF EXISTS public.requests CASCADE;
 DROP TABLE IF EXISTS public.group_buys CASCADE;
@@ -76,7 +80,7 @@ BEGIN
         FROM pg_tables 
         WHERE schemaname = 'public'
         AND tablename NOT LIKE 'pg_%'
-        AND tablename NOT IN ('users', 'profiles', 'trips', 'group_buys', 'requests', 'referrals', 'waitlist', 'matches', 'conversations', 'messages', 'meetup_locations', 'deliveries', 'ratings')
+        AND tablename NOT IN ('users', 'profiles', 'trips', 'group_buys', 'requests', 'referrals', 'waitlist', 'matches', 'conversations', 'messages', 'meetup_locations', 'deliveries', 'ratings', 'disputes')
     ) LOOP
         EXECUTE 'DROP TABLE IF EXISTS public.' || quote_ident(r.tablename) || ' CASCADE';
     END LOOP;
@@ -341,6 +345,18 @@ CREATE TABLE public.ratings (
   UNIQUE(match_id, rater_id)
 );
 
+-- DISPUTES TABLE
+CREATE TABLE public.disputes (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  match_id UUID REFERENCES public.matches(id) ON DELETE CASCADE NOT NULL,
+  opened_by UUID REFERENCES public.users(id) ON DELETE CASCADE NOT NULL,
+  reason TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'open' CHECK (status IN ('open', 'resolved', 'rejected')),
+  resolution_notes TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
 -- ============================================================================
 -- STEP 4: CREATE INDEXES
 -- ============================================================================
@@ -383,6 +399,9 @@ CREATE INDEX idx_meetup_locations_location ON public.meetup_locations(latitude, 
 CREATE INDEX idx_ratings_match_id ON public.ratings(match_id);
 CREATE INDEX idx_ratings_rater_id ON public.ratings(rater_id);
 CREATE INDEX idx_ratings_ratee_id ON public.ratings(ratee_id);
+CREATE INDEX idx_disputes_match_id ON public.disputes(match_id);
+CREATE INDEX idx_disputes_opened_by ON public.disputes(opened_by);
+CREATE INDEX idx_disputes_status ON public.disputes(status);
 
 -- ============================================================================
 -- STEP 5: ENABLE ROW LEVEL SECURITY (RLS)
@@ -399,6 +418,7 @@ ALTER TABLE public.messages ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.deliveries ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.meetup_locations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.ratings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.disputes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.referrals ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.waitlist ENABLE ROW LEVEL SECURITY;
 
@@ -518,6 +538,33 @@ CREATE POLICY "Users can create ratings for their matches" ON public.ratings FOR
     AND (matches.trip_id IN (SELECT id FROM public.trips WHERE user_id = auth.uid())
       OR matches.request_id IN (SELECT id FROM public.requests WHERE user_id = auth.uid()))
   )
+);
+
+-- Disputes policies
+CREATE POLICY "Users can read own disputes" ON public.disputes FOR SELECT USING (
+  opened_by = auth.uid()
+  OR EXISTS (
+    SELECT 1 FROM public.matches m
+    WHERE m.id = disputes.match_id
+    AND (
+      EXISTS (SELECT 1 FROM public.trips t WHERE t.id = m.trip_id AND t.user_id = auth.uid())
+      OR EXISTS (SELECT 1 FROM public.requests r WHERE r.id = m.request_id AND r.user_id = auth.uid())
+    )
+  )
+);
+CREATE POLICY "Users can create disputes" ON public.disputes FOR INSERT WITH CHECK (
+  opened_by = auth.uid()
+  AND EXISTS (
+    SELECT 1 FROM public.matches m
+    WHERE m.id = disputes.match_id
+    AND (
+      EXISTS (SELECT 1 FROM public.trips t WHERE t.id = m.trip_id AND t.user_id = auth.uid())
+      OR EXISTS (SELECT 1 FROM public.requests r WHERE r.id = m.request_id AND r.user_id = auth.uid())
+    )
+  )
+);
+CREATE POLICY "Admins can manage all disputes" ON public.disputes FOR ALL USING (
+  EXISTS (SELECT 1 FROM public.users WHERE id = auth.uid() AND role = 'admin')
 );
 
 -- ============================================================================
@@ -651,6 +698,9 @@ CREATE TRIGGER update_deliveries_updated_at BEFORE UPDATE ON public.deliveries
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 CREATE TRIGGER update_meetup_locations_updated_at BEFORE UPDATE ON public.meetup_locations
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_disputes_updated_at BEFORE UPDATE ON public.disputes
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 CREATE TRIGGER on_auth_user_created

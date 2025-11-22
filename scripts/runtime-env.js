@@ -71,6 +71,9 @@ const optionalEnvSchema = z.object({
     .min(10, "NEXT_PUBLIC_UNLEASH_CLIENT_KEY looks too short")
     .optional(),
   CRON_SECRET: z.string().min(16, "CRON_SECRET must be at least 16 characters").optional(),
+  NEXT_PUBLIC_ENABLE_PHONE_AUTH: z.string().regex(/^(true|false)$/, "NEXT_PUBLIC_ENABLE_PHONE_AUTH must be 'true' or 'false'").optional(),
+  NEXT_PUBLIC_ENABLE_STRIPE_IDENTITY: z.string().regex(/^(true|false)$/, "NEXT_PUBLIC_ENABLE_STRIPE_IDENTITY must be 'true' or 'false'").optional(),
+  NEXT_PUBLIC_SUPPORT_EMAIL: z.string().regex(EMAIL_PATTERN, "NEXT_PUBLIC_SUPPORT_EMAIL must be a valid email").optional(),
 });
 
 function shouldValidate(phase) {

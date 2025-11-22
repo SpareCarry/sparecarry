@@ -13,6 +13,13 @@ export function createClient() {
     );
   }
   
-  return createBrowserClient(supabaseUrl, supabaseAnonKey);
+  // Create client with localStorage storage for PKCE code verifier
+  // This ensures the code verifier is stored and can be retrieved when clicking magic link
+  return createBrowserClient(supabaseUrl, supabaseAnonKey, {
+    auth: {
+      storage: typeof window !== "undefined" ? window.localStorage : undefined,
+      flowType: "pkce", // Explicitly enable PKCE flow
+    },
+  });
 }
 

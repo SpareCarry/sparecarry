@@ -5,18 +5,40 @@ import { Download, FileText } from "lucide-react";
 import { generateBoatDeclarationPDF, type BoatDeclarationData } from "../../lib/pdf/boat-declaration";
 import { useState } from "react";
 import { createClient } from "../../lib/supabase/client";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
+import { useUser } from "../../hooks/useUser";
 
 interface BoatDeclarationButtonProps {
   matchId: string;
 }
 
+type MatchDeclaration = {
+  trips: {
+    profiles?: Array<{ boat_name?: string | null }> | { boat_name?: string | null } | null;
+    users?: { email?: string | null } | null;
+    from_location: string;
+    to_location: string;
+    eta_window_start: string;
+    eta_window_end: string;
+    type: string;
+  };
+  requests: {
+    title?: string | null;
+    description?: string | null;
+    weight_kg?: number | null;
+    value_usd?: number | null;
+    dimensions_cm?: string | null;
+    users?: { email?: string | null } | null;
+  };
+};
+
 export function BoatDeclarationButton({ matchId }: BoatDeclarationButtonProps) {
-  const supabase = createClient();
+  const supabase = createClient() as SupabaseClient;
   const [generating, setGenerating] = useState(false);
 
-  const { data: match } = useQuery({
+  const { data: match } = useQuery<MatchDeclaration | null>({
     queryKey: ["match-for-declaration", matchId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -47,19 +69,12 @@ export function BoatDeclarationButton({ matchId }: BoatDeclarationButtonProps) {
         .single();
 
       if (error) throw error;
-      return data;
+      return (data ?? null) as MatchDeclaration | null;
     },
   });
 
-  const { data: currentUser } = useQuery({
-    queryKey: ["current-user-for-declaration"],
-    queryFn: async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      return user;
-    },
-  });
+  // Use shared hook to prevent duplicate queries
+  const { user: currentUser } = useUser();
 
   const handleGeneratePDF = () => {
     if (!match || !currentUser) return;

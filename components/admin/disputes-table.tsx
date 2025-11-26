@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { createClient } from "../../lib/supabase/client";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { Button } from "../ui/button";
 import {
   Table,
@@ -18,7 +19,7 @@ import { Search, Loader2, MessageSquare, CheckCircle2, XCircle } from "lucide-re
 import { format } from "date-fns";
 
 export function DisputesTable() {
-  const supabase = createClient();
+  const supabase = createClient() as SupabaseClient;
   const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -84,7 +85,7 @@ export function DisputesTable() {
 
       const { error } = await supabase
         .from("matches")
-        .update({ status: newStatus })
+        .update({ status: newStatus } as { status: string })
         .eq("id", matchId);
 
       if (error) throw error;

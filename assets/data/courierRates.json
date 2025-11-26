@@ -1,0 +1,23 @@
+{
+  "DHL": {
+    "base_rate": { "domestic": 12, "international": 18 },
+    "per_kg_rate": { "domestic": 4.5, "international": 6.8 }
+  },
+  "FedEx": {
+    "base_rate": { "domestic": 10, "international": 16 },
+    "per_kg_rate": { "domestic": 4.0, "international": 6.5 }
+  },
+  "UPS": {
+    "base_rate": { "domestic": 11, "international": 17 },
+    "per_kg_rate": { "domestic": 4.2, "international": 6.6 }
+  },
+  "TNT": {
+    "base_rate": { "domestic": 9, "international": 15 },
+    "per_kg_rate": { "domestic": 3.8, "international": 6.0 }
+  },
+  "USPS": {
+    "base_rate": { "domestic": 8, "international": 14 },
+    "per_kg_rate": { "domestic": 3.5, "international": 5.8 }
+  }
+}
+

@@ -24,7 +24,7 @@ export function PayoutsTable() {
   const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState("");
 
-  const { data: payouts, isLoading } = useQuery({
+  const { data: payouts, isLoading } = useQuery<any[]>({
     queryKey: ["admin-payouts", searchQuery],
     queryFn: async () => {
       // Get completed matches with delivery confirmations

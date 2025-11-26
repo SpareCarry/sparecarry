@@ -16,6 +16,9 @@ function getStripeInstance(): Stripe {
   return stripeInstance;
 }
 
+// Export getStripeInstance for direct access when needed
+export { getStripeInstance };
+
 // Export as a getter to prevent initialization during build
 export const stripe = new Proxy({} as Stripe, {
   get(_target, prop) {

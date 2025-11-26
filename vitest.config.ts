@@ -7,7 +7,7 @@ export default defineConfig({
   test: {
     globals: true,
     environment: "jsdom",
-    setupFiles: ["./tests/setup-supabase-mock.ts"],
+    setupFiles: ["./tests/setup.ts", "./tests/setup-supabase-mock.ts"],
     // Exclude Playwright E2E tests (they use .spec.ts, unit/integration use .test.ts)
     exclude: [
       "**/node_modules/**",

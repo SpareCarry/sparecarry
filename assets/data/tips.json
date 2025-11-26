@@ -1,0 +1,28 @@
+{
+  "tips": [
+    {
+      "id": "shipping-estimator-1",
+      "context": "shipping-estimator",
+      "title": "Package Dimensions",
+      "content": "Enter accurate dimensions to get the best price estimate. Use centimeters for length, width, and height."
+    },
+    {
+      "id": "shipping-estimator-2",
+      "context": "shipping-estimator",
+      "title": "Weight Matters",
+      "content": "Accurate weight helps us calculate shipping costs. Use kilograms for weight."
+    },
+    {
+      "id": "posting-1",
+      "context": "posting",
+      "title": "Clear Descriptions",
+      "content": "A clear description helps travelers understand what you're shipping and increases match chances."
+    },
+    {
+      "id": "messaging-1",
+      "context": "messaging",
+      "title": "Quick Responses",
+      "content": "Responding quickly to messages increases your chances of successful matches."
+    }
+  ]
+}

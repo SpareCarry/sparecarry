@@ -1,65 +1,133 @@
 "use client";
 
+export const dynamic = 'force-dynamic';
+
 import { useQuery } from "@tanstack/react-query";
 import { createClient } from "../../../lib/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "../../../components/ui/card";
 import { Button } from "../../../components/ui/button";
-import { Loader2, User, Star, CreditCard } from "lucide-react";
+import { Loader2, User, Star, CreditCard, Lightbulb } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { SubscriptionCard } from "../../../components/subscription/subscription-card";
-import { SupporterCard } from "../../../components/supporter/supporter-card";
 import { ReferralCard } from "../../../components/referral/referral-card";
+import { ErrorBoundary } from "../../../app/_components/ErrorBoundary";
+import { First3DeliveriesBanner } from "../../../components/promo/First3DeliveriesBanner";
+import { LifetimeMarketingBanner } from "../../../components/subscription/lifetime-marketing-banner";
+import { KarmaDisplay } from "../../../components/karma/karma-display";
+import { useUser } from "../../../hooks/useUser";
+import { ProfileSettings } from "../../../components/profile/profile-settings";
+
+type ProfileRecord = {
+  phone?: string | null;
+  bio?: string | null;
+};
+
+type UserRecord = {
+  subscription_status?: string | null;
+};
 
 export default function ProfilePage() {
   const supabase = createClient();
   const router = useRouter();
 
-  const { data: user, isLoading: userLoading } = useQuery({
-    queryKey: ["current-user"],
-    queryFn: async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      return user;
-    },
-  });
+  // Use shared hook to prevent duplicate queries
+  const { user, isLoading: userLoading, error: userError } = useUser();
 
-  const { data: profile, isLoading: profileLoading } = useQuery({
+  const { data: profile, isLoading: profileLoading, error: profileError } = useQuery<ProfileRecord | null>({
     queryKey: ["profile", user?.id],
     queryFn: async () => {
       if (!user) return null;
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("user_id", user.id)
-        .single();
-      if (error) throw error;
-      return data;
+      try {
+        const { data, error } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("user_id", user.id)
+          .single();
+        
+        // If profile doesn't exist, return null (user might not have created profile yet)
+        if (error) {
+          // PGRST116 = no rows returned (record doesn't exist)
+          if (error.code === 'PGRST116' || error.message?.includes('No rows') || error.message?.includes('not found')) {
+            console.log("Profile not found for user, this is OK:", user.id);
+            return null;
+          }
+          console.warn("Error fetching profile:", error);
+          // Return null instead of throwing to prevent Error Boundary from catching it
+          return null;
+        }
+        return data as ProfileRecord;
+      } catch (error: any) {
+        console.warn("Exception fetching profile:", error);
+        // Return null instead of throwing to prevent Error Boundary from catching it
+        return null;
+      }
     },
     enabled: !!user,
+    retry: false, // Don't retry on error
+    throwOnError: false, // Don't throw errors - let React Query handle them
   });
 
-  const { data: userData } = useQuery({
+  const { data: userData, error: userDataError } = useQuery<UserRecord | null>({
     queryKey: ["user-data", user?.id],
     queryFn: async () => {
       if (!user) return null;
-      const { data, error } = await supabase
-        .from("users")
-        .select("*")
-        .eq("id", user.id)
-        .single();
-      if (error) throw error;
-      return data;
+      try {
+        const { data, error } = await supabase
+          .from("users")
+          .select("*")
+          .eq("id", user.id)
+          .single();
+        
+        // If user record doesn't exist, return null (user might not have record yet)
+        if (error) {
+          // PGRST116 = no rows returned (record doesn't exist)
+          if (error.code === 'PGRST116' || error.message?.includes('No rows') || error.message?.includes('not found')) {
+            console.log("User data not found, this is OK:", user.id);
+            return null;
+          }
+          console.warn("Error fetching user data:", error);
+          // Return null instead of throwing to prevent Error Boundary from catching it
+          return null;
+        }
+        return data as UserRecord;
+      } catch (error: any) {
+        console.warn("Exception fetching user data:", error);
+        // Return null instead of throwing to prevent Error Boundary from catching it
+        return null;
+      }
     },
     enabled: !!user,
+    retry: false, // Don't retry on error
+    throwOnError: false, // Don't throw errors - let React Query handle them
   });
 
-  if (userLoading || profileLoading) {
+  // Show loading only if actively loading (not stuck)
+  if (userLoading && !userError) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <Loader2 className="h-8 w-8 animate-spin text-teal-600" />
       </div>
     );
+  }
+
+  // Handle case where user is not authenticated
+  if (!user && !userLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <p className="text-red-600 mb-4">Please log in to view your profile</p>
+          <Button onClick={() => router.push("/auth/login")}>
+            Go to Login
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // Handle query errors gracefully - log them but don't block rendering
+  if (profileError || userDataError || userError) {
+    console.warn("Profile page query errors:", { profileError, userDataError, userError });
+    // Continue rendering - errors are handled gracefully by returning null
   }
 
   return (
@@ -69,14 +137,67 @@ export default function ProfilePage() {
       </div>
 
       <div className="space-y-6">
-        {/* Supporter Card */}
-        <SupporterCard />
+        {/* First 3 Deliveries Banner */}
+        <ErrorBoundary fallback={null}>
+          <First3DeliveriesBanner />
+        </ErrorBoundary>
 
-        {/* Referral Card */}
-        <ReferralCard />
+        {/* Unified Subscription Card - combines Pro and Supporter */}
+        <ErrorBoundary fallback={
+          <Card className="border-teal-200">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-2xl">
+                <Star className="h-6 w-6 text-teal-600" />
+                SpareCarry Pro
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-slate-500">Subscription card unavailable</p>
+            </CardContent>
+          </Card>
+        }>
+          <LifetimeMarketingBanner />
+          <SubscriptionCard />
+        </ErrorBoundary>
 
-        {/* Subscription Card */}
-        <SubscriptionCard />
+        {/* Profile Settings */}
+        <ErrorBoundary fallback={<div className="text-sm text-slate-500 p-4">Profile settings unavailable</div>}>
+          <ProfileSettings />
+        </ErrorBoundary>
+
+        {/* Referral Card - wrap in error boundary */}
+        <ErrorBoundary fallback={<div className="text-sm text-slate-500 p-4">Referral card unavailable</div>}>
+          <ReferralCard />
+        </ErrorBoundary>
+
+        {/* Karma Points Display */}
+        <ErrorBoundary fallback={<div className="text-sm text-slate-500 p-4">Karma display unavailable</div>}>
+          <KarmaDisplay />
+        </ErrorBoundary>
+
+        {/* Suggest an Idea Card */}
+        <ErrorBoundary fallback={<div className="text-sm text-slate-500 p-4">Idea suggestion unavailable</div>}>
+          <Card className="border-teal-200 bg-gradient-to-br from-teal-50 to-white">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Lightbulb className="h-5 w-5 text-teal-600" />
+                Suggest an Idea
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-sm text-slate-600">
+                Got an idea to make SpareCarry better? If your idea is used, you get a lifetime Pro subscription.
+              </p>
+              <Button
+                onClick={() => router.push("/home/suggest-idea")}
+                className="w-full bg-teal-600 hover:bg-teal-700 text-white"
+              >
+                <Lightbulb className="mr-2 h-4 w-4" />
+                Submit Idea
+              </Button>
+            </CardContent>
+          </Card>
+        </ErrorBoundary>
 
         {/* Profile Info */}
         <Card>

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { createClient } from "../../lib/supabase/client";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { Button } from "../ui/button";
 import {
   Table,
@@ -21,7 +22,7 @@ const HIGH_VALUE_THRESHOLD = 1000; // $1000+
 const FIRST_THREE_MONTHS_DAYS = 90;
 
 export function MatchesTable() {
-  const supabase = createClient();
+  const supabase = createClient() as SupabaseClient;
   const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState("");
 

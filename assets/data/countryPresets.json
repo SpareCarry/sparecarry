@@ -1,0 +1,14 @@
+{
+  "AU": { "default_length": 20, "default_width": 15, "default_height": 10, "default_weight": 1 },
+  "ID": { "default_length": 25, "default_width": 20, "default_height": 15, "default_weight": 1.5 },
+  "US": { "default_length": 22, "default_width": 18, "default_height": 12, "default_weight": 1.2 },
+  "GB": { "default_length": 20, "default_width": 15, "default_height": 10, "default_weight": 1 },
+  "CA": { "default_length": 22, "default_width": 18, "default_height": 12, "default_weight": 1.2 },
+  "NZ": { "default_length": 20, "default_width": 15, "default_height": 10, "default_weight": 1 },
+  "SG": { "default_length": 20, "default_width": 15, "default_height": 10, "default_weight": 1 },
+  "MY": { "default_length": 25, "default_width": 20, "default_height": 15, "default_weight": 1.5 },
+  "TH": { "default_length": 25, "default_width": 20, "default_height": 15, "default_weight": 1.5 },
+  "PH": { "default_length": 25, "default_width": 20, "default_height": 15, "default_weight": 1.5 },
+  "VN": { "default_length": 25, "default_width": 20, "default_height": 15, "default_weight": 1.5 }
+}
+

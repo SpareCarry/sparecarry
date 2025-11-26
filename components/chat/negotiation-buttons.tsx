@@ -6,6 +6,7 @@ import { Card, CardContent } from "../ui/card";
 import { CheckCircle2, ArrowDownLeft, ArrowUpRight, DollarSign } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createClient } from "../../lib/supabase/client";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { useRouter } from "next/navigation";
 import { playNotificationSound } from "../../lib/notifications/expo-notifications";
 
@@ -25,7 +26,7 @@ export function NegotiationButtons({
   onAccept,
 }: NegotiationButtonsProps) {
   const [loading, setLoading] = useState<string | null>(null);
-  const supabase = createClient();
+  const supabase = createClient() as SupabaseClient;
   const queryClient = useQueryClient();
   const router = useRouter();
 

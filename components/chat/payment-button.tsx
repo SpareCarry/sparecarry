@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import React from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "../ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
@@ -9,9 +10,25 @@ import { createClient } from "../../lib/supabase/client";
 import { loadStripe } from "@stripe/stripe-js";
 import { Elements, PaymentElement, useElements, useStripe } from "@stripe/react-stripe-js";
 import { useQuery } from "@tanstack/react-query";
-import { calculatePlatformFee, isPromoPeriodActive } from "../../lib/pricing/platform-fee";
+import { calculatePlatformFee } from "../../lib/pricing/platform-fee";
 import { getInsuranceQuote, purchaseInsurance } from "../../lib/insurance/allianz";
-import { TrustBanner } from "../banners/trust-banner";
+import { EarlySupporterPromoCard } from "../promo/EarlySupporterPromoCard";
+import { FirstDeliveryPromoCard } from "../promo/FirstDeliveryPromoCard";
+import { CurrencyDisplay } from "../currency/currency-display";
+import { getPromoCardToShow } from "../../lib/promo/promo-utils";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import { useUser } from "../../hooks/useUser";
+
+type UserSubscription = {
+  subscription_status?: "active" | "trialing" | "canceled" | "past_due" | null;
+};
+
+type UserHistory = {
+  completed_deliveries_count?: number | null;
+  average_rating?: number | null;
+  referral_credit_cents?: number | null;
+  supporter_status?: "active" | "inactive" | null;
+};
 
 const stripePromise = loadStripe(
   process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
@@ -23,7 +40,7 @@ interface PaymentButtonProps {
 
 export function PaymentButton({ match }: PaymentButtonProps) {
   const router = useRouter();
-  const supabase = createClient();
+  const supabase = createClient() as SupabaseClient;
   const [showDetails, setShowDetails] = useState(false);
   const [insurance, setInsurance] = useState(false);
   const [useCredits, setUseCredits] = useState(false);
@@ -31,18 +48,10 @@ export function PaymentButton({ match }: PaymentButtonProps) {
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
 
-  // Check if user has active subscription
-  const { data: user } = useQuery({
-    queryKey: ["current-user"],
-    queryFn: async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      return user;
-    },
-  });
+  // Use shared hook to prevent duplicate queries
+  const { user } = useUser();
 
-  const { data: userData } = useQuery({
+  const { data: userData } = useQuery<UserSubscription | null>({
     queryKey: ["user-subscription", user?.id],
     queryFn: async () => {
       if (!user) return null;
@@ -51,7 +60,7 @@ export function PaymentButton({ match }: PaymentButtonProps) {
         .select("subscription_status")
         .eq("id", user.id)
         .single();
-      return data;
+      return (data ?? null) as UserSubscription | null;
     },
     enabled: !!user,
   });
@@ -61,23 +70,41 @@ export function PaymentButton({ match }: PaymentButtonProps) {
     userData?.subscription_status === "trialing";
 
   // Get user history for dynamic fee calculation
-  const { data: userHistory } = useQuery({
+  const { data: userHistory } = useQuery<UserHistory | null>({
     queryKey: ["user-history", user?.id],
     queryFn: async () => {
       if (!user) return null;
-      const { data } = await supabase
-        .from("users")
-        .select("completed_deliveries_count, average_rating, referral_credits, supporter_status")
-        .eq("id", user.id)
-        .single();
-      return data;
+      // Get data from both users and profiles tables
+      const [userResult, profileResult] = await Promise.all([
+        supabase
+          .from("users")
+          .select("completed_deliveries_count, average_rating, supporter_status")
+          .eq("id", user.id)
+          .single(),
+        supabase
+          .from("profiles")
+          .select("referral_credit_cents")
+          .eq("user_id", user.id)
+          .single(),
+      ]);
+
+      if (userResult.error || profileResult.error) {
+        return null;
+      }
+
+      return {
+        completed_deliveries_count: userResult.data?.completed_deliveries_count || null,
+        average_rating: userResult.data?.average_rating || null,
+        referral_credit_cents: profileResult.data?.referral_credit_cents || null,
+        supporter_status: userResult.data?.supporter_status || null,
+      } as UserHistory | null;
     },
     enabled: !!user,
   });
 
-  // Check if this is user's first delivery
-  const isFirstDelivery = (userHistory?.completed_deliveries_count || 0) === 0;
   const isSupporter = userHistory?.supporter_status === "active";
+  const userCompletedDeliveries = userHistory?.completed_deliveries_count || 0;
+  const isFreeDelivery = userCompletedDeliveries < 3;
 
   const trip = match.trips;
   const request = match.requests;
@@ -88,10 +115,9 @@ export function PaymentButton({ match }: PaymentButtonProps) {
   const platformFeePercent = calculatePlatformFee({
     method: trip.type,
     userId: user?.id || "",
-    userCompletedDeliveries: userHistory?.completed_deliveries_count || 0,
+    userCompletedDeliveries,
     userRating: userHistory?.average_rating || 5.0,
     isSubscriber: hasActiveSubscription,
-    isFirstDelivery,
     isSupporter,
   });
 
@@ -132,7 +158,7 @@ export function PaymentButton({ match }: PaymentButtonProps) {
   const subtotal = reward + itemCost + insuranceCost;
   const totalBeforeCredits = subtotal + platformFee;
 
-  const availableCredits = userHistory?.referral_credits || 0;
+  const availableCredits = (userHistory?.referral_credit_cents || 0) / 100; // Convert cents to dollars
   const maxCreditsUsable = Math.min(
     availableCredits,
     platformFee + reward // Credits can only be used on platform fee or reward
@@ -143,6 +169,24 @@ export function PaymentButton({ match }: PaymentButtonProps) {
   const creditLimitDisplay = Math.max(0, maxCreditsUsable);
   const canSubmitPayment = total > 0;
   const formattedPlatformFeePercent = `${(platformFeePercent * 100).toFixed(1)}%`;
+
+  // Determine which promo card to show
+  const [promoCardType, setPromoCardType] = useState<'early-supporter' | 'first-delivery' | null>(null);
+  
+  useEffect(() => {
+    const checkPromo = async () => {
+      if (user?.id) {
+        const cardType = await getPromoCardToShow(user.id);
+        setPromoCardType(cardType);
+      } else {
+        // For anonymous users, only show early supporter if active
+        const { getDaysLeft } = await import('@/utils/getDaysLeft');
+        const daysLeft = getDaysLeft();
+        setPromoCardType(daysLeft > 0 ? 'early-supporter' : null);
+      }
+    };
+    checkPromo();
+  }, [user?.id]);
 
   useEffect(() => {
     if (maxCreditsUsable <= 0 && useCredits) {
@@ -210,11 +254,17 @@ export function PaymentButton({ match }: PaymentButtonProps) {
 
   return (
     <div className="bg-white border-t border-slate-200 p-4" data-payment-button>
-      {/* Trust Banners */}
-      <div className="mb-4 space-y-3">
-        {isFirstDelivery && <TrustBanner variant="first-delivery" />}
-        {isPromoPeriodActive() && <TrustBanner variant="promo-period" />}
-      </div>
+      {/* Promo Cards */}
+      {promoCardType === 'early-supporter' && (
+        <div className="mb-4">
+          <EarlySupporterPromoCard />
+        </div>
+      )}
+      {promoCardType === 'first-delivery' && (
+        <div className="mb-4">
+          <FirstDeliveryPromoCard />
+        </div>
+      )}
 
       <Button
         onClick={() => setShowDetails(!showDetails)}
@@ -233,46 +283,46 @@ export function PaymentButton({ match }: PaymentButtonProps) {
           <CardContent className="space-y-3">
             <div className="flex justify-between text-sm">
               <span>Reward</span>
-              <span>${reward.toLocaleString()}</span>
+              <span>
+                <CurrencyDisplay amount={reward} />
+              </span>
             </div>
             {itemCost > 0 && (
               <div className="flex justify-between text-sm">
                 <span>Item Cost</span>
-                <span>${itemCost.toLocaleString()}</span>
+                <span>
+                  <CurrencyDisplay amount={itemCost} />
+                </span>
               </div>
             )}
-            <div className="flex justify-between text-sm">
-              <span>
-                Platform Fee ({formattedPlatformFeePercent})
-                {hasActiveSubscription && (
-                  <span className="ml-2 text-xs text-green-600 font-medium">
-                    (Pro - waived)
-                  </span>
-                )}
-                {isFirstDelivery && (
-                  <span className="ml-2 text-xs text-teal-600 font-medium">
-                    (First delivery - free!)
-                  </span>
-                )}
-                {!isFirstDelivery && isPromoPeriodActive() && (
-                  <span className="ml-2 text-xs text-blue-600 font-medium">
-                    (Promo - waived)
-                  </span>
-                )}
-                {isSupporter && (
-                  <span className="ml-2 text-xs text-blue-600 font-medium">
-                    (Supporter perk)
-                  </span>
-                )}
-              </span>
-              <span>
-                {platformFee <= 0 ? (
-                  <span className="text-green-600 font-medium">$0.00</span>
-                ) : (
-                  `$${platformFee.toFixed(2)}`
-                )}
-              </span>
-            </div>
+            {platformFee > 0 && (
+              <div className="flex justify-between text-sm">
+                <span>
+                  Platform Fee ({formattedPlatformFeePercent})
+                  {hasActiveSubscription && (
+                    <span className="ml-2 text-xs text-green-600 font-medium">
+                      (Pro - waived)
+                    </span>
+                  )}
+                  {isSupporter && (
+                    <span className="ml-2 text-xs text-blue-600 font-medium">
+                      (Supporter perk)
+                    </span>
+                  )}
+                </span>
+                <span>
+                  <CurrencyDisplay amount={platformFee} />
+                </span>
+              </div>
+            )}
+            {isFreeDelivery && platformFee === 0 && (
+              <div className="flex justify-between text-sm text-teal-600 font-medium">
+                <span>
+                  Platform Fee (waived – first 3) 🎉
+                </span>
+                <span>$0.00</span>
+              </div>
+            )}
             {itemCost > 0 && (
               <div className="border-t pt-3 mt-3">
                 <div className="flex items-start gap-2 p-3 bg-blue-50 border border-blue-200 rounded-md">
@@ -303,7 +353,7 @@ export function PaymentButton({ match }: PaymentButtonProps) {
                     </div>
                     {insuranceQuote && (
                       <p className="text-xs text-blue-800">
-                        Coverage: ${insuranceQuote.coverage_amount.toLocaleString()} • 
+                        Coverage: <CurrencyDisplay amount={insuranceQuote.coverage_amount} showSecondary={false} className="inline" /> • 
                         Protects against loss, damage, and theft during transport
                       </p>
                     )}
@@ -331,7 +381,7 @@ export function PaymentButton({ match }: PaymentButtonProps) {
                   </div>
                   {useCredits && (
                     <span className="text-sm font-semibold text-teal-600">
-                      -${creditsToUse.toFixed(2)}
+                      -<CurrencyDisplay amount={creditsToUse} showSecondary={false} />
                     </span>
                   )}
                 </div>
@@ -347,9 +397,21 @@ export function PaymentButton({ match }: PaymentButtonProps) {
               </div>
             )}
             
-            <div className="border-t pt-2 flex justify-between font-semibold">
-              <span>Total</span>
-              <span>${total.toFixed(2)}</span>
+            {/* Stripe Fee - always shown separately */}
+            {total > 0 && (
+              <div className="flex justify-between text-sm text-slate-600">
+                <span>Stripe payment processing fee</span>
+                <span>
+                  <CurrencyDisplay amount={total * 0.029 + 0.30} showSecondary={false} />
+                </span>
+              </div>
+            )}
+            
+            <div className="border-t pt-2 flex justify-between font-semibold text-lg">
+              <span>Total {isFreeDelivery && platformFee === 0 ? '🎉' : ''}</span>
+              <span className={isFreeDelivery && platformFee === 0 ? 'text-teal-600' : ''}>
+                <CurrencyDisplay amount={total} showSecondary={false} />
+              </span>
             </div>
             {!canSubmitPayment && (
               <p className="text-xs text-red-600">
@@ -389,9 +451,13 @@ export function PaymentButton({ match }: PaymentButtonProps) {
                 disabled={creatingIntent || !canSubmitPayment}
                 className="w-full bg-teal-600 hover:bg-teal-700"
               >
-                {creatingIntent
-                  ? "Preparing checkout..."
-                  : `Pay $${total.toFixed(2)} & Lock in Escrow`}
+                {creatingIntent ? (
+                  "Preparing checkout..."
+                ) : (
+                  <>
+                    Pay <CurrencyDisplay amount={total} showSecondary={false} className="inline" /> & Lock in Escrow
+                  </>
+                )}
               </Button>
             )}
           </CardContent>

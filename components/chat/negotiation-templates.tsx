@@ -5,6 +5,7 @@ import { Card, CardContent } from "../ui/card";
 import { MessageSquare } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createClient } from "../../lib/supabase/client";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
 interface NegotiationTemplatesProps {
   matchId: string;
@@ -19,7 +20,7 @@ export function NegotiationTemplates({
   currentReward,
   isRequester,
 }: NegotiationTemplatesProps) {
-  const supabase = createClient();
+  const supabase = createClient() as SupabaseClient;
   const queryClient = useQueryClient();
 
   // Calculate template amounts

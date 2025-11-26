@@ -4,6 +4,7 @@ import Script from "next/script";
 import { Providers } from "./providers";
 import { ErrorBoundary } from "./_components/ErrorBoundary";
 import { TelemetryInitializer } from "./_components/TelemetryInitializer";
+import { MobileInit } from "./_mobile-init";
 
 export const metadata: Metadata = {
   title: "SpareCarry – Earn $200–$3,000 using spare space you already have",
@@ -52,6 +53,7 @@ export default function RootLayout({
         <ErrorBoundary>
           <Providers>
             <TelemetryInitializer />
+            <MobileInit />
             {children}
 
             {/* Google Analytics 4 */}

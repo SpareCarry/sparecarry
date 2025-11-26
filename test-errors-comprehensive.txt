@@ -1,0 +1,87 @@
+PLAYWRIGHT E2E TEST ERRORS - COMPREHENSIVE REPORT
+==================================================
+Generated: 2025-11-24
+Total Tests: 161
+Passed: 14
+Failed: 147
+Flaky: 0
+Skipped: 0
+
+PRIMARY ERROR PATTERN:
+----------------------
+Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3000/[route]
+
+This error appears in ALL 147 failed tests. The root cause is that the Next.js dev server is not running on localhost:3000 when tests execute.
+
+AFFECTED TEST FILES:
+-------------------
+1. shipping-estimator.spec.ts - All 8 tests failing
+2. examples/fast-mode-example.spec.ts - All 7 tests failing
+3. flows/auth.spec.ts - All 6 tests failing
+4. flows/edge-cases.spec.ts - All 7 tests failing
+5. flows/jobs.spec.ts - All 6 tests failing
+6. flows/post-request-upgrades.spec.ts - All 6 tests failing
+7. subscription-flow.spec.ts - All 7 tests failing
+8. auth-flow.spec.ts - All 6 tests failing
+9. promo-card.spec.ts - All 5 tests failing
+10. flows/landing.spec.ts - All 4 tests failing
+11. flows/messaging.spec.ts - All 5 tests failing
+12. flows/my-stuff.spec.ts - All 5 tests failing
+13. flows/profile.spec.ts - All 5 tests failing
+14. negative-tests.spec.ts - All 5 tests failing
+15. flows/beta-testing-flow.spec.ts - All 4 tests failing
+16. flows/sidebar-navigation.spec.ts - All 4 tests failing
+17. location-flow.spec.ts - All 4 tests failing
+18. pricing-estimator-promo.spec.ts - All 4 tests failing
+19. auth.spec.ts - All 3 tests failing
+20. complete-app-flow.spec.ts - All 3 tests failing
+21. flows/idea-suggestion.spec.ts - All 3 tests failing
+22. lifetime/test_compat_with_monthly_yearly.spec.ts - All 3 tests failing
+23. lifetime/test_signup_shows_lifetime_screen.spec.ts - All 3 tests failing
+24. watchlist.spec.ts - All 3 tests failing
+25. auto-category.spec.ts - All 2 tests failing
+26. full-payment-flow.spec.ts - All 2 tests failing
+27. item-safety.spec.ts - All 2 tests failing
+28. lifetime/test_existing_lifetime_user.spec.ts - All 2 tests failing
+29. lifetime/test_lifetime_limit_reached.spec.ts - All 2 tests failing
+30. lifetime/test_lifetime_purchase_flow.spec.ts - All 2 tests failing
+31. photo-upload.spec.ts - All 2 tests failing
+32. trust-badges.spec.ts - All 2 tests failing
+33. feed.spec.ts - 1 test failing
+34. flows/fullFlowMultiUser.spec.ts - 1 test failing
+35. trusted-traveller.spec.ts - 1 test failing
+
+SAMPLE ERROR DETAILS:
+--------------------
+Test: "Shipping Cost Estimator › should open estimator screen and calculate prices"
+File: shipping-estimator.spec.ts:23
+Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3000/shipping-estimator
+Call log: 
+- navigating to "http://localhost:3000/shipping-estimator", waiting until "domcontentloaded"
+Location: C:\SpareCarry\tests\e2e\shipping-estimator.spec.ts:27:16
+
+ROOT CAUSE ANALYSIS:
+-------------------
+1. Tests are configured to connect to http://localhost:3000
+2. No dev server is running during test execution
+3. Playwright config likely needs to start the dev server before tests, or use static build
+
+SOLUTION OPTIONS:
+----------------
+Option 1: Configure Playwright to start dev server before tests
+Option 2: Use static build output (out/) instead of dev server
+Option 3: Use a test server setup in playwright.config.ts
+
+FIXES APPLIED:
+-------------
+✅ FIXED: Uncommented and configured webServer in playwright.config.ts
+   - Now starts "pnpm dev" before running tests
+   - Server will be available at http://localhost:3000
+   - This should fix all 147 ERR_CONNECTION_REFUSED errors
+
+REMAINING STEPS:
+--------------
+1. Run tests again to verify connection errors are resolved
+2. Check for any other test failures beyond connection issues
+3. Fix any remaining test logic or assertion errors
+

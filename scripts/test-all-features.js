@@ -7,6 +7,13 @@
 // Load environment variables from .env.local
 const fs = require('fs');
 const path = require('path');
+const { 
+  generateDetailedReport, 
+  saveReportToFile, 
+  saveJSONReport,
+  setupUnbufferedOutput,
+  printStartupBanner 
+} = require('./test-report-utils');
 
 const envPath = path.join(__dirname, '..', '.env.local');
 
@@ -48,7 +55,7 @@ if (fs.existsSync(envPath)) {
 }
 
 // Use localhost when testing locally (if NEXT_PUBLIC_APP_URL points to production)
-const DEFAULT_LOCAL_URL = 'http://localhost:3001'; // Default to 3001 (3000 often in use)
+const DEFAULT_LOCAL_URL = 'http://localhost:3000'; // Default to 3000
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || DEFAULT_LOCAL_URL;
 // If APP_URL is production URL, use localhost for local testing
 const BASE_URL = APP_URL.includes('localhost') || APP_URL.includes('127.0.0.1') 
@@ -224,6 +231,7 @@ async function testAutoReleaseCron() {
 
 // Run all tests
 async function runAllTests() {
+  const startTime = Date.now();
   console.log('🚀 Starting Comprehensive Feature Tests...\n');
   console.log('='.repeat(60));
 
@@ -231,12 +239,13 @@ async function runAllTests() {
   await testFeature('API Endpoints', testAPIEndpoints);
   await testFeature('Auto-Release Cron', testAutoReleaseCron);
 
+  const endTime = Date.now();
+  const passed = results.filter(r => r.passed).length;
+  const failed = results.filter(r => !r.passed).length;
+
   // Print summary
   console.log('\n' + '='.repeat(60));
   console.log('\n📊 TEST SUMMARY\n');
-
-  const passed = results.filter(r => r.passed).length;
-  const failed = results.filter(r => !r.passed).length;
 
   results.forEach(result => {
     const icon = result.passed ? '✅' : '❌';
@@ -250,29 +259,82 @@ async function runAllTests() {
   console.log(`❌ Failed: ${failed}`);
   console.log(`📈 Total: ${results.length}`);
 
+  // Generate detailed report
+  const report = generateDetailedReport(
+    'Comprehensive Feature Tests',
+    results,
+    passed,
+    failed,
+    {
+      startTime,
+      endTime,
+      environment: {
+        'NODE_ENV': process.env.NODE_ENV || 'not set',
+        'BASE_URL': BASE_URL,
+        'CRON_SECRET': CRON_SECRET ? '✅ Set' : '❌ Not set',
+      },
+    }
+  );
+
+  console.log('\n' + '='.repeat(60));
+  console.log('📄 DETAILED REPORT');
+  console.log('='.repeat(60));
+  console.log(report);
+
+  // Save reports
+  const reportSave = saveReportToFile(report, 'test-results-all-features-detailed.txt');
+  if (reportSave.success) {
+    console.log(`\n📝 Detailed report saved to: ${reportSave.path}`);
+  }
+
+  const jsonData = {
+    timestamp: new Date().toISOString(),
+    testName: 'Comprehensive Feature Tests',
+    summary: { total: results.length, passed, failed },
+    results,
+    environment: { BASE_URL, CRON_SECRET: CRON_SECRET ? 'set' : 'not set' },
+  };
+  const jsonSave = saveJSONReport(jsonData, 'test-results-all-features.json');
+  if (jsonSave.success) {
+    console.log(`📝 JSON report saved to: ${jsonSave.path}`);
+  }
+
   // In CI, fail on any errors. In local testing, warn but don't fail
   const isCI = process.env.CI === 'true';
   const hasErrors = failed > 0;
   
   if (hasErrors && isCI) {
     console.log('\n⚠️  Some tests failed. Please review the errors above.');
-    process.exit(1);
+    return { success: false, passed, failed };
   } else if (hasErrors) {
     console.log('\n⚠️  Some tests had issues. This is OK for local testing.');
     console.log('   In production, all environment variables should be set.');
-    process.exit(0);
+    return { success: true, passed, failed, warnings: true };
   } else {
     console.log('\n🎉 All tests passed! Your app is ready for production.');
-    process.exit(0);
+    return { success: true, passed, failed };
   }
 }
 
 // Run if called directly
 if (require.main === module) {
-  runAllTests().catch(error => {
-    console.error('Fatal error:', error);
-    process.exit(1);
-  });
+  setupUnbufferedOutput();
+  printStartupBanner('Comprehensive Feature Tests');
+  
+  runAllTests()
+    .then((result) => {
+      console.log(`\n${'='.repeat(70)}`);
+      console.log(`Test Run Completed: ${new Date().toISOString()}`);
+      console.log(`${'='.repeat(70)}\n`);
+      process.exit(result && result.success === false ? 1 : 0);
+    })
+    .catch(error => {
+      console.error('\n' + '='.repeat(70));
+      console.error('FATAL ERROR:', error.message);
+      console.error('Stack:', error.stack);
+      console.error('='.repeat(70) + '\n');
+      process.exit(1);
+    });
 }
 
 module.exports = { runAllTests, testFeature };

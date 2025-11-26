@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = 'force-dynamic';
+
 import { useState, useEffect, useRef } from "react";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { FeedCard } from "../../components/feed/feed-card";
@@ -10,7 +12,10 @@ import { CreditBanner } from "../../components/referral/credit-banner";
 import { ReferralLeaderboard } from "../../components/referral/referral-leaderboard";
 import { calculateMatchScore, MatchScoreBreakdown } from "../../lib/matching/match-score";
 import { NotificationPermissionRequest } from "../../components/notifications/permission-request";
-import { TrustBanner } from "../../components/banners/trust-banner";
+import { ErrorBoundary } from "../../app/_components/ErrorBoundary";
+import { TopRoutes } from "../../components/TopRoutes";
+import { PromoCardWrapper } from "../../components/promo/PromoCardWrapper";
+import { First3DeliveriesBanner } from "../../components/promo/First3DeliveriesBanner";
 
 interface FeedItem {
   id: string;
@@ -36,118 +41,174 @@ interface FeedItem {
   emergency?: boolean;
 }
 
+// Helper function to add timeout to promises to prevent hanging
+function withTimeout<T>(promise: Promise<T>, timeoutMs: number = 8000): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<T>((_, reject) => 
+      setTimeout(() => reject(new Error(`Query timeout after ${timeoutMs}ms`)), timeoutMs)
+    )
+  ]);
+}
+
 async function fetchFeed(page: number = 0, userId?: string): Promise<{
   items: FeedItem[];
   hasMore: boolean;
 }> {
-  const supabase = createClient();
-  
-  // Get current user for match score calculation
-  const {
-    data: { user: currentUser },
-  } = await supabase.auth.getUser();
-  
-  const pageSize = 10;
-  const from = page * pageSize;
-  const to = from + pageSize - 1;
+  try {
+    const supabase = createClient();
+    
+    const pageSize = 10;
+    const from = page * pageSize;
+    const to = from + pageSize - 1;
 
-  // Fetch trips with user subscription and supporter status
-  const { data: trips, error: tripsError } = await supabase
-    .from("trips")
-    .select(`
-      *,
-      users!trips_user_id_fkey(subscription_status, supporter_status)
-    `)
-    .eq("status", "active")
-    .order("created_at", { ascending: false })
-    .range(from, to);
+  // Fetch trips - handle errors gracefully with timeout
+  let trips: any[] = [];
+  try {
+    const queryBuilder = supabase
+      .from("trips")
+      .select(`
+        *,
+        users!trips_user_id_fkey(subscription_status, supporter_status)
+      `)
+      .eq("status", "active")
+      .order("created_at", { ascending: false })
+      .range(from, to);
 
-  if (tripsError) throw tripsError;
+    // Supabase query builders return promises when awaited
+    const queryPromise = queryBuilder as unknown as Promise<{ data: any; error: any }>;
+    const { data: tripsData, error: tripsError } = await withTimeout(queryPromise, 8000);
 
-  // Fetch requests with user subscription and supporter status
-  const { data: requests, error: requestsError } = await supabase
-    .from("requests")
-    .select(`
-      *,
-      users!requests_user_id_fkey(subscription_status, supporter_status)
-    `)
-    .eq("status", "open")
-    .order("created_at", { ascending: false })
-    .range(from, to);
+    if (tripsError) {
+      console.warn("Error fetching trips:", tripsError);
+      // Continue with empty trips array
+    } else {
+      trips = tripsData || [];
+    }
+  } catch (error) {
+    console.warn("Error fetching trips (timeout or exception):", error);
+    // Continue with empty trips array
+  }
 
-  if (requestsError) throw requestsError;
+  // Fetch requests - handle errors gracefully with timeout
+  let requests: any[] = [];
+  try {
+    const queryBuilder = supabase
+      .from("requests")
+      .select(`
+        *,
+        users!requests_user_id_fkey(subscription_status, supporter_status)
+      `)
+      .eq("status", "open")
+      .order("created_at", { ascending: false })
+      .range(from, to);
 
-  // Fetch all relevant profiles
+    // Supabase query builders return promises when awaited
+    const queryPromise = queryBuilder as unknown as Promise<{ data: any; error: any }>;
+    const { data: requestsData, error: requestsError } = await withTimeout(queryPromise, 8000);
+
+    if (requestsError) {
+      console.warn("Error fetching requests:", requestsError);
+      // Continue with empty requests array
+    } else {
+      requests = requestsData || [];
+    }
+  } catch (error) {
+    console.warn("Error fetching requests (timeout or exception):", error);
+    // Continue with empty requests array
+  }
+
+  // Fetch all relevant profiles - handle errors gracefully
   const userIds = [
     ...(trips || []).map((t) => t.user_id),
     ...(requests || []).map((r) => r.user_id),
   ];
   const uniqueUserIds = [...new Set(userIds)];
 
-  const { data: profiles } = await supabase
-    .from("profiles")
-    .select("user_id, verified_sailor_at, stripe_identity_verified_at")
-    .in("user_id", uniqueUserIds);
+  let profilesMap = new Map();
+  if (uniqueUserIds.length > 0) {
+    try {
+      const queryBuilder = supabase
+        .from("profiles")
+        .select("user_id, verified_sailor_at, stripe_identity_verified_at")
+        .in("user_id", uniqueUserIds);
 
-  const profilesMap = new Map(
-    (profiles || []).map((p) => [
-      p.user_id,
-      {
-        verified_sailor: !!p.verified_sailor_at,
-        verified_identity: !!p.stripe_identity_verified_at,
-      },
-    ])
-  );
+      // Supabase query builders return promises when awaited
+      const queryPromise = queryBuilder as unknown as Promise<{ data: any; error: any }>;
+      const { data: profiles, error: profilesError } = await withTimeout(queryPromise, 8000);
 
-  // Combine and format
-  const tripItems: FeedItem[] = (trips || []).map((trip) => {
-    const profile = profilesMap.get(trip.user_id);
-    const user = Array.isArray(trip.users) ? trip.users[0] : trip.users;
-    const isSubscriber = user?.subscription_status === "active" || user?.subscription_status === "trialing";
-    const isSupporter = user?.supporter_status === "active";
-    return {
-      id: trip.id,
-      type: "trip" as const,
-      from_location: trip.from_location,
-      to_location: trip.to_location,
-      departure_date: trip.departure_date,
-      eta_window_start: trip.eta_window_start,
-      eta_window_end: trip.eta_window_end,
-      spare_kg: trip.spare_kg,
-      spare_volume_liters: trip.spare_volume_liters,
-      user_id: trip.user_id,
-      created_at: trip.created_at,
-      match_score: isSupporter ? 2000 : isSubscriber ? 1000 : 0, // Supporters get highest priority
-      user_verified_sailor: profile?.verified_sailor || false,
-      user_verified_identity: profile?.verified_identity || false,
-      user_subscribed: isSubscriber || false,
-      user_supporter: isSupporter || false,
-    };
-  });
+      if (profilesError) {
+        console.warn("Error fetching profiles:", profilesError);
+      } else {
+        profilesMap = new Map(
+          (profiles || []).map((p: any) => [
+            p.user_id,
+            {
+              verified_sailor: !!p.verified_sailor_at,
+              verified_identity: !!p.stripe_identity_verified_at,
+            },
+          ])
+        );
+      }
+    } catch (error) {
+      console.warn("Error fetching profiles (timeout or exception):", error);
+      // Continue with empty profiles map
+    }
+  }
 
-  const requestItems: FeedItem[] = (requests || []).map((request) => {
-    const profile = profilesMap.get(request.user_id);
-    const user = Array.isArray(request.users) ? request.users[0] : request.users;
-    const isSubscriber = user?.subscription_status === "active" || user?.subscription_status === "trialing";
-    const isSupporter = user?.supporter_status === "active";
-    return {
-      id: request.id,
-      type: "request" as const,
-      from_location: request.from_location,
-      to_location: request.to_location,
-      deadline_earliest: request.deadline_earliest,
-      deadline_latest: request.deadline_latest,
-      max_reward: request.max_reward,
-      user_id: request.user_id,
-      created_at: request.created_at,
-      match_score: isSupporter ? 2000 : isSubscriber ? 1000 : 0, // Supporters get highest priority
-      user_verified_sailor: profile?.verified_sailor || false,
-      user_verified_identity: profile?.verified_identity || false,
-      emergency: request.emergency || false,
-      user_subscribed: isSubscriber || false,
-      user_supporter: isSupporter || false,
-    };
-  });
+  // Combine and format - handle missing data gracefully
+  const tripItems: FeedItem[] = (trips || [])
+    .filter((trip) => trip && trip.id && trip.user_id) // Filter out invalid trips first
+    .map((trip) => {
+      const profile = profilesMap.get(trip.user_id);
+      const user = Array.isArray(trip.users) ? trip.users[0] : trip.users;
+      const isSubscriber = user?.subscription_status === "active" || user?.subscription_status === "trialing";
+      const isSupporter = user?.supporter_status === "active";
+      return {
+        id: trip.id,
+        type: "trip" as const,
+        from_location: trip.from_location || "",
+        to_location: trip.to_location || "",
+        departure_date: trip.departure_date,
+        eta_window_start: trip.eta_window_start,
+        eta_window_end: trip.eta_window_end,
+        spare_kg: trip.spare_kg,
+        spare_volume_liters: trip.spare_volume_liters,
+        user_id: trip.user_id,
+        created_at: trip.created_at || new Date().toISOString(),
+        match_score: isSupporter ? 2000 : isSubscriber ? 1000 : 0, // Supporters get highest priority
+        user_verified_sailor: profile?.verified_sailor || false,
+        user_verified_identity: profile?.verified_identity || false,
+        user_subscribed: isSubscriber || false,
+        user_supporter: isSupporter || false,
+      };
+    });
+
+  const requestItems: FeedItem[] = (requests || [])
+    .filter((request) => request && request.id && request.user_id) // Filter out invalid requests first
+    .map((request) => {
+      const profile = profilesMap.get(request.user_id);
+      const user = Array.isArray(request.users) ? request.users[0] : request.users;
+      const isSubscriber = user?.subscription_status === "active" || user?.subscription_status === "trialing";
+      const isSupporter = user?.supporter_status === "active";
+      return {
+        id: request.id,
+        type: "request" as const,
+        from_location: request.from_location || "",
+        to_location: request.to_location || "",
+        deadline_earliest: request.deadline_earliest,
+        deadline_latest: request.deadline_latest,
+        max_reward: request.max_reward,
+        user_id: request.user_id,
+        created_at: request.created_at || new Date().toISOString(),
+        match_score: isSupporter ? 2000 : isSubscriber ? 1000 : 0, // Supporters get highest priority
+        user_verified_sailor: profile?.verified_sailor || false,
+        user_verified_identity: profile?.verified_identity || false,
+        emergency: request.emergency || false,
+        user_subscribed: isSubscriber || false,
+        user_supporter: isSupporter || false,
+      };
+    });
 
   // Combine and sort by supporter status first, then subscription status, then match score, then created_at
   const allItems = [...tripItems, ...requestItems].sort((a, b) => {
@@ -164,14 +225,22 @@ async function fetchFeed(page: number = 0, userId?: string): Promise<{
       return b.match_score - a.match_score;
     }
     
-    // Finally by created_at
+      // Finally by created_at
     return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
   });
 
-  return {
-    items: allItems.slice(0, pageSize),
-    hasMore: allItems.length >= pageSize,
-  };
+    return {
+      items: allItems.slice(0, pageSize),
+      hasMore: allItems.length >= pageSize,
+    };
+  } catch (error) {
+    // If anything goes wrong, return empty results instead of throwing
+    console.error("Error in fetchFeed:", error);
+    return {
+      items: [],
+      hasMore: false,
+    };
+  }
 }
 
 export default function BrowsePage() {
@@ -186,6 +255,7 @@ export default function BrowsePage() {
     isFetchingNextPage,
     isLoading,
     error,
+    refetch,
   } = useInfiniteQuery({
     queryKey: ["feed"],
     queryFn: ({ pageParam = 0 }) => fetchFeed(pageParam),
@@ -193,6 +263,7 @@ export default function BrowsePage() {
       return lastPage.hasMore ? pages.length : undefined;
     },
     initialPageParam: 0,
+    retry: false, // Don't retry automatically - let user click retry button
   });
 
   const items = data?.pages.flatMap((page) => page.items) ?? [];
@@ -224,13 +295,45 @@ export default function BrowsePage() {
   }
 
   if (error) {
+    // Log error for debugging
+    console.error("Browse page error:", error);
+    
+    // Try to get more details about the error
+    const errorMessage = error instanceof Error 
+      ? error.message 
+      : typeof error === 'string' 
+      ? error 
+      : "Something went wrong while loading the feed";
+    
+    // Check if it's a network error or Supabase error
+    const isNetworkError = errorMessage.includes('fetch') || errorMessage.includes('network');
+    const isSupabaseError = errorMessage.includes('PGRST') || errorMessage.includes('Supabase');
+    
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <p className="text-red-600 mb-4">Error loading feed</p>
+        <div className="text-center max-w-md px-4">
+          <p className="text-red-600 mb-2 font-medium text-lg">Error loading feed</p>
+          <p className="text-sm text-slate-600 mb-2">
+            {isNetworkError 
+              ? "Unable to connect to the server. Please check your internet connection."
+              : isSupabaseError
+              ? "Database connection issue. Please try again in a moment."
+              : errorMessage}
+          </p>
+          {process.env.NODE_ENV === 'development' && (
+            <details className="text-xs text-slate-500 mb-4 text-left">
+              <summary className="cursor-pointer mb-2">Technical details (dev only)</summary>
+              <pre className="bg-slate-100 p-2 rounded overflow-auto max-h-40">
+                {JSON.stringify(error, null, 2)}
+              </pre>
+            </details>
+          )}
           <button
-            onClick={() => window.location.reload()}
-            className="px-4 py-2 bg-teal-600 text-white rounded-md"
+            onClick={() => {
+              console.log("Retrying feed fetch...");
+              refetch();
+            }}
+            className="px-4 py-2 bg-teal-600 text-white rounded-md hover:bg-teal-700 transition-colors font-medium"
           >
             Retry
           </button>
@@ -248,31 +351,61 @@ export default function BrowsePage() {
         </p>
       </div>
 
-      {/* Trust Banners */}
-      <div className="mb-4 space-y-3">
-        <TrustBanner variant="first-delivery" />
-        <TrustBanner variant="promo-period" />
-      </div>
-
-      {/* Credit Banner */}
-      <CreditBanner />
-
-      {/* Referral Leaderboard */}
+      {/* First 3 Deliveries Banner */}
       <div className="mb-4">
-        <ReferralLeaderboard />
+        <ErrorBoundary fallback={null}>
+          <First3DeliveriesBanner />
+        </ErrorBoundary>
       </div>
 
-      {/* Notification Permission Request */}
-      <NotificationPermissionRequest />
+      {/* Promo Card */}
+      <div className="mb-4">
+        <ErrorBoundary fallback={null}>
+          <PromoCardWrapper />
+        </ErrorBoundary>
+      </div>
+
+      {/* Credit Banner - wrap in error boundary to prevent crashes */}
+      <ErrorBoundary fallback={null}>
+        <CreditBanner />
+      </ErrorBoundary>
+
+      {/* Referral Leaderboard - wrap in error boundary to prevent crashes */}
+      <div className="mb-4">
+        <ErrorBoundary fallback={null}>
+          <ReferralLeaderboard />
+        </ErrorBoundary>
+      </div>
+
+      {/* Top Routes */}
+      <div className="mb-4">
+        <ErrorBoundary fallback={null}>
+          <TopRoutes limit={5} />
+        </ErrorBoundary>
+      </div>
+
+      {/* Notification Permission Request - wrap in error boundary to prevent crashes */}
+      <ErrorBoundary fallback={null}>
+        <NotificationPermissionRequest />
+      </ErrorBoundary>
 
       <div className="space-y-4">
-        {items.map((item) => (
-          <FeedCard
-            key={`${item.type}-${item.id}`}
-            item={item}
-            onClick={() => setSelectedItem(item)}
-          />
-        ))}
+        {items.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-slate-600 mb-4">No trips or requests found yet.</p>
+            <p className="text-sm text-slate-500">
+              Be the first to post a trip or request!
+            </p>
+          </div>
+        ) : (
+          items.map((item) => (
+            <FeedCard
+              key={`${item.type}-${item.id}`}
+              item={item}
+              onClick={() => setSelectedItem(item)}
+            />
+          ))
+        )}
       </div>
 
       {/* Infinite scroll trigger */}

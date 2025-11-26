@@ -22,15 +22,18 @@ export function ReferralLeaderboard() {
         });
 
         if (!response.ok) {
-          return [];
+          console.warn("Error loading leaderboard:", response.status);
+          return []; // Return empty array instead of throwing
         }
 
         return (await response.json()) as LeaderboardEntry[];
-      } catch {
-        return [];
+      } catch (error) {
+        console.warn("Exception loading leaderboard:", error);
+        return []; // Return empty array instead of throwing
       }
     },
     retry: false,
+    throwOnError: false, // Don't throw errors
   });
 
   if (!leaderboard || leaderboard.length === 0) {

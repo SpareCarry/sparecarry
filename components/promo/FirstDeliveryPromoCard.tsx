@@ -1,0 +1,46 @@
+/**
+ * First Delivery Free Promo Card
+ * 
+ * Shown after promo period ends for users with no completed deliveries
+ */
+
+"use client";
+
+import React from 'react';
+import { Card, CardContent } from '../ui/card';
+import { Gift } from 'lucide-react';
+import { cn } from '../../lib/utils';
+
+interface FirstDeliveryPromoCardProps {
+  className?: string;
+}
+
+export function FirstDeliveryPromoCard({ className }: FirstDeliveryPromoCardProps) {
+  return (
+    <Card 
+      className={cn(
+        "border-teal-200 bg-gradient-to-r from-teal-50 via-blue-50 to-teal-50 shadow-sm",
+        className
+      )}
+      role="banner"
+      aria-label="First Delivery Free"
+    >
+      <CardContent className="p-4">
+        <div className="flex items-start gap-3">
+          <div className="flex-shrink-0 w-12 h-12 bg-teal-100 rounded-full flex items-center justify-center">
+            <Gift className="h-6 w-6 text-teal-600" />
+          </div>
+          <div className="flex-1">
+            <h3 className="font-bold text-lg text-slate-900 mb-1">
+              🎁 Your First Delivery Is Free
+            </h3>
+            <p className="text-sm text-slate-700">
+              We&apos;ll waive your delivery platform fee on your first job.
+            </p>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+

@@ -81,15 +81,84 @@ CREATE TABLE IF NOT EXISTS payments (
 -- Create indexes for better query performance
 CREATE INDEX IF NOT EXISTS idx_trips_user_id ON trips(user_id);
 CREATE INDEX IF NOT EXISTS idx_trips_departure_date ON trips(departure_date);
-CREATE INDEX IF NOT EXISTS idx_requests_trip_id ON requests(trip_id);
+-- Only create this index if the trip_id column exists (for safety on drifted schemas)
+DO $$
+BEGIN
+    IF EXISTS (
+        SELECT 1
+        FROM information_schema.columns
+        WHERE table_schema = 'public'
+          AND table_name = 'requests'
+          AND column_name = 'trip_id'
+    ) THEN
+        CREATE INDEX IF NOT EXISTS idx_requests_trip_id ON public.requests(trip_id);
+    END IF;
+END $$;
 CREATE INDEX IF NOT EXISTS idx_requests_status ON requests(status);
 CREATE INDEX IF NOT EXISTS idx_matches_request_id ON matches(request_id);
-CREATE INDEX IF NOT EXISTS idx_matches_traveler_id ON matches(traveler_id);
+
+-- Only create this index if the traveler_id column exists (for safety on drifted schemas)
+DO $$
+BEGIN
+    IF EXISTS (
+        SELECT 1
+        FROM information_schema.columns
+        WHERE table_schema = 'public'
+          AND table_name = 'matches'
+          AND column_name = 'traveler_id'
+    ) THEN
+        CREATE INDEX IF NOT EXISTS idx_matches_traveler_id ON public.matches(traveler_id);
+    END IF;
+END $$;
 CREATE INDEX IF NOT EXISTS idx_matches_status ON matches(status);
-CREATE INDEX IF NOT EXISTS idx_messages_match_id ON messages(match_id);
-CREATE INDEX IF NOT EXISTS idx_messages_sender_id ON messages(sender_id);
-CREATE INDEX IF NOT EXISTS idx_disputes_match_id ON disputes(match_id);
-CREATE INDEX IF NOT EXISTS idx_payments_match_id ON payments(match_id);
+
+-- Only create these message-related indexes if the columns exist (for safety on drifted schemas)
+DO $$
+BEGIN
+    IF EXISTS (
+        SELECT 1
+        FROM information_schema.columns
+        WHERE table_schema = 'public'
+          AND table_name = 'messages'
+          AND column_name = 'match_id'
+    ) THEN
+        CREATE INDEX IF NOT EXISTS idx_messages_match_id ON public.messages(match_id);
+    END IF;
+
+    IF EXISTS (
+        SELECT 1
+        FROM information_schema.columns
+        WHERE table_schema = 'public'
+          AND table_name = 'messages'
+          AND column_name = 'sender_id'
+    ) THEN
+        CREATE INDEX IF NOT EXISTS idx_messages_sender_id ON public.messages(sender_id);
+    END IF;
+END $$;
+
+-- Only create these dispute/payment-related indexes if the columns exist
+DO $$
+BEGIN
+    IF EXISTS (
+        SELECT 1
+        FROM information_schema.columns
+        WHERE table_schema = 'public'
+          AND table_name = 'disputes'
+          AND column_name = 'match_id'
+    ) THEN
+        CREATE INDEX IF NOT EXISTS idx_disputes_match_id ON public.disputes(match_id);
+    END IF;
+
+    IF EXISTS (
+        SELECT 1
+        FROM information_schema.columns
+        WHERE table_schema = 'public'
+          AND table_name = 'payments'
+          AND column_name = 'match_id'
+    ) THEN
+        CREATE INDEX IF NOT EXISTS idx_payments_match_id ON public.payments(match_id);
+    END IF;
+END $$;
 
 -- Create function to update updated_at timestamp
 CREATE OR REPLACE FUNCTION update_updated_at_column()
@@ -100,11 +169,20 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Create trigger for users table
-CREATE TRIGGER update_users_updated_at
-    BEFORE UPDATE ON users
-    FOR EACH ROW
-    EXECUTE FUNCTION update_updated_at_column();
+-- Create trigger for users table (only if it doesn't already exist)
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1
+        FROM pg_trigger
+        WHERE tgname = 'update_users_updated_at'
+    ) THEN
+        CREATE TRIGGER update_users_updated_at
+            BEFORE UPDATE ON public.users
+            FOR EACH ROW
+            EXECUTE FUNCTION update_updated_at_column();
+    END IF;
+END $$;
 
 -- Enable Row Level Security on all tables
 ALTER TABLE users ENABLE ROW LEVEL SECURITY;

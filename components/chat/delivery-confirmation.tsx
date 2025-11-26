@@ -7,6 +7,7 @@ import { Label } from "../ui/label";
 import { Card, CardContent } from "../ui/card";
 import { MapPin, Camera, Loader2, Search } from "lucide-react";
 import { createClient } from "../../lib/supabase/client";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { useQuery } from "@tanstack/react-query";
 import { useLoadScript, GoogleMap, Marker, InfoWindow } from "@react-google-maps/api";
 import { searchMeetupLocations, meetupLocations, type MeetupLocation } from "../../lib/data/meetup-locations";
@@ -34,7 +35,7 @@ export function DeliveryConfirmation({
   matchId,
   onComplete,
 }: DeliveryConfirmationProps) {
-  const supabase = createClient();
+  const supabase = createClient() as SupabaseClient;
   const [photos, setPhotos] = useState<File[]>([]);
   const [gpsLat, setGpsLat] = useState("");
   const [gpsLng, setGpsLng] = useState("");
@@ -215,10 +216,10 @@ export function DeliveryConfirmation({
 
       if (deliveryError) throw deliveryError;
 
-      // Update match status
+      // Update match status to 'completed' to trigger delivery stats increment
       const { error: matchError } = await supabase
         .from("matches")
-        .update({ status: "delivered", delivered_at: new Date().toISOString() })
+        .update({ status: "completed", delivered_at: new Date().toISOString() })
         .eq("id", matchId);
 
       if (matchError) throw matchError;

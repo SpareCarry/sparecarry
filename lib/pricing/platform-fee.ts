@@ -1,8 +1,15 @@
-// Dynamic platform fee calculation
-// Base: 12-18% based on method + user history
-// Promotions:
-// - First delivery: 0% (both sides)
-// - Promo period (until Feb 18, 2026): 0% for everyone
+/**
+ * Dynamic platform fee calculation
+ * 
+ * Uses centralized config from config/platformFees.ts
+ * First 3 deliveries = $0 platform fee (best-in-class new-user offer)
+ */
+
+import { 
+  PLANE_PLATFORM_FEE_PERCENT, 
+  BOAT_PLATFORM_FEE_PERCENT,
+  MIN_PLATFORM_FEE_PERCENT,
+} from '../../config/platformFees';
 
 interface PlatformFeeParams {
   method: "plane" | "boat";
@@ -10,11 +17,8 @@ interface PlatformFeeParams {
   userCompletedDeliveries: number;
   userRating?: number;
   isSubscriber: boolean;
-  isFirstDelivery?: boolean; // Check if this is user's first completed delivery
   isSupporter?: boolean; // Check if user is a Supporter
 }
-
-const PROMO_END_DATE = new Date("2026-02-18T23:59:59Z");
 
 export function calculatePlatformFee({
   method,
@@ -22,17 +26,11 @@ export function calculatePlatformFee({
   userCompletedDeliveries,
   userRating = 5.0,
   isSubscriber,
-  isFirstDelivery = false,
   isSupporter = false,
 }: PlatformFeeParams): number {
-  // First delivery is always free (both sides)
-  if (isFirstDelivery) {
-    return 0;
-  }
-
-  // Promo period: zero fees until Feb 18, 2026
-  const now = new Date();
-  if (now < PROMO_END_DATE) {
+  // First 3 deliveries = $0 platform fee (best-in-class new-user offer)
+  const isFreeDelivery = userCompletedDeliveries < 3;
+  if (isFreeDelivery) {
     return 0;
   }
 
@@ -46,8 +44,8 @@ export function calculatePlatformFee({
     return 0;
   }
 
-  // Base fee by method
-  const baseFee = method === "plane" ? 0.18 : 0.15; // 18% plane, 15% boat
+  // Base fee by method (from config)
+  const baseFee = method === "plane" ? PLANE_PLATFORM_FEE_PERCENT : BOAT_PLATFORM_FEE_PERCENT;
 
   // Volume discount: reduce fee based on completed deliveries
   let volumeDiscount = 0;
@@ -67,9 +65,9 @@ export function calculatePlatformFee({
     ratingDiscount = 0.005; // 0.5% discount for 4.5+ rating
   }
 
-  // Calculate final fee (minimum 12%)
+  // Calculate final fee (minimum from config)
   const finalFee = Math.max(
-    0.12, // Minimum 12%
+    MIN_PLATFORM_FEE_PERCENT,
     baseFee - volumeDiscount - ratingDiscount
   );
 
@@ -78,12 +76,4 @@ export function calculatePlatformFee({
 
 export function formatPlatformFee(fee: number): string {
   return `${(fee * 100).toFixed(1)}%`;
-}
-
-export function isPromoPeriodActive(): boolean {
-  return new Date() < PROMO_END_DATE;
-}
-
-export function getPromoEndDate(): Date {
-  return PROMO_END_DATE;
 }

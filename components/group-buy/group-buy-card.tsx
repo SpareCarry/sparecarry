@@ -7,6 +7,7 @@ import { Users, Percent, MapPin } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { createClient } from "../../lib/supabase/client";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
 interface GroupBuyCardProps {
   groupBuy: {
@@ -22,10 +23,14 @@ interface GroupBuyCardProps {
   onJoin?: () => void;
 }
 
+type RequestRecord = {
+  id: string;
+};
+
 export function GroupBuyCard({ groupBuy, onJoin }: GroupBuyCardProps) {
   const t = useTranslations("groupBuy");
   const [joining, setJoining] = useState(false);
-  const supabase = createClient();
+  const supabase = createClient() as SupabaseClient;
 
   const handleJoin = async () => {
     setJoining(true);
@@ -40,14 +45,26 @@ export function GroupBuyCard({ groupBuy, onJoin }: GroupBuyCardProps) {
       }
 
       // Check if user already in group buy
-      const { data: existingMatch } = await supabase
-        .from("matches")
+      const { data: userRequest } = await supabase
+        .from("requests")
         .select("id")
-        .eq("group_buy_id", groupBuy.id)
-        .eq("request_id", (await supabase.from("requests").select("id").eq("user_id", user.id).single()).data?.id)
+        .eq("user_id", user.id)
         .single();
 
-      if (existingMatch) {
+      const requestRecord = (userRequest ?? null) as RequestRecord | null;
+
+      let existingMatch: { id: string } | null = null;
+      if (requestRecord?.id) {
+        const { data } = await supabase
+          .from("matches")
+          .select("id")
+          .eq("group_buy_id", groupBuy.id)
+          .eq("request_id", requestRecord.id)
+          .maybeSingle();
+        existingMatch = data as { id: string } | null;
+      }
+
+      if (existingMatch?.id) {
         alert("You're already in this group buy");
         return;
       }

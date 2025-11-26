@@ -2,6 +2,7 @@
  * Performance Provider
  * 
  * Initializes performance profiling for the app
+ * Includes enhanced profiler with bottleneck detection
  */
 
 'use client';
@@ -11,6 +12,7 @@ import { webProfiler } from '@/lib/performance/web-profiler';
 import { mobileProfiler } from '@/lib/performance/mobile-profiler';
 import { performanceLogger } from '@/lib/performance/logger';
 import { mobileLogger } from '@/lib/logger/mobile';
+import { PerformanceReport } from '@/lib/performance/enhanced-profiler';
 
 export function PerformanceProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
@@ -56,6 +58,16 @@ export function PerformanceProvider({ children }: { children: React.ReactNode })
     };
   }, []);
 
-  return <>{children}</>;
+  // Show performance report in development
+  const showPerformanceReport = process.env.NODE_ENV === 'development' && 
+    typeof window !== 'undefined' && 
+    window.location.search.includes('perf=true');
+
+  return (
+    <>
+      {children}
+      {showPerformanceReport && <PerformanceReport enabled={true} />}
+    </>
+  );
 }
 

@@ -36,7 +36,7 @@ export const tripSchema = z.object({
 });
 
 // Request schemas
-export const preferredMethodSchema = z.enum(["plane", "boat", "any"]);
+export const preferredMethodSchema = z.enum(["plane", "boat", "any", "quickest", "best_fit"]);
 
 export const requestSchema = z.object({
   title: z.string().min(1).max(200),

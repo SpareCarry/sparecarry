@@ -14,6 +14,11 @@ module.exports = (phase) => {
     reactStrictMode: true,
     experimental: {},
     webpack: (config) => config,
+    generateBuildId: async () => {
+      // Custom build ID generation that doesn't rely on nanoid's generate export
+      // Use a timestamp-based ID to avoid the nanoid compatibility issue
+      return `build-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+    },
   };
 
   if (!enableSentryWebpackPlugin) {
@@ -29,10 +34,19 @@ module.exports = (phase) => {
     {
       silent: true,
       dryRun: !process.env.SENTRY_AUTH_TOKEN,
+      hideSourceMaps: true,
+      // Suppress the warning about sourcemaps
+      org: process.env.SENTRY_ORG || "",
+      project: process.env.SENTRY_PROJECT || "",
     },
     {
       disableServerWebpackPlugin: false,
       disableClientWebpackPlugin: false,
+      // Suppress sourcemap warnings
+      widenClientFileUpload: true,
+      transpileClientSDK: true,
+      tunnelRoute: "/monitoring",
+      hideSourceMaps: true,
     }
   );
 };

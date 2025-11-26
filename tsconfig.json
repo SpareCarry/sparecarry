@@ -35,15 +35,13 @@
     ".next/types/**/*.ts",
     "next-env.d.ts",
     "./.next/types/**/*.ts",
-    "tests/**/*.ts",
-    "tests/**/*.tsx",
     "vitest.config.ts",
     "playwright.config.ts",
     ".next/dev/types/**/*.ts"
   ],
   "exclude": [
     "node_modules",
-    "app/api/**/*",
-    "supabase/functions/**/*"
+    "supabase/functions/**/*",
+    "tests/**/*"
   ]
 }

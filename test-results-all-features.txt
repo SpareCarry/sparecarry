@@ -1,0 +1,129 @@
+ WARN  Unsupported engine: wanted: {"node":"22.x"} (current: {"node":"v24.11.1","pnpm":"10.22.0"})
+
+> sparecarry@0.1.0 test:features C:\SpareCarry
+> node scripts/test-all-features.js
+
+[dotenv@17.2.3] injecting env (19) from .env.local -- tip: ✅ audit secrets and track compliance: https://dotenvx.com/ops
+✅ Loaded .env.local using dotenv
+
+======================================================================
+  Comprehensive Feature Tests
+======================================================================
+Test Run Started: 2025-11-24T08:32:45.529Z
+Node Version: v24.11.1
+Working Directory: C:\SpareCarry
+Script Path: C:\SpareCarry\scripts\test-report-utils.js
+======================================================================
+
+🚀 Starting Comprehensive Feature Tests...
+
+============================================================
+
+🧪 Testing: Environment Variables...
+[dotenv@17.2.3] injecting env (19) from .env.local -- tip: ⚙️  load multiple .env files with { path: ['.env.local', '.env'] }
+✅ PASSED: Environment Variables
+
+🧪 Testing: API Endpoints...
+✅ PASSED: API Endpoints
+
+🧪 Testing: Auto-Release Cron...
+✅ PASSED: Auto-Release Cron
+
+============================================================
+
+📊 TEST SUMMARY
+
+✅ Environment Variables
+✅ API Endpoints
+✅ Auto-Release Cron
+
+✅ Passed: 3
+❌ Failed: 0
+📈 Total: 3
+
+============================================================
+📄 DETAILED REPORT
+============================================================
+
+======================================================================
+  Comprehensive Feature Tests - Detailed Test Report
+======================================================================
+
+METADATA
+----------------------------------------------------------------------
+Generated: 2025-11-24T08:32:46.218Z
+Node Version: v24.11.1
+Working Directory: C:\SpareCarry
+Script Path: C:\SpareCarry\scripts\test-report-utils.js
+Duration: 0.68 seconds
+
+SUMMARY
+----------------------------------------------------------------------
+Total Tests: 3
+Passed: 3
+Failed: 0
+Success Rate: 100.0%
+
+DETAILED RESULTS
+----------------------------------------------------------------------
+
+1. Environment Variables
+   Status: ✅ PASSED
+   Details:
+     count: 8
+
+2. API Endpoints
+   Status: ✅ PASSED
+   Details:
+     accessible: 5
+     endpoints:
+       [
+         {
+           "endpoint": "/api/matches/auto-match",
+           "status": 401
+         },
+         {
+           "endpoint": "/api/payments/create-intent",
+           "status": 401
+         },
+         {
+           "endpoint": "/api/payments/confirm-delivery",
+           "status": 401
+         },
+         {
+           "endpoint": "/api/payments/auto-release",
+           "status": 401
+         },
+         {
+           "endpoint": "/api/notifications/register-token",
+           "status": 401
+         }
+       ]
+
+3. Auto-Release Cron
+   Status: ✅ PASSED
+   Details:
+     accessible: true
+     authenticated: true
+     status: 200
+
+
+----------------------------------------------------------------------
+ENVIRONMENT INFORMATION
+----------------------------------------------------------------------
+NODE_ENV: not set
+BASE_URL: http://localhost:3000
+CRON_SECRET: ✅ Set
+
+======================================================================
+
+
+📝 Detailed report saved to: C:\SpareCarry\test-results-all-features-detailed.txt
+📝 JSON report saved to: C:\SpareCarry\test-results-all-features.json
+
+🎉 All tests passed! Your app is ready for production.
+
+======================================================================
+Test Run Completed: 2025-11-24T08:32:46.227Z
+======================================================================
+

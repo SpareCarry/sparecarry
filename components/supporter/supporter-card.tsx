@@ -6,36 +6,53 @@ import { Anchor, CheckCircle2, Star, Moon, Sun, Trophy } from "lucide-react";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { createClient } from "../../lib/supabase/client";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { Loader2 } from "lucide-react";
 import { SupporterBadge } from "../badges/supporter-badge";
+import { useUser } from "../../hooks/useUser";
+
+type SupporterStatus = {
+  supporter_status?: "active" | "inactive" | null;
+  supporter_purchased_at?: string | null;
+  supporter_expires_at?: string | null;
+};
 
 export function SupporterCard() {
-  const supabase = createClient();
+  const supabase = createClient() as SupabaseClient;
   const [loading, setLoading] = useState(false);
 
-  const { data: user } = useQuery({
-    queryKey: ["current-user-supporter"],
-    queryFn: async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      return user;
-    },
-  });
+  // Use shared hook to prevent duplicate queries
+  const { user } = useUser();
 
-  const { data: userData } = useQuery({
+  const { data: userData } = useQuery<SupporterStatus | null>({
     queryKey: ["user-supporter-status", user?.id],
     queryFn: async () => {
       if (!user) return null;
-      const { data, error } = await supabase
-        .from("users")
-        .select("supporter_status, supporter_purchased_at, supporter_expires_at")
-        .eq("id", user.id)
-        .single();
-      if (error) throw error;
-      return data;
+      try {
+        const { data, error } = await supabase
+          .from("users")
+          .select("supporter_status, supporter_purchased_at, supporter_expires_at")
+          .eq("id", user.id)
+          .single();
+        
+        // If record doesn't exist, return null instead of throwing
+        if (error && (error.code === 'PGRST116' || error.message?.includes('No rows'))) {
+          return null;
+        }
+        
+        if (error) {
+          console.warn("Error fetching supporter status:", error);
+          return null; // Return null instead of throwing
+        }
+        return (data ?? null) as SupporterStatus | null;
+      } catch (error) {
+        console.warn("Exception fetching supporter status:", error);
+        return null; // Return null instead of throwing
+      }
     },
     enabled: !!user,
+    retry: false,
+    throwOnError: false, // Don't throw errors
   });
 
   const isSupporter = userData?.supporter_status === "active";

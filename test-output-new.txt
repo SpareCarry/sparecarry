@@ -1,0 +1,2071 @@
+﻿ΓÇëWARNΓÇë Unsupported engine: wanted: {"node":"22.x"} (current: {"node":"v24.11.1","pnpm":"10.22.0"})
+
+> sparecarry@0.1.0 test C:\SpareCarry
+> cross-env NODE_ENV=test vitest run
+
+node.exe : [33mThe CJS build of Vite's Node API is deprecated. See 
+https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more 
+details.[39m
+At C:\Users\admin\AppData\Roaming\npm\pnpm.ps1:24 char:5
++     & "node$exe"  "$basedir/node_modules/pnpm/bin/pnpm.cjs" $args
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ([33mThe CJS bu...e details.[39m:String) [], Re 
+   moteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/SpareCarry[39m
+
+ [32mΓ£ô[39m tests/unit/lib/pricing/platform-fee.test.ts [2m ([22m[2m5 tests[22m[2m)[22m[90m 14[2mms[22m[39m
+ [32mΓ£ô[39m tests/integration/api/auto-release.test.ts [2m ([22m[2m2 tests[22m[2m)[22m[90m 195[2mms[22m[39m
+ [32mΓ£ô[39m tests/unit/lib/matching/match-score.test.ts [2m ([22m[2m5 tests[22m[2m)[22m[90m 32[2mms[22m[39m
+[90mstderr[2m | tests/integration/api/payments/create-intent.test.ts[2m > [22m[2mPOST 
+/api/payments/create-intent[2m > [22m[2mshould create payment intent for a match[22m[39m
+Error creating payment intent: ReferenceError: createMockSupabaseClient is not defined
+    at Proxy.<anonymous> [90m(C:\SpareCarry\[39mtests\setup-supabase-mock.ts:7:39[90m)[39m
+    at Proxy.mockCall [90m(file:///C:/SpareCarry/[39mnode_modules/[4m.pnpm[24m/@vitest+spy
+@1.6.1/node_modules/[4m@vitest/spy[24m/dist/index.js:50:17[90m)[39m
+    at Proxy.spy [90m(file:///C:/SpareCarry/[39mnode_modules/[4m.pnpm[24m/tinyspy@2.2.1/no
+de_modules/[4mtinyspy[24m/dist/index.js:42:80[90m)[39m
+    at Module.POST 
+[90m(C:\SpareCarry\[39mapp\api\payments\create-intent\route.ts:8:28[90m)[39m
+    at [90mC:\SpareCarry\[39mtests\integration\api\payments\create-intent.test.ts:108:28
+    at [90mfile:///C:/SpareCarry/[39mnode_modules/[4m.pnpm[24m/@vitest+runner@1.6.1/node_m
+odules/[4m@vitest/runner[24m/dist/index.js:135:14
+    at [90mfile:///C:/SpareCarry/[39mnode_modules/[4m.pnpm[24m/@vitest+runner@1.6.1/node_m
+odules/[4m@vitest/runner[24m/dist/index.js:60:26
+    at runTest [90m(file:///C:/SpareCarry/[39mnode_modules/[4m.pnpm[24m/@vitest+runner@1.6
+.1/node_modules/[4m@vitest/runner[24m/dist/index.js:781:17[90m)[39m
+    at runSuite [90m(file:///C:/SpareCarry/[39mnode_modules/[4m.pnpm[24m/@vitest+runner@1.
+6.1/node_modules/[4m@vitest/runner[24m/dist/index.js:909:15[90m)[39m
+    at runSuite [90m(file:///C:/SpareCarry/[39mnode_modules/[4m.pnpm[24m/@vitest+runner@1.
+6.1/node_modules/[4m@vitest/runner[24m/dist/index.js:909:15[90m)[39m
+
+[90mstderr[2m | tests/integration/api/payments/create-intent.test.ts[2m > [22m[2mPOST 
+/api/payments/create-intent[2m > [22m[2mshould return error if match not found[22m[39m
+Error creating payment intent: ReferenceError: createMockSupabaseClient is not defined
+    at Proxy.<anonymous> [90m(C:\SpareCarry\[39mtests\setup-supabase-mock.ts:7:39[90m)[39m
+    at Proxy.mockCall [90m(file:///C:/SpareCarry/[39mnode_modules/[4m.pnpm[24m/@vitest+spy
+@1.6.1/node_modules/[4m@vitest/spy[24m/dist/index.js:50:17[90m)[39m
+    at Proxy.spy [90m(file:///C:/SpareCarry/[39mnode_modules/[4m.pnpm[24m/tinyspy@2.2.1/no
+de_modules/[4mtinyspy[24m/dist/index.js:42:80[90m)[39m
+    at Module.POST 
+[90m(C:\SpareCarry\[39mapp\api\payments\create-intent\route.ts:8:28[90m)[39m
+    at [90mC:\SpareCarry\[39mtests\integration\api\payments\create-intent.test.ts:130:28
+    at [90mfile:///C:/SpareCarry/[39mnode_modules/[4m.pnpm[24m/@vitest+runner@1.6.1/node_m
+odules/[4m@vitest/runner[24m/dist/index.js:135:14
+    at [90mfile:///C:/SpareCarry/[39mnode_modules/[4m.pnpm[24m/@vitest+runner@1.6.1/node_m
+odules/[4m@vitest/runner[24m/dist/index.js:60:26
+    at runTest [90m(file:///C:/SpareCarry/[39mnode_modules/[4m.pnpm[24m/@vitest+runner@1.6
+.1/node_modules/[4m@vitest/runner[24m/dist/index.js:781:17[90m)[39m
+    at runSuite [90m(file:///C:/SpareCarry/[39mnode_modules/[4m.pnpm[24m/@vitest+runner@1.
+6.1/node_modules/[4m@vitest/runner[24m/dist/index.js:909:15[90m)[39m
+    at runSuite [90m(file:///C:/SpareCarry/[39mnode_modules/[4m.pnpm[24m/@vitest+runner@1.
+6.1/node_modules/[4m@vitest/runner[24m/dist/index.js:909:15[90m)[39m
+
+[90mstderr[2m | tests/integration/api/matches/auto-match.test.ts[2m > [22m[2mPOST 
+/api/matches/auto-match[2m > [22m[2mshould create matches for a new trip[22m[39m
+Error auto-matching: ReferenceError: createMockSupabaseClient is not defined
+    at Proxy.<anonymous> [90m(C:\SpareCarry\[39mtests\setup-supabase-mock.ts:7:39[90m)[39m
+    at Proxy.mockCall [90m(file:///C:/SpareCarry/[39mnode_modules/[4m.pnpm[24m/@vitest+spy
+@1.6.1/node_modules/[4m@vitest/spy[24m/dist/index.js:50:17[90m)[39m
+    at Proxy.spy [90m(file:///C:/SpareCarry/[39mnode_modules/[4m.pnpm[24m/tinyspy@2.2.1/no
+de_modules/[4mtinyspy[24m/dist/index.js:42:80[90m)[39m
+    at Module.POST 
+[90m(C:\SpareCarry\[39mapp\api\matches\auto-match\route.ts:7:28[90m)[39m
+    at [90mC:\SpareCarry\[39mtests\integration\api\matches\auto-match.test.ts:57:28
+    at [90mfile:///C:/SpareCarry/[39mnode_modules/[4m.pnpm[24m/@vitest+runner@1.6.1/node_m
+odules/[4m@vitest/runner[24m/dist/index.js:135:14
+    at [90mfile:///C:/SpareCarry/[39mnode_modules/[4m.pnpm[24m/@vitest+runner@1.6.1/node_m
+odules/[4m@vitest/runner[24m/dist/index.js:60:26
+    at runTest [90m(file:///C:/SpareCarry/[39mnode_modules/[4m.pnpm[24m/@vitest+runner@1.6
+.1/node_modules/[4m@vitest/runner[24m/dist/index.js:781:17[90m)[39m
+    at runSuite [90m(file:///C:/SpareCarry/[39mnode_modules/[4m.pnpm[24m/@vitest+runner@1.
+6.1/node_modules/[4m@vitest/runner[24m/dist/index.js:909:15[90m)[39m
+    at runSuite [90m(file:///C:/SpareCarry/[39mnode_modules/[4m.pnpm[24m/@vitest+runner@1.
+6.1/node_modules/[4m@vitest/runner[24m/dist/index.js:909:15[90m)[39m
+
+[90mstderr[2m | tests/integration/api/matches/auto-match.test.ts[2m > [22m[2mPOST 
+/api/matches/auto-match[2m > [22m[2mshould create matches for a new request[22m[39m
+Error auto-matching: ReferenceError: createMockSupabaseClient is not defined
+    at Proxy.<anonymous> [90m(C:\SpareCarry\[39mtests\setup-supabase-mock.ts:7:39[90m)[39m
+    at Proxy.mockCall [90m(file:///C:/SpareCarry/[39mnode_modules/[4m.pnpm[24m/@vitest+spy
+@1.6.1/node_modules/[4m@vitest/spy[24m/dist/index.js:50:17[90m)[39m
+    at Proxy.spy [90m(file:///C:/SpareCarry/[39mnode_modules/[4m.pnpm[24m/tinyspy@2.2.1/no
+de_modules/[4mtinyspy[24m/dist/index.js:42:80[90m)[39m
+    at Module.POST 
+[90m(C:\SpareCarry\[39mapp\api\matches\auto-match\route.ts:7:28[90m)[39m
+    at [90mC:\SpareCarry\[39mtests\integration\api\matches\auto-match.test.ts:79:28
+    at [90mfile:///C:/SpareCarry/[39mnode_modules/[4m.pnpm[24m/@vitest+runner@1.6.1/node_m
+odules/[4m@vitest/runner[24m/dist/index.js:135:14
+    at [90mfile:///C:/SpareCarry/[39mnode_modules/[4m.pnpm[24m/@vitest+runner@1.6.1/node_m
+odules/[4m@vitest/runner[24m/dist/index.js:60:26
+    at runTest [90m(file:///C:/SpareCarry/[39mnode_modules/[4m.pnpm[24m/@vitest+runner@1.6
+.1/node_modules/[4m@vitest/runner[24m/dist/index.js:781:17[90m)[39m
+    at runSuite [90m(file:///C:/SpareCarry/[39mnode_modules/[4m.pnpm[24m/@vitest+runner@1.
+6.1/node_modules/[4m@vitest/runner[24m/dist/index.js:909:15[90m)[39m
+    at runSuite [90m(file:///C:/SpareCarry/[39mnode_modules/[4m.pnpm[24m/@vitest+runner@1.
+6.1/node_modules/[4m@vitest/runner[24m/dist/index.js:909:15[90m)[39m
+
+[90mstderr[2m | tests/integration/api/matches/auto-match.test.ts[2m > [22m[2mPOST 
+/api/matches/auto-match[2m > [22m[2mshould return 404 if trip not found[22m[39m
+Error auto-matching: ReferenceError: createMockSupabaseClient is not defined
+    at Proxy.<anonymous> [90m(C:\SpareCarry\[39mtests\setup-supabase-mock.ts:7:39[90m)[39m
+    at Proxy.mockCall [90m(file:///C:/SpareCarry/[39mnode_modules/[4m.pnpm[24m/@vitest+spy
+@1.6.1/node_modules/[4m@vitest/spy[24m/dist/index.js:50:17[90m)[39m
+    at Proxy.spy [90m(file:///C:/SpareCarry/[39mnode_modules/[4m.pnpm[24m/tinyspy@2.2.1/no
+de_modules/[4mtinyspy[24m/dist/index.js:42:80[90m)[39m
+    at Module.POST 
+[90m(C:\SpareCarry\[39mapp\api\matches\auto-match\route.ts:7:28[90m)[39m
+    at [90mC:\SpareCarry\[39mtests\integration\api\matches\auto-match.test.ts:96:28
+    at [90mfile:///C:/SpareCarry/[39mnode_modules/[4m.pnpm[24m/@vitest+runner@1.6.1/node_m
+odules/[4m@vitest/runner[24m/dist/index.js:135:14
+    at [90mfile:///C:/SpareCarry/[39mnode_modules/[4m.pnpm[24m/@vitest+runner@1.6.1/node_m
+odules/[4m@vitest/runner[24m/dist/index.js:60:26
+    at runTest [90m(file:///C:/SpareCarry/[39mnode_modules/[4m.pnpm[24m/@vitest+runner@1.6
+.1/node_modules/[4m@vitest/runner[24m/dist/index.js:781:17[90m)[39m
+    at runSuite [90m(file:///C:/SpareCarry/[39mnode_modules/[4m.pnpm[24m/@vitest+runner@1.
+6.1/node_modules/[4m@vitest/runner[24m/dist/index.js:909:15[90m)[39m
+    at runSuite [90m(file:///C:/SpareCarry/[39mnode_modules/[4m.pnpm[24m/@vitest+runner@1.
+6.1/node_modules/[4m@vitest/runner[24m/dist/index.js:909:15[90m)[39m
+
+ [33mΓ¥»[39m tests/integration/api/matches/auto-match.test.ts [2m ([22m[2m3 tests[22m [2m|[22m [31m3 failed[39m[2m)[22m[90m 122[2mms[22m[39m
+[31m   [33mΓ¥»[31m tests/integration/api/matches/auto-match.test.ts[2m > [22mPOST /api/matches/auto-match[2m > [22mshould create matches for a new trip[39m
+[31m     ΓåÆ expected 500 to be 200 // Object.is equality[39m
+[31m   [33mΓ¥»[31m tests/integration/api/matches/auto-match.test.ts[2m > [22mPOST /api/matches/auto-match[2m > [22mshould create matches for a new request[39m
+[31m     ΓåÆ expected 500 to be 200 // Object.is equality[39m
+[31m   [33mΓ¥»[31m tests/integration/api/matches/auto-match.test.ts[2m > [22mPOST /api/matches/auto-match[2m > [22mshould return 404 if trip not found[39m
+[31m     ΓåÆ expected 500 to be 404 // Object.is equality[39m
+ [33mΓ¥»[39m tests/integration/api/payments/create-intent.test.ts [2m ([22m[2m2 tests[22m [2m|[22m [31m2 failed[39m[2m)[22m[90m 118[2mms[22m[39m
+[31m   [33mΓ¥»[31m tests/integration/api/payments/create-intent.test.ts[2m > [22mPOST /api/payments/create-intent[2m > [22mshould create payment intent for a match[39m
+[31m     ΓåÆ expected 500 to be 200 // Object.is equality[39m
+[31m   [33mΓ¥»[31m tests/integration/api/payments/create-intent.test.ts[2m > [22mPOST /api/payments/create-intent[2m > [22mshould return error if match not found[39m
+[31m     ΓåÆ expected 500 to be 404 // Object.is equality[39m
+ [32mΓ£ô[39m tests/integration/api/payment-flow.test.ts [2m ([22m[2m5 tests[22m[2m)[22m[33m 924[2mms[22m[39m
+ [32mΓ£ô[39m tests/integration/api/notifications.test.ts [2m ([22m[2m3 tests[22m[2m)[22m[33m 1054[2mms[22m[39m
+[90mstderr[2m | tests/unit/components/auth/login.test.tsx[2m > [22m[2mLoginPage[2m > 
+[22m[2mshould render login form[22m[39m
+Error: Uncaught [ReferenceError: createMockSupabaseClient is not defined]
+    at reportException (C:\SpareCarry\node_modules\.pnpm\jsdom@23.2.0\node_modules\jsdom\lib\j
+sdom\living\helpers\runtime-script-errors.js:66:24)
+    at innerInvokeEventListeners (C:\SpareCarry\node_modules\.pnpm\jsdom@23.2.0\node_modules\j
+sdom\lib\jsdom\living\events\EventTarget-impl.js:353:9)
+    at invokeEventListeners (C:\SpareCarry\node_modules\.pnpm\jsdom@23.2.0\node_modules\jsdom\
+lib\jsdom\living\events\EventTarget-impl.js:286:3)
+    at HTMLUnknownElementImpl._dispatch (C:\SpareCarry\node_modules\.pnpm\jsdom@23.2.0\node_mo
+dules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:233:9)
+    at HTMLUnknownElementImpl.dispatchEvent (C:\SpareCarry\node_modules\.pnpm\jsdom@23.2.0\nod
+e_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:104:17)
+    at HTMLUnknownElement.dispatchEvent (C:\SpareCarry\node_modules\.pnpm\jsdom@23.2.0\node_mo
+dules\jsdom\lib\jsdom\living\generated\EventTarget.js:241:34)
+    at Object.invokeGuardedCallbackDev (C:\SpareCarry\node_modules\.pnpm\react-dom@18.3.1_reac
+t@18.3.1\node_modules\react-dom\cjs\react-dom.development.js:4213:16)
+    at invokeGuardedCallback (C:\SpareCarry\node_modules\.pnpm\react-dom@18.3.1_react@18.3.1\n
+ode_modules\react-dom\cjs\react-dom.development.js:4277:31)
+    at beginWork$1 (C:\SpareCarry\node_modules\.pnpm\react-dom@18.3.1_react@18.3.1\node_module
+s\react-dom\cjs\react-dom.development.js:27490:7)
+    at performUnitOfWork (C:\SpareCarry\node_modules\.pnpm\react-dom@18.3.1_react@18.3.1\node_
+modules\react-dom\cjs\react-dom.development.js:26599:12) ReferenceError: 
+createMockSupabaseClient is not defined
+    at Proxy.<anonymous> [90m(C:\SpareCarry\[39mtests\setup-supabase-mock.ts:4:33[90m)[39m
+    at Proxy.mockCall [90m(file:///C:/SpareCarry/[39mnode_modules/[4m.pnpm[24m/@vitest+spy
+@1.6.1/node_modules/[4m@vitest/spy[24m/dist/index.js:50:17[90m)[39m
+    at Proxy.spy [90m(file:///C:/SpareCarry/[39mnode_modules/[4m.pnpm[24m/tinyspy@2.2.1/no
+de_modules/[4mtinyspy[24m/dist/index.js:42:80[90m)[39m
+    at LoginPage [90m(C:\SpareCarry\[39mapp\auth\login\page.tsx:19:20[90m)[39m
+    at renderWithHooks [90m(C:\SpareCarry\[39mnode_modules\[4m.pnpm[24m\react-dom@18.3.1_r
+eact@18.3.1\node_modules\[4mreact-dom[24m\cjs\react-dom.development.js:15486:18[90m)[39m
+    at mountIndeterminateComponent [90m(C:\SpareCarry\[39mnode_modules\[4m.pnpm[24m\react-
+dom@18.3.1_react@18.3.1\node_modules\[4mreact-dom[24m\cjs\react-dom.development.js:20103:13
+[90m)[39m
+    at beginWork [90m(C:\SpareCarry\[39mnode_modules\[4m.pnpm[24m\react-dom@18.3.1_react@1
+8.3.1\node_modules\[4mreact-dom[24m\cjs\react-dom.development.js:21626:16[90m)[39m
+    at HTMLUnknownElement.callCallback [90m(C:\SpareCarry\[39mnode_modules\[4m.pnpm[24m\re
+act-dom@18.3.1_react@18.3.1\node_modules\[4mreact-dom[24m\cjs\react-dom.development.js:4164:
+14[90m)[39m
+    at HTMLUnknownElement.callTheUserObjectsOperation [90m(C:\SpareCarry\[39mnode_modules\[
+4m.pnpm[24m\jsdom@23.2.0\node_modules\[4mjsdom[24m\lib\jsdom\living\generated\EventListener
+.js:26:30[90m)[39m
+    at innerInvokeEventListeners [90m(C:\SpareCarry\[39mnode_modules\[4m.pnpm[24m\jsdom@23
+.2.0\node_modules\[4mjsdom[24m\lib\jsdom\living\events\EventTarget-impl.js:350:25[90m)[39m
+Error: Uncaught [ReferenceError: createMockSupabaseClient is not defined]
+    at reportException (C:\SpareCarry\node_modules\.pnpm\jsdom@23.2.0\node_modules\jsdom\lib\j
+sdom\living\helpers\runtime-script-errors.js:66:24)
+    at innerInvokeEventListeners (C:\SpareCarry\node_modules\.pnpm\jsdom@23.2.0\node_modules\j
+sdom\lib\jsdom\living\events\EventTarget-impl.js:353:9)
+    at invokeEventListeners (C:\SpareCarry\node_modules\.pnpm\jsdom@23.2.0\node_modules\jsdom\
+lib\jsdom\living\events\EventTarget-impl.js:286:3)
+    at HTMLUnknownElementImpl._dispatch (C:\SpareCarry\node_modules\.pnpm\jsdom@23.2.0\node_mo
+dules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:233:9)
+    at HTMLUnknownElementImpl.dispatchEvent (C:\SpareCarry\node_modules\.pnpm\jsdom@23.2.0\nod
+e_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:104:17)
+    at HTMLUnknownElement.dispatchEvent (C:\SpareCarry\node_modules\.pnpm\jsdom@23.2.0\node_mo
+dules\jsdom\lib\jsdom\living\generated\EventTarget.js:241:34)
+    at Object.invokeGuardedCallbackDev (C:\SpareCarry\node_modules\.pnpm\react-dom@18.3.1_reac
+t@18.3.1\node_modules\react-dom\cjs\react-dom.development.js:4213:16)
+    at invokeGuardedCallback (C:\SpareCarry\node_modules\.pnpm\react-dom@18.3.1_react@18.3.1\n
+ode_modules\react-dom\cjs\react-dom.development.js:4277:31)
+    at beginWork$1 (C:\SpareCarry\node_modules\.pnpm\react-dom@18.3.1_react@18.3.1\node_module
+s\react-dom\cjs\react-dom.development.js:27490:7)
+    at performUnitOfWork (C:\SpareCarry\node_modules\.pnpm\react-dom@18.3.1_react@18.3.1\node_
+modules\react-dom\cjs\react-dom.development.js:26599:12) ReferenceError: 
+createMockSupabaseClient is not defined
+    at Proxy.<anonymous> [90m(C:\SpareCarry\[39mtests\setup-supabase-mock.ts:4:33[90m)[39m
+    at Proxy.mockCall [90m(file:///C:/SpareCarry/[39mnode_modules/[4m.pnpm[24m/@vitest+spy
+@1.6.1/node_modules/[4m@vitest/spy[24m/dist/index.js:50:17[90m)[39m
+    at Proxy.spy [90m(file:///C:/SpareCarry/[39mnode_modules/[4m.pnpm[24m/tinyspy@2.2.1/no
+de_modules/[4mtinyspy[24m/dist/index.js:42:80[90m)[39m
+    at LoginPage [90m(C:\SpareCarry\[39mapp\auth\login\page.tsx:19:20[90m)[39m
+    at renderWithHooks [90m(C:\SpareCarry\[39mnode_modules\[4m.pnpm[24m\react-dom@18.3.1_r
+eact@18.3.1\node_modules\[4mreact-dom[24m\cjs\react-dom.development.js:15486:18[90m)[39m
+    at mountIndeterminateComponent [90m(C:\SpareCarry\[39mnode_modules\[4m.pnpm[24m\react-
+dom@18.3.1_react@18.3.1\node_modules\[4mreact-dom[24m\cjs\react-dom.development.js:20103:13
+[90m)[39m
+    at beginWork [90m(C:\SpareCarry\[39mnode_modules\[4m.pnpm[24m\react-dom@18.3.1_react@1
+8.3.1\node_modules\[4mreact-dom[24m\cjs\react-dom.development.js:21626:16[90m)[39m
+    at HTMLUnknownElement.callCallback [90m(C:\SpareCarry\[39mnode_modules\[4m.pnpm[24m\re
+act-dom@18.3.1_react@18.3.1\node_modules\[4mreact-dom[24m\cjs\react-dom.development.js:4164:
+14[90m)[39m
+    at HTMLUnknownElement.callTheUserObjectsOperation [90m(C:\SpareCarry\[39mnode_modules\[
+4m.pnpm[24m\jsdom@23.2.0\node_modules\[4mjsdom[24m\lib\jsdom\living\generated\EventListener
+.js:26:30[90m)[39m
+    at innerInvokeEventListeners [90m(C:\SpareCarry\[39mnode_modules\[4m.pnpm[24m\jsdom@23
+.2.0\node_modules\[4mjsdom[24m\lib\jsdom\living\events\EventTarget-impl.js:350:25[90m)[39m
+The above error occurred in the <LoginPage> component:
+
+    at LoginPage (C:\SpareCarry\app\auth\login\page.tsx:25:51)
+    at QueryClientProvider (file:///C:/SpareCarry/node_modules/.pnpm/@tanstack+react-query@5.9
+0.10_react@18.3.1/node_modules/@tanstack/react-query/build/modern/QueryClientProvider.js:20:3)
+    at AllTheProviders (C:\SpareCarry\tests\utils\test-utils.tsx:15:28)
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+
+[90mstderr[2m | tests/unit/components/auth/login.test.tsx[2m > [22m[2mLoginPage[2m > 
+[22m[2mshould submit magic link form with email[22m[39m
+Error: Uncaught [ReferenceError: createMockSupabaseClient is not defined]
+    at reportException (C:\SpareCarry\node_modules\.pnpm\jsdom@23.2.0\node_modules\jsdom\lib\j
+sdom\living\helpers\runtime-script-errors.js:66:24)
+    at innerInvokeEventListeners (C:\SpareCarry\node_modules\.pnpm\jsdom@23.2.0\node_modules\j
+sdom\lib\jsdom\living\events\EventTarget-impl.js:353:9)
+    at invokeEventListeners (C:\SpareCarry\node_modules\.pnpm\jsdom@23.2.0\node_modules\jsdom\
+lib\jsdom\living\events\EventTarget-impl.js:286:3)
+    at HTMLUnknownElementImpl._dispatch (C:\SpareCarry\node_modules\.pnpm\jsdom@23.2.0\node_mo
+dules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:233:9)
+    at HTMLUnknownElementImpl.dispatchEvent (C:\SpareCarry\node_modules\.pnpm\jsdom@23.2.0\nod
+e_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:104:17)
+    at HTMLUnknownElement.dispatchEvent (C:\SpareCarry\node_modules\.pnpm\jsdom@23.2.0\node_mo
+dules\jsdom\lib\jsdom\living\generated\EventTarget.js:241:34)
+    at Object.invokeGuardedCallbackDev (C:\SpareCarry\node_modules\.pnpm\react-dom@18.3.1_reac
+t@18.3.1\node_modules\react-dom\cjs\react-dom.development.js:4213:16)
+    at invokeGuardedCallback (C:\SpareCarry\node_modules\.pnpm\react-dom@18.3.1_react@18.3.1\n
+ode_modules\react-dom\cjs\react-dom.development.js:4277:31)
+    at beginWork$1 (C:\SpareCarry\node_modules\.pnpm\react-dom@18.3.1_react@18.3.1\node_module
+s\react-dom\cjs\react-dom.development.js:27490:7)
+    at performUnitOfWork (C:\SpareCarry\node_modules\.pnpm\react-dom@18.3.1_react@18.3.1\node_
+modules\react-dom\cjs\react-dom.development.js:26599:12) ReferenceError: 
+createMockSupabaseClient is not defined
+    at Proxy.<anonymous> [90m(C:\SpareCarry\[39mtests\setup-supabase-mock.ts:4:33[90m)[39m
+    at Proxy.mockCall [90m(file:///C:/SpareCarry/[39mnode_modules/[4m.pnpm[24m/@vitest+spy
+@1.6.1/node_modules/[4m@vitest/spy[24m/dist/index.js:50:17[90m)[39m
+    at Proxy.spy [90m(file:///C:/SpareCarry/[39mnode_modules/[4m.pnpm[24m/tinyspy@2.2.1/no
+de_modules/[4mtinyspy[24m/dist/index.js:42:80[90m)[39m
+    at LoginPage [90m(C:\SpareCarry\[39mapp\auth\login\page.tsx:19:20[90m)[39m
+    at renderWithHooks [90m(C:\SpareCarry\[39mnode_modules\[4m.pnpm[24m\react-dom@18.3.1_r
+eact@18.3.1\node_modules\[4mreact-dom[24m\cjs\react-dom.development.js:15486:18[90m)[39m
+    at mountIndeterminateComponent [90m(C:\SpareCarry\[39mnode_modules\[4m.pnpm[24m\react-
+dom@18.3.1_react@18.3.1\node_modules\[4mreact-dom[24m\cjs\react-dom.development.js:20103:13
+[90m)[39m
+    at beginWork [90m(C:\SpareCarry\[39mnode_modules\[4m.pnpm[24m\react-dom@18.3.1_react@1
+8.3.1\node_modules\[4mreact-dom[24m\cjs\react-dom.development.js:21626:16[90m)[39m
+    at HTMLUnknownElement.callCallback [90m(C:\SpareCarry\[39mnode_modules\[4m.pnpm[24m\re
+act-dom@18.3.1_react@18.3.1\node_modules\[4mreact-dom[24m\cjs\react-dom.development.js:4164:
+14[90m)[39m
+    at HTMLUnknownElement.callTheUserObjectsOperation [90m(C:\SpareCarry\[39mnode_modules\[
+4m.pnpm[24m\jsdom@23.2.0\node_modules\[4mjsdom[24m\lib\jsdom\living\generated\EventListener
+.js:26:30[90m)[39m
+    at innerInvokeEventListeners [90m(C:\SpareCarry\[39mnode_modules\[4m.pnpm[24m\jsdom@23
+.2.0\node_modules\[4mjsdom[24m\lib\jsdom\living\events\EventTarget-impl.js:350:25[90m)[39m
+Error: Uncaught [ReferenceError: createMockSupabaseClient is not defined]
+    at reportException (C:\SpareCarry\node_modules\.pnpm\jsdom@23.2.0\node_modules\jsdom\lib\j
+sdom\living\helpers\runtime-script-errors.js:66:24)
+    at innerInvokeEventListeners (C:\SpareCarry\node_modules\.pnpm\jsdom@23.2.0\node_modules\j
+sdom\lib\jsdom\living\events\EventTarget-impl.js:353:9)
+    at invokeEventListeners (C:\SpareCarry\node_modules\.pnpm\jsdom@23.2.0\node_modules\jsdom\
+lib\jsdom\living\events\EventTarget-impl.js:286:3)
+    at HTMLUnknownElementImpl._dispatch (C:\SpareCarry\node_modules\.pnpm\jsdom@23.2.0\node_mo
+dules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:233:9)
+    at HTMLUnknownElementImpl.dispatchEvent (C:\SpareCarry\node_modules\.pnpm\jsdom@23.2.0\nod
+e_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:104:17)
+    at HTMLUnknownElement.dispatchEvent (C:\SpareCarry\node_modules\.pnpm\jsdom@23.2.0\node_mo
+dules\jsdom\lib\jsdom\living\generated\EventTarget.js:241:34)
+    at Object.invokeGuardedCallbackDev (C:\SpareCarry\node_modules\.pnpm\react-dom@18.3.1_reac
+t@18.3.1\node_modules\react-dom\cjs\react-dom.development.js:4213:16)
+    at invokeGuardedCallback (C:\SpareCarry\node_modules\.pnpm\react-dom@18.3.1_react@18.3.1\n
+ode_modules\react-dom\cjs\react-dom.development.js:4277:31)
+    at beginWork$1 (C:\SpareCarry\node_modules\.pnpm\react-dom@18.3.1_react@18.3.1\node_module
+s\react-dom\cjs\react-dom.development.js:27490:7)
+    at performUnitOfWork (C:\SpareCarry\node_modules\.pnpm\react-dom@18.3.1_react@18.3.1\node_
+modules\react-dom\cjs\react-dom.development.js:26599:12) ReferenceError: 
+createMockSupabaseClient is not defined
+    at Proxy.<anonymous> [90m(C:\SpareCarry\[39mtests\setup-supabase-mock.ts:4:33[90m)[39m
+    at Proxy.mockCall [90m(file:///C:/SpareCarry/[39mnode_modules/[4m.pnpm[24m/@vitest+spy
+@1.6.1/node_modules/[4m@vitest/spy[24m/dist/index.js:50:17[90m)[39m
+    at Proxy.spy [90m(file:///C:/SpareCarry/[39mnode_modules/[4m.pnpm[24m/tinyspy@2.2.1/no
+de_modules/[4mtinyspy[24m/dist/index.js:42:80[90m)[39m
+    at LoginPage [90m(C:\SpareCarry\[39mapp\auth\login\page.tsx:19:20[90m)[39m
+    at renderWithHooks [90m(C:\SpareCarry\[39mnode_modules\[4m.pnpm[24m\react-dom@18.3.1_r
+eact@18.3.1\node_modules\[4mreact-dom[24m\cjs\react-dom.development.js:15486:18[90m)[39m
+    at mountIndeterminateComponent [90m(C:\SpareCarry\[39mnode_modules\[4m.pnpm[24m\react-
+dom@18.3.1_react@18.3.1\node_modules\[4mreact-dom[24m\cjs\react-dom.development.js:20103:13
+[90m)[39m
+    at beginWork [90m(C:\SpareCarry\[39mnode_modules\[4m.pnpm[24m\react-dom@18.3.1_react@1
+8.3.1\node_modules\[4mreact-dom[24m\cjs\react-dom.development.js:21626:16[90m)[39m
+    at HTMLUnknownElement.callCallback [90m(C:\SpareCarry\[39mnode_modules\[4m.pnpm[24m\re
+act-dom@18.3.1_react@18.3.1\node_modules\[4mreact-dom[24m\cjs\react-dom.development.js:4164:
+14[90m)[39m
+    at HTMLUnknownElement.callTheUserObjectsOperation [90m(C:\SpareCarry\[39mnode_modules\[
+4m.pnpm[24m\jsdom@23.2.0\node_modules\[4mjsdom[24m\lib\jsdom\living\generated\EventListener
+.js:26:30[90m)[39m
+    at innerInvokeEventListeners [90m(C:\SpareCarry\[39mnode_modules\[4m.pnpm[24m\jsdom@23
+.2.0\node_modules\[4mjsdom[24m\lib\jsdom\living\events\EventTarget-impl.js:350:25[90m)[39m
+The above error occurred in the <LoginPage> component:
+
+    at LoginPage (C:\SpareCarry\app\auth\login\page.tsx:25:51)
+    at QueryClientProvider (file:///C:/SpareCarry/node_modules/.pnpm/@tanstack+react-query@5.9
+0.10_react@18.3.1/node_modules/@tanstack/react-query/build/modern/QueryClientProvider.js:20:3)
+    at AllTheProviders (C:\SpareCarry\tests\utils\test-utils.tsx:15:28)
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+
+[90mstderr[2m | tests/unit/components/auth/login.test.tsx[2m > [22m[2mLoginPage[2m > 
+[22m[2mshould show error message on failed login[22m[39m
+Error: Uncaught [ReferenceError: createMockSupabaseClient is not defined]
+    at reportException (C:\SpareCarry\node_modules\.pnpm\jsdom@23.2.0\node_modules\jsdom\lib\j
+sdom\living\helpers\runtime-script-errors.js:66:24)
+    at innerInvokeEventListeners (C:\SpareCarry\node_modules\.pnpm\jsdom@23.2.0\node_modules\j
+sdom\lib\jsdom\living\events\EventTarget-impl.js:353:9)
+    at invokeEventListeners (C:\SpareCarry\node_modules\.pnpm\jsdom@23.2.0\node_modules\jsdom\
+lib\jsdom\living\events\EventTarget-impl.js:286:3)
+    at HTMLUnknownElementImpl._dispatch (C:\SpareCarry\node_modules\.pnpm\jsdom@23.2.0\node_mo
+dules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:233:9)
+    at HTMLUnknownElementImpl.dispatchEvent (C:\SpareCarry\node_modules\.pnpm\jsdom@23.2.0\nod
+e_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:104:17)
+    at HTMLUnknownElement.dispatchEvent (C:\SpareCarry\node_modules\.pnpm\jsdom@23.2.0\node_mo
+dules\jsdom\lib\jsdom\living\generated\EventTarget.js:241:34)
+    at Object.invokeGuardedCallbackDev (C:\SpareCarry\node_modules\.pnpm\react-dom@18.3.1_reac
+t@18.3.1\node_modules\react-dom\cjs\react-dom.development.js:4213:16)
+    at invokeGuardedCallback (C:\SpareCarry\node_modules\.pnpm\react-dom@18.3.1_react@18.3.1\n
+ode_modules\react-dom\cjs\react-dom.development.js:4277:31)
+    at beginWork$1 (C:\SpareCarry\node_modules\.pnpm\react-dom@18.3.1_react@18.3.1\node_module
+s\react-dom\cjs\react-dom.development.js:27490:7)
+    at performUnitOfWork (C:\SpareCarry\node_modules\.pnpm\react-dom@18.3.1_react@18.3.1\node_
+modules\react-dom\cjs\react-dom.development.js:26599:12) ReferenceError: 
+createMockSupabaseClient is not defined
+    at Proxy.<anonymous> [90m(C:\SpareCarry\[39mtests\setup-supabase-mock.ts:4:33[90m)[39m
+    at Proxy.mockCall [90m(file:///C:/SpareCarry/[39mnode_modules/[4m.pnpm[24m/@vitest+spy
+@1.6.1/node_modules/[4m@vitest/spy[24m/dist/index.js:50:17[90m)[39m
+    at Proxy.spy [90m(file:///C:/SpareCarry/[39mnode_modules/[4m.pnpm[24m/tinyspy@2.2.1/no
+de_modules/[4mtinyspy[24m/dist/index.js:42:80[90m)[39m
+    at LoginPage [90m(C:\SpareCarry\[39mapp\auth\login\page.tsx:19:20[90m)[39m
+    at renderWithHooks [90m(C:\SpareCarry\[39mnode_modules\[4m.pnpm[24m\react-dom@18.3.1_r
+eact@18.3.1\node_modules\[4mreact-dom[24m\cjs\react-dom.development.js:15486:18[90m)[39m
+    at mountIndeterminateComponent [90m(C:\SpareCarry\[39mnode_modules\[4m.pnpm[24m\react-
+dom@18.3.1_react@18.3.1\node_modules\[4mreact-dom[24m\cjs\react-dom.development.js:20103:13
+[90m)[39m
+    at beginWork [90m(C:\SpareCarry\[39mnode_modules\[4m.pnpm[24m\react-dom@18.3.1_react@1
+8.3.1\node_modules\[4mreact-dom[24m\cjs\react-dom.development.js:21626:16[90m)[39m
+    at HTMLUnknownElement.callCallback [90m(C:\SpareCarry\[39mnode_modules\[4m.pnpm[24m\re
+act-dom@18.3.1_react@18.3.1\node_modules\[4mreact-dom[24m\cjs\react-dom.development.js:4164:
+14[90m)[39m
+    at HTMLUnknownElement.callTheUserObjectsOperation [90m(C:\SpareCarry\[39mnode_modules\[
+4m.pnpm[24m\jsdom@23.2.0\node_modules\[4mjsdom[24m\lib\jsdom\living\generated\EventListener
+.js:26:30[90m)[39m
+    at innerInvokeEventListeners [90m(C:\SpareCarry\[39mnode_modules\[4m.pnpm[24m\jsdom@23
+.2.0\node_modules\[4mjsdom[24m\lib\jsdom\living\events\EventTarget-impl.js:350:25[90m)[39m
+Error: Uncaught [ReferenceError: createMockSupabaseClient is not defined]
+    at reportException (C:\SpareCarry\node_modules\.pnpm\jsdom@23.2.0\node_modules\jsdom\lib\j
+sdom\living\helpers\runtime-script-errors.js:66:24)
+    at innerInvokeEventListeners (C:\SpareCarry\node_modules\.pnpm\jsdom@23.2.0\node_modules\j
+sdom\lib\jsdom\living\events\EventTarget-impl.js:353:9)
+    at invokeEventListeners (C:\SpareCarry\node_modules\.pnpm\jsdom@23.2.0\node_modules\jsdom\
+lib\jsdom\living\events\EventTarget-impl.js:286:3)
+    at HTMLUnknownElementImpl._dispatch (C:\SpareCarry\node_modules\.pnpm\jsdom@23.2.0\node_mo
+dules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:233:9)
+    at HTMLUnknownElementImpl.dispatchEvent (C:\SpareCarry\node_modules\.pnpm\jsdom@23.2.0\nod
+e_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:104:17)
+    at HTMLUnknownElement.dispatchEvent (C:\SpareCarry\node_modules\.pnpm\jsdom@23.2.0\node_mo
+dules\jsdom\lib\jsdom\living\generated\EventTarget.js:241:34)
+    at Object.invokeGuardedCallbackDev (C:\SpareCarry\node_modules\.pnpm\react-dom@18.3.1_reac
+t@18.3.1\node_modules\react-dom\cjs\react-dom.development.js:4213:16)
+    at invokeGuardedCallback (C:\SpareCarry\node_modules\.pnpm\react-dom@18.3.1_react@18.3.1\n
+ode_modules\react-dom\cjs\react-dom.development.js:4277:31)
+    at beginWork$1 (C:\SpareCarry\node_modules\.pnpm\react-dom@18.3.1_react@18.3.1\node_module
+s\react-dom\cjs\react-dom.development.js:27490:7)
+    at performUnitOfWork (C:\SpareCarry\node_modules\.pnpm\react-dom@18.3.1_react@18.3.1\node_
+modules\react-dom\cjs\react-dom.development.js:26599:12) ReferenceError: 
+createMockSupabaseClient is not defined
+    at Proxy.<anonymous> [90m(C:\SpareCarry\[39mtests\setup-supabase-mock.ts:4:33[90m)[39m
+    at Proxy.mockCall [90m(file:///C:/SpareCarry/[39mnode_modules/[4m.pnpm[24m/@vitest+spy
+@1.6.1/node_modules/[4m@vitest/spy[24m/dist/index.js:50:17[90m)[39m
+    at Proxy.spy [90m(file:///C:/SpareCarry/[39mnode_modules/[4m.pnpm[24m/tinyspy@2.2.1/no
+de_modules/[4mtinyspy[24m/dist/index.js:42:80[90m)[39m
+    at LoginPage [90m(C:\SpareCarry\[39mapp\auth\login\page.tsx:19:20[90m)[39m
+    at renderWithHooks [90m(C:\SpareCarry\[39mnode_modules\[4m.pnpm[24m\react-dom@18.3.1_r
+eact@18.3.1\node_modules\[4mreact-dom[24m\cjs\react-dom.development.js:15486:18[90m)[39m
+    at mountIndeterminateComponent [90m(C:\SpareCarry\[39mnode_modules\[4m.pnpm[24m\react-
+dom@18.3.1_react@18.3.1\node_modules\[4mreact-dom[24m\cjs\react-dom.development.js:20103:13
+[90m)[39m
+    at beginWork [90m(C:\SpareCarry\[39mnode_modules\[4m.pnpm[24m\react-dom@18.3.1_react@1
+8.3.1\node_modules\[4mreact-dom[24m\cjs\react-dom.development.js:21626:16[90m)[39m
+    at HTMLUnknownElement.callCallback [90m(C:\SpareCarry\[39mnode_modules\[4m.pnpm[24m\re
+act-dom@18.3.1_react@18.3.1\node_modules\[4mreact-dom[24m\cjs\react-dom.development.js:4164:
+14[90m)[39m
+    at HTMLUnknownElement.callTheUserObjectsOperation [90m(C:\SpareCarry\[39mnode_modules\[
+4m.pnpm[24m\jsdom@23.2.0\node_modules\[4mjsdom[24m\lib\jsdom\living\generated\EventListener
+.js:26:30[90m)[39m
+    at innerInvokeEventListeners [90m(C:\SpareCarry\[39mnode_modules\[4m.pnpm[24m\jsdom@23
+.2.0\node_modules\[4mjsdom[24m\lib\jsdom\living\events\EventTarget-impl.js:350:25[90m)[39m
+The above error occurred in the <LoginPage> component:
+
+    at LoginPage (C:\SpareCarry\app\auth\login\page.tsx:25:51)
+    at QueryClientProvider (file:///C:/SpareCarry/node_modules/.pnpm/@tanstack+react-query@5.9
+0.10_react@18.3.1/node_modules/@tanstack/react-query/build/modern/QueryClientProvider.js:20:3)
+    at AllTheProviders (C:\SpareCarry\tests\utils\test-utils.tsx:15:28)
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+
+[90mstderr[2m | tests/unit/components/auth/login.test.tsx[2m > [22m[2mLoginPage[2m > 
+[22m[2mshould handle OAuth login[22m[39m
+Error: Uncaught [ReferenceError: createMockSupabaseClient is not defined]
+    at reportException (C:\SpareCarry\node_modules\.pnpm\jsdom@23.2.0\node_modules\jsdom\lib\j
+sdom\living\helpers\runtime-script-errors.js:66:24)
+    at innerInvokeEventListeners (C:\SpareCarry\node_modules\.pnpm\jsdom@23.2.0\node_modules\j
+sdom\lib\jsdom\living\events\EventTarget-impl.js:353:9)
+    at invokeEventListeners (C:\SpareCarry\node_modules\.pnpm\jsdom@23.2.0\node_modules\jsdom\
+lib\jsdom\living\events\EventTarget-impl.js:286:3)
+    at HTMLUnknownElementImpl._dispatch (C:\SpareCarry\node_modules\.pnpm\jsdom@23.2.0\node_mo
+dules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:233:9)
+    at HTMLUnknownElementImpl.dispatchEvent (C:\SpareCarry\node_modules\.pnpm\jsdom@23.2.0\nod
+e_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:104:17)
+    at HTMLUnknownElement.dispatchEvent (C:\SpareCarry\node_modules\.pnpm\jsdom@23.2.0\node_mo
+dules\jsdom\lib\jsdom\living\generated\EventTarget.js:241:34)
+    at Object.invokeGuardedCallbackDev (C:\SpareCarry\node_modules\.pnpm\react-dom@18.3.1_reac
+t@18.3.1\node_modules\react-dom\cjs\react-dom.development.js:4213:16)
+    at invokeGuardedCallback (C:\SpareCarry\node_modules\.pnpm\react-dom@18.3.1_react@18.3.1\n
+ode_modules\react-dom\cjs\react-dom.development.js:4277:31)
+    at beginWork$1 (C:\SpareCarry\node_modules\.pnpm\react-dom@18.3.1_react@18.3.1\node_module
+s\react-dom\cjs\react-dom.development.js:27490:7)
+    at performUnitOfWork (C:\SpareCarry\node_modules\.pnpm\react-dom@18.3.1_react@18.3.1\node_
+modules\react-dom\cjs\react-dom.development.js:26599:12) ReferenceError: 
+createMockSupabaseClient is not defined
+    at Proxy.<anonymous> [90m(C:\SpareCarry\[39mtests\setup-supabase-mock.ts:4:33[90m)[39m
+    at Proxy.mockCall [90m(file:///C:/SpareCarry/[39mnode_modules/[4m.pnpm[24m/@vitest+spy
+@1.6.1/node_modules/[4m@vitest/spy[24m/dist/index.js:50:17[90m)[39m
+    at Proxy.spy [90m(file:///C:/SpareCarry/[39mnode_modules/[4m.pnpm[24m/tinyspy@2.2.1/no
+de_modules/[4mtinyspy[24m/dist/index.js:42:80[90m)[39m
+    at LoginPage [90m(C:\SpareCarry\[39mapp\auth\login\page.tsx:19:20[90m)[39m
+    at renderWithHooks [90m(C:\SpareCarry\[39mnode_modules\[4m.pnpm[24m\react-dom@18.3.1_r
+eact@18.3.1\node_modules\[4mreact-dom[24m\cjs\react-dom.development.js:15486:18[90m)[39m
+    at mountIndeterminateComponent [90m(C:\SpareCarry\[39mnode_modules\[4m.pnpm[24m\react-
+dom@18.3.1_react@18.3.1\node_modules\[4mreact-dom[24m\cjs\react-dom.development.js:20103:13
+[90m)[39m
+    at beginWork [90m(C:\SpareCarry\[39mnode_modules\[4m.pnpm[24m\react-dom@18.3.1_react@1
+8.3.1\node_modules\[4mreact-dom[24m\cjs\react-dom.development.js:21626:16[90m)[39m
+    at HTMLUnknownElement.callCallback [90m(C:\SpareCarry\[39mnode_modules\[4m.pnpm[24m\re
+act-dom@18.3.1_react@18.3.1\node_modules\[4mreact-dom[24m\cjs\react-dom.development.js:4164:
+14[90m)[39m
+    at HTMLUnknownElement.callTheUserObjectsOperation [90m(C:\SpareCarry\[39mnode_modules\[
+4m.pnpm[24m\jsdom@23.2.0\node_modules\[4mjsdom[24m\lib\jsdom\living\generated\EventListener
+.js:26:30[90m)[39m
+    at innerInvokeEventListeners [90m(C:\SpareCarry\[39mnode_modules\[4m.pnpm[24m\jsdom@23
+.2.0\node_modules\[4mjsdom[24m\lib\jsdom\living\events\EventTarget-impl.js:350:25[90m)[39m
+Error: Uncaught [ReferenceError: createMockSupabaseClient is not defined]
+    at reportException (C:\SpareCarry\node_modules\.pnpm\jsdom@23.2.0\node_modules\jsdom\lib\j
+sdom\living\helpers\runtime-script-errors.js:66:24)
+    at innerInvokeEventListeners (C:\SpareCarry\node_modules\.pnpm\jsdom@23.2.0\node_modules\j
+sdom\lib\jsdom\living\events\EventTarget-impl.js:353:9)
+    at invokeEventListeners (C:\SpareCarry\node_modules\.pnpm\jsdom@23.2.0\node_modules\jsdom\
+lib\jsdom\living\events\EventTarget-impl.js:286:3)
+    at HTMLUnknownElementImpl._dispatch (C:\SpareCarry\node_modules\.pnpm\jsdom@23.2.0\node_mo
+dules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:233:9)
+    at HTMLUnknownElementImpl.dispatchEvent (C:\SpareCarry\node_modules\.pnpm\jsdom@23.2.0\nod
+e_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:104:17)
+    at HTMLUnknownElement.dispatchEvent (C:\SpareCarry\node_modules\.pnpm\jsdom@23.2.0\node_mo
+dules\jsdom\lib\jsdom\living\generated\EventTarget.js:241:34)
+    at Object.invokeGuardedCallbackDev (C:\SpareCarry\node_modules\.pnpm\react-dom@18.3.1_reac
+t@18.3.1\node_modules\react-dom\cjs\react-dom.development.js:4213:16)
+    at invokeGuardedCallback (C:\SpareCarry\node_modules\.pnpm\react-dom@18.3.1_react@18.3.1\n
+ode_modules\react-dom\cjs\react-dom.development.js:4277:31)
+    at beginWork$1 (C:\SpareCarry\node_modules\.pnpm\react-dom@18.3.1_react@18.3.1\node_module
+s\react-dom\cjs\react-dom.development.js:27490:7)
+    at performUnitOfWork (C:\SpareCarry\node_modules\.pnpm\react-dom@18.3.1_react@18.3.1\node_
+modules\react-dom\cjs\react-dom.development.js:26599:12) ReferenceError: 
+createMockSupabaseClient is not defined
+    at Proxy.<anonymous> [90m(C:\SpareCarry\[39mtests\setup-supabase-mock.ts:4:33[90m)[39m
+    at Proxy.mockCall [90m(file:///C:/SpareCarry/[39mnode_modules/[4m.pnpm[24m/@vitest+spy
+@1.6.1/node_modules/[4m@vitest/spy[24m/dist/index.js:50:17[90m)[39m
+ [33mΓ¥»[39m tests/unit/components/auth/login.test.tsx [2m ([22m[2m4 tests[22m [2m|[22m [31m4 failed[39m[2m)[22m[90m 112[2mms[22m[39m
+[31m   [33mΓ¥»[31m tests/unit/components/auth/login.test.tsx[2m > [22mLoginPage[2m > [22mshould render login form[39m
+[31m     ΓåÆ createMockSupabaseClient is not defined[39m
+[31m   [33mΓ¥»[31m tests/unit/components/auth/login.test.tsx[2m > [22mLoginPage[2m > [22mshould submit magic link form with email[39m
+[31m     ΓåÆ createMockSupabaseClient is not defined[39m
+[31m   [33mΓ¥»[31m tests/unit/components/auth/login.test.tsx[2m > [22mLoginPage[2m > [22mshould show error message on failed login[39m
+[31m     ΓåÆ createMockSupabaseClient is not defined[39m
+[31m   [33mΓ¥»[31m tests/unit/components/auth/login.test.tsx[2m > [22mLoginPage[2m > [22mshould handle OAuth login[39m
+[31m     ΓåÆ createMockSupabaseClient is not defined[39m
+    at Proxy.spy [90m(file:///C:/SpareCarry/[39mnode_modules/[4m.pnpm[24m/tinyspy@2.2.1/no
+de_modules/[4mtinyspy[24m/dist/index.js:42:80[90m)[39m
+    at LoginPage [90m(C:\SpareCarry\[39mapp\auth\login\page.tsx:19:20[90m)[39m
+    at renderWithHooks [90m(C:\SpareCarry\[39mnode_modules\[4m.pnpm[24m\react-dom@18.3.1_r
+eact@18.3.1\node_modules\[4mreact-dom[24m\cjs\react-dom.development.js:15486:18[90m)[39m
+    at mountIndeterminateComponent [90m(C:\SpareCarry\[39mnode_modules\[4m.pnpm[24m\react-
+dom@18.3.1_react@18.3.1\node_modules\[4mreact-dom[24m\cjs\react-dom.development.js:20103:13
+[90m)[39m
+    at beginWork [90m(C:\SpareCarry\[39mnode_modules\[4m.pnpm[24m\react-dom@18.3.1_react@1
+8.3.1\node_modules\[4mreact-dom[24m\cjs\react-dom.development.js:21626:16[90m)[39m
+    at HTMLUnknownElement.callCallback [90m(C:\SpareCarry\[39mnode_modules\[4m.pnpm[24m\re
+act-dom@18.3.1_react@18.3.1\node_modules\[4mreact-dom[24m\cjs\react-dom.development.js:4164:
+14[90m)[39m
+    at HTMLUnknownElement.callTheUserObjectsOperation [90m(C:\SpareCarry\[39mnode_modules\[
+4m.pnpm[24m\jsdom@23.2.0\node_modules\[4mjsdom[24m\lib\jsdom\living\generated\EventListener
+.js:26:30[90m)[39m
+    at innerInvokeEventListeners [90m(C:\SpareCarry\[39mnode_modules\[4m.pnpm[24m\jsdom@23
+.2.0\node_modules\[4mjsdom[24m\lib\jsdom\living\events\EventTarget-impl.js:350:25[90m)[39m
+The above error occurred in the <LoginPage> component:
+
+    at LoginPage (C:\SpareCarry\app\auth\login\page.tsx:25:51)
+    at QueryClientProvider (file:///C:/SpareCarry/node_modules/.pnpm/@tanstack+react-query@5.9
+0.10_react@18.3.1/node_modules/@tanstack/react-query/build/modern/QueryClientProvider.js:20:3)
+    at AllTheProviders (C:\SpareCarry\tests\utils\test-utils.tsx:15:28)
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+
+[90mstdout[2m | tests/home.cta.test.tsx[2m > [22m[2mHome CTA buttons[2m > [22m[2mnavigates to login when plane button clicked[22m[39m
+Plane button clicked
+Button clicked: plane
+Checking authentication...
+Auth check result: { user: [90mundefined[39m, error: [1mnull[22m }
+User not authenticated, navigating to login
+
+ [32mΓ£ô[39m tests/home.cta.test.tsx [2m ([22m[2m1 test[22m[2m)[22m[33m 504[2mms[22m[39m
+ [33mΓ¥»[39m tests/unit/components/forms/post-request-form.test.tsx [2m ([22m[2m3 tests[22m [2m|[22m [31m3 failed[39m[2m)[22m[33m 2590[2mms[22m[39m
+[31m   [33mΓ¥»[31m tests/unit/components/forms/post-request-form.test.tsx[2m > [22mPostRequestForm[2m > [22mshould render form fields[39m
+[31m     ΓåÆ Unable to find a label with the text of: /from location/i
+
+Ignored nodes: comments, script, style
+[36m<body>[31m
+  [36m<div>[31m
+    [36m<form[31m
+      [33mclass[31m=[32m"space-y-6"[31m
+    [36m>[31m
+      [36m<div[31m
+        [33mclass[31m=[32m"space-y-2"[31m
+      [36m>[31m
+        [36m<label[31m
+          [33mclass[31m=[32m"text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"[31m
+          [33mfor[31m=[32m"title"[31m
+        [36m>[31m
+          [0mItem Title *[0m
+        [36m</label>[31m
+        [36m<input[31m
+          [33mclass[31m=[32m"flex h-10 w-full rounded-md border border-input px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 bg-white"[31m
+          [33mid[31m=[32m"title"[31m
+          [33mname[31m=[32m"title"[31m
+          [33mplaceholder[31m=[32m"e.g., Marine Battery 200Ah"[31m
+        [36m/>[31m
+      [36m</div>[31m
+      [36m<div[31m
+        [33mclass[31m=[32m"space-y-2"[31m
+      [36m>[31m
+        [36m<label[31m
+          [33mclass[31m=[32m"text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"[31m
+          [33mfor[31m=[32m"description"[31m
+        [36m>[31m
+          [0mDescription[0m
+        [36m</label>[31m
+        [36m<textarea[31m
+          [33mclass[31m=[32m"flex w-full rounded-md border border-input bg-white px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"[31m
+          [33mid[31m=[32m"description"[31m
+          [33mname[31m=[32m"description"[31m
+          [33mplaceholder[31m=[32m"Describe your item..."[31m
+          [33mrows[31m=[32m"4"[31m
+        [36m/>[31m
+      [36m</div>[31m
+      [36m<div[31m
+        [33mclass[31m=[32m"space-y-2"[31m
+      [36m>[31m
+        [36m<label[31m
+          [33mclass[31m=[32m"text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"[31m
+        [36m>[31m
+          [0mPhotos (up to 6)[0m
+        [36m</label>[31m
+        [36m<div[31m
+          [33mclass[31m=[32m"grid grid-cols-3 gap-4"[31m
+        [36m>[31m
+          [36m<label[31m
+            [33mclass[31m=[32m"aspect-square border-2 border-dashed border-slate-300 rounded-md flex items-center justify-center cursor-pointer hover:border-teal-600 transition-colors"[31m
+          [36m>[31m
+            [36m<svg[31m
+              [33mclass[31m=[32m"lucide lucide-upload h-6 w-6 text-slate-400"[31m
+              [33mfill[31m=[32m"none"[31m
+              [33mheight[31m=[32m"24"[31m
+              [33mstroke[31m=[32m"currentColor"[31m
+              [33mstroke-linecap[31m=[32m"round"[31m
+              [33mstroke-linejoin[31m=[32m"round"[31m
+              [33mstroke-width[31m=[32m"2"[31m
+              [33mviewBox[31m=[32m"0 0 24 24"[31m
+              [33mwidth[31m=[32m"24"[31m
+              [33mxmlns[31m=[32m"http://www.w3.org/2000/svg"[31m
+            [36m>[31m
+              [36m<path[31m
+                [33md[31m=[32m"M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"[31m
+              [36m/>[31m
+              [36m<polyline[31m
+                [33mpoints[31m=[32m"17 8 12 3 7 8"[31m
+              [36m/>[31m
+              [36m<line[31m
+                [33mx1[31m=[32m"12"[31m
+                [33mx2[31m=[32m"12"[31m
+                [33my1[31m=[32m"3"[31m
+                [33my2[31m=[32m"15"[31m
+              [36m/>[31m
+            [36m</svg>[31m
+            [36m<input[31m
+              [33maccept[31m=[32m"image/*"[31m
+              [33mclass[31m=[32m"hidden"[31m
+              [33mmultiple[31m=[32m""[31m
+              [33mtype[31m=[32m"file"[31m
+            [36m/>[31m
+          [36m</label>[31m
+        [36m</div>[31m
+      [36m</div>[31m
+      [36m<div[31m
+        [33mclass[31m=[32m"grid grid-cols-2 md:grid-cols-4 gap-4"[31m
+      [36m>[31m
+        [36m<div[31m
+          [33mclass[31m=[32m"space-y-2"[31m
+        [36m>[31m
+          [36m<label[31m
+            [33mclass[31m=[32m"text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"[31m
+            [33mfor[31m=[32m"length_cm"[31m
+          [36m>[31m
+            [0mLength (cm) *[0m
+          [36m</label>[31m
+          [36m<input[31m
+            [33mclass[31m=[32m"flex h-10 w-full rounded-md border border-input px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 bg-white"[31m
+            [33mid[31m=[32m"length_cm"[31m
+            [33mname[31m=[32m"length_cm"[31m
+            [33mstep[31m=[32m"0.1"[31m
+            [33mtype[31m=[32m"number"[31m
+          [36m/>[31m
+        [36m</div>[31m
+        [36m<div[31m
+          [33mclass[31m=[32m"space-y-2"[31m
+        [36m>[31m
+          [36m<label[31m
+            [33mclass[31m=[32m"text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"[31m
+            [33mfor[31m=[32m"width_cm"[31m
+          [36m>[31m
+            [0mWidth (cm) *[0m
+          [36m</label>[31m
+          [36m<input[31m
+            [33mclass[31m=[32m"flex h-10 w-full rounded-md border border-input px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 bg-white"[31m
+            [33mid[31m=[32m"width_cm"[31m
+            [33mname[31m=[32m"width_cm"[31m
+            [33mstep[31m=[32m"0.1"[31m
+            [33mtype[31m=[32m"number"[31m
+          [36m/>[31m
+        [36m</div>[31m
+        [36m<div[31m
+          [33mclass[31m=[32m"space-y-2"[31m
+        [36m>[31m
+          [36m<label[31m
+            [33mclass[31m=[32m"text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"[31m
+            [33mfor[31m=[32m"height_cm"[31m
+          [36m>[31m
+            [0mHeight (cm) *[0m
+          [36m</label>[31m
+          [36m<input[31m
+            [33mclass[31m=[32m"flex h-10 w-full rounded-md border border-input px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 fo...[39m
+[31m   [33mΓ¥»[31m tests/unit/components/forms/post-request-form.test.tsx[2m > [22mPostRequestForm[2m > [22mshould validate required fields[39m
+[31m     ΓåÆ Found multiple elements with the text: /required/i
+
+Here are the matching elements:
+
+Ignored nodes: comments, script, style
+[36m<p[31m
+  [33mclass[31m=[32m"text-sm text-red-600"[31m
+[36m>[31m
+  [0mTitle is required[0m
+[36m</p>[31m
+
+Ignored nodes: comments, script, style
+[36m<p[31m
+  [33mclass[31m=[32m"text-sm text-red-600"[31m
+[36m>[31m
+  [0mFrom location is required[0m
+[36m</p>[31m
+
+Ignored nodes: comments, script, style
+[36m<p[31m
+  [33mclass[31m=[32m"text-sm text-red-600"[31m
+[36m>[31m
+  [0mTo location is required[0m
+[36m</p>[31m
+
+Ignored nodes: comments, script, style
+[36m<p[31m
+  [33mclass[31m=[32m"text-sm text-red-600"[31m
+[36m>[31m
+  [0mDeadline is required[0m
+[36m</p>[31m
+
+(If this is intentional, then use the `*AllBy*` variant of the query (like `queryAllByText`, `getAllByText`, or `findAllByText`)).
+
+Ignored nodes: comments, script, style
+[36m<body>[31m
+  [36m<div>[31m
+    [36m<form[31m
+      [33mclass[31m=[32m"space-y-6"[31m
+    [36m>[31m
+      [36m<div[31m
+        [33mclass[31m=[32m"space-y-2"[31m
+      [36m>[31m
+        [36m<label[31m
+          [33mclass[31m=[32m"text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"[31m
+          [33mfor[31m=[32m"title"[31m
+        [36m>[31m
+          [0mItem Title *[0m
+        [36m</label>[31m
+        [36m<input[31m
+          [33mclass[31m=[32m"flex h-10 w-full rounded-md border border-input px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 bg-white"[31m
+          [33mid[31m=[32m"title"[31m
+          [33mname[31m=[32m"title"[31m
+          [33mplaceholder[31m=[32m"e.g., Marine Battery 200Ah"[31m
+        [36m/>[31m
+        [36m<p[31m
+          [33mclass[31m=[32m"text-sm text-red-600"[31m
+        [36m>[31m
+          [0mTitle is required[0m
+        [36m</p>[31m
+      [36m</div>[31m
+      [36m<div[31m
+        [33mclass[31m=[32m"space-y-2"[31m
+      [36m>[31m
+        [36m<label[31m
+          [33mclass[31m=[32m"text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"[31m
+          [33mfor[31m=[32m"description"[31m
+        [36m>[31m
+          [0mDescription[0m
+        [36m</label>[31m
+        [36m<textarea[31m
+          [33mclass[31m=[32m"flex w-full rounded-md border border-input bg-white px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"[31m
+          [33mid[31m=[32m"description"[31m
+          [33mname[31m=[32m"description"[31m
+          [33mplaceholder[31m=[32m"Describe your item..."[31m
+          [33mrows[31m=[32m"4"[31m
+        [36m/>[31m
+      [36m</div>[31m
+      [36m<div[31m
+        [33mclass[31m=[32m"space-y-2"[31m
+      [36m>[31m
+        [36m<label[31m
+          [33mclass[31m=[32m"text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"[31m
+        [36m>[31m
+          [0mPhotos (up to 6)[0m
+        [36m</label>[31m
+        [36m<div[31m
+          [33mclass[31m=[32m"grid grid-cols-3 gap-4"[31m
+        [36m>[31m
+          [36m<label[31m
+            [33mclass[31m=[32m"aspect-square border-2 border-dashed border-slate-300 rounded-md flex items-center justify-center cursor-pointer hover:border-teal-600 transition-colors"[31m
+          [36m>[31m
+            [36m<svg[31m
+              [33mclass[31m=[32m"lucide lucide-upload h-6 w-6 text-slate-400"[31m
+              [33mfill[31m=[32m"none"[31m
+              [33mheight[31m=[32m"24"[31m
+              [33mstroke[31m=[32m"currentColor"[31m
+              [33mstroke-linecap[31m=[32m"round"[31m
+              [33mstroke-linejoin[31m=[32m"round"[31m
+              [33mstroke-width[31m=[32m"2"[31m
+              [33mviewBox[31m=[32m"0 0 24 24"[31m
+              [33mwidth[31m=[32m"24"[31m
+              [33mxmlns[31m=[32m"http://www.w3.org/2000/svg"[31m
+            [36m>[31m
+              [36m<path[31m
+                [33md[31m=[32m"M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"[31m
+              [36m/>[31m
+              [36m<polyline[31m
+                [33mpoints[31m=[32m"17 8 12 3 7 8"[31m
+              [36m/>[31m
+              [36m<line[31m
+                [33mx1[31m=[32m"12"[31m
+                [33mx2[31m=[32m"12"[31m
+                [33my1[31m=[32m"3"[31m
+                [33my2[31m=[32m"15"[31m
+              [36m/>[31m
+            [36m</svg>[31m
+            [36m<input[31m
+              [33maccept[31m=[32m"image/*"[31m
+              [33mclass[31m=[32m"hidden"[31m
+              [33mmultiple[31m=[32m""[31m
+              [33mtype[31m=[32m"file"[31m
+            [36m/>[31m
+          [36m</label>[31m
+        [36m</div>[31m
+      [36m</div>[31m
+      [36m<div[31m
+        [33mclass[31m=[32m"grid grid-cols-2 md:grid-cols-4 gap-4"[31m
+      [36m>[31m
+        [36m<div[31m
+          [33mclass[31m=[32m"space-y-2"[31m
+        [36m>[31m
+          [36m<label[31m
+            [33mclass[31m=[32m"text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"[31m
+            [33mfor[31m=[32m"length_cm"[31m
+          [36m>[31m
+            [0mLength (cm) *[0m
+          [36m</label>[31m
+          [36m<input[31m
+            [33mclass[31m=[32m"flex h-10 w-full rounded-md border border-input px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 bg-white"[31m
+            [33mid[31m=[32m"length_cm"[31m
+            [33mname[31m=[32m"length_cm"[31m
+            [33mstep[31m=[32m"0.1"[31m
+            [33mtype[31m=[32m"number"[31m
+          [36m/>[31m
+          [36m<p[31m
+            [33mclass[31m=[32m"text-sm text-red-600"[31m
+          [36m>[31m
+            [0mExpected number, received nan[0m
+          [36m</p>[31m
+        [36m</div>[31m
+        [36m<div[31m
+          [33mclass[31m=[32m"space-y-2"[31m
+        [36m>[31m
+          [36m<label[31m
+            [33mclass[31m=[32m"text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"[31m
+            [33mfor[31m=[32m"width_cm"[31m
+          [36m>[31m
+            [0mWidth (cm) *[0m
+          [36m</label>[31m
+          [36m<input[31m
+            [33mclass[31m=[32m"flex h-10 w-full rounded-md border border-input px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 bg-white"[31m
+            [33mid[31m=[32m"width_cm"[31m
+            [33mname[31m=[32m"width_cm"[31m
+            [33mstep[31m=[32m"0.1"[31m
+            [33mtype[31m=[32m"number"[31m
+          [36m/>[31m
+          [36m<p[31m
+            [33mclass[31m=[32m"text-sm text-red-600"[31m
+          [36m>[31m
+            [0mExpected number, received nan[0m
+          [36m</p>[31m
+        [36m</div>[31m
+        [36m<div[31m
+          [33mclass[31m=[32m"space-y-2"[31m
+        [36m>[31m
+          [36m<label[31m
+            [33mclass[31m=[32m"text-sm...
+
+Ignored nodes: comments, script, style
+[36m<html>[31m
+  [36m<head />[31m
+  [36m<body>[31m
+    [36m<div>[31m
+      [36m<form[31m
+        [33mclass[31m=[32m"space-y-6"[31m
+      [36m>[31m
+        [36m<div[31m
+          [33mclass[31m=[32m"space-y-2"[31m
+        [36m>[31m
+          [36m<label[31m
+            [33mclass[31m=[32m"text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"[31m
+            [33mfor[31m=[32m"title"[31m
+          [36m>[31m
+            [0mItem Title *[0m
+          [36m</label>[31m
+          [36m<input[31m
+            [33mclass[31m=[32m"flex h-10 w-full rounded-md border border-input px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 bg-white"[31m
+            [33mid[31m=[32m"title"[31m
+            [33mname[31m=[32m"title"[31m
+            [33mplaceholder[31m=[32m"e.g., Marine Battery 200Ah"[31m
+          [36m/>[31m
+          [36m<p[31m
+            [33mclass[31m=[32m"text-sm text-red-600"[31m
+          [36m>[31m
+            [0mTitle is required[0m
+          [36m</p>[31m
+        [36m</div>[31m
+        [36m<div[31m
+          [33mclass[31m=[32m"space-y-2"[31m
+        [36m>[31m
+          [36m<label[31m
+            [33mclass[31m=[32m"text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"[31m
+            [33mfor[31m=[32m"description"[31m
+          [36m>[31m
+            [0mDescription[0m
+          [36m</label>[31m
+          [36m<textarea[31m
+            [33mclass[31m=[32m"flex w-full rounded-md border border-input bg-white px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"[31m
+            [33mid[31m=[32m"description"[31m
+            [33mname[31m=[32m"description"[31m
+            [33mplaceholder[31m=[32m"Describe your item..."[31m
+            [33mrows[31m=[32m"4"[31m
+          [36m/>[31m
+        [36m</div>[31m
+        [36m<div[31m
+          [33mclass[31m=[32m"space-y-2"[31m
+        [36m>[31m
+          [36m<label[31m
+            [33mclass[31m=[32m"text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"[31m
+          [36m>[31m
+            [0mPhotos (up to 6)[0m
+          [36m</label>[31m
+          [36m<div[31m
+            [33mclass[31m=[32m"grid grid-cols-3 gap-4"[31m
+          [36m>[31m
+            [36m<label[31m
+              [33mclass[31m=[32m"aspect-square border-2 border-dashed border-slate-300 rounded-md flex items-center justify-center cursor-pointer hover:border-teal-600 transition-colors"[31m
+            [36m>[31m
+              [36m<svg[31m
+                [33mclass[31m=[32m"lucide lucide-upload h-6 w-6 text-slate-400"[31m
+                [33mfill[31m=[32m"none"[31m
+                [33mheight[31m=[32m"24"[31m
+                [33mstroke[31m=[32m"currentColor"[31m
+                [33mstroke-linecap[31m=[32m"round"[31m
+                [33mstroke-linejoin[31m=[32m"round"[31m
+                [33mstroke-width[31m=[32m"2"[31m
+                [33mviewBox[31m=[32m"0 0 24 24"[31m
+                [33mwidth[31m=[32m"24"[31m
+                [33mxmlns[31m=[32m"http://www.w3.org/2000/svg"[31m
+              [36m>[31m
+                [36m<path[31m
+                  [33md[31m=[32m"M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"[31m
+                [36m/>[31m
+                [36m<polyline[31m
+                  [33mpoints[31m=[32m"17 8 12 3 7 8"[31m
+                [36m/>[31m
+                [36m<line[31m
+                  [33mx1[31m=[32m"12"[31m
+                  [33mx2[31m=[32m"12"[31m
+                  [33my1[31m=[32m"3"[31m
+                  [33my2[31m=[32m"15"[31m
+                [36m/>[31m
+              [36m</svg>[31m
+              [36m<input[31m
+                [33maccept[31m=[32m"image/*"[31m
+                [33mclass[31m=[32m"hidden"[31m
+                [33mmultiple[31m=[32m""[31m
+                [33mtype[31m=[32m"file"[31m
+              [36m/>[31m
+            [36m</label>[31m
+          [36m</div>[31m
+        [36m</div>[31m
+        [36m<div[31m
+          [33mclass[31m=[32m"grid grid-cols-2 md:grid-cols-4 gap-4"[31m
+        [36m>[31m
+          [36m<div[31m
+            [33mclass[31m=[32m"space-y-2"[31m
+          [36m>[31m
+            [36m<label[31m
+              [33mclass[31m=[32m"text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"[31m
+              [33mfor[31m=[32m"length_cm"[31m
+            [36m>[31m
+              [0mLength (cm) *[0m
+            [36m</label>[31m
+            [36m<input[31m
+              [33mclass[31m=[32m"flex h-10 w-full rounded-md border border-input px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 bg-white"[31m
+              [33mid[31m=[32m"length_cm"[31m
+              [33mname[31m=[32m"length_cm"[31m
+              [33mstep[31m=[32m"0.1"[31m
+              [33mtype[31m=[32m"number"[31m
+            [36m/>[31m
+            [36m<p[31m
+              [33mclass[31m=[32m"text-sm text-red-600"[31m
+            [36m>[31m
+              [0mExpected number, received nan[0m
+            [36m</p>[31m
+          [36m</div>[31m
+          [36m<div[31m
+            [33mclass[31m=[32m"space-y-2"[31m
+          [36m>[31m
+            [36m<label[31m
+              [33mclass[31m=[32m"text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"[31m
+              [33mfor[31m=[32m"width_cm"[31m
+            [36m>[31m
+              [0mWidth (cm) *[0m
+            [36m</label>[31m
+            [36m<input[31m
+              [33mclass[31m=[32m"flex h-10 w-full rounded-md border border-input px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 bg-white"[31m
+              [33mid[31m=[32m"width_cm"[31m
+              [33mname[31m=[32m"width_cm"[31m
+              [33mstep[31m=[32m"0.1"[31m
+              [33mtype[31m=[32m"number"[31m
+            [36m/>[31m
+            [36m<p[31m
+              [33mclass[31m=[32m"te...[39m
+[31m   [33mΓ¥»[31m tests/unit/components/forms/post-request-form.test.tsx[2m > [22mPostRequestForm[2m > [22mshould submit valid form[39m
+[31m     ΓåÆ Unable to find a label with the text of: /from location/i
+
+Ignored nodes: comments, script, style
+[36m<body>[31m
+  [36m<div>[31m
+    [36m<form[31m
+      [33mclass[31m=[32m"space-y-6"[31m
+    [36m>[31m
+      [36m<div[31m
+        [33mclass[31m=[32m"space-y-2"[31m
+      [36m>[31m
+        [36m<label[31m
+          [33mclass[31m=[32m"text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"[31m
+          [33mfor[31m=[32m"title"[31m
+        [36m>[31m
+          [0mItem Title *[0m
+        [36m</label>[31m
+        [36m<input[31m
+          [33mclass[31m=[32m"flex h-10 w-full rounded-md border border-input px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 bg-white"[31m
+          [33mid[31m=[32m"title"[31m
+          [33mname[31m=[32m"title"[31m
+          [33mplaceholder[31m=[32m"e.g., Marine Battery 200Ah"[31m
+        [36m/>[31m
+      [36m</div>[31m
+      [36m<div[31m
+        [33mclass[31m=[32m"space-y-2"[31m
+      [36m>[31m
+        [36m<label[31m
+          [33mclass[31m=[32m"text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"[31m
+          [33mfor[31m=[32m"description"[31m
+        [36m>[31m
+          [0mDescription[0m
+        [36m</label>[31m
+        [36m<textarea[31m
+          [33mclass[31m=[32m"flex w-full rounded-md border border-input bg-white px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"[31m
+          [33mid[31m=[32m"description"[31m
+          [33mname[31m=[32m"description"[31m
+          [33mplaceholder[31m=[32m"Describe your item..."[31m
+          [33mrows[31m=[32m"4"[31m
+        [36m/>[31m
+      [36m</div>[31m
+      [36m<div[31m
+        [33mclass[31m=[32m"space-y-2"[31m
+      [36m>[31m
+        [36m<label[31m
+          [33mclass[31m=[32m"text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"[31m
+        [36m>[31m
+          [0mPhotos (up to 6)[0m
+        [36m</label>[31m
+        [36m<div[31m
+          [33mclass[31m=[32m"grid grid-cols-3 gap-4"[31m
+        [36m>[31m
+          [36m<label[31m
+            [33mclass[31m=[32m"aspect-square border-2 border-dashed border-slate-300 rounded-md flex items-center justify-center cursor-pointer hover:border-teal-600 transition-colors"[31m
+          [36m>[31m
+            [36m<svg[31m
+              [33mclass[31m=[32m"lucide lucide-upload h-6 w-6 text-slate-400"[31m
+              [33mfill[31m=[32m"none"[31m
+              [33mheight[31m=[32m"24"[31m
+              [33mstroke[31m=[32m"currentColor"[31m
+              [33mstroke-linecap[31m=[32m"round"[31m
+              [33mstroke-linejoin[31m=[32m"round"[31m
+              [33mstroke-width[31m=[32m"2"[31m
+              [33mviewBox[31m=[32m"0 0 24 24"[31m
+              [33mwidth[31m=[32m"24"[31m
+              [33mxmlns[31m=[32m"http://www.w3.org/2000/svg"[31m
+            [36m>[31m
+              [36m<path[31m
+                [33md[31m=[32m"M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"[31m
+              [36m/>[31m
+              [36m<polyline[31m
+                [33mpoints[31m=[32m"17 8 12 3 7 8"[31m
+              [36m/>[31m
+              [36m<line[31m
+                [33mx1[31m=[32m"12"[31m
+                [33mx2[31m=[32m"12"[31m
+                [33my1[31m=[32m"3"[31m
+                [33my2[31m=[32m"15"[31m
+              [36m/>[31m
+            [36m</svg>[31m
+            [36m<input[31m
+              [33maccept[31m=[32m"image/*"[31m
+              [33mclass[31m=[32m"hidden"[31m
+              [33mmultiple[31m=[32m""[31m
+              [33mtype[31m=[32m"file"[31m
+            [36m/>[31m
+          [36m</label>[31m
+        [36m</div>[31m
+      [36m</div>[31m
+      [36m<div[31m
+        [33mclass[31m=[32m"grid grid-cols-2 md:grid-cols-4 gap-4"[31m
+      [36m>[31m
+        [36m<div[31m
+          [33mclass[31m=[32m"space-y-2"[31m
+        [36m>[31m
+          [36m<label[31m
+            [33mclass[31m=[32m"text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"[31m
+            [33mfor[31m=[32m"length_cm"[31m
+          [36m>[31m
+            [0mLength (cm) *[0m
+          [36m</label>[31m
+          [36m<input[31m
+            [33mclass[31m=[32m"flex h-10 w-full rounded-md border border-input px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 bg-white"[31m
+            [33mid[31m=[32m"length_cm"[31m
+            [33mname[31m=[32m"length_cm"[31m
+            [33mstep[31m=[32m"0.1"[31m
+            [33mtype[31m=[32m"number"[31m
+          [36m/>[31m
+        [36m</div>[31m
+        [36m<div[31m
+          [33mclass[31m=[32m"space-y-2"[31m
+        [36m>[31m
+          [36m<label[31m
+            [33mclass[31m=[32m"text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"[31m
+            [33mfor[31m=[32m"width_cm"[31m
+          [36m>[31m
+            [0mWidth (cm) *[0m
+          [36m</label>[31m
+          [36m<input[31m
+            [33mclass[31m=[32m"flex h-10 w-full rounded-md border border-input px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 bg-white"[31m
+            [33mid[31m=[32m"width_cm"[31m
+            [33mname[31m=[32m"width_cm"[31m
+            [33mstep[31m=[32m"0.1"[31m
+            [33mtype[31m=[32m"number"[31m
+          [36m/>[31m
+        [36m</div>[31m
+        [36m<div[31m
+          [33mclass[31m=[32m"space-y-2"[31m
+        [36m>[31m
+          [36m<label[31m
+            [33mclass[31m=[32m"text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"[31m
+            [33mfor[31m=[32m"height_cm"[31m
+          [36m>[31m
+            [0mHeight (cm) *[0m
+          [36m</label>[31m
+          [36m<input[31m
+            [33mclass[31m=[32m"flex h-10 w-full rounded-md border border-input px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 fo...[39m
+
+[31mΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[1m[7m Failed Tests 12 [27m[22mΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/integration/api/payments/create-intent.test.ts[2m > 
+[22mPOST /api/payments/create-intent[2m > [22mshould create payment intent for a match
+[31m[1mAssertionError[22m: expected 500 to be 200 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 200[39m
+[31m+ 500[39m
+
+[36m [2mΓ¥»[22m tests/integration/api/payments/create-intent.test.ts:[2m111:29[22m[39m
+    [90m109| [39m    [35mconst[39m data [33m=[39m [35mawait[39m 
+response[33m.[39m[34mjson[39m()[33m;[39m
+    [90m110| [39m
+    [90m111| [39m    
+[34mexpect[39m(response[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m200[39m)[33m;[39m
+    [90m   | [39m                            [31m^[39m
+    [90m112| [39m    [34mexpect[39m(data[33m.[39mclientSecret)[33m.[39m[34mtoBe[39m(
+[32m'pi_test_123_secret'[39m)[33m;[39m
+    [90m113| [39m    [34mexpect[39m(data[33m.[39mpaymentIntentId)[33m.[39m[34mtoBe[3
+9m([32m'pi_test_123'[39m)[33m;[39m
+
+[31m[2mΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[1/12]ΓÄ»[22m[
+39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/integration/api/payments/create-intent.test.ts[2m > 
+[22mPOST /api/payments/create-intent[2m > [22mshould return error if match not found
+[31m[1mAssertionError[22m: expected 500 to be 404 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 404[39m
+[31m+ 500[39m
+
+[36m [2mΓ¥»[22m tests/integration/api/payments/create-intent.test.ts:[2m133:29[22m[39m
+    [90m131| [39m    [35mconst[39m data [33m=[39m [35mawait[39m 
+response[33m.[39m[34mjson[39m()[33m;[39m
+    [90m132| [39m
+    [90m133| [39m    
+[34mexpect[39m(response[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m404[39m)[33m;[39m
+    [90m   | [39m                            [31m^[39m
+    [90m134| [39m    
+[34mexpect[39m(data[33m.[39merror)[33m.[39m[34mtoBe[39m([32m'Match not 
+found'[39m)[33m;[39m
+    [90m135| [39m  })[33m;[39m
+
+[31m[2mΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[2/12]ΓÄ»[22m[
+39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/integration/api/matches/auto-match.test.ts[2m > 
+[22mPOST /api/matches/auto-match[2m > [22mshould create matches for a new trip
+[31m[1mAssertionError[22m: expected 500 to be 200 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 200[39m
+[31m+ 500[39m
+
+[36m [2mΓ¥»[22m tests/integration/api/matches/auto-match.test.ts:[2m60:29[22m[39m
+    [90m 58| [39m    [35mconst[39m data [33m=[39m [35mawait[39m 
+response[33m.[39m[34mjson[39m()[33m;[39m
+    [90m 59| [39m
+    [90m 60| [39m    
+[34mexpect[39m(response[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m200[39m)[33m;[39m
+    [90m   | [39m                            [31m^[39m
+    [90m 61| [39m    
+[34mexpect[39m(data[33m.[39msuccess)[33m.[39m[34mtoBe[39m([35mtrue[39m)[33m;[39m
+    [90m 62| [39m
+
+[31m[2mΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[3/12]ΓÄ»[22m[
+39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/integration/api/matches/auto-match.test.ts[2m > 
+[22mPOST /api/matches/auto-match[2m > [22mshould create matches for a new request
+[31m[1mAssertionError[22m: expected 500 to be 200 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 200[39m
+[31m+ 500[39m
+
+[36m [2mΓ¥»[22m tests/integration/api/matches/auto-match.test.ts:[2m82:29[22m[39m
+    [90m 80| [39m    [35mconst[39m data [33m=[39m [35mawait[39m 
+response[33m.[39m[34mjson[39m()[33m;[39m
+    [90m 81| [39m
+    [90m 82| [39m    
+[34mexpect[39m(response[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m200[39m)[33m;[39m
+    [90m   | [39m                            [31m^[39m
+    [90m 83| [39m    
+[34mexpect[39m(data[33m.[39msuccess)[33m.[39m[34mtoBe[39m([35mtrue[39m)[33m;[39m
+    [90m 84| [39m
+
+[31m[2mΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[4/12]ΓÄ»[22m[
+39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/integration/api/matches/auto-match.test.ts[2m > 
+[22mPOST /api/matches/auto-match[2m > [22mshould return 404 if trip not found
+[31m[1mAssertionError[22m: expected 500 to be 404 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 404[39m
+[31m+ 500[39m
+
+[36m [2mΓ¥»[22m tests/integration/api/matches/auto-match.test.ts:[2m99:29[22m[39m
+    [90m 97| [39m    [35mconst[39m data [33m=[39m [35mawait[39m 
+response[33m.[39m[34mjson[39m()[33m;[39m
+    [90m 98| [39m
+    [90m 99| [39m    
+[34mexpect[39m(response[33m.[39mstatus)[33m.[39m[34mtoBe[39m([34m404[39m)[33m;[39m
+    [90m   | [39m                            [31m^[39m
+    [90m100| [39m    
+[34mexpect[39m(data[33m.[39msuccess)[33m.[39m[34mtoBe[39m([35mfalse[39m)[33m;[39m
+    [90m101| [39m    
+[34mexpect[39m(data[33m.[39merror)[33m.[39m[34mtoContain[39m([32m'Trip not 
+found'[39m)[33m;[39m
+
+[31m[2mΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[5/12]ΓÄ»[22m[
+39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/unit/components/auth/login.test.tsx[2m > 
+[22mLoginPage[2m > [22mshould render login form
+[31m[1m[7m FAIL [27m[22m[39m tests/unit/components/auth/login.test.tsx[2m > 
+[22mLoginPage[2m > [22mshould submit magic link form with email
+[31m[1m[7m FAIL [27m[22m[39m tests/unit/components/auth/login.test.tsx[2m > 
+[22mLoginPage[2m > [22mshould show error message on failed login
+[31m[1m[7m FAIL [27m[22m[39m tests/unit/components/auth/login.test.tsx[2m > 
+[22mLoginPage[2m > [22mshould handle OAuth login
+[31m[1mReferenceError[22m: createMockSupabaseClient is not defined[39m
+[36m [2mΓ¥»[22m Proxy.<anonymous> tests/setup-supabase-mock.ts:[2m4:33[22m[39m
+    [90m  2| [39m * Supabase Mock Setup for Tests
+    [90m  3| [39m * 
+    [90m  4| [39m * Automatically injects mock Supabase clients into all test environmeΓÇª
+    [90m   | [39m                                [31m^[39m
+    [90m  5| [39m * This ensures tests never make external API calls.
+    [90m  6| [39m */[39m
+[90m [2mΓ¥»[22m LoginPage app/auth/login/page.tsx:[2m19:20[22m[39m
+[90m [2mΓ¥»[22m renderWithHooks node_modules/.pnpm/react-dom@18.3.1_react@18.3.1/node_modul
+es/react-dom/cjs/react-dom.development.js:[2m15486:18[22m[39m
+[90m [2mΓ¥»[22m mountIndeterminateComponent node_modules/.pnpm/react-dom@18.3.1_react@18.3.
+1/node_modules/react-dom/cjs/react-dom.development.js:[2m20103:13[22m[39m
+[90m [2mΓ¥»[22m beginWork node_modules/.pnpm/react-dom@18.3.1_react@18.3.1/node_modules/rea
+ct-dom/cjs/react-dom.development.js:[2m21626:16[22m[39m
+[90m [2mΓ¥»[22m beginWork$1 node_modules/.pnpm/react-dom@18.3.1_react@18.3.1/node_modules/r
+eact-dom/cjs/react-dom.development.js:[2m27465:14[22m[39m
+[90m [2mΓ¥»[22m performUnitOfWork node_modules/.pnpm/react-dom@18.3.1_react@18.3.1/node_mod
+ules/react-dom/cjs/react-dom.development.js:[2m26599:12[22m[39m
+[90m [2mΓ¥»[22m workLoopSync node_modules/.pnpm/react-dom@18.3.1_react@18.3.1/node_modules/
+react-dom/cjs/react-dom.development.js:[2m26505:5[22m[39m
+
+[31m[2mΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[6/12]ΓÄ»[22m[
+39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/unit/components/forms/post-request-form.test.tsx[2m 
+> [22mPostRequestForm[2m > [22mshould render form fields
+[31m[1mTestingLibraryElementError[22m[39m: Unable to find a label with the text of: /from 
+location/i
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<form[39m
+      [33mclass[39m=[32m"space-y-6"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"space-y-2"[39m
+      [36m>[39m
+        [36m<label[39m
+          [33mclass[39m=[32m"text-sm font-medium leading-none 
+peer-disabled:cursor-not-allowed peer-disabled:opacity-70"[39m
+          [33mfor[39m=[32m"title"[39m
+        [36m>[39m
+          [0mItem Title *[0m
+        [36m</label>[39m
+        [36m<input[39m
+          [33mclass[39m=[32m"flex h-10 w-full rounded-md border border-input px-3 py-2 
+text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm 
+file:font-medium placeholder:text-muted-foreground focus-visible:outline-none 
+focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 
+disabled:cursor-not-allowed disabled:opacity-50 bg-white"[39m
+          [33mid[39m=[32m"title"[39m
+          [33mname[39m=[32m"title"[39m
+          [33mplaceholder[39m=[32m"e.g., Marine Battery 200Ah"[39m
+        [36m/>[39m
+      [36m</div>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"space-y-2"[39m
+      [36m>[39m
+        [36m<label[39m
+          [33mclass[39m=[32m"text-sm font-medium leading-none 
+peer-disabled:cursor-not-allowed peer-disabled:opacity-70"[39m
+          [33mfor[39m=[32m"description"[39m
+        [36m>[39m
+          [0mDescription[0m
+        [36m</label>[39m
+        [36m<textarea[39m
+          [33mclass[39m=[32m"flex w-full rounded-md border border-input bg-white px-3 py-2 
+text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none 
+focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 
+disabled:cursor-not-allowed disabled:opacity-50"[39m
+          [33mid[39m=[32m"description"[39m
+          [33mname[39m=[32m"description"[39m
+          [33mplaceholder[39m=[32m"Describe your item..."[39m
+          [33mrows[39m=[32m"4"[39m
+        [36m/>[39m
+      [36m</div>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"space-y-2"[39m
+      [36m>[39m
+        [36m<label[39m
+          [33mclass[39m=[32m"text-sm font-medium leading-none 
+peer-disabled:cursor-not-allowed peer-disabled:opacity-70"[39m
+        [36m>[39m
+          [0mPhotos (up to 6)[0m
+        [36m</label>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"grid grid-cols-3 gap-4"[39m
+        [36m>[39m
+          [36m<label[39m
+            [33mclass[39m=[32m"aspect-square border-2 border-dashed border-slate-300 
+rounded-md flex items-center justify-center cursor-pointer hover:border-teal-600 
+transition-colors"[39m
+          [36m>[39m
+            [36m<svg[39m
+              [33mclass[39m=[32m"lucide lucide-upload h-6 w-6 text-slate-400"[39m
+              [33mfill[39m=[32m"none"[39m
+              [33mheight[39m=[32m"24"[39m
+              [33mstroke[39m=[32m"currentColor"[39m
+              [33mstroke-linecap[39m=[32m"round"[39m
+              [33mstroke-linejoin[39m=[32m"round"[39m
+              [33mstroke-width[39m=[32m"2"[39m
+              [33mviewBox[39m=[32m"0 0 24 24"[39m
+              [33mwidth[39m=[32m"24"[39m
+              [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+            [36m>[39m
+              [36m<path[39m
+                [33md[39m=[32m"M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"[39m
+              [36m/>[39m
+              [36m<polyline[39m
+                [33mpoints[39m=[32m"17 8 12 3 7 8"[39m
+              [36m/>[39m
+              [36m<line[39m
+                [33mx1[39m=[32m"12"[39m
+                [33mx2[39m=[32m"12"[39m
+                [33my1[39m=[32m"3"[39m
+                [33my2[39m=[32m"15"[39m
+              [36m/>[39m
+            [36m</svg>[39m
+            [36m<input[39m
+              [33maccept[39m=[32m"image/*"[39m
+              [33mclass[39m=[32m"hidden"[39m
+              [33mmultiple[39m=[32m""[39m
+              [33mtype[39m=[32m"file"[39m
+            [36m/>[39m
+          [36m</label>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"grid grid-cols-2 md:grid-cols-4 gap-4"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"space-y-2"[39m
+        [36m>[39m
+          [36m<label[39m
+            [33mclass[39m=[32m"text-sm font-medium leading-none 
+peer-disabled:cursor-not-allowed peer-disabled:opacity-70"[39m
+            [33mfor[39m=[32m"length_cm"[39m
+          [36m>[39m
+            [0mLength (cm) *[0m
+          [36m</label>[39m
+          [36m<input[39m
+            [33mclass[39m=[32m"flex h-10 w-full rounded-md border border-input px-3 py-2 
+text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm 
+file:font-medium placeholder:text-muted-foreground focus-visible:outline-none 
+focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 
+disabled:cursor-not-allowed disabled:opacity-50 bg-white"[39m
+            [33mid[39m=[32m"length_cm"[39m
+            [33mname[39m=[32m"length_cm"[39m
+            [33mstep[39m=[32m"0.1"[39m
+            [33mtype[39m=[32m"number"[39m
+          [36m/>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"space-y-2"[39m
+        [36m>[39m
+          [36m<label[39m
+            [33mclass[39m=[32m"text-sm font-medium leading-none 
+peer-disabled:cursor-not-allowed peer-disabled:opacity-70"[39m
+            [33mfor[39m=[32m"width_cm"[39m
+          [36m>[39m
+            [0mWidth (cm) *[0m
+          [36m</label>[39m
+          [36m<input[39m
+            [33mclass[39m=[32m"flex h-10 w-full rounded-md border border-input px-3 py-2 
+text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm 
+file:font-medium placeholder:text-muted-foreground focus-visible:outline-none 
+focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 
+disabled:cursor-not-allowed disabled:opacity-50 bg-white"[39m
+            [33mid[39m=[32m"width_cm"[39m
+            [33mname[39m=[32m"width_cm"[39m
+            [33mstep[39m=[32m"0.1"[39m
+            [33mtype[39m=[32m"number"[39m
+          [36m/>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"space-y-2"[39m
+        [36m>[39m
+          [36m<label[39m
+            [33mclass[39m=[32m"text-sm font-medium leading-none 
+peer-disabled:cursor-not-allowed peer-disabled:opacity-70"[39m
+            [33mfor[39m=[32m"height_cm"[39m
+          [36m>[39m
+            [0mHeight (cm) *[0m
+          [36m</label>[39m
+          [36m<input[39m
+            [33mclass[39m=[32m"flex h-10 w-full rounded-md border border-input px-3 py-2 
+text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm 
+file:font-medium placeholder:text-muted-foreground focus-visible:outline-none 
+focus-visible:ring-2 fo...
+[90m [2mΓ¥»[22m Object.getElementError node_modules/.pnpm/@testing-library+dom@9.3.4/node_m
+odules/@testing-library/dom/dist/config.js:[2m37:19[22m[39m
+[90m [2mΓ¥»[22m getAllByLabelText node_modules/.pnpm/@testing-library+dom@9.3.4/node_module
+s/@testing-library/dom/dist/queries/label-text.js:[2m111:38[22m[39m
+[90m [2mΓ¥»[22m node_modules/.pnpm/@testing-library+dom@9.3.4/node_modules/@testing-library
+/dom/dist/query-helpers.js:[2m52:17[22m[39m
+[90m [2mΓ¥»[22m node_modules/.pnpm/@testing-library+dom@9.3.4/node_modules/@testing-library
+/dom/dist/query-helpers.js:[2m95:19[22m[39m
+[36m [2mΓ¥»[22m tests/unit/components/forms/post-request-form.test.tsx:[2m49:19[22m[39m
+    [90m 47| [39m    [34mrender[39m([33m<[39m[33mPostRequestForm[39m 
+[33m/[39m[33m>[39m)[33m;[39m
+    [90m 48| [39m    [34mexpect[39m(screen[33m.[39m[34mgetByLabelText[39m([36m/title/
+i[39m))[33m.[39m[34mtoBeInTheDocument[39m()[33m;[39m
+    [90m 49| [39m    [34mexpect[39m(screen[33m.[39m[34mgetByLabelText[39m([36m/from 
+location/i[39m))[33m.[39m[34mtoBeInTheDocument[39m(ΓÇª
+    [90m   | [39m                  [31m^[39m
+    [90m 50| [39m    [34mexpect[39m(screen[33m.[39m[34mgetByLabelText[39m([36m/to 
+location/i[39m))[33m.[39m[34mtoBeInTheDocument[39m()[33m;[39m
+    [90m 51| [39m  })[33m;[39m
+
+[31m[2mΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[7/12]ΓÄ»[22m[
+39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/unit/components/forms/post-request-form.test.tsx[2m 
+> [22mPostRequestForm[2m > [22mshould validate required fields
+[31m[1mTestingLibraryElementError[22m[39m: Found multiple elements with the text: 
+/required/i
+
+Here are the matching elements:
+
+Ignored nodes: comments, script, style
+[36m<p[39m
+  [33mclass[39m=[32m"text-sm text-red-600"[39m
+[36m>[39m
+  [0mTitle is required[0m
+[36m</p>[39m
+
+Ignored nodes: comments, script, style
+[36m<p[39m
+  [33mclass[39m=[32m"text-sm text-red-600"[39m
+[36m>[39m
+  [0mFrom location is required[0m
+[36m</p>[39m
+
+Ignored nodes: comments, script, style
+[36m<p[39m
+  [33mclass[39m=[32m"text-sm text-red-600"[39m
+[36m>[39m
+  [0mTo location is required[0m
+[36m</p>[39m
+
+Ignored nodes: comments, script, style
+[36m<p[39m
+  [33mclass[39m=[32m"text-sm text-red-600"[39m
+[36m>[39m
+  [0mDeadline is required[0m
+[36m</p>[39m
+
+(If this is intentional, then use the `*AllBy*` variant of the query (like `queryAllByText`, 
+`getAllByText`, or `findAllByText`)).
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<form[39m
+      [33mclass[39m=[32m"space-y-6"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"space-y-2"[39m
+      [36m>[39m
+        [36m<label[39m
+          [33mclass[39m=[32m"text-sm font-medium leading-none 
+peer-disabled:cursor-not-allowed peer-disabled:opacity-70"[39m
+          [33mfor[39m=[32m"title"[39m
+        [36m>[39m
+          [0mItem Title *[0m
+        [36m</label>[39m
+        [36m<input[39m
+          [33mclass[39m=[32m"flex h-10 w-full rounded-md border border-input px-3 py-2 
+text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm 
+file:font-medium placeholder:text-muted-foreground focus-visible:outline-none 
+focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 
+disabled:cursor-not-allowed disabled:opacity-50 bg-white"[39m
+          [33mid[39m=[32m"title"[39m
+          [33mname[39m=[32m"title"[39m
+          [33mplaceholder[39m=[32m"e.g., Marine Battery 200Ah"[39m
+        [36m/>[39m
+        [36m<p[39m
+          [33mclass[39m=[32m"text-sm text-red-600"[39m
+        [36m>[39m
+          [0mTitle is required[0m
+        [36m</p>[39m
+      [36m</div>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"space-y-2"[39m
+      [36m>[39m
+        [36m<label[39m
+          [33mclass[39m=[32m"text-sm font-medium leading-none 
+peer-disabled:cursor-not-allowed peer-disabled:opacity-70"[39m
+          [33mfor[39m=[32m"description"[39m
+        [36m>[39m
+          [0mDescription[0m
+        [36m</label>[39m
+        [36m<textarea[39m
+          [33mclass[39m=[32m"flex w-full rounded-md border border-input bg-white px-3 py-2 
+text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none 
+focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 
+disabled:cursor-not-allowed disabled:opacity-50"[39m
+          [33mid[39m=[32m"description"[39m
+          [33mname[39m=[32m"description"[39m
+          [33mplaceholder[39m=[32m"Describe your item..."[39m
+          [33mrows[39m=[32m"4"[39m
+        [36m/>[39m
+      [36m</div>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"space-y-2"[39m
+      [36m>[39m
+        [36m<label[39m
+          [33mclass[39m=[32m"text-sm font-medium leading-none 
+peer-disabled:cursor-not-allowed peer-disabled:opacity-70"[39m
+        [36m>[39m
+          [0mPhotos (up to 6)[0m
+        [36m</label>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"grid grid-cols-3 gap-4"[39m
+        [36m>[39m
+          [36m<label[39m
+            [33mclass[39m=[32m"aspect-square border-2 border-dashed border-slate-300 
+rounded-md flex items-center justify-center cursor-pointer hover:border-teal-600 
+transition-colors"[39m
+          [36m>[39m
+            [36m<svg[39m
+              [33mclass[39m=[32m"lucide lucide-upload h-6 w-6 text-slate-400"[39m
+              [33mfill[39m=[32m"none"[39m
+              [33mheight[39m=[32m"24"[39m
+              [33mstroke[39m=[32m"currentColor"[39m
+              [33mstroke-linecap[39m=[32m"round"[39m
+              [33mstroke-linejoin[39m=[32m"round"[39m
+              [33mstroke-width[39m=[32m"2"[39m
+              [33mviewBox[39m=[32m"0 0 24 24"[39m
+              [33mwidth[39m=[32m"24"[39m
+              [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+            [36m>[39m
+              [36m<path[39m
+                [33md[39m=[32m"M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"[39m
+              [36m/>[39m
+              [36m<polyline[39m
+                [33mpoints[39m=[32m"17 8 12 3 7 8"[39m
+              [36m/>[39m
+              [36m<line[39m
+                [33mx1[39m=[32m"12"[39m
+                [33mx2[39m=[32m"12"[39m
+                [33my1[39m=[32m"3"[39m
+                [33my2[39m=[32m"15"[39m
+              [36m/>[39m
+            [36m</svg>[39m
+            [36m<input[39m
+              [33maccept[39m=[32m"image/*"[39m
+              [33mclass[39m=[32m"hidden"[39m
+              [33mmultiple[39m=[32m""[39m
+              [33mtype[39m=[32m"file"[39m
+            [36m/>[39m
+          [36m</label>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"grid grid-cols-2 md:grid-cols-4 gap-4"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"space-y-2"[39m
+        [36m>[39m
+          [36m<label[39m
+            [33mclass[39m=[32m"text-sm font-medium leading-none 
+peer-disabled:cursor-not-allowed peer-disabled:opacity-70"[39m
+            [33mfor[39m=[32m"length_cm"[39m
+          [36m>[39m
+            [0mLength (cm) *[0m
+          [36m</label>[39m
+          [36m<input[39m
+            [33mclass[39m=[32m"flex h-10 w-full rounded-md border border-input px-3 py-2 
+text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm 
+file:font-medium placeholder:text-muted-foreground focus-visible:outline-none 
+focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 
+disabled:cursor-not-allowed disabled:opacity-50 bg-white"[39m
+            [33mid[39m=[32m"length_cm"[39m
+            [33mname[39m=[32m"length_cm"[39m
+            [33mstep[39m=[32m"0.1"[39m
+            [33mtype[39m=[32m"number"[39m
+          [36m/>[39m
+          [36m<p[39m
+            [33mclass[39m=[32m"text-sm text-red-600"[39m
+          [36m>[39m
+            [0mExpected number, received nan[0m
+          [36m</p>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"space-y-2"[39m
+        [36m>[39m
+          [36m<label[39m
+            [33mclass[39m=[32m"text-sm font-medium leading-none 
+peer-disabled:cursor-not-allowed peer-disabled:opacity-70"[39m
+            [33mfor[39m=[32m"width_cm"[39m
+          [36m>[39m
+            [0mWidth (cm) *[0m
+          [36m</label>[39m
+          [36m<input[39m
+            [33mclass[39m=[32m"flex h-10 w-full rounded-md border border-input px-3 py-2 
+text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm 
+file:font-medium placeholder:text-muted-foreground focus-visible:outline-none 
+focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 
+disabled:cursor-not-allowed disabled:opacity-50 bg-white"[39m
+            [33mid[39m=[32m"width_cm"[39m
+            [33mname[39m=[32m"width_cm"[39m
+            [33mstep[39m=[32m"0.1"[39m
+            [33mtype[39m=[32m"number"[39m
+          [36m/>[39m
+          [36m<p[39m
+            [33mclass[39m=[32m"text-sm text-red-600"[39m
+          [36m>[39m
+            [0mExpected number, received nan[0m
+          [36m</p>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"space-y-2"[39m
+        [36m>[39m
+          [36m<label[39m
+            [33mclass[39m=[32m"text-sm...
+
+Ignored nodes: comments, script, style
+[36m<html>[39m
+  [36m<head />[39m
+  [36m<body>[39m
+    [36m<div>[39m
+      [36m<form[39m
+        [33mclass[39m=[32m"space-y-6"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"space-y-2"[39m
+        [36m>[39m
+          [36m<label[39m
+            [33mclass[39m=[32m"text-sm font-medium leading-none 
+peer-disabled:cursor-not-allowed peer-disabled:opacity-70"[39m
+            [33mfor[39m=[32m"title"[39m
+          [36m>[39m
+            [0mItem Title *[0m
+          [36m</label>[39m
+          [36m<input[39m
+            [33mclass[39m=[32m"flex h-10 w-full rounded-md border border-input px-3 py-2 
+text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm 
+file:font-medium placeholder:text-muted-foreground focus-visible:outline-none 
+focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 
+disabled:cursor-not-allowed disabled:opacity-50 bg-white"[39m
+            [33mid[39m=[32m"title"[39m
+            [33mname[39m=[32m"title"[39m
+            [33mplaceholder[39m=[32m"e.g., Marine Battery 200Ah"[39m
+          [36m/>[39m
+          [36m<p[39m
+            [33mclass[39m=[32m"text-sm text-red-600"[39m
+          [36m>[39m
+            [0mTitle is required[0m
+          [36m</p>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"space-y-2"[39m
+        [36m>[39m
+          [36m<label[39m
+            [33mclass[39m=[32m"text-sm font-medium leading-none 
+peer-disabled:cursor-not-allowed peer-disabled:opacity-70"[39m
+            [33mfor[39m=[32m"description"[39m
+          [36m>[39m
+            [0mDescription[0m
+          [36m</label>[39m
+          [36m<textarea[39m
+            [33mclass[39m=[32m"flex w-full rounded-md border border-input bg-white px-3 
+py-2 text-sm ring-offset-background placeholder:text-muted-foreground 
+focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring 
+focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"[39m
+            [33mid[39m=[32m"description"[39m
+            [33mname[39m=[32m"description"[39m
+            [33mplaceholder[39m=[32m"Describe your item..."[39m
+            [33mrows[39m=[32m"4"[39m
+          [36m/>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"space-y-2"[39m
+        [36m>[39m
+          [36m<label[39m
+            [33mclass[39m=[32m"text-sm font-medium leading-none 
+peer-disabled:cursor-not-allowed peer-disabled:opacity-70"[39m
+          [36m>[39m
+            [0mPhotos (up to 6)[0m
+          [36m</label>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"grid grid-cols-3 gap-4"[39m
+          [36m>[39m
+            [36m<label[39m
+              [33mclass[39m=[32m"aspect-square border-2 border-dashed border-slate-300 
+rounded-md flex items-center justify-center cursor-pointer hover:border-teal-600 
+transition-colors"[39m
+            [36m>[39m
+              [36m<svg[39m
+                [33mclass[39m=[32m"lucide lucide-upload h-6 w-6 text-slate-400"[39m
+                [33mfill[39m=[32m"none"[39m
+                [33mheight[39m=[32m"24"[39m
+                [33mstroke[39m=[32m"currentColor"[39m
+                [33mstroke-linecap[39m=[32m"round"[39m
+                [33mstroke-linejoin[39m=[32m"round"[39m
+                [33mstroke-width[39m=[32m"2"[39m
+                [33mviewBox[39m=[32m"0 0 24 24"[39m
+                [33mwidth[39m=[32m"24"[39m
+                [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+              [36m>[39m
+                [36m<path[39m
+                  [33md[39m=[32m"M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"[39m
+                [36m/>[39m
+                [36m<polyline[39m
+                  [33mpoints[39m=[32m"17 8 12 3 7 8"[39m
+                [36m/>[39m
+                [36m<line[39m
+                  [33mx1[39m=[32m"12"[39m
+                  [33mx2[39m=[32m"12"[39m
+                  [33my1[39m=[32m"3"[39m
+                  [33my2[39m=[32m"15"[39m
+                [36m/>[39m
+              [36m</svg>[39m
+              [36m<input[39m
+                [33maccept[39m=[32m"image/*"[39m
+                [33mclass[39m=[32m"hidden"[39m
+                [33mmultiple[39m=[32m""[39m
+                [33mtype[39m=[32m"file"[39m
+              [36m/>[39m
+            [36m</label>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"grid grid-cols-2 md:grid-cols-4 gap-4"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"space-y-2"[39m
+          [36m>[39m
+            [36m<label[39m
+              [33mclass[39m=[32m"text-sm font-medium leading-none 
+peer-disabled:cursor-not-allowed peer-disabled:opacity-70"[39m
+              [33mfor[39m=[32m"length_cm"[39m
+            [36m>[39m
+              [0mLength (cm) *[0m
+            [36m</label>[39m
+            [36m<input[39m
+              [33mclass[39m=[32m"flex h-10 w-full rounded-md border border-input px-3 py-2 
+text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm 
+file:font-medium placeholder:text-muted-foreground focus-visible:outline-none 
+focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 
+disabled:cursor-not-allowed disabled:opacity-50 bg-white"[39m
+              [33mid[39m=[32m"length_cm"[39m
+              [33mname[39m=[32m"length_cm"[39m
+              [33mstep[39m=[32m"0.1"[39m
+              [33mtype[39m=[32m"number"[39m
+            [36m/>[39m
+            [36m<p[39m
+              [33mclass[39m=[32m"text-sm text-red-600"[39m
+            [36m>[39m
+              [0mExpected number, received nan[0m
+            [36m</p>[39m
+          [36m</div>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"space-y-2"[39m
+          [36m>[39m
+            [36m<label[39m
+              [33mclass[39m=[32m"text-sm font-medium leading-none 
+peer-disabled:cursor-not-allowed peer-disabled:opacity-70"[39m
+              [33mfor[39m=[32m"width_cm"[39m
+            [36m>[39m
+              [0mWidth (cm) *[0m
+            [36m</label>[39m
+            [36m<input[39m
+              [33mclass[39m=[32m"flex h-10 w-full rounded-md border border-input px-3 py-2 
+text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm 
+file:font-medium placeholder:text-muted-foreground focus-visible:outline-none 
+focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 
+disabled:cursor-not-allowed disabled:opacity-50 bg-white"[39m
+              [33mid[39m=[32m"width_cm"[39m
+              [33mname[39m=[32m"width_cm"[39m
+              [33mstep[39m=[32m"0.1"[39m
+              [33mtype[39m=[32m"number"[39m
+            [36m/>[39m
+            [36m<p[39m
+              [33mclass[39m=[32m"te...
+[90m [2mΓ¥»[22m Module.waitForWrapper node_modules/.pnpm/@testing-library+dom@9.3.4/node_mo
+dules/@testing-library/dom/dist/wait-for.js:[2m163:27[22m[39m
+[36m [2mΓ¥»[22m tests/unit/components/forms/post-request-form.test.tsx:[2m61:11[22m[39m
+    [90m 59| [39m
+    [90m 60| [39m    [90m// Should show validation errors[39m
+    [90m 61| [39m    [35mawait[39m [34mwaitFor[39m(() [33m=>[39m {
+    [90m   | [39m          [31m^[39m
+    [90m 62| [39m      [34mexpect[39m(screen[33m.[39m[34mgetByText[39m([36m/required/
+i[39m))[33m.[39m[34mtoBeInTheDocument[39m()[33m;[39m
+    [90m 63| [39m    })[33m;[39m
+
+[31m[2mΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[8/12]ΓÄ»[22m[
+39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/unit/components/forms/post-request-form.test.tsx[2m 
+> [22mPostRequestForm[2m > [22mshould submit valid form
+[31m[1mTestingLibraryElementError[22m[39m: Unable to find a label with the text of: /from 
+location/i
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<form[39m
+      [33mclass[39m=[32m"space-y-6"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"space-y-2"[39m
+      [36m>[39m
+        [36m<label[39m
+          [33mclass[39m=[32m"text-sm font-medium leading-none 
+peer-disabled:cursor-not-allowed peer-disabled:opacity-70"[39m
+          [33mfor[39m=[32m"title"[39m
+        [36m>[39m
+          [0mItem Title *[0m
+        [36m</label>[39m
+        [36m<input[39m
+          [33mclass[39m=[32m"flex h-10 w-full rounded-md border border-input px-3 py-2 
+text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm 
+file:font-medium placeholder:text-muted-foreground focus-visible:outline-none 
+focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 
+disabled:cursor-not-allowed disabled:opacity-50 bg-white"[39m
+          [33mid[39m=[32m"title"[39m
+          [33mname[39m=[32m"title"[39m
+          [33mplaceholder[39m=[32m"e.g., Marine Battery 200Ah"[39m
+        [36m/>[39m
+      [36m</div>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"space-y-2"[39m
+      [36m>[39m
+        [36m<label[39m
+          [33mclass[39m=[32m"text-sm font-medium leading-none 
+peer-disabled:cursor-not-allowed peer-disabled:opacity-70"[39m
+          [33mfor[39m=[32m"description"[39m
+        [36m>[39m
+          [0mDescription[0m
+        [36m</label>[39m
+        [36m<textarea[39m
+          [33mclass[39m=[32m"flex w-full rounded-md border border-input bg-white px-3 py-2 
+text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none 
+focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 
+disabled:cursor-not-allowed disabled:opacity-50"[39m
+          [33mid[39m=[32m"description"[39m
+          [33mname[39m=[32m"description"[39m
+          [33mplaceholder[39m=[32m"Describe your item..."[39m
+          [33mrows[39m=[32m"4"[39m
+        [36m/>[39m
+      [36m</div>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"space-y-2"[39m
+      [36m>[39m
+        [36m<label[39m
+          [33mclass[39m=[32m"text-sm font-medium leading-none 
+peer-disabled:cursor-not-allowed peer-disabled:opacity-70"[39m
+        [36m>[39m
+          [0mPhotos (up to 6)[0m
+        [36m</label>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"grid grid-cols-3 gap-4"[39m
+        [36m>[39m
+          [36m<label[39m
+            [33mclass[39m=[32m"aspect-square border-2 border-dashed border-slate-300 
+rounded-md flex items-center justify-center cursor-pointer hover:border-teal-600 
+transition-colors"[39m
+          [36m>[39m
+            [36m<svg[39m
+              [33mclass[39m=[32m"lucide lucide-upload h-6 w-6 text-slate-400"[39m
+              [33mfill[39m=[32m"none"[39m
+              [33mheight[39m=[32m"24"[39m
+              [33mstroke[39m=[32m"currentColor"[39m
+              [33mstroke-linecap[39m=[32m"round"[39m
+              [33mstroke-linejoin[39m=[32m"round"[39m
+              [33mstroke-width[39m=[32m"2"[39m
+              [33mviewBox[39m=[32m"0 0 24 24"[39m
+              [33mwidth[39m=[32m"24"[39m
+              [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+            [36m>[39m
+              [36m<path[39m
+                [33md[39m=[32m"M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"[39m
+              [36m/>[39m
+              [36m<polyline[39m
+                [33mpoints[39m=[32m"17 8 12 3 7 8"[39m
+              [36m/>[39m
+              [36m<line[39m
+                [33mx1[39m=[32m"12"[39m
+                [33mx2[39m=[32m"12"[39m
+                [33my1[39m=[32m"3"[39m
+                [33my2[39m=[32m"15"[39m
+              [36m/>[39m
+            [36m</svg>[39m
+            [36m<input[39m
+              [33maccept[39m=[32m"image/*"[39m
+              [33mclass[39m=[32m"hidden"[39m
+              [33mmultiple[39m=[32m""[39m
+              [33mtype[39m=[32m"file"[39m
+            [36m/>[39m
+          [36m</label>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"grid grid-cols-2 md:grid-cols-4 gap-4"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"space-y-2"[39m
+        [36m>[39m
+          [36m<label[39m
+[2m Test Files [22m [1m[31m4 failed[39m[22m[2m | [22m[1m[32m6 passed[39m[22m[90m (10)[39m
+[2m      Tests [22m [1m[31m12 failed[39m[22m[2m | [22m[1m[32m21 passed[39m[22m[90m (33)[39m
+[2m   Start at [22m 12:55:15
+[2m   Duration [22m 10.85s[2m (transform 2.09s, setup 6.15s, collect 10.65s, tests 5.67s, environment 24.55s, prepare 6.64s)[22m
+
+            [33mclass[39m=[32m"text-sm font-medium leading-none 
+peer-disabled:cursor-not-allowed peer-disabled:opacity-70"[39m
+            [33mfor[39m=[32m"length_cm"[39m
+          [36m>[39m
+            [0mLength (cm) *[0m
+          [36m</label>[39m
+          [36m<input[39m
+            [33mclass[39m=[32m"flex h-10 w-full rounded-md border border-input px-3 py-2 
+text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm 
+file:font-medium placeholder:text-muted-foreground focus-visible:outline-none 
+focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 
+disabled:cursor-not-allowed disabled:opacity-50 bg-white"[39m
+            [33mid[39m=[32m"length_cm"[39m
+            [33mname[39m=[32m"length_cm"[39m
+            [33mstep[39m=[32m"0.1"[39m
+            [33mtype[39m=[32m"number"[39m
+          [36m/>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"space-y-2"[39m
+        [36m>[39m
+          [36m<label[39m
+            [33mclass[39m=[32m"text-sm font-medium leading-none 
+peer-disabled:cursor-not-allowed peer-disabled:opacity-70"[39m
+            [33mfor[39m=[32m"width_cm"[39m
+          [36m>[39m
+            [0mWidth (cm) *[0m
+          [36m</label>[39m
+          [36m<input[39m
+            [33mclass[39m=[32m"flex h-10 w-full rounded-md border border-input px-3 py-2 
+text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm 
+file:font-medium placeholder:text-muted-foreground focus-visible:outline-none 
+focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 
+disabled:cursor-not-allowed disabled:opacity-50 bg-white"[39m
+            [33mid[39m=[32m"width_cm"[39m
+            [33mname[39m=[32m"width_cm"[39m
+            [33mstep[39m=[32m"0.1"[39m
+            [33mtype[39m=[32m"number"[39m
+          [36m/>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"space-y-2"[39m
+        [36m>[39m
+          [36m<label[39m
+            [33mclass[39m=[32m"text-sm font-medium leading-none 
+peer-disabled:cursor-not-allowed peer-disabled:opacity-70"[39m
+            [33mfor[39m=[32m"height_cm"[39m
+          [36m>[39m
+            [0mHeight (cm) *[0m
+          [36m</label>[39m
+          [36m<input[39m
+            [33mclass[39m=[32m"flex h-10 w-full rounded-md border border-input px-3 py-2 
+text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm 
+file:font-medium placeholder:text-muted-foreground focus-visible:outline-none 
+focus-visible:ring-2 fo...
+[90m [2mΓ¥»[22m Object.getElementError node_modules/.pnpm/@testing-library+dom@9.3.4/node_m
+odules/@testing-library/dom/dist/config.js:[2m37:19[22m[39m
+[90m [2mΓ¥»[22m getAllByLabelText node_modules/.pnpm/@testing-library+dom@9.3.4/node_module
+s/@testing-library/dom/dist/queries/label-text.js:[2m111:38[22m[39m
+[90m [2mΓ¥»[22m node_modules/.pnpm/@testing-library+dom@9.3.4/node_modules/@testing-library
+/dom/dist/query-helpers.js:[2m52:17[22m[39m
+[90m [2mΓ¥»[22m node_modules/.pnpm/@testing-library+dom@9.3.4/node_modules/@testing-library
+/dom/dist/query-helpers.js:[2m95:19[22m[39m
+[36m [2mΓ¥»[22m tests/unit/components/forms/post-request-form.test.tsx:[2m72:28[22m[39m
+    [90m 70| [39m    [90m// Fill in required fields[39m
+    [90m 71| [39m    [35mawait[39m user[33m.[39m[34mtype[39m(screen[33m.[39m[34mget
+ByLabelText[39m([36m/title/i[39m)[33m,[39m [32m'Test Request'[39m)[33m;[39m
+    [90m 72| [39m    [35mawait[39m 
+user[33m.[39m[34mtype[39m(screen[33m.[39m[34mgetByLabelText[39m([36m/from 
+location/i[39m)[33m,[39m [32m'Miami'[39m)[33m;[39m
+    [90m   | [39m                           [31m^[39m
+    [90m 73| [39m    [35mawait[39m 
+user[33m.[39m[34mtype[39m(screen[33m.[39m[34mgetByLabelText[39m([36m/to 
+location/i[39m)[33m,[39m [32m'St. Martin[39mΓÇª
+    [90m 74| [39m    [90m// Add more fields as needed[39m
+
+[31m[2mΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[9/12]ΓÄ»[22m[
+39m
+
+ΓÇëELIFECYCLEΓÇë Test failed. See above for more details.

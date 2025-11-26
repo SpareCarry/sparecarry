@@ -11,6 +11,7 @@ import { initializeUnleash, isFeatureEnabled as checkFeatureEnabled, getAllFeatu
 import type { FeatureFlag } from '@/lib/flags/unleashClient';
 import { createClient } from '@/lib/supabase/client';
 import { useQuery } from '@tanstack/react-query';
+import { useUser } from '@/hooks/useUser';
 
 interface FeatureFlagContextValue {
   flags: Map<string, FeatureFlag>;
@@ -28,13 +29,8 @@ interface FeatureFlagProviderProps {
 
 export function FeatureFlagProvider({ children }: FeatureFlagProviderProps) {
   const supabase = createClient();
-  const { data: user } = useQuery({
-    queryKey: ['current-user-flags'],
-    queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      return user;
-    },
-  });
+  // Use shared hook to prevent duplicate queries
+  const { user } = useUser();
   
   const [flags, setFlags] = useState<Map<string, FeatureFlag>>(new Map());
   const [isLoading, setIsLoading] = useState(true);

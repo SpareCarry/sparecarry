@@ -1,0 +1,23 @@
+﻿ΓÇëWARNΓÇë Unsupported engine: wanted: {"node":"22.x"} (current: {"node":"v24.11.1","pnpm":"10.22.0"})
+
+Running 16 tests using 8 workers
+
+  Γ£ô   5 [chromium] ΓÇ║ tests\e2e\auth.spec.ts:13:7 ΓÇ║ Authentication Flow ΓÇ║ should display login page (5.6s)
+  Γ£ô   8 [chromium] ΓÇ║ tests\e2e\auth.spec.ts:19:7 ΓÇ║ Authentication Flow ΓÇ║ should show validation error for invalid email (14.0s)
+  Γ£ô   6 [chromium] ΓÇ║ tests\e2e\auth-flow.spec.ts:221:7 ΓÇ║ Authentication Flow ΓÇ║ should handle authentication errors gracefully (14.4s)
+  Γ£ô   9 [chromium] ΓÇ║ tests\e2e\auth.spec.ts:38:7 ΓÇ║ Authentication Flow ΓÇ║ should navigate to signup page (10.6s)
+  Γ£ô   4 [chromium] ΓÇ║ tests\e2e\auth-flow.spec.ts:174:7 ΓÇ║ Authentication Flow ΓÇ║ should handle magic link callback with code (17.0s)
+  Γ£ô   3 [chromium] ΓÇ║ tests\e2e\auth-flow.spec.ts:210:7 ΓÇ║ Authentication Flow ΓÇ║ should redirect authenticated users from login to home (19.2s)
+  Γ£ô   7 [chromium] ΓÇ║ tests\e2e\auth-flow.spec.ts:238:7 ΓÇ║ Authentication Flow ΓÇ║ should preserve redirect parameter through auth flow (19.4s)
+  Γ£ô  13 [chromium] ΓÇ║ tests\e2e\feed.spec.ts:21:7 ΓÇ║ Feed Browsing ΓÇ║ should display feed page (3.5s)
+  Γ£ô  14 [chromium] ΓÇ║ tests\e2e\feed.spec.ts:28:7 ΓÇ║ Feed Browsing ΓÇ║ should allow filtering by type (5.3s)
+  Γ£ô   2 [chromium] ΓÇ║ tests\e2e\auth-flow.spec.ts:50:7 ΓÇ║ Authentication Flow ΓÇ║ should navigate to login from landing page buttons (27.6s)
+  Γ£ô  11 [chromium] ΓÇ║ tests\e2e\complete-app-flow.spec.ts:139:7 ΓÇ║ Complete App Flow ΓÇ║ all buttons on landing page work (13.7s)
+Redirected to login - authentication required
+  Γ£ô  12 [chromium] ΓÇ║ tests\e2e\complete-app-flow.spec.ts:155:7 ΓÇ║ Complete App Flow ΓÇ║ auth callback handles all scenarios (24.0s)
+  Γ£ô  15 [chromium] ΓÇ║ tests\e2e\full-payment-flow.spec.ts:20:7 ΓÇ║ Complete Payment Flow ΓÇ║ should complete full payment flow (21.7s)
+  Γ£ô  16 [chromium] ΓÇ║ tests\e2e\full-payment-flow.spec.ts:73:7 ΓÇ║ Complete Payment Flow ΓÇ║ browse page should load (27.3s)
+  Γ£ô   1 [chromium] ΓÇ║ tests\e2e\auth-flow.spec.ts:129:7 ΓÇ║ Authentication Flow ΓÇ║ should request magic link with correct email (50.6s)
+  Γ£ô  10 [chromium] ΓÇ║ tests\e2e\complete-app-flow.spec.ts:52:7 ΓÇ║ Complete App Flow ΓÇ║ full user journey: landing ΓåÆ auth ΓåÆ home (48.4s)
+
+  16 passed (1.1m)

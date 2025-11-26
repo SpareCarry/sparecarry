@@ -5,6 +5,7 @@ import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { createClient } from "../../lib/supabase/client";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { Loader2 } from "lucide-react";
 
 interface OnboardingStep1Props {
@@ -26,7 +27,7 @@ export function OnboardingStep1({ onComplete }: OnboardingStep1Props) {
   const [error, setError] = useState<string | null>(null);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [cooldown, setCooldown] = useState(0);
-  const supabase = createClient();
+  const supabase = createClient() as SupabaseClient;
 
   useEffect(() => {
     if (cooldown <= 0) return;

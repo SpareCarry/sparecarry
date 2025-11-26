@@ -13,14 +13,18 @@ import {
   Menu,
   X,
   Home,
+  Calculator,
 } from "lucide-react";
 import { Button } from "../ui/button";
 import { cn } from "../../lib/utils";
+import { MessageBadge } from "../messaging/MessageBadge";
+import { useUser } from "../../hooks/useUser";
 
 const navigation = [
   { name: "Browse", href: "/home", icon: Search },
   { name: "Post Request", href: "/home/post-request", icon: PlusCircle },
   { name: "Post Trip", href: "/home/post-trip", icon: Plane },
+  { name: "Shipping Estimator", href: "/shipping-estimator", icon: Calculator },
   { name: "My Stuff", href: "/home/my-stuff", icon: Package },
   { name: "Profile", href: "/home/profile", icon: User },
 ];
@@ -30,6 +34,9 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const supabase = createClient();
+  
+  // Use shared hook to prevent duplicate queries
+  const { user: currentUser } = useUser();
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -71,6 +78,12 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
                 </Link>
               );
             })}
+            {/* Message Badge in Desktop Sidebar */}
+            {currentUser?.id && (
+              <div className="px-3 py-2">
+                <MessageBadge userId={currentUser.id} />
+              </div>
+            )}
           </nav>
           <div className="px-4 pb-4">
             <Button
@@ -87,8 +100,8 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
       {/* Mobile Sidebar */}
       {sidebarOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">
-          <div className="fixed inset-0 bg-black bg-opacity-50" onClick={() => setSidebarOpen(false)} />
-          <div className="fixed inset-y-0 left-0 w-64 bg-slate-900">
+          <div className="fixed inset-0 bg-black bg-opacity-50 z-50" onClick={() => setSidebarOpen(false)} />
+          <div className="fixed inset-y-0 left-0 w-64 bg-slate-900 z-[55]">
             <div className="flex flex-col h-full">
               <div className="flex items-center justify-between px-4 py-4 border-b border-slate-800">
                 <span className="text-xl font-bold text-white">SpareCarry</span>
@@ -109,7 +122,9 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
                     <Link
                       key={item.name}
                       href={item.href}
-                      onClick={() => setSidebarOpen(false)}
+                      onClick={() => {
+                        setSidebarOpen(false);
+                      }}
                       className={cn(
                         "group flex items-center px-3 py-3 text-sm font-medium rounded-md transition-colors",
                         isActive
@@ -157,7 +172,11 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
             <Link href="/home" className="text-xl font-bold text-slate-900">
               SpareCarry
             </Link>
-            <div className="w-10" /> {/* Spacer */}
+            {currentUser?.id ? (
+              <MessageBadge userId={currentUser.id} />
+            ) : (
+              <div className="w-10" /> // Spacer
+            )}
           </div>
         </div>
 

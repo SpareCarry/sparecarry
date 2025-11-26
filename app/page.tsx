@@ -28,34 +28,74 @@ export default function Home() {
 
   const handleTravelClick = async (type: "plane" | "boat") => {
     console.log("Button clicked:", type);
+    
+    // Prevent multiple clicks
+    if (loading) {
+      console.log("Already processing, ignoring click");
+      return;
+    }
+    
     setLoading(true);
     setTravelType(type);
     
     try {
       console.log("Checking authentication...");
-      // Check if user is authenticated
-      const {
-        data: { user },
-        error: authError,
-      } = await supabase.auth.getUser();
+      
+      // Add timeout to prevent hanging if Supabase is unreachable
+      const getUserPromise = supabase.auth.getUser();
+      const timeoutPromise = new Promise<never>((_, reject) => 
+        setTimeout(() => reject(new Error('Auth check timeout')), 3000)
+      );
+
+      let authResult: any;
+      try {
+        authResult = await Promise.race([getUserPromise, timeoutPromise]);
+      } catch (timeoutError) {
+        // Timeout occurred - treat as not authenticated
+        console.log("Auth check timed out, treating as not authenticated");
+        authResult = { data: { user: null }, error: timeoutError };
+      }
+
+      const { data: { user }, error: authError } = authResult || { data: { user: null }, error: null };
 
       console.log("Auth check result:", { user: user?.email, error: authError });
 
-      if (user) {
+      if (user && !authError) {
         // User is authenticated - navigate to browse page
         console.log("User authenticated, navigating to /home");
-        router.push("/home");
+        try {
+          await router.push("/home");
+          console.log("Navigation to /home successful");
+        } catch (pushError) {
+          console.error("Router.push failed, using window.location:", pushError);
+          window.location.href = "/home";
+        }
       } else {
         // User is not authenticated - navigate to login with redirect
         console.log("User not authenticated, navigating to login");
-        router.push(`/auth/login?redirect=/home`);
+        try {
+          await router.push(`/auth/login?redirect=/home`);
+          console.log("Navigation to /auth/login successful");
+        } catch (pushError) {
+          console.error("Router.push failed, using window.location:", pushError);
+          window.location.href = `/auth/login?redirect=/home`;
+        }
       }
     } catch (error) {
       console.error("Error checking authentication:", error);
-      // Fallback to login
-      router.push(`/auth/login?redirect=/home`);
+      // Fallback to login on any error (timeout, network error, etc.)
+      try {
+        await router.push(`/auth/login?redirect=/home`);
+      } catch (navError) {
+        console.error("Navigation error:", navError);
+        // Last resort: window.location
+        window.location.href = `/auth/login?redirect=/home`;
+      }
     } finally {
-      setLoading(false);
+      // Always reset loading state, but don't block navigation
+      setTimeout(() => {
+        setLoading(false);
+      }, 100);
     }
   };
 
@@ -73,21 +113,23 @@ export default function Home() {
           background: 'linear-gradient(to bottom, rgb(186 230 253), rgb(94 234 212), rgb(59 130 246), rgb(30 58 138))'
         }}
       >
-        <div className="container mx-auto max-w-6xl text-center z-10">
+        <div className="container mx-auto max-w-6xl text-center relative z-10">
           <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold text-white mb-6 leading-tight">
             SpareCarry – Earn $200–$3,000 using spare space you already have
           </h1>
           <p className="text-xl md:text-2xl text-white/90 mb-12 max-w-3xl mx-auto">
             Get anything delivered by people already going your way — by plane in days or by boat for 80% less.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center relative z-10">
             <Button
-              onClick={() => {
+              onClick={async (e) => {
+                e.preventDefault();
+                e.stopPropagation();
                 console.log("Plane button clicked");
-                handleTravelClick("plane");
+                await handleTravelClick("plane");
               }}
               disabled={loading}
-              className="w-full sm:w-auto text-lg px-8 py-6 bg-teal-600 hover:bg-teal-700 text-white text-xl font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full sm:w-auto text-lg px-8 py-6 bg-teal-600 hover:bg-teal-700 text-white text-xl font-semibold disabled:opacity-50 disabled:cursor-not-allowed relative z-10"
               size="lg"
               type="button"
             >
@@ -99,12 +141,14 @@ export default function Home() {
               ✈ I&apos;m traveling by Plane
             </Button>
             <Button
-              onClick={() => {
+              onClick={async (e) => {
+                e.preventDefault();
+                e.stopPropagation();
                 console.log("Boat button clicked");
-                handleTravelClick("boat");
+                await handleTravelClick("boat");
               }}
               disabled={loading}
-              className="w-full sm:w-auto text-lg px-8 py-6 bg-slate-900 hover:bg-slate-800 text-white text-xl font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full sm:w-auto text-lg px-8 py-6 bg-slate-900 hover:bg-slate-800 text-white text-xl font-semibold disabled:opacity-50 disabled:cursor-not-allowed relative z-10"
               size="lg"
               type="button"
             >

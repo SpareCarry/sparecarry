@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { createClient } from "../../../../lib/supabase/client";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { Button } from "../../../../components/ui/button";
 import { Input } from "../../../../components/ui/input";
 import { Card, CardContent } from "../../../../components/ui/card";
@@ -27,10 +28,14 @@ import { RatingModal } from "../../../../components/chat/rating-modal";
 import { ConfirmDeliveryButton } from "../../../../components/chat/confirm-delivery-button";
 import { PurchaseLinkButton } from "../../../../components/purchase/purchase-link-button";
 import { detectPriceProposal } from "../../../../components/chat/price-proposal-detector";
+import { useUser } from "../../../../hooks/useUser";
 import { NegotiationButtons } from "../../../../components/chat/negotiation-buttons";
 import { NegotiationTemplates } from "../../../../components/chat/negotiation-templates";
+import type { Message, MessageInsert, Conversation as ConversationRow } from "@/types/supabase";
 
 const supportEmail = process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "support@sparecarry.com";
+
+type ConversationRecord = Pick<ConversationRow, "id">;
 
 type RatingRecord = {
   id: string;
@@ -52,7 +57,7 @@ export function ChatPageClient() {
   const params = useParams();
   const router = useRouter();
   const matchId = params.matchId as string;
-  const supabase = createClient();
+  const supabase = createClient() as SupabaseClient;
   const queryClient = useQueryClient();
   const [message, setMessage] = useState("");
   const [sending, setSending] = useState(false);
@@ -63,15 +68,8 @@ export function ChatPageClient() {
   const [supportError, setSupportError] = useState<string | null>(null);
   const [supportSuccess, setSupportSuccess] = useState<string | null>(null);
 
-  const { data: user } = useQuery({
-    queryKey: ["current-user"],
-    queryFn: async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      return user;
-    },
-  });
+  // Use shared hook to prevent duplicate queries
+  const { user } = useUser();
 
   const { data: match } = useQuery({
     queryKey: ["match", matchId],
@@ -112,7 +110,7 @@ export function ChatPageClient() {
         .from("conversations")
         .select("id")
         .eq("match_id", matchId)
-        .single();
+        .maybeSingle<ConversationRecord>();
 
       if (!conv) return null;
 
@@ -138,10 +136,10 @@ export function ChatPageClient() {
           .select("*")
           .eq("match_id", matchId)
           .eq("rater_id", user.id)
-          .maybeSingle();
+          .maybeSingle<RatingRecord>();
 
         if (error && error.code !== "PGRST116") throw error;
-        return (data as RatingRecord) || null;
+        return data || null;
       } catch (queryError) {
         console.warn("Unable to load rating", queryError);
         return null;
@@ -160,10 +158,10 @@ export function ChatPageClient() {
           .eq("match_id", matchId)
           .order("created_at", { ascending: false })
           .limit(1)
-          .maybeSingle();
+          .maybeSingle<DisputeRecord>();
 
         if (error && error.code !== "PGRST116") throw error;
-        return (data as DisputeRecord) || null;
+        return data || null;
       } catch (queryError) {
         console.warn("Unable to load dispute", queryError);
         return null;
@@ -182,12 +180,12 @@ export function ChatPageClient() {
           conversation_id: conversation.id,
           sender_id: user!.id,
           content,
-        })
+        } as MessageInsert)
         .select()
         .single();
 
       if (error) throw error;
-      return data;
+      return data as Message;
     },
     onSuccess: async (data) => {
       queryClient.invalidateQueries({ queryKey: ["conversation", matchId] });

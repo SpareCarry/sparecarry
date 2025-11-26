@@ -1,8 +1,19 @@
 "use client";
 
+export const dynamic = 'force-dynamic';
+
+import { Suspense } from "react";
 import { PostRequestForm } from "../../../components/forms/post-request-form";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../../components/ui/card";
 import { Package } from "lucide-react";
+
+function PostRequestFormFallback() {
+  return (
+    <div className="flex items-center justify-center py-8">
+      <div className="text-slate-500">Loading form...</div>
+    </div>
+  );
+}
 
 export default function PostRequestPage() {
   return (
@@ -25,7 +36,9 @@ export default function PostRequestPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <PostRequestForm />
+          <Suspense fallback={<PostRequestFormFallback />}>
+            <PostRequestForm />
+          </Suspense>
         </CardContent>
       </Card>
     </div>

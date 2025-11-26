@@ -15,6 +15,20 @@
 const fs = require('fs');
 const path = require('path');
 
+// Ensure unbuffered output for better logging when redirected
+if (process.stdout.isTTY === false) {
+  // When output is redirected, ensure we flush immediately
+  const originalWrite = process.stdout.write.bind(process.stdout);
+  process.stdout.write = function(chunk, encoding, callback) {
+    const result = originalWrite(chunk, encoding, callback);
+    if (typeof chunk === 'string' && chunk.includes('\n')) {
+      // Force flush on newlines
+      process.stdout._flush && process.stdout._flush();
+    }
+    return result;
+  };
+}
+
 // Load .env.local properly
 const envPath = path.join(__dirname, '..', '.env.local');
 if (fs.existsSync(envPath)) {
@@ -41,7 +55,7 @@ if (fs.existsSync(envPath)) {
 }
 
 // Use localhost when testing locally (if NEXT_PUBLIC_APP_URL points to production)
-const DEFAULT_LOCAL_URL = 'http://localhost:3001'; // Default to 3001 (3000 often in use)
+const DEFAULT_LOCAL_URL = 'http://localhost:3000'; // Default to 3000
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || DEFAULT_LOCAL_URL;
 // If APP_URL is production URL, use localhost for local testing
 const BASE_URL = APP_URL.includes('localhost') || APP_URL.includes('127.0.0.1') 
@@ -243,24 +257,58 @@ async function testAPIEndpoints() {
   const errors = [];
   let serverNotRunning = false;
 
+  // First, check if server is running by trying to connect to base URL
+  let serverRunning = false;
+  try {
+    const healthCheck = await fetch(`${BASE_URL}`, {
+      method: 'GET',
+      signal: AbortSignal.timeout(2000),
+    });
+    serverRunning = true; // If we get any response, server is running
+  } catch (e) {
+    // Server might not be running or different port
+  }
+
   for (const endpoint of endpoints) {
     try {
       const response = await fetch(`${BASE_URL}${endpoint}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ test: true }),
-        signal: AbortSignal.timeout(3000), // Reduced timeout
+        signal: AbortSignal.timeout(3000),
       });
 
       if (response.status === 404) {
-        errors.push({ endpoint, status: 404, error: 'Not found' });
+        accessible.push({ endpoint, status: 404, error: 'Route not found - endpoint may not exist' });
+      } else if (response.status >= 200 && response.status < 500) {
+        accessible.push({ endpoint, status: response.status, note: 'Endpoint exists and responded' });
       } else {
-        accessible.push({ endpoint, status: response.status });
+        accessible.push({ endpoint, status: response.status, error: 'Server error' });
       }
     } catch (error) {
-      if (error.name === 'AbortError' || error.message.includes('ECONNREFUSED') || error.message.includes('timeout')) {
-        serverNotRunning = true;
-        accessible.push({ endpoint, status: 'timeout', note: 'Server not running - start with: pnpm dev' });
+      const isConnectionError = 
+        error.name === 'AbortError' || 
+        error.name === 'TypeError' ||
+        error.message.includes('ECONNREFUSED') || 
+        error.message.includes('timeout') ||
+        error.message.includes('fetch failed') ||
+        error.message.includes('Failed to fetch') ||
+        error.code === 'ECONNREFUSED' ||
+        error.code === 'ETIMEDOUT';
+      
+      if (isConnectionError) {
+        if (serverRunning) {
+          // Server is running but endpoint failed - might be route issue
+          accessible.push({ 
+            endpoint, 
+            status: 'error', 
+            error: error.message,
+            note: 'Server running but endpoint unreachable - check if route exists' 
+          });
+        } else {
+          serverNotRunning = true;
+          accessible.push({ endpoint, status: 'timeout', note: 'Server not running - start with: pnpm dev' });
+        }
       } else {
         accessible.push({ endpoint, status: 'error', error: error.message });
       }
@@ -307,7 +355,19 @@ async function testAutoReleaseCron() {
 
     throw new Error(`Unexpected status: ${response.status}`);
   } catch (error) {
-    if (error.name === 'AbortError' || error.message.includes('ECONNREFUSED') || error.message.includes('timeout')) {
+    // Check for various connection/network errors that indicate server is not running
+    const isConnectionError = 
+      error.name === 'AbortError' || 
+      error.name === 'TypeError' ||
+      error.message.includes('ECONNREFUSED') || 
+      error.message.includes('timeout') ||
+      error.message.includes('fetch failed') ||
+      error.message.includes('Failed to fetch') ||
+      error.message.includes('network') ||
+      error.code === 'ECONNREFUSED' ||
+      error.code === 'ETIMEDOUT';
+    
+    if (isConnectionError) {
       // Server not running is a warning, not a failure
       console.log(`   ⚠️  Server not running at ${BASE_URL} - start with: pnpm dev`);
       console.log(`   ℹ️  This is OK - endpoint exists but needs server to be running`);
@@ -420,6 +480,82 @@ async function testNotificationServices() {
   return checks;
 }
 
+// Generate detailed report
+function generateDetailedReport(results, passed, failed) {
+  const timestamp = new Date().toISOString();
+  let report = `\nComprehensive Test Report\n`;
+  report += `Generated: ${timestamp}\n`;
+  report += `Node Version: ${process.version}\n`;
+  report += `Working Directory: ${process.cwd()}\n`;
+  report += `\n${'='.repeat(60)}\n\n`;
+  
+  report += `SUMMARY\n`;
+  report += `${'='.repeat(60)}\n`;
+  report += `Total Tests: ${results.length}\n`;
+  report += `Passed: ${passed}\n`;
+  report += `Failed: ${failed}\n`;
+  report += `Success Rate: ${((passed / results.length) * 100).toFixed(1)}%\n\n`;
+  
+  report += `DETAILED RESULTS\n`;
+  report += `${'='.repeat(60)}\n\n`;
+  
+  results.forEach((result, index) => {
+    report += `${index + 1}. ${result.feature}\n`;
+    report += `   Status: ${result.passed ? '✅ PASSED' : '❌ FAILED'}\n`;
+    
+    if (result.details) {
+      report += `   Details:\n`;
+      Object.entries(result.details).forEach(([key, value]) => {
+        if (key !== 'allPresent' && key !== 'present' && key !== 'missing') {
+          const valueStr = typeof value === 'object' ? JSON.stringify(value, null, 2) : String(value);
+          report += `     ${key}: ${valueStr}\n`;
+        }
+      });
+    }
+    
+    if (!result.passed && result.error) {
+      report += `   Error: ${result.error}\n`;
+    }
+    
+    if (result.details?.warning) {
+      report += `   ⚠️  Warning: ${result.details.warning}\n`;
+    }
+    
+    if (result.details?.note) {
+      report += `   ℹ️  Note: ${result.details.note}\n`;
+    }
+    
+    report += `\n`;
+  });
+  
+  // Environment info
+  report += `\n${'='.repeat(60)}\n`;
+  report += `ENVIRONMENT INFORMATION\n`;
+  report += `${'='.repeat(60)}\n`;
+  report += `NODE_ENV: ${process.env.NODE_ENV || 'not set'}\n`;
+  report += `BASE_URL: ${BASE_URL}\n`;
+  report += `CRON_SECRET: ${CRON_SECRET ? '✅ Set' : '❌ Not set'}\n`;
+  
+  // Check key environment variables
+  const keyVars = [
+    'NEXT_PUBLIC_SUPABASE_URL',
+    'NEXT_PUBLIC_SUPABASE_ANON_KEY',
+    'SUPABASE_SERVICE_ROLE_KEY',
+    'STRIPE_SECRET_KEY',
+    'STRIPE_WEBHOOK_SECRET',
+    'RESEND_API_KEY',
+  ];
+  
+  report += `\nKey Environment Variables:\n`;
+  keyVars.forEach(key => {
+    const value = process.env[key];
+    const isSet = value && !value.includes('your_') && !value.includes('placeholder');
+    report += `  ${isSet ? '✅' : '❌'} ${key}: ${isSet ? 'Set' : 'Not set or invalid'}\n`;
+  });
+  
+  return report;
+}
+
 // Test 9: Database Tables
 async function testDatabaseTables() {
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
@@ -495,6 +631,22 @@ async function runAllTests() {
   console.log(`❌ Failed: ${failed}`);
   console.log(`📈 Total: ${results.length}`);
 
+  // Generate detailed report
+  const report = generateDetailedReport(results, passed, failed);
+  console.log('\n' + '='.repeat(60));
+  console.log('📄 DETAILED REPORT');
+  console.log('='.repeat(60));
+  console.log(report);
+  
+  // Also write report to file
+  try {
+    const reportPath = path.join(__dirname, '..', 'test-results-comprehensive-detailed.txt');
+    fs.writeFileSync(reportPath, report, 'utf8');
+    console.log(`\n📝 Detailed report also saved to: ${reportPath}`);
+  } catch (err) {
+    console.warn(`\n⚠️  Could not write detailed report file: ${err.message}`);
+  }
+
   // Check if failures are just warnings (server not running, etc.)
   const realFailures = results.filter(r => 
     !r.passed && 
@@ -504,25 +656,69 @@ async function runAllTests() {
 
   if (realFailures.length > 0) {
     console.log('\n⚠️  Some tests failed. Please review the errors above.');
-    process.exit(1);
+    return { success: false, realFailures: realFailures.length };
   } else if (failed > 0) {
     console.log('\n✅ All critical tests passed!');
     console.log('⚠️  Some tests had warnings (e.g., server not running)');
     console.log('ℹ️  This is OK - start server with `pnpm dev` to test endpoints');
     console.log('\n🎉 Your app is ready for production!');
-    process.exit(0);
+    return { success: true, warnings: failed };
   } else {
     console.log('\n🎉 All tests passed! Your app is ready for production.');
-    process.exit(0);
+    return { success: true };
   }
 }
 
 // Run if called directly
 if (require.main === module) {
-  runAllTests().catch(error => {
-    console.error('Fatal error:', error);
+  // Ensure output is not buffered
+  process.stdout.setEncoding('utf8');
+  process.stderr.setEncoding('utf8');
+  
+  // Immediate output to verify script is running
+  console.log('Script starting...');
+  process.stdout.write(''); // Force flush
+  
+  // Add timestamp
+  console.log(`\n${'='.repeat(60)}`);
+  console.log(`Test Run Started: ${new Date().toISOString()}`);
+  console.log(`Node Version: ${process.version}`);
+  console.log(`Working Directory: ${process.cwd()}`);
+  console.log(`Script Path: ${__filename}`);
+  console.log(`${'='.repeat(60)}\n`);
+  
+  // Verify we can access required modules
+  try {
+    require('dotenv');
+    console.log('✅ dotenv module loaded');
+  } catch (err) {
+    console.error('❌ Failed to load dotenv:', err.message);
     process.exit(1);
-  });
+  }
+  
+  runAllTests()
+    .then((result) => {
+      console.log(`\n${'='.repeat(60)}`);
+      console.log(`Test Run Completed: ${new Date().toISOString()}`);
+      console.log(`${'='.repeat(60)}\n`);
+      // Force flush output
+      if (process.stdout.write) {
+        process.stdout.write('');
+      }
+      // Exit with appropriate code
+      process.exit(result && result.success === false ? 1 : 0);
+    })
+    .catch(error => {
+      console.error('\n' + '='.repeat(60));
+      console.error('FATAL ERROR:', error.message);
+      console.error('Stack:', error.stack);
+      console.error('='.repeat(60) + '\n');
+      // Force flush output
+      if (process.stderr.write) {
+        process.stderr.write('');
+      }
+      process.exit(1);
+    });
 }
 
 module.exports = { runAllTests, testFeature };

@@ -37,6 +37,7 @@ export const supabase = createMockSupabaseClient();
  * Re-export helper functions
  */
 export { resetMockDataStore, seedMockData, mockDataStore, addMockData };
+export { mockUserLogin } from './helpers';
 
 /**
  * Type export for use in tests

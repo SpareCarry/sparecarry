@@ -41,7 +41,7 @@ export function ReferralLandingPageClient() {
         }
 
         setStatus("success");
-        setMessage("Referral code applied! You'll both earn $35 credit after your first delivery.");
+        setMessage("Referral code applied! You'll both earn $25 credit after your first paid delivery.");
         setTimeout(() => {
           router.push("/home");
         }, 3000);

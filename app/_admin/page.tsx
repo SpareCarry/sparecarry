@@ -1,16 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import { Users, Package, Hand, AlertTriangle, DollarSign } from "lucide-react";
+import { Users, Package, Hand, AlertTriangle, DollarSign, Lightbulb } from "lucide-react";
 import { UsersTable } from "../../components/admin/users-table";
 import { RequestsTripsTable } from "../../components/admin/requests-trips-table";
 import { MatchesTable } from "../../components/admin/matches-table";
 import { DisputesTable } from "../../components/admin/disputes-table";
 import { PayoutsTable } from "../../components/admin/payouts-table";
+import { IdeasTable } from "../../components/admin/ideas-table";
 import { Button } from "../../components/ui/button";
 import { cn } from "../../lib/utils";
 
-type Tab = "users" | "requests-trips" | "matches" | "disputes" | "payouts";
+type Tab = "users" | "requests-trips" | "matches" | "disputes" | "payouts" | "ideas";
 
 export default function AdminPage() {
   const [activeTab, setActiveTab] = useState<Tab>("users");
@@ -21,6 +22,7 @@ export default function AdminPage() {
     { id: "matches" as Tab, label: "Matches", icon: Hand },
     { id: "disputes" as Tab, label: "Disputes", icon: AlertTriangle },
     { id: "payouts" as Tab, label: "Payouts", icon: DollarSign },
+    { id: "ideas" as Tab, label: "Ideas", icon: Lightbulb },
   ];
 
   return (
@@ -65,6 +67,7 @@ export default function AdminPage() {
         {activeTab === "matches" && <MatchesTable />}
         {activeTab === "disputes" && <DisputesTable />}
         {activeTab === "payouts" && <PayoutsTable />}
+        {activeTab === "ideas" && <IdeasTable />}
       </div>
     </div>
   );

@@ -11,6 +11,23 @@ import { OnboardingStep1 } from "../../components/onboarding/step-1-phone";
 import { OnboardingStep2 } from "../../components/onboarding/step-2-stripe";
 import { OnboardingStep3 } from "../../components/onboarding/step-3-sailor";
 import { OnboardingStep4 } from "../../components/onboarding/step-4-role";
+import { LifetimeOfferScreen } from "../../components/onboarding/lifetime-offer-screen";
+import { isTestMode, getTestUser } from "../../lib/test/testAuthBypass";
+
+type ProfileMeta = {
+  phone?: string | null;
+  stripe_identity_verified_at?: string | null;
+};
+
+type UserMeta = {
+  role?: string | null;
+  lifetime_pro?: boolean | null;
+};
+
+type SailorProfileMeta = {
+  boat_name?: string | null;
+  verified_sailor_at?: string | null;
+};
 
 const onboardingSteps = [
   {
@@ -40,13 +57,23 @@ export default function OnboardingPage() {
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
+  const [showLifetimeOffer, setShowLifetimeOffer] = useState(false);
+  const [hasLifetime, setHasLifetime] = useState(false);
   const supabase = createClient();
 
   useEffect(() => {
     const checkUser = async () => {
-      const {
-        data: { user: currentUser },
-      } = await supabase.auth.getUser();
+      // TEST MODE: Check for test user in window (set by Playwright)
+      let currentUser = null;
+      if (isTestMode()) {
+        currentUser = getTestUser();
+        console.log('[TEST_MODE] ✓✓✓ Onboarding page using test user:', currentUser?.email);
+      } else {
+        const {
+          data: { user: realUser },
+        } = await supabase.auth.getUser();
+        currentUser = realUser;
+      }
 
       if (!currentUser) {
         router.push("/auth/login");
@@ -57,20 +84,39 @@ export default function OnboardingPage() {
       setLoading(false);
 
       // Check onboarding progress
-      const { data: profile } = await supabase
+      const { data: profileData } = await supabase
         .from("profiles")
         .select("phone, stripe_identity_verified_at")
         .eq("user_id", currentUser.id)
         .single();
+      const profile = (profileData ?? null) as ProfileMeta | null;
 
-      const { data: userData } = await supabase
+      const { data: userDataRaw } = await supabase
         .from("users")
-        .select("role")
+        .select("role, lifetime_pro")
         .eq("id", currentUser.id)
         .single();
+      const userData = (userDataRaw ?? null) as UserMeta | null;
 
+      // Check if user has lifetime access
+      const hasLifetimeAccess = userData?.lifetime_pro === true;
+      if (hasLifetimeAccess) {
+        setHasLifetime(true);
+      }
+
+      // If onboarding is complete, check if we should show lifetime offer
       if (profile?.phone && profile?.stripe_identity_verified_at && userData?.role) {
-        router.push("/");
+        // Only show lifetime offer if:
+        // 1. User doesn't have lifetime
+        // 2. User just completed onboarding (check if user was created recently)
+        const userCreatedAt = new Date(currentUser.created_at);
+        const isNewUser = Date.now() - userCreatedAt.getTime() < 5 * 60 * 1000; // Within 5 minutes
+        
+        if (!hasLifetimeAccess && isNewUser) {
+          setShowLifetimeOffer(true);
+        } else {
+          router.push("/");
+        }
         return;
       }
 
@@ -81,11 +127,12 @@ export default function OnboardingPage() {
         setCurrentStep(2);
       } else if (!userData?.role) {
         // Check if sailor info is needed
-        const { data: sailorProfile } = await supabase
+        const { data: sailorProfileData } = await supabase
           .from("profiles")
           .select("boat_name, verified_sailor_at")
           .eq("user_id", currentUser.id)
           .single();
+        const sailorProfile = (sailorProfileData ?? null) as SailorProfileMeta | null;
 
         // If user might be a sailor but hasn't completed step 3
         if (userData?.role === "sailor" && !sailorProfile?.boat_name) {
@@ -99,14 +146,53 @@ export default function OnboardingPage() {
     };
 
     checkUser();
-  }, [router, supabase]);
+  }, [router, supabase, hasLifetime]);
 
-  const handleStepComplete = () => {
+  const handleStepComplete = async () => {
     if (currentStep < 4) {
       setCurrentStep(currentStep + 1);
     } else {
-      router.push("/");
+      // Step 4 completed - check if we should show lifetime offer
+      // Check user data again to see if they have lifetime
+      try {
+        const { data: { user: currentUser } } = await supabase.auth.getUser();
+        if (currentUser) {
+          const { data: userDataRaw } = await supabase
+            .from("users")
+            .select("lifetime_pro")
+            .eq("id", currentUser.id)
+            .single();
+          const userData = (userDataRaw ?? null) as UserMeta | null;
+          
+          const userCreatedAt = new Date(currentUser.created_at);
+          const isNewUser = Date.now() - userCreatedAt.getTime() < 5 * 60 * 1000; // Within 5 minutes
+          
+          // Only show lifetime offer if user is new and doesn't have lifetime
+          if (!userData?.lifetime_pro && isNewUser) {
+            setShowLifetimeOffer(true);
+          } else {
+            router.push("/");
+          }
+        } else {
+          router.push("/");
+        }
+      } catch (error) {
+        console.error("Error checking lifetime status:", error);
+        router.push("/");
+      }
     }
+  };
+
+  const handleLifetimeSkip = () => {
+    setShowLifetimeOffer(false);
+    router.push("/");
+  };
+
+  const handleLifetimeComplete = () => {
+    // User purchased lifetime - webhook will handle the update
+    // For now, just redirect (webhook will set lifetime_pro)
+    setShowLifetimeOffer(false);
+    router.push("/");
   };
 
   if (loading) {
@@ -114,6 +200,16 @@ export default function OnboardingPage() {
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-sky-200 via-teal-300 to-slate-900">
         <Loader2 className="h-8 w-8 animate-spin text-teal-600" />
       </div>
+    );
+  }
+
+  // Show lifetime offer screen if applicable
+  if (showLifetimeOffer) {
+    return (
+      <LifetimeOfferScreen
+        onSkip={handleLifetimeSkip}
+        onComplete={handleLifetimeComplete}
+      />
     );
   }
 

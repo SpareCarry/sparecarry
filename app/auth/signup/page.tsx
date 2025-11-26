@@ -1,19 +1,93 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "../../../components/ui/button";
 import { Input } from "../../../components/ui/input";
 import { Label } from "../../../components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../../components/ui/card";
 import { createClient } from "../../../lib/supabase/client";
+import { getAuthCallbackUrl } from "../../../lib/supabase/mobile";
 import { Mail, Loader2 } from "lucide-react";
 
-export default function SignupPage() {
+function SignupPageContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [authChecked, setAuthChecked] = useState(false);
   const supabase = createClient();
+
+  // Get redirect URL from query params
+  const redirectTo = searchParams.get("redirect") || "/home";
+
+  // Check for auth errors in URL params immediately (synchronous, doesn't block render)
+  useEffect(() => {
+    const errorParam = searchParams.get("error");
+    const errorMessage = searchParams.get("message");
+    if (errorParam) {
+      if (errorParam === "auth_failed") {
+        setMessage({
+          type: "error",
+          text: errorMessage 
+            ? decodeURIComponent(errorMessage)
+            : "Authentication failed. Please try again.",
+        });
+      } else if (errorParam === "no_code" || errorParam === "invalid_link") {
+        setMessage({
+          type: "error",
+          text: errorMessage 
+            ? decodeURIComponent(errorMessage)
+            : "This magic link is invalid or expired. Please request a new one.",
+        });
+      }
+    }
+  }, [searchParams]);
+
+  // Check if user is already authenticated (async, doesn't block render)
+  useEffect(() => {
+    let cancelled = false;
+
+    const checkAuth = async () => {
+      try {
+        // Add timeout to prevent hanging if Supabase is unreachable
+        const getUserPromise = supabase.auth.getUser();
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Auth check timeout')), 3000)
+        );
+
+        const {
+          data: { user },
+          error,
+        } = await Promise.race([getUserPromise, timeoutPromise]) as any;
+
+        if (cancelled) return;
+
+        if (user && !error) {
+          // User is already logged in, redirect them
+          router.push(redirectTo);
+          return;
+        }
+
+        setAuthChecked(true);
+      } catch (error) {
+        if (cancelled) return;
+        
+        // If getUser() fails or times out, just continue - user can still sign up
+        console.warn("Auth check failed or timed out:", error);
+        setAuthChecked(true);
+      }
+    };
+
+    // Don't block render - check auth in background
+    checkAuth();
+    
+    return () => {
+      cancelled = true;
+    };
+  }, [router, redirectTo, supabase]);
 
   const handleMagicLink = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,15 +95,23 @@ export default function SignupPage() {
     setMessage(null);
 
     try {
-      // Use the current window location to detect the correct port dynamically
-      const callbackUrl = `${window.location.origin}/auth/callback`;
+      // Get the appropriate callback URL (always web URL for magic links)
+      // Magic links must use web URLs because email links open in browsers first
+      const callbackUrl = getAuthCallbackUrl(redirectTo);
       console.log("Sending magic link to:", email);
       console.log("Callback URL:", callbackUrl);
+      console.log("Platform:", typeof window !== "undefined" && (window as any).Capacitor ? "mobile" : "web");
+      
+      // Verify callback URL is a web URL (not a deep link)
+      if (!callbackUrl.startsWith("http://") && !callbackUrl.startsWith("https://")) {
+        throw new Error("Invalid callback URL. Magic links must use web URLs.");
+      }
       
       const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {
           emailRedirectTo: callbackUrl,
+          shouldCreateUser: true, // Create user if doesn't exist
         },
       });
 
@@ -51,20 +133,30 @@ export default function SignupPage() {
 
   const handleOAuth = async (provider: "google" | "apple") => {
     setLoading(true);
+    setMessage(null);
     try {
+      // Get the appropriate callback URL (mobile deep link or web URL)
+      const callbackUrl = getAuthCallbackUrl(redirectTo);
+      
       const { error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo: callbackUrl,
         },
       });
 
       if (error) throw error;
+      // If successful, OAuth will redirect - loading state will reset on redirect
+      // But we still reset it here in case redirect doesn't happen immediately
+      // The finally block ensures it's always reset
     } catch (error: any) {
       setMessage({
         type: "error",
         text: error.message || `Failed to sign in with ${provider}`,
       });
+    } finally {
+      // Always reset loading state, even if OAuth redirects (for edge cases)
+      // Note: If redirect happens, this component will unmount, so this is safe
       setLoading(false);
     }
   };
@@ -178,6 +270,24 @@ export default function SignupPage() {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+export default function SignupPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-sky-200 via-teal-300 to-slate-900 px-4 py-12">
+          <Card className="w-full max-w-md">
+            <CardContent className="flex items-center justify-center p-8">
+              <Loader2 className="h-8 w-8 animate-spin text-teal-600" />
+            </CardContent>
+          </Card>
+        </div>
+      }
+    >
+      <SignupPageContent />
+    </Suspense>
   );
 }
 

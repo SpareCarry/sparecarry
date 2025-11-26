@@ -1,0 +1,84 @@
+﻿ΓÇëWARNΓÇë Unsupported engine: wanted: {"node":"22.x"} (current: {"node":"v24.11.1","pnpm":"10.22.0"})
+
+Running 16 tests using 8 workers
+
+[1A[2K[1/16] [chromium] ΓÇ║ tests\e2e\auth-flow.spec.ts:50:7 ΓÇ║ Authentication Flow ΓÇ║ should navigate to login from landing page buttons
+[1A[2K[2/16] [chromium] ΓÇ║ tests\e2e\auth-flow.spec.ts:229:7 ΓÇ║ Authentication Flow ΓÇ║ should redirect authenticated users from login to home
+[1A[2K[3/16] [chromium] ΓÇ║ tests\e2e\auth-flow.spec.ts:193:7 ΓÇ║ Authentication Flow ΓÇ║ should handle magic link callback with code
+[1A[2K[4/16] [chromium] ΓÇ║ tests\e2e\auth-flow.spec.ts:240:7 ΓÇ║ Authentication Flow ΓÇ║ should handle authentication errors gracefully
+[1A[2K[5/16] [chromium] ΓÇ║ tests\e2e\auth-flow.spec.ts:257:7 ΓÇ║ Authentication Flow ΓÇ║ should preserve redirect parameter through auth flow
+[1A[2K[6/16] [chromium] ΓÇ║ tests\e2e\auth-flow.spec.ts:130:7 ΓÇ║ Authentication Flow ΓÇ║ should request magic link with correct email
+[1A[2K[7/16] [chromium] ΓÇ║ tests\e2e\auth.spec.ts:13:7 ΓÇ║ Authentication Flow ΓÇ║ should display login page
+[1A[2K[8/16] [chromium] ΓÇ║ tests\e2e\auth.spec.ts:19:7 ΓÇ║ Authentication Flow ΓÇ║ should show validation error for invalid email
+[1A[2K[9/16] [chromium] ΓÇ║ tests\e2e\auth.spec.ts:38:7 ΓÇ║ Authentication Flow ΓÇ║ should navigate to signup page
+[1A[2K[10/16] [chromium] ΓÇ║ tests\e2e\complete-app-flow.spec.ts:52:7 ΓÇ║ Complete App Flow ΓÇ║ full user journey: landing ΓåÆ auth ΓåÆ home
+[1A[2K[11/16] [chromium] ΓÇ║ tests\e2e\complete-app-flow.spec.ts:127:7 ΓÇ║ Complete App Flow ΓÇ║ all buttons on landing page work
+[1A[2K[12/16] [chromium] ΓÇ║ tests\e2e\complete-app-flow.spec.ts:143:7 ΓÇ║ Complete App Flow ΓÇ║ auth callback handles all scenarios
+[1A[2K[13/16] [chromium] ΓÇ║ tests\e2e\feed.spec.ts:21:7 ΓÇ║ Feed Browsing ΓÇ║ should display feed page
+[1A[2K[14/16] [chromium] ΓÇ║ tests\e2e\feed.spec.ts:28:7 ΓÇ║ Feed Browsing ΓÇ║ should allow filtering by type
+[1A[2K[15/16] [chromium] ΓÇ║ tests\e2e\full-payment-flow.spec.ts:20:7 ΓÇ║ Complete Payment Flow ΓÇ║ should complete full payment flow
+[1A[2K[16/16] [chromium] ΓÇ║ tests\e2e\full-payment-flow.spec.ts:73:7 ΓÇ║ Complete Payment Flow ΓÇ║ browse page should load
+[1A[2K  1) [chromium] ΓÇ║ tests\e2e\auth-flow.spec.ts:130:7 ΓÇ║ Authentication Flow ΓÇ║ should request magic link with correct email 
+
+    [31mTest timeout of 30000ms exceeded.[39m
+
+    attachment #1: screenshot (image/png) ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+    test-results\auth-flow-Authentication-F-bcb80-gic-link-with-correct-email-chromium\test-failed-1.png
+    ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+
+    attachment #2: video (video/webm) ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+    test-results\auth-flow-Authentication-F-bcb80-gic-link-with-correct-email-chromium\video.webm
+    ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+
+    Error Context: test-results\auth-flow-Authentication-F-bcb80-gic-link-with-correct-email-chromium\error-context.md
+
+
+[1A[2K  2) [chromium] ΓÇ║ tests\e2e\auth-flow.spec.ts:50:7 ΓÇ║ Authentication Flow ΓÇ║ should navigate to login from landing page buttons 
+
+    [31mTest timeout of 30000ms exceeded.[39m
+
+    Error: Expected to navigate to /auth/login but URL is http://localhost:3000/
+
+      82 |         const currentUrl = page.url();
+      83 |         if (!/\/auth\/login/.test(currentUrl)) {
+    > 84 |           throw new Error(`Expected to navigate to /auth/login but URL is ${currentUrl}`);
+         |                 ^
+      85 |         }
+      86 |       }
+      87 |     }
+        at C:\SpareCarry\tests\e2e\auth-flow.spec.ts:84:17
+
+    attachment #1: screenshot (image/png) ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+    test-results\auth-flow-Authentication-F-5945b-n-from-landing-page-buttons-chromium\test-failed-1.png
+    ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+
+    attachment #2: video (video/webm) ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+    test-results\auth-flow-Authentication-F-5945b-n-from-landing-page-buttons-chromium\video.webm
+    ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+
+    Error Context: test-results\auth-flow-Authentication-F-5945b-n-from-landing-page-buttons-chromium\error-context.md
+
+
+[1A[2K[chromium] ΓÇ║ tests\e2e\full-payment-flow.spec.ts:20:7 ΓÇ║ Complete Payment Flow ΓÇ║ should complete full payment flow
+Redirected to login - authentication required
+
+[1A[2K  3) [chromium] ΓÇ║ tests\e2e\complete-app-flow.spec.ts:52:7 ΓÇ║ Complete App Flow ΓÇ║ full user journey: landing ΓåÆ auth ΓåÆ home 
+
+    [31mTest timeout of 30000ms exceeded.[39m
+
+    attachment #1: screenshot (image/png) ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+    test-results\complete-app-flow-Complete-92df4-urney-landing-ΓåÆ-auth-ΓåÆ-home-chromium\test-failed-1.png
+    ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+
+    attachment #2: video (video/webm) ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+    test-results\complete-app-flow-Complete-92df4-urney-landing-ΓåÆ-auth-ΓåÆ-home-chromium\video.webm
+    ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+
+    Error Context: test-results\complete-app-flow-Complete-92df4-urney-landing-ΓåÆ-auth-ΓåÆ-home-chromium\error-context.md
+
+
+[1A[2K  3 failed
+    [chromium] ΓÇ║ tests\e2e\auth-flow.spec.ts:50:7 ΓÇ║ Authentication Flow ΓÇ║ should navigate to login from landing page buttons 
+    [chromium] ΓÇ║ tests\e2e\auth-flow.spec.ts:130:7 ΓÇ║ Authentication Flow ΓÇ║ should request magic link with correct email 
+    [chromium] ΓÇ║ tests\e2e\complete-app-flow.spec.ts:52:7 ΓÇ║ Complete App Flow ΓÇ║ full user journey: landing ΓåÆ auth ΓåÆ home 
+  13 passed (1.0m)

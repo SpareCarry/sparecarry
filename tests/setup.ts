@@ -14,6 +14,17 @@ vi.mock('next/navigation', () => ({
   useSearchParams: () => new URLSearchParams(),
 }));
 
+// Mock Next.js headers (used by server-side Supabase client)
+vi.mock('next/headers', () => ({
+  cookies: vi.fn(() => ({
+    getAll: vi.fn(() => []),
+    get: vi.fn(() => undefined),
+    set: vi.fn(),
+    delete: vi.fn(),
+    has: vi.fn(() => false),
+  })),
+}));
+
 // Mock next-intl
 vi.mock('next-intl', () => ({
   useTranslations: () => (key: string) => key,

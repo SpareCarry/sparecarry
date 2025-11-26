@@ -11,6 +11,7 @@ import {
 import { Button } from "../ui/button";
 import { Star } from "lucide-react";
 import { createClient } from "../../lib/supabase/client";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { useRouter } from "next/navigation";
 
 interface RatingRecord {
@@ -35,7 +36,7 @@ export function RatingModal({
   onSubmitted,
 }: RatingModalProps) {
   const router = useRouter();
-  const supabase = createClient();
+  const supabase = createClient() as SupabaseClient;
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
   const [comment, setComment] = useState("");

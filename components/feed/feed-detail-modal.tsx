@@ -15,6 +15,18 @@ import { format, parseISO, isValid } from "date-fns";
 import { createClient } from "../../lib/supabase/client";
 import { useRouter } from "next/navigation";
 import { cn } from "../../lib/utils";
+import { PostMessageThreadModal } from "../messaging/PostMessageThreadModal";
+import { SuggestedMatches } from "../matching/SuggestedMatches";
+import { WatchlistButton } from "../WatchlistButton";
+import { TrustBadges } from "../TrustBadges";
+import { useQuery } from "@tanstack/react-query";
+import { useUser } from "../../hooks/useUser";
+import { WhatsAppButton } from "../whatsapp/whatsapp-button";
+import { CurrencyDisplay } from "../currency/currency-display";
+
+type MatchRecord = {
+  id: string;
+};
 
 interface FeedItem {
   id: string;
@@ -33,6 +45,8 @@ interface FeedItem {
   match_score?: number;
   user_id: string;
   created_at: string;
+  user_verified_identity?: boolean;
+  user_subscribed?: boolean;
 }
 
 interface FeedDetailModalProps {
@@ -45,7 +59,32 @@ export function FeedDetailModal({ item, open, onClose }: FeedDetailModalProps) {
   const router = useRouter();
   const supabase = createClient();
   const [loading, setLoading] = useState(false);
+  const [showMessageThread, setShowMessageThread] = useState(false);
   const isTrip = item.type === "trip";
+
+  // Use shared hook to prevent duplicate queries
+  const { user: currentUser } = useUser();
+
+  const isInvolved = currentUser?.id === item.user_id;
+
+  // Fetch user phone for WhatsApp
+  const { data: userProfile } = useQuery<{ phone?: string | null } | null>({
+    queryKey: ["user-profile-phone", item.user_id],
+    queryFn: async (): Promise<{ phone?: string | null } | null> => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("phone")
+        .eq("user_id", item.user_id)
+        .single();
+      
+      if (error && error.code !== 'PGRST116') {
+        console.warn("Error fetching user phone:", error);
+        return null;
+      }
+      return (data as { phone?: string | null } | null) ?? null;
+    },
+    enabled: !isInvolved && !!item.user_id,
+  });
 
   const handleMessage = async () => {
     setLoading(true);
@@ -75,8 +114,10 @@ export function FeedDetailModal({ item, open, onClose }: FeedDetailModalProps) {
           .limit(1)
           .single();
 
-        if (existingMatch) {
-          router.push(`/home/messages/${existingMatch.id}`);
+        const matchRecord = (existingMatch ?? null) as MatchRecord | null;
+
+        if (matchRecord) {
+          router.push(`/home/messages/${matchRecord.id}`);
         } else {
           // For now, show message that they need to wait for a match
           alert("No matching trips found yet. We'll notify you when someone can carry your item!");
@@ -173,17 +214,19 @@ export function FeedDetailModal({ item, open, onClose }: FeedDetailModalProps) {
               <div className="font-semibold text-lg text-slate-900">
                 {isTrip
                   ? `${item.spare_kg}kg / ${item.spare_volume_liters}L`
-                  : `$${item.max_reward?.toLocaleString()}`}
+                  : <CurrencyDisplay amount={item.max_reward || 0} showSecondary={false} />}
               </div>
             </div>
           </div>
 
-          {/* Badges */}
+          {/* Trust Badges */}
           <div className="flex items-center gap-2 flex-wrap">
-            <Badge className="bg-teal-100 text-teal-800 border-teal-200">
-              <CheckCircle2 className="h-3 w-3 mr-1" />
-              Verified
-            </Badge>
+            <TrustBadges
+              id_verified={item.user_verified_identity || false}
+              email_verified={true} // Assume verified if user exists
+              premium_member={item.user_subscribed || false}
+              size="sm"
+            />
             {isTrip && item.spare_volume_liters && (
               <Badge variant="outline">
                 {item.spare_volume_liters}L capacity
@@ -191,19 +234,95 @@ export function FeedDetailModal({ item, open, onClose }: FeedDetailModalProps) {
             )}
           </div>
 
-          {/* Message Button */}
-          <div className="pt-4 border-t">
-            <Button
-              onClick={handleMessage}
-              disabled={loading}
-              className="w-full bg-teal-600 hover:bg-teal-700"
-            >
-              <MessageCircle className="mr-2 h-4 w-4" />
-              {loading ? "Loading..." : "Message"}
-            </Button>
-          </div>
+          {/* Watchlist Button */}
+          {currentUser?.id && (
+            <div className="pt-2">
+              <WatchlistButton
+                userId={currentUser.id}
+                type={isTrip ? 'route' : 'item'}
+                payload={
+                  isTrip
+                    ? {
+                        from_location: item.from_location,
+                        to_location: item.to_location,
+                        trip_id: item.id,
+                      }
+                    : {
+                        from_location: item.from_location,
+                        to_location: item.to_location,
+                        request_id: item.id,
+                        title: 'Request',
+                      }
+                }
+                size="sm"
+              />
+            </div>
+          )}
+
+          {/* Message Button - Show if user is involved in the post */}
+          {isInvolved && (
+            <div className="pt-4 border-t">
+              <Button
+                onClick={() => setShowMessageThread(true)}
+                className="w-full bg-teal-600 hover:bg-teal-700"
+              >
+                <MessageCircle className="mr-2 h-4 w-4" />
+                Open Messages
+              </Button>
+            </div>
+          )}
+
+          {/* WhatsApp Button for non-involved users */}
+          {!isInvolved && userProfile?.phone && (
+            <div className="pt-4 border-t">
+              <WhatsAppButton
+                phone={userProfile.phone}
+                title={isTrip ? "Trip" : "Request"}
+                origin={item.from_location}
+                destination={item.to_location}
+                className="w-full bg-green-600 hover:bg-green-700"
+              />
+            </div>
+          )}
+          
+          {/* Fallback to message if no phone */}
+          {!isInvolved && !userProfile?.phone && (
+            <div className="pt-4 border-t">
+              <Button
+                onClick={handleMessage}
+                disabled={loading}
+                className="w-full bg-teal-600 hover:bg-teal-700"
+              >
+                <MessageCircle className="mr-2 h-4 w-4" />
+                {loading ? "Loading..." : "Message"}
+              </Button>
+            </div>
+          )}
         </div>
+
+        {/* Suggested Matches */}
+        {currentUser?.id && (
+          <div className="pt-4 border-t mt-4">
+            <SuggestedMatches
+              postType={item.type}
+              postId={item.id}
+              currentUserId={currentUser.id}
+              maxSuggestions={3}
+            />
+          </div>
+        )}
       </DialogContent>
+
+      {/* Message Thread Modal */}
+      {currentUser?.id && (
+        <PostMessageThreadModal
+          open={showMessageThread}
+          onClose={() => setShowMessageThread(false)}
+          postId={item.id}
+          postType={item.type}
+          currentUserId={currentUser.id}
+        />
+      )}
     </Dialog>
   );
 }

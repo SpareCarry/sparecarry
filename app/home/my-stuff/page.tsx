@@ -1,15 +1,19 @@
 "use client";
 
+export const dynamic = 'force-dynamic';
+
 import Link from "next/link";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { format, formatDistanceToNow } from "date-fns";
 import { useQuery } from "@tanstack/react-query";
-import { AlertCircle, LifeBuoy, Loader2, MessageSquare, Package, Plane, ShieldCheck } from "lucide-react";
+import { AlertCircle, LifeBuoy, Loader2, MessageSquare, Package, Plane, ShieldCheck, Mail } from "lucide-react";
 
 import { createClient } from "../../../lib/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../../components/ui/card";
 import { Button } from "../../../components/ui/button";
 import { Badge } from "../../../components/ui/badge";
+import { useUser } from "../../../hooks/useUser";
+import { ContactSupportForm } from "../../../components/support/contact-support-form";
 
 type Trip = {
   id: string;
@@ -85,18 +89,10 @@ function normalizeSingle<T>(value?: T | T[] | null): T | null {
   return Array.isArray(value) ? value[0] ?? null : value;
 }
 
-async function fetchMyStuff(): Promise<MyStuffData> {
+async function fetchMyStuff(userId: string): Promise<MyStuffData> {
   const supabase = createClient();
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
 
-  if (authError) {
-    throw authError;
-  }
-
-  if (!user) {
+  if (!userId) {
     throw new Error("You need to be signed in to view this page.");
   }
 
@@ -104,20 +100,20 @@ async function fetchMyStuff(): Promise<MyStuffData> {
     supabase
       .from("trips")
       .select("*")
-      .eq("user_id", user.id)
+      .eq("user_id", userId)
       .order("created_at", { ascending: false }),
     supabase
       .from("requests")
       .select("*")
-      .eq("user_id", user.id)
+      .eq("user_id", userId)
       .order("created_at", { ascending: false }),
   ]);
 
   if (tripsResult.error) throw tripsResult.error;
   if (requestsResult.error) throw requestsResult.error;
 
-  const trips = tripsResult.data ?? [];
-  const requests = requestsResult.data ?? [];
+  const trips = (tripsResult.data ?? []) as Trip[];
+  const requests = (requestsResult.data ?? []) as Request[];
 
   const tripIds = trips.map((trip) => trip.id);
   const requestIds = requests.map((request) => request.id);
@@ -154,8 +150,11 @@ async function fetchMyStuff(): Promise<MyStuffData> {
   if (matchesFromTrips.error) throw matchesFromTrips.error;
   if (matchesFromRequests.error) throw matchesFromRequests.error;
 
+  const matchesFromTripsData = (matchesFromTrips.data ?? []) as MatchRecord[];
+  const matchesFromRequestsData = (matchesFromRequests.data ?? []) as MatchRecord[];
+
   const matchMap = new Map<string, MatchRecord>();
-  [...(matchesFromTrips.data ?? []), ...(matchesFromRequests.data ?? [])].forEach((match) => {
+  [...matchesFromTripsData, ...matchesFromRequestsData].forEach((match) => {
     matchMap.set(match.id, match as MatchRecord);
   });
 
@@ -176,7 +175,7 @@ async function fetchMyStuff(): Promise<MyStuffData> {
   if (disputesResult.error) throw disputesResult.error;
 
   return {
-    userId: user.id,
+    userId: userId,
     trips,
     requests,
     matches,
@@ -213,9 +212,20 @@ function EmptyState({ title, description, action }: { title: string; description
 }
 
 export default function MyStuffPage() {
+  const { user } = useUser();
+  const [supportFormOpen, setSupportFormOpen] = useState(false);
+  
   const { data, isLoading, error, refetch } = useQuery({
-    queryKey: ["my-stuff"],
-    queryFn: fetchMyStuff,
+    queryKey: ["my-stuff", user?.id],
+    queryFn: () => {
+      if (!user?.id) {
+        throw new Error("You need to be signed in to view this page.");
+      }
+      return fetchMyStuff(user.id);
+    },
+    enabled: !!user?.id,
+    retry: false,
+    throwOnError: false,
   });
 
   const activeMatches = useMemo(() => {
@@ -482,31 +492,29 @@ export default function MyStuffPage() {
 
       {/* Support & Disputes */}
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <div>
-            <CardTitle className="flex items-center gap-2">
-              <ShieldCheck className="h-5 w-5 text-teal-600" />
-              Support & disputes
-            </CardTitle>
-            <CardDescription>We keep every delivery accountable. Track any investigations below.</CardDescription>
-          </div>
-          <Button variant="outline" asChild>
-            <a href={`mailto:${process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "support@sparecarry.com"}`}>
-              Email support
-            </a>
-          </Button>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <ShieldCheck className="h-5 w-5 text-teal-600" />
+            Support & disputes
+          </CardTitle>
+          <CardDescription>We keep every delivery accountable. Track any investigations below.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           {openDisputes.length === 0 && (
-            <EmptyState
-              title="All clear!"
-              description="You have no open support tickets. If something feels off, open the chat and file a dispute from there."
-              action={
-                <Button asChild variant="outline">
-                  <Link href="/home">Need help? Start a chat</Link>
+            <div className="text-center py-8">
+              <p className="text-lg font-semibold text-slate-900 mb-2">All clear!</p>
+              <p className="text-sm text-slate-500 mb-6">You have no open support tickets.</p>
+              <div className="flex justify-center">
+                <Button
+                  onClick={() => setSupportFormOpen(true)}
+                  variant="outline"
+                  className="border-teal-600 text-teal-600 hover:bg-teal-50"
+                >
+                  <Mail className="h-4 w-4 mr-2" />
+                  Contact Support
                 </Button>
-              }
-            />
+              </div>
+            </div>
           )}
           {openDisputes.map((dispute) => {
             const match = matchLookup.get(dispute.match_id);
@@ -537,14 +545,22 @@ export default function MyStuffPage() {
               </div>
             );
           })}
-          <div className="rounded-lg border border-slate-200 p-4 bg-slate-50 flex flex-wrap items-center gap-3">
-            <LifeBuoy className="h-5 w-5 text-slate-600" />
-            <div className="text-sm text-slate-600">
-              Need real-time help? Ping us directly from any chat thread via the “Need help?” panel.
+          {openDisputes.length > 0 && (
+            <div className="flex justify-center pt-4">
+              <Button
+                onClick={() => setSupportFormOpen(true)}
+                variant="outline"
+                className="border-teal-600 text-teal-600 hover:bg-teal-50"
+              >
+                <Mail className="h-4 w-4 mr-2" />
+                Contact Support
+              </Button>
             </div>
-          </div>
+          )}
         </CardContent>
       </Card>
+
+      <ContactSupportForm open={supportFormOpen} onOpenChange={setSupportFormOpen} />
     </div>
   );
 }

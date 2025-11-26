@@ -2,6 +2,7 @@
 
 import { SubscriptionCard } from "../../components/subscription/subscription-card";
 import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card";
+import { LifetimeMarketingBanner } from "../../components/subscription/lifetime-marketing-banner";
 
 export default function SubscriptionPage() {
   return (
@@ -9,9 +10,11 @@ export default function SubscriptionPage() {
       <div className="mb-6">
         <h1 className="text-3xl font-bold text-slate-900">SpareCarry Pro</h1>
         <p className="text-slate-600 mt-1">
-          Unlock premium features and save on every delivery
+          Well done for exploring SpareCarry Plus! Your support helps us keep global shipping fair and people-powered.
         </p>
       </div>
+
+      <LifetimeMarketingBanner />
 
       <div className="max-w-2xl mx-auto">
         <SubscriptionCard />

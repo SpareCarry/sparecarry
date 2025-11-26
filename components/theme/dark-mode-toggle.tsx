@@ -5,24 +5,22 @@ import { Button } from "../ui/button";
 import { Moon, Sun } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { createClient } from "../../lib/supabase/client";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import { useUser } from "../../hooks/useUser";
+
+type SupporterThemeStatus = {
+  supporter_status?: "active" | "inactive" | null;
+};
 
 export function DarkModeToggle() {
-  const supabase = createClient();
+  const supabase = createClient() as SupabaseClient;
   const [mounted, setMounted] = useState(false);
   const [isDark, setIsDark] = useState(false);
 
-  // Check if user is a supporter
-  const { data: user } = useQuery({
-    queryKey: ["current-user-theme"],
-    queryFn: async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      return user;
-    },
-  });
+  // Use shared hook to prevent duplicate queries
+  const { user } = useUser();
 
-  const { data: userData } = useQuery({
+  const { data: userData } = useQuery<SupporterThemeStatus | null>({
     queryKey: ["user-supporter-theme", user?.id],
     queryFn: async () => {
       if (!user) return null;
@@ -31,7 +29,7 @@ export function DarkModeToggle() {
         .select("supporter_status")
         .eq("id", user.id)
         .single();
-      return data;
+      return (data ?? null) as SupporterThemeStatus | null;
     },
     enabled: !!user,
   });

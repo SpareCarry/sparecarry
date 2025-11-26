@@ -7,8 +7,10 @@ const config: CapacitorConfig = {
   webDir: "out",
   bundledWebRuntime: false,
   server: {
-    androidScheme: "https",
-    iosScheme: "https",
+    androidScheme: "carryspace", // Deep link scheme for Android
+    iosScheme: "carryspace", // Deep link scheme for iOS
+    // Allow navigation to our app scheme
+    allowNavigation: ["*"],
   },
   plugins: {
     SplashScreen: {
@@ -46,7 +48,7 @@ const config: CapacitorConfig = {
     webContentsDebuggingEnabled: false,
   },
   ios: {
-    scheme: "CarrySpace",
+    scheme: "carryspace", // Lowercase scheme for consistency
     contentInset: "automatic",
     scrollEnabled: true,
   },

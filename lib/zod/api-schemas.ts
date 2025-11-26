@@ -105,7 +105,7 @@ export const updatePurchaseLinkRequestSchema = z.object({
 });
 
 export const createSubscriptionCheckoutRequestSchema = z.object({
-  priceId: z.enum(["monthly", "yearly"]),
+  priceId: z.enum(["monthly", "yearly", "lifetime"]),
 });
 
 export const verifySupporterPaymentRequestSchema = z.object({

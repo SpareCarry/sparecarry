@@ -1,95 +1,69 @@
 import { NextResponse } from "next/server";
+import { createClient } from "@/lib/supabase/server";
 
-import { createServiceRoleClient } from "@/lib/supabase/service-role";
-
-export const dynamic = "force-dynamic";
-
-type LeaderboardEntry = {
+interface LeaderboardEntry {
   userId: string;
   displayName: string;
   count: number;
-};
+}
 
 export async function GET() {
   try {
-    const supabase = createServiceRoleClient();
+    const supabase = await createClient();
+    
+    // Get authenticated user (optional - leaderboard can be public)
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
-    const { data: referrals, error } = await supabase
+    // Query referrals grouped by referrer_id with counts
+    // Join with profiles to get display names
+    const { data: referrals, error: referralsError } = await supabase
       .from("referrals")
-      .select("referrer_id")
-      .limit(1000);
+      .select("referrer_id, profiles!referrals_referrer_id_fkey(display_name, user_id)")
+      .order("created_at", { ascending: false });
 
-    if (error) {
-      throw error;
+    if (referralsError) {
+      console.error("Error fetching referrals:", referralsError);
+      return NextResponse.json(
+        { error: "Failed to fetch leaderboard data" },
+        { status: 500 }
+      );
     }
 
-    if (!referrals || referrals.length === 0) {
-      return NextResponse.json<LeaderboardEntry[]>([]);
-    }
-
-    const counts = new Map<string, number>();
-    for (const row of referrals) {
-      if (!row.referrer_id) continue;
-      counts.set(row.referrer_id, (counts.get(row.referrer_id) ?? 0) + 1);
-    }
-
-    const topIds = Array.from(counts.entries())
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 10)
-      .map(([id]) => id);
-
-    if (topIds.length === 0) {
-      return NextResponse.json<LeaderboardEntry[]>([]);
-    }
-
-    const [{ data: users }, { data: profiles }] = await Promise.all([
-      supabase
-        .from("users")
-        .select("id, email")
-        .in("id", topIds),
-      supabase
-        .from("profiles")
-        .select("user_id, boat_name")
-        .in("user_id", topIds),
-    ]);
-
-    const profileMap = new Map<string, string>();
-    profiles?.forEach((profile) => {
-      if (profile?.user_id && profile.boat_name) {
-        profileMap.set(profile.user_id, profile.boat_name);
+    // Group by referrer_id and count
+    const referralCounts = new Map<string, { count: number; displayName: string }>();
+    
+    for (const referral of referrals || []) {
+      const referrerId = referral.referrer_id as string;
+      // Supabase returns joined relations as arrays; take the first profile if present
+      const profiles = referral.profiles as unknown as { display_name?: string; user_id: string }[] | null;
+      const profile = profiles?.[0] ?? null;
+      const displayName = profile?.display_name || "Anonymous";
+      
+      if (!referralCounts.has(referrerId)) {
+        referralCounts.set(referrerId, { count: 0, displayName });
       }
-    });
+      
+      const entry = referralCounts.get(referrerId)!;
+      entry.count += 1;
+    }
 
-    const leaderboard = (users ?? [])
-      .map<LeaderboardEntry>((user) => {
-        const fallback =
-          user.email?.split("@")[0]?.replace(/[^a-zA-Z0-9_]/g, "_") || "User";
-        const displayName = profileMap.get(user.id) ?? fallback;
-        return {
-          userId: user.id,
-          displayName:
-            displayName.length > 25
-              ? `${displayName.slice(0, 25)}…`
-              : displayName,
-          count: counts.get(user.id) ?? 0,
-        };
-      })
-      .sort((a, b) => b.count - a.count);
+    // Convert to array and sort by count (descending)
+    const leaderboard: LeaderboardEntry[] = Array.from(referralCounts.entries())
+      .map(([userId, { count, displayName }]) => ({
+        userId,
+        displayName,
+        count,
+      }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 10); // Top 10
 
     return NextResponse.json(leaderboard);
   } catch (error: any) {
-    // If the referrals table hasn't been provisioned yet, return an empty list
-    if (
-      typeof error?.message === "string" &&
-      error.message.toLowerCase().includes("referrals")
-    ) {
-      console.warn("[referrals/leaderboard] referrals table missing:", error);
-      return NextResponse.json<LeaderboardEntry[]>([]);
-    }
-
-    console.error("[referrals/leaderboard] Failed to load leaderboard:", error);
+    console.error("Error in leaderboard API:", error);
     return NextResponse.json(
-      { error: "Failed to load referral leaderboard" },
+      { error: error.message || "Internal server error" },
       { status: 500 }
     );
   }

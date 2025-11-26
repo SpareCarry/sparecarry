@@ -190,6 +190,7 @@ export function seedTestData(): void {
       completed_deliveries_count: 5,
       average_rating: 4.5,
       referral_credits: 0,
+      karma_points: 0,
     },
     {
       id: 'user-2',
@@ -200,6 +201,7 @@ export function seedTestData(): void {
       completed_deliveries_count: 2,
       average_rating: 4.8,
       referral_credits: 50,
+      karma_points: 0,
     },
   ]);
 

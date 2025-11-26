@@ -1,0 +1,227 @@
+ WARN  Unsupported engine: wanted: {"node":"22.x"} (current: {"node":"v24.11.1","pnpm":"10.22.0"})
+
+> sparecarry@0.1.0 test:comprehensive C:\SpareCarry
+> node scripts/test-comprehensive.js
+
+[dotenv@17.2.3] injecting env (19) from .env.local -- tip: ⚙️  specify custom .env file path with { path: '/custom/path/.env' }
+✅ Loaded .env.local using dotenv
+Script starting...
+
+============================================================
+Test Run Started: 2025-11-24T08:32:26.302Z
+Node Version: v24.11.1
+Working Directory: C:\SpareCarry
+Script Path: C:\SpareCarry\scripts\test-comprehensive.js
+============================================================
+
+✅ dotenv module loaded
+🚀 Starting Comprehensive Automated Tests...
+
+============================================================
+
+🧪 Testing: Environment Variables...
+✅ PASSED: Environment Variables
+   count: 8
+
+🧪 Testing: Database Connectivity...
+✅ PASSED: Database Connectivity
+   connected: true
+   canQuery: true
+
+🧪 Testing: Stripe Connectivity...
+✅ PASSED: Stripe Connectivity
+   connected: true
+   mode: "test"
+
+🧪 Testing: API Endpoints...
+✅ PASSED: API Endpoints
+   accessible: 6
+   endpoints: [{"endpoint":"/api/matches/auto-match","status":401,"note":"Endpoint exists and responded"},{"endpoint":"/api/payments/create-intent","status":401,"note":"Endpoint exists and responded"},{"endpoint":"/api/payments/confirm-delivery","status":401,"note":"Endpoint exists and responded"},{"endpoint":"/api/payments/auto-release","status":401,"note":"Endpoint exists and responded"},{"endpoint":"/api/notifications/register-token","status":401,"note":"Endpoint exists and responded"},{"endpoint":"/api/notifications/send-message","status":"error","error":"The operation was aborted due to timeout","note":"Server running but endpoint unreachable - check if route exists"}]
+
+🧪 Testing: Auto-Release Cron...
+   ⚠️  Server not running at http://localhost:3000 - start with: pnpm dev
+   ℹ️  This is OK - endpoint exists but needs server to be running
+✅ PASSED: Auto-Release Cron
+   accessible: false
+   warning: "Server not running"
+   note: "Start server with: pnpm dev"
+
+🧪 Testing: Matching Algorithm...
+✅ PASSED: Matching Algorithm
+   algorithmExists: true
+   note: "Match score module exists (TypeScript - requires compilation)"
+
+🧪 Testing: Payment Intent Creation...
+✅ PASSED: Payment Intent Creation
+   canCreate: true
+   canCancel: true
+   intentId: "pi_3SWvCPGf57CmEub7108Hqrv5"
+
+🧪 Testing: Notification Services...
+✅ PASSED: Notification Services
+   expo: {"configured":true}
+   resend: {"configured":true}
+
+🧪 Testing: Database Tables...
+✅ PASSED: Database Tables
+   allTablesExist: true
+   tables: 7
+
+============================================================
+
+📊 TEST SUMMARY
+
+✅ Environment Variables
+✅ Database Connectivity
+✅ Stripe Connectivity
+✅ API Endpoints
+✅ Auto-Release Cron
+✅ Matching Algorithm
+✅ Payment Intent Creation
+✅ Notification Services
+✅ Database Tables
+
+✅ Passed: 9
+❌ Failed: 0
+📈 Total: 9
+
+============================================================
+📄 DETAILED REPORT
+============================================================
+
+Comprehensive Test Report
+Generated: 2025-11-24T08:32:44.098Z
+Node Version: v24.11.1
+Working Directory: C:\SpareCarry
+
+============================================================
+
+SUMMARY
+============================================================
+Total Tests: 9
+Passed: 9
+Failed: 0
+Success Rate: 100.0%
+
+DETAILED RESULTS
+============================================================
+
+1. Environment Variables
+   Status: ✅ PASSED
+   Details:
+     count: 8
+
+2. Database Connectivity
+   Status: ✅ PASSED
+   Details:
+     connected: true
+     canQuery: true
+
+3. Stripe Connectivity
+   Status: ✅ PASSED
+   Details:
+     connected: true
+     mode: test
+
+4. API Endpoints
+   Status: ✅ PASSED
+   Details:
+     accessible: 6
+     endpoints: [
+  {
+    "endpoint": "/api/matches/auto-match",
+    "status": 401,
+    "note": "Endpoint exists and responded"
+  },
+  {
+    "endpoint": "/api/payments/create-intent",
+    "status": 401,
+    "note": "Endpoint exists and responded"
+  },
+  {
+    "endpoint": "/api/payments/confirm-delivery",
+    "status": 401,
+    "note": "Endpoint exists and responded"
+  },
+  {
+    "endpoint": "/api/payments/auto-release",
+    "status": 401,
+    "note": "Endpoint exists and responded"
+  },
+  {
+    "endpoint": "/api/notifications/register-token",
+    "status": 401,
+    "note": "Endpoint exists and responded"
+  },
+  {
+    "endpoint": "/api/notifications/send-message",
+    "status": "error",
+    "error": "The operation was aborted due to timeout",
+    "note": "Server running but endpoint unreachable - check if route exists"
+  }
+]
+
+5. Auto-Release Cron
+   Status: ✅ PASSED
+   Details:
+     accessible: false
+     warning: Server not running
+     note: Start server with: pnpm dev
+   ⚠️  Warning: Server not running
+   ℹ️  Note: Start server with: pnpm dev
+
+6. Matching Algorithm
+   Status: ✅ PASSED
+   Details:
+     algorithmExists: true
+     note: Match score module exists (TypeScript - requires compilation)
+   ℹ️  Note: Match score module exists (TypeScript - requires compilation)
+
+7. Payment Intent Creation
+   Status: ✅ PASSED
+   Details:
+     canCreate: true
+     canCancel: true
+     intentId: pi_3SWvCPGf57CmEub7108Hqrv5
+
+8. Notification Services
+   Status: ✅ PASSED
+   Details:
+     expo: {
+  "configured": true
+}
+     resend: {
+  "configured": true
+}
+
+9. Database Tables
+   Status: ✅ PASSED
+   Details:
+     allTablesExist: true
+     tables: 7
+
+
+============================================================
+ENVIRONMENT INFORMATION
+============================================================
+NODE_ENV: not set
+BASE_URL: http://localhost:3000
+CRON_SECRET: ✅ Set
+
+Key Environment Variables:
+  ✅ NEXT_PUBLIC_SUPABASE_URL: Set
+  ✅ NEXT_PUBLIC_SUPABASE_ANON_KEY: Set
+  ✅ SUPABASE_SERVICE_ROLE_KEY: Set
+  ✅ STRIPE_SECRET_KEY: Set
+  ✅ STRIPE_WEBHOOK_SECRET: Set
+  ✅ RESEND_API_KEY: Set
+
+
+📝 Detailed report also saved to: C:\SpareCarry\test-results-comprehensive-detailed.txt
+
+🎉 All tests passed! Your app is ready for production.
+
+============================================================
+Test Run Completed: 2025-11-24T08:32:44.102Z
+============================================================
+

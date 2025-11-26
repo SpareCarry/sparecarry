@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -10,6 +10,7 @@ import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { Card, CardContent } from "../ui/card";
 import { createClient } from "../../lib/supabase/client";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   Loader2,
@@ -18,24 +19,40 @@ import {
   Check,
   ChevronDown,
   Search,
+  MapPin,
 } from "lucide-react";
 import { format, addDays } from "date-fns";
 import { popularPorts, searchPorts } from "../../lib/data/ports";
 import { cn } from "../../lib/utils";
 import { LithiumWarningModal } from "../modals/lithium-warning-modal";
+import { LocationFieldGroup } from "../location/LocationFieldGroup";
+import { Place } from "../../lib/services/location";
+import { AlertCircle } from "lucide-react";
+import { trackPostCreated, trackLocationSelected } from "../../lib/analytics/tracking";
 
 const planeTripSchema = z.object({
   type: z.literal("plane"),
-  flight_number: z.string().optional(),
-  from_airport: z.string().optional(),
-  to_airport: z.string().optional(),
+  from_location: z.string().min(1, "Departure location is required"),
+  to_location: z.string().min(1, "Arrival location is required"),
   departure_date: z.string().min(1, "Departure date is required"),
+  arrival_date: z.string().min(1, "Arrival date is required"),
+  departure_lat: z.number().nullable().optional(),
+  departure_lon: z.number().nullable().optional(),
+  departure_category: z.string().nullable().optional(),
+  arrival_lat: z.number().nullable().optional(),
+  arrival_lon: z.number().nullable().optional(),
+  arrival_category: z.string().nullable().optional(),
   spare_kg: z.number().min(0).max(32, "Maximum 32kg for carry-on"),
   spare_volume_liters: z.number().min(0).optional(),
   max_length_cm: z.number().positive("Length must be positive"),
   max_width_cm: z.number().positive("Width must be positive"),
   max_height_cm: z.number().positive("Height must be positive"),
-  can_take_lithium_batteries: z.boolean().default(false),
+  prohibited_items_confirmed: z
+    .boolean()
+    .refine((val) => val === true, {
+      message: "You must confirm that you are not carrying prohibited items",
+      path: ["prohibited_items_confirmed"],
+    }),
 });
 
 const boatTripSchema = z.object({
@@ -44,6 +61,12 @@ const boatTripSchema = z.object({
   to_location: z.string().min(1, "To port is required"),
   eta_window_start: z.string().min(1, "ETA start date is required"),
   eta_window_end: z.string().min(1, "ETA end date is required"),
+  departure_lat: z.number().nullable().optional(),
+  departure_lon: z.number().nullable().optional(),
+  departure_category: z.string().nullable().optional(),
+  arrival_lat: z.number().nullable().optional(),
+  arrival_lon: z.number().nullable().optional(),
+  arrival_category: z.string().nullable().optional(),
   spare_kg: z.number().positive("Spare capacity is required"),
   spare_volume_liters: z.number().min(0).optional(),
   can_take_outboard: z.boolean().default(false),
@@ -168,12 +191,17 @@ function PortSelect({
 export function PostTripForm() {
   const router = useRouter();
   const queryClient = useQueryClient();
-  const supabase = createClient();
+  const supabase = createClient() as SupabaseClient;
   const [tripType, setTripType] = useState<"plane" | "boat" | null>(null);
   const [loading, setLoading] = useState(false);
-  const [useManualAirports, setUseManualAirports] = useState(false);
   const [showLithiumWarning, setShowLithiumWarning] = useState(false);
   const [pendingLithiumCheck, setPendingLithiumCheck] = useState(false);
+  const [departurePlace, setDeparturePlace] = useState<Place | null>(null);
+  const [arrivalPlace, setArrivalPlace] = useState<Place | null>(null);
+  
+  // Location place states for boat trips
+  const [boatFromPlace, setBoatFromPlace] = useState<Place | null>(null);
+  const [boatToPlace, setBoatToPlace] = useState<Place | null>(null);
 
   const {
     register,
@@ -186,11 +214,28 @@ export function PostTripForm() {
     resolver: zodResolver(tripSchema),
     defaultValues: {
       type: "plane",
-      can_take_lithium_batteries: false,
+    prohibited_items_confirmed: false,
     } as TripFormData,
   });
 
   const watchedType = watch("type");
+
+  // Boat location place handlers
+  useEffect(() => {
+    // Sync boatFromPlace and boatToPlace with form values if they're set
+    if (boatFromPlace && boatFromPlace.name) {
+      setValue("from_location", boatFromPlace.name);
+      setValue("departure_lat", boatFromPlace.lat);
+      setValue("departure_lon", boatFromPlace.lon);
+      setValue("departure_category", boatFromPlace.category || null);
+    }
+    if (boatToPlace && boatToPlace.name) {
+      setValue("to_location", boatToPlace.name);
+      setValue("arrival_lat", boatToPlace.lat);
+      setValue("arrival_lon", boatToPlace.lon);
+      setValue("arrival_category", boatToPlace.category || null);
+    }
+  }, [boatFromPlace, boatToPlace, setValue]);
 
   const onSubmit = async (data: TripFormData) => {
     setLoading(true);
@@ -207,13 +252,11 @@ export function PostTripForm() {
       let tripData: { id: string } | null = null;
 
       if (data.type === "plane") {
-        // Calculate ETA window for plane (same day as departure)
+        // Calculate ETA window for plane (from departure to arrival date)
         const departureDate = new Date(data.departure_date);
+        const arrivalDate = new Date(data.arrival_date);
         const etaStart = format(departureDate, "yyyy-MM-dd'T'HH:mm:ss");
-        const etaEnd = format(
-          new Date(departureDate.getTime() + 24 * 60 * 60 * 1000),
-          "yyyy-MM-dd'T'HH:mm:ss"
-        );
+        const etaEnd = format(arrivalDate, "yyyy-MM-dd'T'HH:mm:ss");
 
         const maxDimensions = JSON.stringify({
           length_cm: data.max_length_cm,
@@ -226,28 +269,35 @@ export function PostTripForm() {
           .insert({
             user_id: user.id,
             type: "plane",
-            from_location: useManualAirports
-              ? data.from_airport || ""
-              : data.flight_number
-              ? `Flight ${data.flight_number}`
-              : "Airport",
-            to_location: useManualAirports ? data.to_airport || "" : "Destination",
-            flight_number: data.flight_number || null,
+            from_location: data.from_location,
+            to_location: data.to_location,
             departure_date: data.departure_date,
+            arrival_date: data.arrival_date,
+            departure_lat: data.departure_lat,
+            departure_lon: data.departure_lon,
+            departure_category: data.departure_category,
+            arrival_lat: data.arrival_lat,
+            arrival_lon: data.arrival_lon,
+            arrival_category: data.arrival_category,
+            flight_number: null, // No longer used
             eta_window_start: etaStart,
             eta_window_end: etaEnd,
             spare_kg: data.spare_kg,
             spare_volume_liters: data.spare_volume_liters || 0,
             max_dimensions: maxDimensions,
             can_oversize: false, // Planes have strict size limits
+            prohibited_items_confirmed: data.prohibited_items_confirmed,
           })
           .select()
           .single();
 
         if (error) throw error;
         tripData = insertedTrip;
+        
+        // Track analytics
+        trackPostCreated('trip', false, false);
       } else {
-        // Boat trip
+        // Boat trip - use boatFromPlace and boatToPlace for coordinates if available
         const { data: insertedTrip, error } = await supabase
           .from("trips")
           .insert({
@@ -256,6 +306,12 @@ export function PostTripForm() {
             from_location: data.from_location,
             to_location: data.to_location,
             departure_date: data.eta_window_start, // Use ETA start as departure
+            departure_lat: boatFromPlace?.lat || data.departure_lat || null,
+            departure_lon: boatFromPlace?.lon || data.departure_lon || null,
+            departure_category: boatFromPlace?.category || data.departure_category || null,
+            arrival_lat: boatToPlace?.lat || data.arrival_lat || null,
+            arrival_lon: boatToPlace?.lon || data.arrival_lon || null,
+            arrival_category: boatToPlace?.category || data.arrival_category || null,
             eta_window_start: data.eta_window_start,
             eta_window_end: data.eta_window_end,
             spare_kg: data.spare_kg,
@@ -272,6 +328,9 @@ export function PostTripForm() {
 
         if (error) throw error;
         tripData = insertedTrip;
+        
+        // Track analytics
+        trackPostCreated('trip', false, false);
       }
 
       // Trigger auto-matching
@@ -311,7 +370,7 @@ export function PostTripForm() {
               setTripType("plane");
               reset({
                 type: "plane",
-                can_take_lithium_batteries: false,
+              prohibited_items_confirmed: false,
               });
             }}
           >
@@ -373,7 +432,7 @@ export function PostTripForm() {
           setTripType(null);
           reset({
             type: "plane",
-            can_take_lithium_batteries: false,
+            prohibited_items_confirmed: false,
           });
         }}
         className="mb-4"
@@ -389,68 +448,65 @@ export function PostTripForm() {
               <h3 className="text-lg font-semibold text-slate-900">Plane Trip Details</h3>
             </div>
 
-            {/* Flight number or manual airports */}
-            <div className="space-y-2">
-              <Label>Enter flight details</Label>
-              <div className="flex items-center gap-2 mb-2">
-                <input
-                  type="radio"
-                  id="flight-number"
-                  checked={!useManualAirports}
-                  onChange={() => setUseManualAirports(false)}
-                  className="h-4 w-4"
-                />
-                <Label htmlFor="flight-number" className="cursor-pointer">
-                  Flight number
-                </Label>
-              </div>
-              <div className="flex items-center gap-2">
-                <input
-                  type="radio"
-                  id="manual-airports"
-                  checked={useManualAirports}
-                  onChange={() => setUseManualAirports(true)}
-                  className="h-4 w-4"
-                />
-                <Label htmlFor="manual-airports" className="cursor-pointer">
-                  Manual airports
-                </Label>
-              </div>
-            </div>
+            {/* Departure Location */}
+            <LocationFieldGroup
+              label="Departure Location"
+              inputId="trip_departure_location"
+              inputName="trip_departure_location"
+              placeholder="Search departure airport or city..."
+              value={departurePlace}
+              onChange={(place) => {
+                setDeparturePlace(place);
+                if (place) {
+                  setValue("from_location", place.name);
+                  setValue("departure_lat", place.lat);
+                  setValue("departure_lon", place.lon);
+                  setValue("departure_category", place.category || null);
+                } else {
+                  setValue("from_location", "");
+                  setValue("departure_lat", null);
+                  setValue("departure_lon", null);
+                  setValue("departure_category", null);
+                }
+              }}
+              required
+              error={watchedType === "plane" && "from_location" in errors ? errors.from_location?.message : undefined}
+              showOnlyMarinas={false}
+              showMapPreview={true}
+              showCurrentLocation={true}
+              showMapPicker={true}
+            />
 
-            {!useManualAirports ? (
-              <div className="space-y-2">
-                <Label htmlFor="flight_number">Flight Number</Label>
-                <Input
-                  id="flight_number"
-                  {...register("flight_number")}
-                  placeholder="e.g., AA1234"
-                  className="bg-white"
-                />
-              </div>
-            ) : (
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="from_airport">From Airport</Label>
-                  <Input
-                    id="from_airport"
-                    {...register("from_airport")}
-                    placeholder="e.g., MIA"
-                    className="bg-white"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="to_airport">To Airport</Label>
-                  <Input
-                    id="to_airport"
-                    {...register("to_airport")}
-                    placeholder="e.g., SXM"
-                    className="bg-white"
-                  />
-                </div>
-              </div>
-            )}
+            {/* Arrival Location */}
+            <LocationFieldGroup
+              label="Arrival Location"
+              inputId="trip_arrival_location"
+              inputName="trip_arrival_location"
+              placeholder="Search arrival airport or city..."
+              value={arrivalPlace}
+              onChange={(place) => {
+                setArrivalPlace(place);
+                if (place) {
+                  setValue("to_location", place.name);
+                  setValue("arrival_lat", place.lat);
+                  setValue("arrival_lon", place.lon);
+                  setValue("arrival_category", place.category || null);
+                } else {
+                  setValue("to_location", "");
+                  setValue("arrival_lat", null);
+                  setValue("arrival_lon", null);
+                  setValue("arrival_category", null);
+                }
+              }}
+              required
+              error={watchedType === "plane" && "to_location" in errors ? errors.to_location?.message : undefined}
+              showOnlyMarinas={false}
+              showMapPreview={true}
+              showCurrentLocation={true}
+              showMapPicker={true}
+            />
 
+            {/* Departure Date */}
             <div className="space-y-2">
               <Label htmlFor="departure_date">Departure Date *</Label>
               <Input
@@ -460,9 +516,24 @@ export function PostTripForm() {
                 min={format(new Date(), "yyyy-MM-dd")}
                 className="bg-white"
               />
-               {watchedType === "plane" && "departure_date" in errors && errors.departure_date && (
-                 <p className="text-sm text-red-600">{errors.departure_date.message}</p>
-               )}
+              {watchedType === "plane" && "departure_date" in errors && errors.departure_date && (
+                <p className="text-sm text-red-600">{errors.departure_date.message}</p>
+              )}
+            </div>
+
+            {/* Arrival Date */}
+            <div className="space-y-2">
+              <Label htmlFor="arrival_date">Arrival Date *</Label>
+              <Input
+                id="arrival_date"
+                type="date"
+                {...register("arrival_date")}
+                min={watch("departure_date") || format(new Date(), "yyyy-MM-dd")}
+                className="bg-white"
+              />
+              {watchedType === "plane" && "arrival_date" in errors && errors.arrival_date && (
+                <p className="text-sm text-red-600">{errors.arrival_date.message}</p>
+              )}
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -538,26 +609,35 @@ export function PostTripForm() {
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
-              <input
-                id="can_take_lithium_batteries"
-                type="checkbox"
-                {...register("can_take_lithium_batteries")}
-                onChange={(e) => {
-                  if (e.target.checked) {
-                    setPendingLithiumCheck(true);
-                    setShowLithiumWarning(true);
-                  } else {
-                    setValue("can_take_lithium_batteries", false);
-                  }
-                }}
-                checked={watch("can_take_lithium_batteries")}
-                className="h-4 w-4 rounded border-slate-300 text-teal-600 focus:ring-teal-600"
-              />
-              <Label htmlFor="can_take_lithium_batteries" className="cursor-pointer">
-                Can take lithium batteries
-              </Label>
+            <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg space-y-3">
+              <div className="flex items-start gap-2">
+                <input
+                  id="prohibited_items_confirmed"
+                  type="checkbox"
+                  {...register("prohibited_items_confirmed")}
+                  className="h-4 w-4 rounded border-slate-300 text-teal-600 focus:ring-teal-600 mt-0.5"
+                />
+                <Label htmlFor="prohibited_items_confirmed" className="cursor-pointer flex-1">
+                  <span className="font-medium text-amber-900">
+                    I confirm I am not transporting prohibited items for this route.
+                  </span>
+                </Label>
+              </div>
+              <div className="flex items-start gap-2 text-sm text-amber-800">
+                <AlertCircle className="h-4 w-4 text-amber-600 mt-0.5 flex-shrink-0" />
+                <p>
+                  Airlines and customs agencies enforce strict rules. Double-check your cargo
+                  to avoid seizures, fines, or legal issues.
+                </p>
+              </div>
+              {"prohibited_items_confirmed" in errors &&
+                errors.prohibited_items_confirmed && (
+                  <p className="text-sm text-red-600">
+                    {errors.prohibited_items_confirmed.message}
+                  </p>
+                )}
             </div>
+
           </div>
         </>
       )}
@@ -571,19 +651,39 @@ export function PostTripForm() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <PortSelect
-                value={watch("from_location") || ""}
-                onChange={(value) => setValue("from_location", value)}
-                placeholder="Select from port"
-                label="From Port *"
-                 error={watchedType === "boat" && "from_location" in errors ? errors.from_location?.message : undefined}
+              <LocationFieldGroup
+                label="From Port"
+                inputId="boat_from_location"
+                inputName="boat_from_location"
+                placeholder="Search port or city..."
+                value={boatFromPlace}
+                onChange={(place) => {
+                  setBoatFromPlace(place);
+                  trackLocationSelected("autocomplete", "departure");
+                }}
+                required
+                error={watchedType === "boat" && "from_location" in errors ? errors.from_location?.message : undefined}
+                showOnlyMarinas={true}
+                showMapPreview={true}
+                showCurrentLocation={true}
+                showMapPicker={true}
               />
-              <PortSelect
-                value={watch("to_location") || ""}
-                onChange={(value) => setValue("to_location", value)}
-                placeholder="Select to port"
-                label="To Port *"
+              <LocationFieldGroup
+                label="To Port"
+                inputId="boat_to_location"
+                inputName="boat_to_location"
+                placeholder="Search port or city..."
+                value={boatToPlace}
+                onChange={(place) => {
+                  setBoatToPlace(place);
+                  trackLocationSelected("autocomplete", "arrival");
+                }}
+                required
                 error={watchedType === "boat" && "to_location" in errors ? errors.to_location?.message : undefined}
+                showOnlyMarinas={true}
+                showMapPreview={true}
+                showCurrentLocation={true}
+                showMapPicker={true}
               />
             </div>
 

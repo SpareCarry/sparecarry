@@ -8,35 +8,52 @@ import { requestNotificationPermission, registerForPushNotifications } from "../
 import { registerForExpoPushNotifications } from "../../lib/notifications/expo-push-service";
 import { Capacitor } from "@capacitor/core";
 import { createClient } from "../../lib/supabase/client";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { useQuery } from "@tanstack/react-query";
+import { useUser } from "../../hooks/useUser";
+
+type NotificationProfile = {
+  push_notifications_enabled?: boolean | null;
+  expo_push_token?: string | null;
+};
 
 export function NotificationPermissionRequest() {
   const [showRequest, setShowRequest] = useState(false);
   const [requesting, setRequesting] = useState(false);
-  const supabase = createClient();
+  const supabase = createClient() as SupabaseClient;
 
-  const { data: user } = useQuery({
-    queryKey: ["current-user"],
-    queryFn: async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      return user;
-    },
-  });
+  // Use shared hook to prevent duplicate queries
+  const { user } = useUser();
 
-  const { data: profile } = useQuery({
+  const { data: profile } = useQuery<NotificationProfile | null>({
     queryKey: ["profile-notifications", user?.id],
     queryFn: async () => {
       if (!user) return null;
-      const { data } = await supabase
-        .from("profiles")
-        .select("push_notifications_enabled, expo_push_token")
-        .eq("user_id", user.id)
-        .single();
-      return data;
+      try {
+        const { data, error } = await supabase
+          .from("profiles")
+          .select("push_notifications_enabled, expo_push_token")
+          .eq("user_id", user.id)
+          .single();
+        
+        // If record doesn't exist, return null
+        if (error && (error.code === 'PGRST116' || error.message?.includes('No rows'))) {
+          return null;
+        }
+        
+        if (error) {
+          console.warn("Error fetching profile for notifications:", error);
+          return null;
+        }
+        return (data ?? null) as NotificationProfile | null;
+      } catch (error) {
+        console.warn("Exception fetching profile for notifications:", error);
+        return null;
+      }
     },
     enabled: !!user,
+    retry: false,
+    throwOnError: false,
   });
 
   useEffect(() => {
@@ -79,7 +96,8 @@ export function NotificationPermissionRequest() {
         });
 
         if (!response.ok) {
-          throw new Error("Failed to register token");
+          console.error("Failed to register token");
+          // Don't throw - just log the error
         }
       }
 

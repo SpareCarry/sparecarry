@@ -1,4 +1,4 @@
-// Referral program: $35 credit each way after ANY successful delivery
+// Referral program: $25 credit each way after first PAID delivery (platform_fee > 0)
 // Credits are platform-only (can only be used on fees/rewards, never cashed out)
 
 import { createClient } from "@supabase/supabase-js";
@@ -89,11 +89,33 @@ export async function applyReferralCode(
 
 export async function processReferralCredits(
   userId: string,
-  matchId: string
+  matchId: string,
+  platformFee: number
 ): Promise<void> {
   const supabaseAdmin = getSupabaseAdmin();
   
-  // Award $35 credit to referred user after ANY successful delivery
+  // Only award credits on first PAID delivery (platform_fee > 0)
+  if (platformFee <= 0) {
+    return; // Free delivery (first 3), no referral credit
+  }
+  
+  // Get user's profile to check completed_deliveries
+  const { data: profile } = await supabaseAdmin
+    .from("profiles")
+    .select("completed_deliveries")
+    .eq("user_id", userId)
+    .single();
+
+  // Check if this is user's first PAID delivery
+  // If completed_deliveries = 3, this is their 4th delivery (first paid one)
+  // We check if they just completed their 3rd delivery (meaning this is delivery #4, first paid)
+  const isFirstPaidDelivery = profile && profile.completed_deliveries === 3;
+  
+  if (!isFirstPaidDelivery) {
+    return; // Not first paid delivery
+  }
+  
+  // Get user's referred_by
   const { data: user } = await supabaseAdmin
     .from("users")
     .select("referred_by")
@@ -124,36 +146,41 @@ export async function processReferralCredits(
       .single();
 
     if (newReferral) {
-      // Award credits to both parties
-      await supabaseAdmin.rpc("add_referral_credit", {
+      // Award $25 (2500 cents) to both parties using RPC
+      await supabaseAdmin.rpc("add_referral_credit_cents", {
         user_id: userId,
-        amount: 35,
+        amount_cents: 2500,
       });
-      await supabaseAdmin.rpc("add_referral_credit", {
+      
+      await supabaseAdmin.rpc("add_referral_credit_cents", {
         user_id: user.referred_by,
-        amount: 35,
+        amount_cents: 2500,
       });
     }
     return;
   }
 
-  // Award $35 credit to referred user (every delivery)
-  await supabaseAdmin.rpc("add_referral_credit", {
+  // Check if credits already awarded for this referral
+  if (referral.first_paid_delivery_completed_at) {
+    return; // Credits already awarded
+  }
+
+  // Award $25 (2500 cents) to both parties using RPC
+  await supabaseAdmin.rpc("add_referral_credit_cents", {
     user_id: userId,
-    amount: 35,
+    amount_cents: 2500,
+  });
+  
+  await supabaseAdmin.rpc("add_referral_credit_cents", {
+    user_id: user.referred_by,
+    amount_cents: 2500,
   });
 
-  // Award $35 credit to referrer (every delivery by referred user)
-  await supabaseAdmin.rpc("add_referral_credit", {
-    user_id: referral.referrer_id,
-    amount: 35,
-  });
-
-  // Track delivery count for this referral
+  // Track first paid delivery completion
   await supabaseAdmin
     .from("referrals")
     .update({
-      first_delivery_completed_at: referral.first_delivery_completed_at || new Date().toISOString(),
+      first_paid_delivery_completed_at: new Date().toISOString(),
     })
     .eq("id", referral.id);
 }
@@ -166,31 +193,34 @@ export async function getReferralStats(userId: string): Promise<{
 }> {
   const supabaseAdmin = getSupabaseAdmin();
   
-  const { data: user } = await supabaseAdmin
-    .from("users")
-    .select("referral_code, referral_credits")
-    .eq("id", userId)
-    .single();
+  // Get referral_code from users and referral_credit_cents from profiles
+  const [userResult, profileResult] = await Promise.all([
+    supabaseAdmin
+      .from("users")
+      .select("referral_code")
+      .eq("id", userId)
+      .single(),
+    supabaseAdmin
+      .from("profiles")
+      .select("referral_credit_cents")
+      .eq("user_id", userId)
+      .single(),
+  ]);
+
+  const referralCode = userResult.data?.referral_code || null;
+  const creditsCents = profileResult.data?.referral_credit_cents || 0;
+  const creditsAvailable = creditsCents / 100; // Convert cents to dollars
 
   const { count: totalReferrals } = await supabaseAdmin
     .from("referrals")
     .select("*", { count: "exact", head: true })
     .eq("referrer_id", userId);
 
-  const { data: referrals } = await supabaseAdmin
-    .from("referrals")
-    .select("referrer_credit_earned")
-    .eq("referrer_id", userId);
-
-  // Calculate total credits earned (35 per referral delivery)
-  // This is approximate - actual credits are tracked in referral_credits field
-  const creditsEarned = (user?.referral_credits || 0);
-
   return {
-    referralCode: user?.referral_code || null,
+    referralCode,
     totalReferrals: totalReferrals || 0,
-    creditsEarned,
-    creditsAvailable: user?.referral_credits || 0,
+    creditsEarned: creditsAvailable, // Credits earned = credits available (they accumulate)
+    creditsAvailable,
   };
 }
 

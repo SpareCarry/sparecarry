@@ -6,6 +6,7 @@ import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { Card, CardContent, CardDescription } from "../ui/card";
 import { createClient } from "../../lib/supabase/client";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { Loader2, Ship, CheckCircle2 } from "lucide-react";
 
 interface OnboardingStep3Props {
@@ -21,7 +22,7 @@ export function OnboardingStep3({ onComplete }: OnboardingStep3Props) {
   const [boatPapers, setBoatPapers] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const supabase = createClient();
+  const supabase = createClient() as SupabaseClient;
 
   const handleFileUpload = async (file: File, path: string): Promise<string> => {
     const fileExt = file.name.split(".").pop();

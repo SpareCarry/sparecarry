@@ -1,5 +1,6 @@
 "use client";
 
+import React, { useMemo, useCallback } from "react";
 import { Card, CardContent } from "../ui/card";
 import { Badge } from "../ui/badge";
 import { Plane, Ship, CheckCircle2, Clock, DollarSign, Zap } from "lucide-react";
@@ -10,7 +11,9 @@ import { VerifiedBadge } from "../badges/verified-badge";
 import { VerifiedCheckBadge } from "../badges/verified-check-badge";
 import { SupporterBadge } from "../badges/supporter-badge";
 import { MatchScoreBadge } from "../match-score/match-score-badge";
+import { TrustBadges } from "../TrustBadges";
 import { MatchScoreBreakdown } from "../../lib/matching/match-score";
+import { CurrencyDisplay } from "../currency/currency-display";
 
 interface FeedItem {
   id: string;
@@ -43,17 +46,24 @@ interface FeedCardProps {
   onClick: () => void;
 }
 
-export function FeedCard({ item, onClick }: FeedCardProps) {
+function FeedCardComponent({ item, onClick }: FeedCardProps) {
   const isTrip = item.type === "trip";
-  const isFast = isTrip
-    ? item.departure_date &&
-      isValid(parseISO(item.departure_date)) &&
-      differenceInDays(parseISO(item.departure_date), new Date()) <= 10
-    : item.deadline_earliest &&
-      isValid(parseISO(item.deadline_earliest)) &&
-      differenceInDays(parseISO(item.deadline_earliest), new Date()) <= 10;
+  
+  // Memoize expensive date calculations
+  const isFast = useMemo(() => {
+    if (isTrip) {
+      if (item.departure_date && isValid(parseISO(item.departure_date))) {
+        return differenceInDays(parseISO(item.departure_date), new Date()) <= 10;
+      }
+    } else {
+      if (item.deadline_earliest && isValid(parseISO(item.deadline_earliest))) {
+        return differenceInDays(parseISO(item.deadline_earliest), new Date()) <= 10;
+      }
+    }
+    return false;
+  }, [isTrip, item.departure_date, item.deadline_earliest]);
 
-  const getDateRange = () => {
+  const dateRange = useMemo(() => {
     if (isTrip) {
       if (item.departure_date && isValid(parseISO(item.departure_date))) {
         return format(parseISO(item.departure_date), "MMM d");
@@ -76,7 +86,18 @@ export function FeedCard({ item, onClick }: FeedCardProps) {
       }
     }
     return "Dates TBD";
-  };
+  }, [isTrip, item.departure_date, item.eta_window_start, item.eta_window_end, item.deadline_earliest, item.deadline_latest]);
+
+  // Memoize reward/capacity display
+  const rewardDisplay = useMemo(() => {
+    return isTrip
+      ? `Spare: ${item.spare_kg}kg`
+      : (
+          <>
+            Reward: <CurrencyDisplay amount={item.max_reward || 0} showSecondary={false} className="inline" />
+          </>
+        );
+  }, [isTrip, item.spare_kg, item.max_reward]);
 
   return (
     <Card
@@ -114,7 +135,7 @@ export function FeedCard({ item, onClick }: FeedCardProps) {
                 </div>
                 <div className="flex items-center gap-2 text-sm text-slate-600">
                   <Clock className="h-4 w-4" />
-                  <span>{getDateRange()}</span>
+                  <span>{dateRange}</span>
                 </div>
               </div>
               <div className="flex items-center gap-2 flex-wrap justify-end">
@@ -125,17 +146,18 @@ export function FeedCard({ item, onClick }: FeedCardProps) {
                     tripType={item.trip_type}
                   />
                 )}
+                {/* Trust Badges */}
+                <TrustBadges
+                  id_verified={item.user_verified_identity}
+                  email_verified={true}
+                  premium_member={item.user_subscribed}
+                  size="sm"
+                />
                 {item.user_supporter && (
                   <SupporterBadge size="sm" />
                 )}
-                {item.user_subscribed && (
-                  <VerifiedCheckBadge size="sm" />
-                )}
                 {item.user_verified_sailor && (
                   <VerifiedSailorBadge size="sm" />
-                )}
-                {item.user_verified_identity && (
-                  <VerifiedBadge size="sm" />
                 )}
               </div>
             </div>
@@ -144,9 +166,7 @@ export function FeedCard({ item, onClick }: FeedCardProps) {
             <div className="flex items-center gap-2 mb-2">
               <DollarSign className="h-4 w-4 text-slate-400" />
               <span className="text-sm font-medium text-slate-900">
-                {isTrip
-                  ? `Spare: ${item.spare_kg}kg`
-                  : `Reward: $${item.max_reward?.toLocaleString()}`}
+                {rewardDisplay}
               </span>
             </div>
 
@@ -180,4 +200,12 @@ export function FeedCard({ item, onClick }: FeedCardProps) {
     </Card>
   );
 }
+
+// Optimized with React.memo to prevent unnecessary re-renders
+export const FeedCard = React.memo(FeedCardComponent, (prevProps, nextProps) => {
+  // Only re-render if item ID changes or onClick reference changes
+  return prevProps.item.id === nextProps.item.id && 
+         prevProps.onClick === nextProps.onClick &&
+         JSON.stringify(prevProps.item) === JSON.stringify(nextProps.item);
+});
 

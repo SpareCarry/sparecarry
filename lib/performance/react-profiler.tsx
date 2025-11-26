@@ -5,6 +5,7 @@
  * Tracks render counts, useEffect timing, and Suspense fallback timing
  */
 
+/* eslint-disable react-hooks/exhaustive-deps -- callers intentionally control dependency arrays for these perf hooks */
 "use client";
 
 import React, { useEffect, useRef, Profiler, type ProfilerOnRenderCallback } from 'react';
@@ -146,6 +147,10 @@ export function useRenderCount(componentName: string): number {
 
 /**
  * Hook to measure useEffect execution time
+ * 
+ * Note: This hook intentionally accepts a dynamic dependency array as a parameter.
+ * The effect and effectName are intentionally excluded from dependencies as they
+ * are meant to be provided by the caller and the deps array controls when the effect runs.
  */
 export function usePerfEffect(
   effect: () => void | (() => void),
@@ -167,6 +172,10 @@ export function usePerfEffect(
 
 /**
  * Hook to measure async useEffect execution time
+ * 
+ * Note: This hook intentionally accepts a dynamic dependency array as a parameter.
+ * The effect and effectName are intentionally excluded from dependencies as they
+ * are meant to be provided by the caller and the deps array controls when the effect runs.
  */
 export function usePerfEffectAsync(
   effect: () => Promise<void | (() => void)>,

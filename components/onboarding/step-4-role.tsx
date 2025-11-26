@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Button } from "../ui/button";
 import { Card, CardContent } from "../ui/card";
 import { createClient } from "../../lib/supabase/client";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { Loader2, Plane, Ship, Package, Users } from "lucide-react";
 
 interface OnboardingStep4Props {
@@ -45,7 +46,7 @@ export function OnboardingStep4({ onComplete }: OnboardingStep4Props) {
   const [selectedRole, setSelectedRole] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const supabase = createClient();
+  const supabase = createClient() as SupabaseClient;
 
   const handleSubmit = async () => {
     if (!selectedRole) {

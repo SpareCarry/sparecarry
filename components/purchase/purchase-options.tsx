@@ -43,7 +43,7 @@ export function PurchaseOptions({
               Buy & Ship Directly
             </h4>
             <p className="text-sm text-slate-600">
-              Purchase from these retailers and ship directly to your traveler when match is confirmed
+              User purchases item from retailer; SpareCarry delivers to traveler. When your request is matched, we&apos;ll provide shipping details for your traveler.
             </p>
           </div>
 

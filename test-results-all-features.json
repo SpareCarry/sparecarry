@@ -1,0 +1,61 @@
+{
+  "timestamp": "2025-11-24T08:32:46.222Z",
+  "testName": "Comprehensive Feature Tests",
+  "summary": {
+    "total": 3,
+    "passed": 3,
+    "failed": 0
+  },
+  "results": [
+    {
+      "feature": "Environment Variables",
+      "passed": true,
+      "details": {
+        "allPresent": true,
+        "count": 8
+      }
+    },
+    {
+      "feature": "API Endpoints",
+      "passed": true,
+      "details": {
+        "accessible": 5,
+        "endpoints": [
+          {
+            "endpoint": "/api/matches/auto-match",
+            "status": 401
+          },
+          {
+            "endpoint": "/api/payments/create-intent",
+            "status": 401
+          },
+          {
+            "endpoint": "/api/payments/confirm-delivery",
+            "status": 401
+          },
+          {
+            "endpoint": "/api/payments/auto-release",
+            "status": 401
+          },
+          {
+            "endpoint": "/api/notifications/register-token",
+            "status": 401
+          }
+        ]
+      }
+    },
+    {
+      "feature": "Auto-Release Cron",
+      "passed": true,
+      "details": {
+        "accessible": true,
+        "authenticated": true,
+        "status": 200
+      }
+    }
+  ],
+  "environment": {
+    "BASE_URL": "http://localhost:3000",
+    "CRON_SECRET": "set"
+  }
+}

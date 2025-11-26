@@ -5,38 +5,66 @@ import { Button } from "../ui/button";
 import { Gift, Share2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { createClient } from "../../lib/supabase/client";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { useState } from "react";
+import { CurrencyDisplay } from "../currency/currency-display";
 import { ShareButtons } from "./share-buttons";
+import { useUser } from "../../hooks/useUser";
 
 export function CreditBanner() {
-  const supabase = createClient();
+  const supabase = createClient() as SupabaseClient;
   const [showShare, setShowShare] = useState(false);
 
-  const { data: user } = useQuery({
-    queryKey: ["current-user"],
-    queryFn: async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      return user;
-    },
-  });
+  // Use shared hook to prevent duplicate queries
+  const { user } = useUser();
 
-  const { data: userData } = useQuery({
+  type UserCredits = {
+    referral_credit_cents?: number | null;
+    referral_code?: string | null;
+  };
+
+  const { data: userData } = useQuery<UserCredits | null>({
     queryKey: ["user-credits", user?.id],
     queryFn: async () => {
       if (!user) return null;
-      const { data } = await supabase
-        .from("users")
-        .select("referral_credits, referral_code")
-        .eq("id", user.id)
-        .single();
-      return data;
+      try {
+        // Get referral_code from users and referral_credit_cents from profiles
+        const [userResult, profileResult] = await Promise.all([
+          supabase
+            .from("users")
+            .select("referral_code")
+            .eq("id", user.id)
+            .single(),
+          supabase
+            .from("profiles")
+            .select("referral_credit_cents")
+            .eq("user_id", user.id)
+            .single(),
+        ]);
+        
+        if (userResult.error && userResult.error.code !== 'PGRST116') {
+          console.warn("Error fetching user referral code:", userResult.error);
+        }
+        
+        if (profileResult.error && profileResult.error.code !== 'PGRST116') {
+          console.warn("Error fetching profile credits:", profileResult.error);
+        }
+        
+        return {
+          referral_code: userResult.data?.referral_code || null,
+          referral_credit_cents: profileResult.data?.referral_credit_cents || 0,
+        } as UserCredits | null;
+      } catch (error) {
+        console.warn("Exception fetching user credits:", error);
+        return null;
+      }
     },
     enabled: !!user,
+    retry: false,
+    throwOnError: false,
   });
 
-  const credits = userData?.referral_credits || 0;
+  const credits = (userData?.referral_credit_cents || 0) / 100; // Convert cents to dollars
   const referralCode = userData?.referral_code;
 
   if (credits === 0 && !referralCode) {
@@ -53,7 +81,7 @@ export function CreditBanner() {
             </div>
             <div>
               <div className="text-2xl font-bold text-slate-900">
-                You have ${credits.toFixed(0)} in credit 🔥
+                You have <CurrencyDisplay amount={credits} showSecondary={false} className="inline" /> in credit 🔥
               </div>
               <p className="text-sm text-slate-600 mt-0.5">
                 Use on platform fees or rewards • Never expires

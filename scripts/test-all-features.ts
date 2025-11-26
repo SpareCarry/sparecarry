@@ -168,13 +168,23 @@ async function testMatchingAlgorithm() {
   const { calculateMatchScore } = await import('../lib/matching/match-score');
   
   const testResult = calculateMatchScore({
-    from: 'Miami',
-    to: 'St Martin',
-    departureDate: new Date(),
-    deadlineDate: new Date(),
-    weight: 20,
-    capacity: 50,
-    method: 'plane',
+    requestFrom: 'Miami',
+    requestTo: 'St Martin',
+    tripFrom: 'Miami',
+    tripTo: 'St Martin',
+    requestEarliest: new Date().toISOString(),
+    requestLatest: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+    tripDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
+    requestWeight: 20,
+    requestDimensions: { length: 30, width: 20, height: 15 },
+    requestValue: 50,
+    tripSpareKg: 100,
+    travelerVerifiedIdentity: true,
+    travelerVerifiedSailor: false,
+    travelerCompletedDeliveries: 5,
+    travelerSubscribed: true,
+    requestPreferredMethod: 'plane',
+    tripType: 'plane',
   });
 
   if (!testResult || typeof testResult.totalScore !== 'number') {

@@ -1,0 +1,13 @@
+
+======================================================================
+  Vitest Unit Tests
+======================================================================
+Test Run Started: 2025-11-24T08:32:46.590Z
+Node Version: v24.11.1
+Working Directory: C:\SpareCarry
+Script Path: C:\SpareCarry\scripts\test-report-utils.js
+======================================================================
+
+Running Vitest tests...
+
+📝 Error report saved to: C:\SpareCarry\test-results-vitest.json

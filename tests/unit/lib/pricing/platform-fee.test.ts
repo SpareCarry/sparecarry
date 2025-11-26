@@ -4,38 +4,40 @@
  * Tests the dynamic platform fee calculation logic.
  */
 
-import { describe, it, expect } from 'vitest';
-import { calculatePlatformFee, isPromoPeriodActive } from '@/lib/pricing/platform-fee';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { calculatePlatformFee } from '@/lib/pricing/platform-fee';
+import { getDaysLeft } from '@/utils/getDaysLeft';
 
 describe('Platform Fee Calculation', () => {
-  it('should return 0% during promo period', () => {
-    // Promo period is active until Feb 18, 2026
-    if (isPromoPeriodActive()) {
-      const result = calculatePlatformFee({
-        method: 'plane',
-        userId: 'test',
-        userCompletedDeliveries: 0,
-        userRating: 5.0,
-        isSubscriber: false,
-        isFirstDelivery: false,
-        isSupporter: false,
-      });
-
-      expect(result).toBe(0);
-    } else {
-      // If promo period ended, test normal fee calculation
-      expect(true).toBe(true);
-    }
+  beforeEach(() => {
+    vi.useFakeTimers();
   });
 
-  it('should return 0% for first delivery', () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('should return 0% for first 3 deliveries', () => {
+    // First 3 deliveries should be free
     const result = calculatePlatformFee({
       method: 'plane',
       userId: 'test',
       userCompletedDeliveries: 0,
       userRating: 5.0,
       isSubscriber: false,
-      isFirstDelivery: true, // First delivery
+      isSupporter: false,
+    });
+
+    expect(result).toBe(0);
+  });
+
+  it('should return 0% for first 3 deliveries', () => {
+    const result = calculatePlatformFee({
+      method: 'plane',
+      userId: 'test',
+      userCompletedDeliveries: 2, // Still within first 3
+      userRating: 5.0,
+      isSubscriber: false,
       isSupporter: false,
     });
 
@@ -43,52 +45,39 @@ describe('Platform Fee Calculation', () => {
   });
 
   it('should return 0% for subscribers', () => {
-    if (!isPromoPeriodActive()) {
-      // Skip during promo period (all fees are 0)
-      const result = calculatePlatformFee({
-        method: 'plane',
-        userId: 'test',
-        userCompletedDeliveries: 10,
-        userRating: 4.0,
-        isSubscriber: true, // Subscriber
-        isFirstDelivery: false,
-        isSupporter: false,
-      });
+    const result = calculatePlatformFee({
+      method: 'plane',
+      userId: 'test',
+      userCompletedDeliveries: 10,
+      userRating: 4.0,
+      isSubscriber: true, // Subscriber
+      isSupporter: false,
+    });
 
-      expect(result).toBe(0);
-    } else {
-      expect(true).toBe(true); // Skip during promo
-    }
+    expect(result).toBe(0);
   });
 
   it('should return 0% for supporters', () => {
-    if (!isPromoPeriodActive()) {
-      const result = calculatePlatformFee({
-        method: 'plane',
-        userId: 'test',
-        userCompletedDeliveries: 10,
-        userRating: 4.0,
-        isSubscriber: false,
-        isFirstDelivery: false,
-        isSupporter: true, // Supporter
-      });
+    const result = calculatePlatformFee({
+      method: 'plane',
+      userId: 'test',
+      userCompletedDeliveries: 10,
+      userRating: 4.0,
+      isSubscriber: false,
+      isSupporter: true, // Supporter
+    });
 
-      expect(result).toBe(0);
-    } else {
-      expect(true).toBe(true); // Skip during promo
-    }
+    expect(result).toBe(0);
   });
 
   it('should handle different methods', () => {
-    // Note: During promo period, all fees are 0%
-    // This test verifies the function works correctly
+    // Test normal fee calculation after first 3 deliveries
     const planeResult = calculatePlatformFee({
       method: 'plane',
       userId: 'test',
       userCompletedDeliveries: 5,
       userRating: 4.0,
       isSubscriber: false,
-      isFirstDelivery: false,
       isSupporter: false,
     });
 
@@ -98,11 +87,9 @@ describe('Platform Fee Calculation', () => {
       userCompletedDeliveries: 5,
       userRating: 4.0,
       isSubscriber: false,
-      isFirstDelivery: false,
       isSupporter: false,
     });
 
-    // Both should return 0 during promo period
     expect(planeResult).toBeGreaterThanOrEqual(0);
     expect(boatResult).toBeGreaterThanOrEqual(0);
     expect(planeResult).toBeLessThanOrEqual(0.18); // Max 18%

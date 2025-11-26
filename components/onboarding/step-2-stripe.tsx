@@ -4,7 +4,12 @@ import { useState, useEffect } from "react";
 import { Button } from "../ui/button";
 import { Card, CardContent, CardDescription } from "../ui/card";
 import { createClient } from "../../lib/supabase/client";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { Loader2, CheckCircle2, CreditCard } from "lucide-react";
+
+type StripeVerificationProfile = {
+  stripe_identity_verified_at?: string | null;
+};
 
 interface OnboardingStep2Props {
   onComplete: () => void;
@@ -19,7 +24,7 @@ export function OnboardingStep2({ onComplete }: OnboardingStep2Props) {
   const [verified, setVerified] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [sessionStatus, setSessionStatus] = useState<string | null>(null);
-  const supabase = createClient();
+  const supabase = createClient() as SupabaseClient;
 
   useEffect(() => {
     checkVerificationStatus();
@@ -34,11 +39,13 @@ export function OnboardingStep2({ onComplete }: OnboardingStep2Props) {
 
       if (!user) return;
 
-      const { data: profile } = await supabase
+      const { data: profileData } = await supabase
         .from("profiles")
         .select("stripe_identity_verified_at")
         .eq("user_id", user.id)
         .single();
+
+      const profile = (profileData ?? null) as StripeVerificationProfile | null;
 
       if (profile?.stripe_identity_verified_at) {
         setVerified(true);

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { createClient } from "../../lib/supabase/client";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { Button } from "../ui/button";
 import {
   Table,
@@ -18,7 +19,7 @@ import { CheckCircle2, XCircle, Loader2, Search, Ship } from "lucide-react";
 import { format } from "date-fns";
 
 export function UsersTable() {
-  const supabase = createClient();
+  const supabase = createClient() as SupabaseClient;
   const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState("");
 

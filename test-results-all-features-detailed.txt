@@ -1,0 +1,72 @@
+
+======================================================================
+  Comprehensive Feature Tests - Detailed Test Report
+======================================================================
+
+METADATA
+----------------------------------------------------------------------
+Generated: 2025-11-24T08:32:46.218Z
+Node Version: v24.11.1
+Working Directory: C:\SpareCarry
+Script Path: C:\SpareCarry\scripts\test-report-utils.js
+Duration: 0.68 seconds
+
+SUMMARY
+----------------------------------------------------------------------
+Total Tests: 3
+Passed: 3
+Failed: 0
+Success Rate: 100.0%
+
+DETAILED RESULTS
+----------------------------------------------------------------------
+
+1. Environment Variables
+   Status: ✅ PASSED
+   Details:
+     count: 8
+
+2. API Endpoints
+   Status: ✅ PASSED
+   Details:
+     accessible: 5
+     endpoints:
+       [
+         {
+           "endpoint": "/api/matches/auto-match",
+           "status": 401
+         },
+         {
+           "endpoint": "/api/payments/create-intent",
+           "status": 401
+         },
+         {
+           "endpoint": "/api/payments/confirm-delivery",
+           "status": 401
+         },
+         {
+           "endpoint": "/api/payments/auto-release",
+           "status": 401
+         },
+         {
+           "endpoint": "/api/notifications/register-token",
+           "status": 401
+         }
+       ]
+
+3. Auto-Release Cron
+   Status: ✅ PASSED
+   Details:
+     accessible: true
+     authenticated: true
+     status: 200
+
+
+----------------------------------------------------------------------
+ENVIRONMENT INFORMATION
+----------------------------------------------------------------------
+NODE_ENV: not set
+BASE_URL: http://localhost:3000
+CRON_SECRET: ✅ Set
+
+======================================================================

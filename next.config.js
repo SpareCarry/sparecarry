@@ -8,7 +8,13 @@ module.exports = (phase) => {
 
   const SENTRY_DSN = process.env.NEXT_PUBLIC_SENTRY_DSN ?? "";
   process.env.NEXT_PUBLIC_SENTRY_DSN = SENTRY_DSN;
-  const enableSentryWebpackPlugin = SENTRY_DSN.length > 0;
+
+  // Only enable the Sentry webpack plugin when we have BOTH a DSN and a valid auth
+  // token, and the skip flag is not set. This prevents Vercel builds from failing
+  // with "Invalid token" when SENTRY_AUTH_TOKEN is missing or placeholder.
+  const hasSentryAuth = !!process.env.SENTRY_AUTH_TOKEN && process.env.SENTRY_AUTH_TOKEN !== "your_sentry_auth_token_here";
+  const skipSentry = process.env.SENTRY_SKIP_AUTO_RELEASE === "true";
+  const enableSentryWebpackPlugin = SENTRY_DSN.length > 0 && hasSentryAuth && !skipSentry;
 
   const nextConfig = {
     reactStrictMode: true,

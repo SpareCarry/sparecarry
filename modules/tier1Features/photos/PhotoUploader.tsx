@@ -130,7 +130,7 @@ export function PhotoUploader({
           <span className="text-red-500 ml-1">*</span>
         </label>
         <p className="text-sm text-slate-500 mb-3">
-          Minimum {minPhotos} photos required: front view, side view, and size-for-scale (ruler/coin for reference)
+          Add clear photos of the item (front, side, and one showing size for scale). Minimum {minPhotos}, up to {maxPhotos}.
         </p>
 
         <div className="flex gap-2">
@@ -174,9 +174,6 @@ export function PhotoUploader({
           </div>
         )}
 
-        <div className="mt-2 text-sm text-slate-500">
-          {photos.length} / {maxPhotos} photos ({photos.length >= minPhotos ? '✓' : 'Need ' + (minPhotos - photos.length) + ' more'})
-        </div>
       </div>
     </div>
   );

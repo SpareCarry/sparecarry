@@ -536,9 +536,10 @@ export function PostRequestForm() {
             {...register("length_cm", { valueAsNumber: true })}
             className="bg-white"
           />
-          {watch("length_cm") && (
+          {Number.isFinite(length) && length! > 0 && (
             <p className="text-xs text-slate-500">
-              ≈ {Math.round((watch("length_cm") || 0) / 2.54)} in ({Math.round((watch("length_cm") || 0) / 30.48)} ft {Math.round(((watch("length_cm") || 0) % 30.48) / 2.54)} in)
+              ≈ {Math.round(length! / 2.54)} in ({Math.floor(length! / 30.48)} ft{" "}
+              {Math.round(((length! / 30.48) % 1) * 12)} in)
             </p>
           )}
           {errors.length_cm && (
@@ -554,9 +555,9 @@ export function PostRequestForm() {
             {...register("width_cm", { valueAsNumber: true })}
             className="bg-white"
           />
-          {watch("width_cm") && (
+          {Number.isFinite(width) && width! > 0 && (
             <p className="text-xs text-slate-500">
-              ≈ {Math.round((watch("width_cm") || 0) / 2.54)} in
+              ≈ {Math.round(width! / 2.54)} in
             </p>
           )}
           {errors.width_cm && (
@@ -572,9 +573,9 @@ export function PostRequestForm() {
             {...register("height_cm", { valueAsNumber: true })}
             className="bg-white"
           />
-          {watch("height_cm") && (
+          {Number.isFinite(height) && height! > 0 && (
             <p className="text-xs text-slate-500">
-              ≈ {Math.round((watch("height_cm") || 0) / 2.54)} in
+              ≈ {Math.round(height! / 2.54)} in
             </p>
           )}
           {errors.height_cm && (
@@ -896,11 +897,11 @@ export function PostRequestForm() {
             )}
             {departurePlace && arrivalPlace && (
               <Link
-                href={`/shipping-estimator?from=${encodeURIComponent(departurePlace.name)}&to=${encodeURIComponent(arrivalPlace.name)}&weight=${watch("weight_kg") || 0}&length=${watch("length_cm") || 0}&width=${watch("width_cm") || 0}&height=${watch("height_cm") || 0}`}
+                href={`/shipping-estimator?from=${encodeURIComponent(departurePlace.name)}&to=${encodeURIComponent(arrivalPlace.name)}&weight=${weight || 0}&length=${length || 0}&width=${width || 0}&height=${height || 0}`}
                 className="text-xs text-teal-600 hover:text-teal-700 underline flex items-center gap-1"
               >
                 <Calculator className="h-3 w-3" />
-                Get suggested price
+                Open shipping calculator (auto‑fills this form)
               </Link>
             )}
           </div>

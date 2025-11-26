@@ -54,12 +54,18 @@ export function TopRoutes({
           .order('match_count', { ascending: false })
           .limit(limit);
 
-        if (fetchError) throw fetchError;
+        if (fetchError) {
+          // If the view doesn't exist or cannot be queried, fail silently
+          console.warn('Top routes query failed; hiding widget:', fetchError);
+          setRoutes([]);
+          return;
+        }
 
         setRoutes(data || []);
       } catch (err) {
         console.error('Error loading top routes:', err);
-        setError('Failed to load top routes');
+        // Swallow unexpected errors and just hide the widget
+        setRoutes([]);
       } finally {
         setIsLoading(false);
       }
@@ -80,24 +86,12 @@ export function TopRoutes({
     );
   }
 
-  if (error) {
-    return (
-      <Card className={className}>
-        <CardContent className="py-8">
-          <p className="text-sm text-red-600 text-center">{error}</p>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  if (routes.length === 0) {
-    return (
-      <Card className={className}>
-        <CardContent className="py-8">
-          <p className="text-sm text-slate-500 text-center">No active routes</p>
-        </CardContent>
-      </Card>
-    );
+  // If there's an error or not enough data, hide the widget entirely.
+  // This avoids showing scary error messages on the browse page when
+  // there aren't many listings yet or the view isn't set up in prod.
+  const MIN_ROUTES_TO_SHOW = 3;
+  if (error || routes.length < MIN_ROUTES_TO_SHOW) {
+    return null;
   }
 
   return (

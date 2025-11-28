@@ -7,6 +7,13 @@ let LocalNotifications: any = null;
 
 const isNative = typeof window !== 'undefined' ? isNativePlatform() : false;
 
+// Helper to create dynamic import paths that webpack can't statically analyze
+function getCapacitorModulePath(moduleName: string): string {
+  // Use string concatenation to prevent webpack static analysis
+  const base = '@capacitor';
+  return base + '/' + moduleName;
+}
+
 // Lazy load Capacitor plugins
 async function loadCapacitorPlugins() {
   if (typeof window === 'undefined' || !isNative) {
@@ -15,11 +22,15 @@ async function loadCapacitorPlugins() {
   
   if (!PushNotifications || !LocalNotifications) {
     try {
-      const pushModule = await import("@capacitor/push-notifications");
-      const localModule = await import("@capacitor/local-notifications");
+      // Use dynamic path construction to prevent webpack from statically analyzing
+      const pushPath = getCapacitorModulePath('push-notifications');
+      const localPath = getCapacitorModulePath('local-notifications');
+      const pushModule = await import(/* @vite-ignore */ /* webpackIgnore: true */ pushPath);
+      const localModule = await import(/* @vite-ignore */ /* webpackIgnore: true */ localPath);
       PushNotifications = pushModule.PushNotifications;
       LocalNotifications = localModule.LocalNotifications;
     } catch (error) {
+      // Silently fail - these modules don't exist in web builds
       console.warn('[Notifications] Failed to load Capacitor plugins:', error);
     }
   }
@@ -175,8 +186,11 @@ export async function setupNotificationHandlers() {
       if (sound && NATIVE_SOUNDS[sound]) {
         // Sound will be played automatically by the system
         // But we can trigger haptic feedback
-        import("@capacitor/haptics").then(({ Haptics, ImpactStyle }) => {
+        const hapticsPath = getCapacitorModulePath('haptics');
+        import(/* @vite-ignore */ /* webpackIgnore: true */ hapticsPath).then(({ Haptics, ImpactStyle }) => {
           Haptics.impact({ style: ImpactStyle.Medium });
+        }).catch(() => {
+          // Ignore if haptics not available
         });
       }
     });
@@ -190,8 +204,12 @@ export async function setupNotificationHandlers() {
       
       // Navigate based on notification type
       if (data?.matchId) {
-        import("@capacitor/app").then(({ App }) => {
+        const appPath = getCapacitorModulePath('app');
+        import(/* @vite-ignore */ /* webpackIgnore: true */ appPath).then(({ App }) => {
           // Navigation will be handled by the app router
+          window.location.href = `/home/messages/${data.matchId}`;
+        }).catch(() => {
+          // Fallback navigation if Capacitor app not available
           window.location.href = `/home/messages/${data.matchId}`;
         });
       }

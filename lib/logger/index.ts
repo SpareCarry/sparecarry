@@ -47,15 +47,22 @@ class Logger {
       // eslint-disable-next-line no-implied-eval
       const importPromise = new Function('return import("@sentry/nextjs")')() as Promise<any>;
       importPromise.then((Sentry: any) => {
-        Sentry.init({
-          dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
-          environment: process.env.NODE_ENV || 'development',
-          tracesSampleRate: 1.0,
-          debug: process.env.NODE_ENV === 'development',
-        });
-        this.sentryEnabled = true;
+        if (Sentry && Sentry.init) {
+          Sentry.init({
+            dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
+            environment: process.env.NODE_ENV || 'development',
+            tracesSampleRate: 1.0,
+            debug: process.env.NODE_ENV === 'development',
+          });
+          this.sentryEnabled = true;
+        }
       }).catch((error: any) => {
-        console.warn('[Logger] Failed to initialize Sentry:', error);
+        // Silently fail if Sentry is not installed or fails to load
+        // This is expected in development or if Sentry is not configured
+        if (process.env.NODE_ENV === 'development') {
+          // Only log in development to avoid console noise
+          console.debug('[Logger] Sentry not available (this is OK if not installed)');
+        }
         this.sentryEnabled = false;
       });
     } catch (error) {

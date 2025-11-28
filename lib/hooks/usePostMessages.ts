@@ -1,14 +1,13 @@
 /**
  * Hook for fetching and sending post/job messages
- * Uses Supabase Realtime for real-time updates
+ * Uses Supabase Realtime for real-time updates via RealtimeManager
  */
 
-import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { createClient } from '../supabase/client';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { RealtimeChannel } from '@supabase/supabase-js';
 import { trackMessageSent } from '../../lib/analytics/tracking';
+import { useRealtimeInvalidation } from '../realtime/useRealtime';
 
 export interface PostMessage {
   id: string;
@@ -38,7 +37,6 @@ export function usePostMessages({
 }: UsePostMessagesOptions) {
   const supabase = createClient() as SupabaseClient;
   const queryClient = useQueryClient();
-  const [channel, setChannel] = useState<RealtimeChannel | null>(null);
 
   // Fetch messages
   const { data: messages = [], isLoading, error } = useQuery<PostMessage[]>({
@@ -58,33 +56,17 @@ export function usePostMessages({
     refetchInterval: false, // Use Realtime instead of polling
   });
 
-  // Set up Realtime subscription
-  useEffect(() => {
-    if (!enabled || !postId || !postType) return;
-
-    const newChannel = supabase
-      .channel(`post-messages:${postId}:${postType}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'post_messages',
-          filter: `post_id=eq.${postId}`,
-        },
-        (payload) => {
-          // Invalidate and refetch messages
-          queryClient.invalidateQueries({ queryKey: ['post-messages', postId, postType] });
-        }
-      )
-      .subscribe();
-
-    setChannel(newChannel);
-
-    return () => {
-      newChannel.unsubscribe();
-    };
-  }, [enabled, postId, postType, supabase, queryClient]);
+  // Set up Realtime subscription using RealtimeManager
+  // Custom channel name ensures deduplication if MessageThread + MessageInput both use this hook
+  useRealtimeInvalidation(
+    'post_messages',
+    ['post-messages', postId, postType],
+    {
+      filter: postId ? `post_id=eq.${postId}` : undefined,
+      enabled: enabled && !!postId && !!postType,
+      customChannelName: postId && postType ? `post-messages:${postId}:${postType}` : undefined,
+    }
+  );
 
   // Send message mutation
   const sendMessageMutation = useMutation({

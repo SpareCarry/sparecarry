@@ -32,7 +32,6 @@ import {
   Target,
 } from "lucide-react";
 import { format } from "date-fns";
-import { PurchaseOptions } from "../purchase/purchase-options";
 import { Tier1Integration } from "./tier1-integration";
 import { PhotoUploader } from "../../modules/tier1Features/photos";
 import { useSearchParams } from "next/navigation";
@@ -45,14 +44,21 @@ import { SizeTierSelector } from "../ui/size-tier-selector";
 import { getSizeTier } from "../../lib/utils/size-tier";
 import Link from "next/link";
 import { WeightDisplay, DimensionsDisplay } from "../imperial/imperial-display";
+import { AutoMeasureButton } from "./AutoMeasureButton";
 import { 
   trackPostCreated, 
   trackRestrictedItemsSelected, 
   trackCategorySelected, 
   trackPhotoUploaded,
   trackEmergencySelected,
-  trackBuyShipDirectlySelected 
 } from '../../lib/analytics/tracking';
+import { calculateShippingEstimate, ShippingEstimateInput } from '../../lib/services/shipping';
+import { calculateDistance } from '../../lib/utils/distance-calculator';
+import { reverseGeocode } from '../../lib/services/location';
+import { checkSubscriptionStatus } from '../../src/utils/subscriptionUtils';
+import { useUser } from '../../hooks/useUser';
+import { useQuery } from '@tanstack/react-query';
+import { PurchaseOptions } from "../purchase/purchase-options";
 
 const postRequestSchema = z.object({
   title: z.string().min(1, "Title is required").max(200),
@@ -125,7 +131,20 @@ export function PostRequestForm() {
   const [showToSuggestions, setShowToSuggestions] = useState(false);
   const [distance, setDistance] = useState<number | null>(null);
   const [suggestedReward, setSuggestedReward] = useState<number>(0);
+  const [shippingEstimate, setShippingEstimate] = useState<ReturnType<typeof calculateShippingEstimate> | null>(null);
+  const [originCountryIso2, setOriginCountryIso2] = useState<string>('');
+  const [destinationCountryIso2, setDestinationCountryIso2] = useState<string>('');
   const [loading, setLoading] = useState(false);
+  
+  // Get user and subscription status
+  const { user } = useUser();
+  const { data: subscriptionStatus } = useQuery({
+    queryKey: ['subscription-status', user?.id],
+    queryFn: () => checkSubscriptionStatus(user?.id),
+    enabled: !!user,
+    staleTime: 60000,
+  });
+  const isPremium = subscriptionStatus?.isPremium ?? false;
 
   const {
     register,
@@ -133,6 +152,7 @@ export function PostRequestForm() {
     formState: { errors },
     setValue,
     watch,
+    getValues,
   } = useForm<PostRequestFormData>({
     mode: "onChange",
     resolver: zodResolver(postRequestSchema),
@@ -150,98 +170,204 @@ export function PostRequestForm() {
   const description = watch("description");
   const category = watch("category");
   const categoryOtherDescription = watch("category_other_description");
+  const purchaseRetailer = watch("purchase_retailer");
   const declaredValue = watch("value_usd");
   const length = watch("length_cm");
   const width = watch("width_cm");
   const height = watch("height_cm");
+  const [isAutoEstimated, setIsAutoEstimated] = useState(false);
+  const fromLocation = watch("from_location");
+  const toLocation = watch("to_location");
+  const deadlineEarliest = watch("deadline_earliest");
+  const deadlineLatest = watch("deadline_latest");
   const boatEtaDays = undefined; // Not used for requests, only trips
   const restrictedItems = watch("restricted_items") || false;
   const emergency = watch("emergency") || false;
 
-  // Calculate suggested reward
-  const calculateSuggestedReward = useCallback((
-    distKm: number,
-    weightKg: number,
-    method: string
-  ) => {
-    let suggested = 0;
-    if (method === "plane") {
-      suggested = distKm * 0.8 + weightKg * 5;
-      suggested = Math.max(suggested, 100); // Minimum $100
-    } else if (method === "boat") {
-      suggested = distKm * 0.15 + weightKg * 1;
-      suggested = Math.max(suggested, 80); // Minimum $80
-    } else {
-      // "any" - use the cheaper option (boat)
-      const boatPrice = Math.max(distKm * 0.15 + weightKg * 1, 80);
-      const planePrice = Math.max(distKm * 0.8 + weightKg * 5, 100);
-      suggested = Math.min(boatPrice, planePrice);
-    }
-    setSuggestedReward(Math.round(suggested));
-    setValue("max_reward", Math.round(suggested));
-  }, [setValue]);
-
-  // Calculate distance between two places using departure and arrival places
-  const calculateDistance = useCallback(async () => {
-    if (!departurePlace || !arrivalPlace) return;
-    
-    // Calculate distance using Haversine formula or use a distance service
-    // For now, we'll use a simple approximation or skip distance calculation
-    // if places don't have coordinates, distance will remain undefined
-    if (departurePlace.lat && departurePlace.lon && arrivalPlace.lat && arrivalPlace.lon) {
-      // Haversine formula for distance calculation
-      const R = 6371; // Earth's radius in km
-      const dLat = (arrivalPlace.lat - departurePlace.lat) * Math.PI / 180;
-      const dLon = (arrivalPlace.lon - departurePlace.lon) * Math.PI / 180;
-      const a = 
-        Math.sin(dLat/2) * Math.sin(dLat/2) +
-        Math.cos(departurePlace.lat * Math.PI / 180) * Math.cos(arrivalPlace.lat * Math.PI / 180) *
-        Math.sin(dLon/2) * Math.sin(dLon/2);
-      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-      const distanceKm = R * c;
-      setDistance(distanceKm);
-      calculateSuggestedReward(distanceKm, weight || 0, preferredMethod);
-    }
-  }, [departurePlace, arrivalPlace, weight, preferredMethod, calculateSuggestedReward]);
-
-
-  // Memoize suggested reward calculation to prevent unnecessary recalculations
-  const suggestedRewardMemo = useMemo(() => {
-    if (distance && weight) {
-      let suggested = 0;
-      if (preferredMethod === "plane") {
-        suggested = distance * 0.8 + weight * 5;
-        suggested = Math.max(suggested, 100);
-      } else if (preferredMethod === "boat") {
-        suggested = distance * 0.15 + weight * 1;
-        suggested = Math.max(suggested, 80);
-      } else {
-        const boatPrice = Math.max(distance * 0.15 + weight * 1, 80);
-        const planePrice = Math.max(distance * 0.8 + weight * 5, 100);
-        suggested = Math.min(boatPrice, planePrice);
-      }
-      return Math.round(suggested);
-    }
-    return 0;
-  }, [distance, weight, preferredMethod]);
-
-  // Update suggested reward when memoized value changes
+  // Get country codes from places
   useEffect(() => {
-    if (suggestedRewardMemo > 0) {
-      setSuggestedReward(suggestedRewardMemo);
-      setValue("max_reward", suggestedRewardMemo);
-    }
-  }, [suggestedRewardMemo, setValue]);
+    const getCountryFromPlace = async (place: Place | null, setter: (code: string) => void) => {
+      if (!place || !place.lat || !place.lon) return;
+      
+      try {
+        const geocoded = await reverseGeocode(place.lat, place.lon);
+        if (geocoded?.country) {
+          setter(geocoded.country.toUpperCase());
+        }
+      } catch (error) {
+        console.warn('Failed to get country from place:', error);
+      }
+    };
+    
+    getCountryFromPlace(departurePlace, setOriginCountryIso2);
+    getCountryFromPlace(arrivalPlace, setDestinationCountryIso2);
+  }, [departurePlace, arrivalPlace]);
 
-  // Load prefill data from query params (from shipping estimator)
+  // Calculate distance between two places
+  useEffect(() => {
+    if (departurePlace && arrivalPlace && 
+        departurePlace.lat != null && departurePlace.lon != null && 
+        arrivalPlace.lat != null && arrivalPlace.lon != null) {
+      const distanceKm = calculateDistance(
+        { lat: departurePlace.lat, lon: departurePlace.lon },
+        { lat: arrivalPlace.lat, lon: arrivalPlace.lon }
+      );
+      setDistance(distanceKm > 0 ? distanceKm : null);
+    } else {
+      setDistance(null);
+    }
+  }, [departurePlace, arrivalPlace]);
+
+  // Calculate shipping estimate using the same service as shipping estimator
+  const shippingEstimateMemo = useMemo(() => {
+    if (!originCountryIso2 || !destinationCountryIso2 || !weight || !length || !width || !height) {
+      return null;
+    }
+    
+    const lengthNum = parseFloat(length.toString());
+    const widthNum = parseFloat(width.toString());
+    const heightNum = parseFloat(height.toString());
+    const weightNum = parseFloat(weight.toString());
+    const declaredValueNum = parseFloat(declaredValue?.toString() || '0') || 0;
+    
+    if (isNaN(lengthNum) || isNaN(widthNum) || isNaN(heightNum) || isNaN(weightNum) || 
+        lengthNum <= 0 || widthNum <= 0 || heightNum <= 0 || weightNum <= 0) {
+      return null;
+    }
+    
+    const input: ShippingEstimateInput = {
+      originCountry: originCountryIso2,
+      destinationCountry: destinationCountryIso2,
+      length: lengthNum,
+      width: widthNum,
+      height: heightNum,
+      weight: weightNum,
+      declaredValue: declaredValueNum,
+      selectedCourier: 'DHL', // Default courier
+      isPremium,
+      distanceKm: distance || undefined,
+      restrictedItems: restrictedItems || undefined,
+      category: category || undefined,
+    };
+    
+    return calculateShippingEstimate(input);
+  }, [originCountryIso2, destinationCountryIso2, length, width, height, weight, declaredValue, isPremium, distance, restrictedItems, category]);
+
+  // Update suggested reward based on shipping estimate
+  useEffect(() => {
+    if (shippingEstimateMemo) {
+      setShippingEstimate(shippingEstimateMemo);
+      
+      // Determine which price to suggest based on preferred method and restrictions
+      let suggested = 0;
+      if (preferredMethod === "plane" && shippingEstimateMemo.canTransportByPlane && shippingEstimateMemo.spareCarryPlanePrice > 0) {
+        suggested = shippingEstimateMemo.spareCarryPlanePrice;
+      } else if (preferredMethod === "boat" && shippingEstimateMemo.spareCarryBoatPrice > 0) {
+        suggested = shippingEstimateMemo.spareCarryBoatPrice;
+      } else if (preferredMethod === "any") {
+        // Use the cheaper option, or boat if plane is not available
+        if (shippingEstimateMemo.canTransportByPlane && shippingEstimateMemo.spareCarryPlanePrice > 0) {
+          suggested = shippingEstimateMemo.spareCarryBoatPrice > 0
+            ? Math.min(shippingEstimateMemo.spareCarryPlanePrice, shippingEstimateMemo.spareCarryBoatPrice)
+            : shippingEstimateMemo.spareCarryPlanePrice;
+        } else {
+          suggested = shippingEstimateMemo.spareCarryBoatPrice;
+        }
+      } else {
+        // Fallback to boat if plane is not available
+        suggested = shippingEstimateMemo.spareCarryBoatPrice;
+      }
+      
+      if (suggested > 0) {
+        setSuggestedReward(Math.round(suggested));
+        setValue("max_reward", Math.round(suggested));
+      }
+    }
+  }, [shippingEstimateMemo, preferredMethod, setValue]);
+
+  // Save form data to sessionStorage whenever it changes (for back navigation)
+  // Use a ref to track previous values and prevent unnecessary saves/infinite loops
+  const prevFormDataRef = useRef<string>('');
+  const isInitialMountRef = useRef(true);
+  const prefillAppliedRef = useRef<string | null>(null);
+  const sessionStorageRestoredRef = useRef(false);
+  
+  useEffect(() => {
+    // Skip saving on initial mount to prevent overwriting prefill data
+    if (isInitialMountRef.current) {
+      isInitialMountRef.current = false;
+      return;
+    }
+
+    const formData = {
+      title,
+      description,
+      category,
+      category_other_description: categoryOtherDescription,
+      from_location: fromLocation,
+      to_location: toLocation,
+      length_cm: length,
+      width_cm: width,
+      height_cm: height,
+      weight_kg: weight,
+      value_usd: declaredValue,
+      max_reward: maxReward,
+      preferred_method: preferredMethod,
+      restricted_items: restrictedItems,
+      emergency,
+      deadline_earliest: deadlineEarliest,
+      deadline_latest: deadlineLatest,
+    };
+    
+    // Serialize form data to compare with previous
+    const formDataString = JSON.stringify(formData);
+    
+    // Only save if data has actually changed (prevents infinite loops)
+    if (formDataString !== prevFormDataRef.current) {
+      prevFormDataRef.current = formDataString;
+      
+      // Only save if at least one field has a value
+      const hasData = Object.values(formData).some(val => val !== undefined && val !== null && val !== '');
+      if (hasData) {
+        try {
+          sessionStorage.setItem('postRequestFormData', formDataString);
+          // Also save location places
+          if (departurePlace) {
+            sessionStorage.setItem('postRequestDeparturePlace', JSON.stringify(departurePlace));
+          }
+          if (arrivalPlace) {
+            sessionStorage.setItem('postRequestArrivalPlace', JSON.stringify(arrivalPlace));
+          }
+        } catch (error) {
+          // Silently fail if sessionStorage is not available (e.g., in private browsing)
+          console.warn('Failed to save form data to sessionStorage:', error);
+        }
+      }
+    }
+  }, [title, description, category, categoryOtherDescription, fromLocation, toLocation, length, width, height, weight, declaredValue, maxReward, preferredMethod, restrictedItems, emergency, deadlineEarliest, deadlineLatest, departurePlace, arrivalPlace]);
+
+  // Load prefill data from query params (from shipping estimator) or sessionStorage (for back navigation)
   // Moved after useForm hook to ensure setValue is available
   useEffect(() => {
     const prefillParam = searchParams?.get('prefill');
+    
+    // If we've already applied this exact prefill param, don't run again
+    if (prefillParam && prefillAppliedRef.current === prefillParam) {
+      return;
+    }
+    
     if (prefillParam) {
       try {
         const prefillData = JSON.parse(decodeURIComponent(prefillParam));
         if (prefillData) {
+          // Mark this prefill param as applied
+          prefillAppliedRef.current = prefillParam;
+          
           // Pre-fill form fields
+          if (prefillData.title) setValue('title', prefillData.title);
+          if (prefillData.description) setValue('description', prefillData.description);
+          if (prefillData.category) setValue('category', prefillData.category);
+          if (prefillData.category_other_description) setValue('category_other_description', prefillData.category_other_description);
           if (prefillData.from_location) setValue('from_location', prefillData.from_location);
           if (prefillData.to_location) setValue('to_location', prefillData.to_location);
           if (prefillData.length_cm) setValue('length_cm', prefillData.length_cm);
@@ -250,6 +376,18 @@ export function PostRequestForm() {
           if (prefillData.weight_kg) setValue('weight_kg', prefillData.weight_kg);
           if (prefillData.value_usd) setValue('value_usd', prefillData.value_usd);
           if (prefillData.max_reward) setValue('max_reward', prefillData.max_reward);
+          if (prefillData.preferred_method) setValue('preferred_method', prefillData.preferred_method);
+          if (prefillData.restricted_items !== undefined) setValue('restricted_items', prefillData.restricted_items);
+          
+          // Set coordinates if available
+          if (prefillData.departure_lat && prefillData.departure_lon) {
+            setValue('departure_lat', prefillData.departure_lat);
+            setValue('departure_lon', prefillData.departure_lon);
+          }
+          if (prefillData.arrival_lat && prefillData.arrival_lon) {
+            setValue('arrival_lat', prefillData.arrival_lat);
+            setValue('arrival_lon', prefillData.arrival_lon);
+          }
           
           // Store karma points and platform fees for later use (when delivery completes)
           // These are stored in component state but not in form schema
@@ -266,19 +404,93 @@ export function PostRequestForm() {
             );
           }
           
-          // Set places for location inputs
+          // Set places for location inputs with coordinates if available
           if (prefillData.from_location) {
-            setFromPlace({ description: prefillData.from_location, place_id: '' });
+            const fromPlace = {
+              name: prefillData.from_location,
+              lat: prefillData.departure_lat || 0,
+              lon: prefillData.departure_lon || 0,
+            };
+            setDeparturePlace(fromPlace);
           }
           if (prefillData.to_location) {
-            setToPlace({ description: prefillData.to_location, place_id: '' });
+            const toPlace = {
+              name: prefillData.to_location,
+              lat: prefillData.arrival_lat || 0,
+              lon: prefillData.arrival_lon || 0,
+            };
+            setArrivalPlace(toPlace);
           }
         }
       } catch (error) {
         console.warn('Error parsing prefill data:', error);
       }
+    } else {
+      // Reset prefill flag when prefill param is removed
+      prefillAppliedRef.current = null;
+      
+      // If no prefill param, try to restore from sessionStorage (for back navigation)
+      // Only restore once on initial mount if form is empty
+      if (!sessionStorageRestoredRef.current) {
+        try {
+          const savedFormData = sessionStorage.getItem('postRequestFormData');
+          if (savedFormData) {
+            const formData = JSON.parse(savedFormData);
+            // Only restore if form is empty (to avoid overwriting user input)
+            // Use getValues() to check current form state without triggering re-renders
+            const currentTitle = getValues('title');
+            const currentDescription = getValues('description');
+            const currentCategory = getValues('category');
+            
+            if (!currentTitle && !currentDescription && !currentCategory && formData.title) {
+              sessionStorageRestoredRef.current = true;
+              
+              if (formData.title) setValue('title', formData.title);
+              if (formData.description) setValue('description', formData.description);
+              if (formData.category) setValue('category', formData.category);
+              if (formData.category_other_description) setValue('category_other_description', formData.category_other_description);
+              if (formData.from_location) setValue('from_location', formData.from_location);
+              if (formData.to_location) setValue('to_location', formData.to_location);
+              if (formData.length_cm) setValue('length_cm', formData.length_cm);
+              if (formData.width_cm) setValue('width_cm', formData.width_cm);
+              if (formData.height_cm) setValue('height_cm', formData.height_cm);
+              if (formData.weight_kg) setValue('weight_kg', formData.weight_kg);
+              if (formData.value_usd) setValue('value_usd', formData.value_usd);
+              if (formData.max_reward) setValue('max_reward', formData.max_reward);
+              if (formData.preferred_method) setValue('preferred_method', formData.preferred_method);
+              if (formData.restricted_items !== undefined) setValue('restricted_items', formData.restricted_items);
+              if (formData.emergency !== undefined) setValue('emergency', formData.emergency);
+              if (formData.deadline_earliest) setValue('deadline_earliest', formData.deadline_earliest);
+              if (formData.deadline_latest) setValue('deadline_latest', formData.deadline_latest);
+              
+              // Restore location places from sessionStorage
+              const savedDeparturePlace = sessionStorage.getItem('postRequestDeparturePlace');
+              if (savedDeparturePlace) {
+                try {
+                  const place = JSON.parse(savedDeparturePlace);
+                  setDeparturePlace(place);
+                } catch (e) {
+                  console.warn('Error parsing saved departure place:', e);
+                }
+              }
+              
+              const savedArrivalPlace = sessionStorage.getItem('postRequestArrivalPlace');
+              if (savedArrivalPlace) {
+                try {
+                  const place = JSON.parse(savedArrivalPlace);
+                  setArrivalPlace(place);
+                } catch (e) {
+                  console.warn('Error parsing saved arrival place:', e);
+                }
+              }
+            }
+          }
+        } catch (error) {
+          console.warn('Error restoring form data from sessionStorage:', error);
+        }
+      }
     }
-  }, [searchParams, setValue]);
+  }, [searchParams, setValue, getValues, setDeparturePlace, setArrivalPlace]);
 
   // Handle photo upload
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -371,7 +583,6 @@ export function PostRequestForm() {
         trackEmergencySelected(data.max_reward, emergencyBonusPercentage, emergencyExtraAmount);
       }
       if (data.purchase_retailer) {
-        trackBuyShipDirectlySelected(data.purchase_retailer);
       }
       
       if (isEmergency) {
@@ -526,15 +737,55 @@ export function PostRequestForm() {
       />
 
       {/* Dimensions & Weight */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="length_cm">Length (cm) *</Label>
+      <div className="space-y-4">
+        {/* Auto-Measure Button */}
+        <AutoMeasureButton
+          onMeasurementComplete={(dimensions, photoFiles) => {
+            setValue('length_cm', dimensions.length_cm);
+            setValue('width_cm', dimensions.width_cm);
+            setValue('height_cm', dimensions.height_cm);
+            setIsAutoEstimated(true);
+            
+            // Add photos to photos array if available
+            if (photoFiles && photoFiles.length > 0 && photos.length + photoFiles.length <= 6) {
+              const newPhotos = photoFiles.map((photo, index) => {
+                const photoType = ['main', 'side', 'reference'][index] || 'auto-measure';
+                return new File([photo], `auto-measure-${photoType}-${Date.now()}.jpg`, {
+                  type: photo.type || 'image/jpeg',
+                  lastModified: Date.now(),
+                });
+              });
+              setPhotos([...photos, ...newPhotos]);
+            } else {
+              // Try to get photos from sessionStorage (fallback for mobile)
+              try {
+                const photosData = sessionStorage.getItem('autoMeasurePhotos');
+                if (photosData) {
+                  const storedPhotos = JSON.parse(photosData);
+                  // Photos are stored as URIs - would need to fetch and convert to Files
+                  // For now, this is handled by the mobile app's photo system
+                }
+              } catch (e) {
+                console.warn('Error loading auto-measure photos:', e);
+              }
+            }
+          }}
+        />
+        
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="length_cm">Length (cm) *</Label>
           <Input
             id="length_cm"
             type="number"
             step="0.1"
-            {...register("length_cm", { valueAsNumber: true })}
-            className="bg-white"
+            {...register("length_cm", { 
+              valueAsNumber: true,
+              onChange: (e) => {
+                setIsAutoEstimated(false);
+              }
+            })}
+            className={`bg-white ${isAutoEstimated ? 'border-teal-500' : ''}`}
           />
           {Number.isFinite(length) && length! > 0 && (
             <p className="text-xs text-slate-500">
@@ -552,8 +803,13 @@ export function PostRequestForm() {
             id="width_cm"
             type="number"
             step="0.1"
-            {...register("width_cm", { valueAsNumber: true })}
-            className="bg-white"
+            {...register("width_cm", { 
+              valueAsNumber: true,
+              onChange: () => {
+                setIsAutoEstimated(false);
+              }
+            })}
+            className={`bg-white ${isAutoEstimated ? 'border-teal-500' : ''}`}
           />
           {Number.isFinite(width) && width! > 0 && (
             <p className="text-xs text-slate-500">
@@ -570,8 +826,13 @@ export function PostRequestForm() {
             id="height_cm"
             type="number"
             step="0.1"
-            {...register("height_cm", { valueAsNumber: true })}
-            className="bg-white"
+            {...register("height_cm", { 
+              valueAsNumber: true,
+              onChange: () => {
+                setIsAutoEstimated(false);
+              }
+            })}
+            className={`bg-white ${isAutoEstimated ? 'border-teal-500' : ''}`}
           />
           {Number.isFinite(height) && height! > 0 && (
             <p className="text-xs text-slate-500">
@@ -591,15 +852,16 @@ export function PostRequestForm() {
             {...register("weight_kg", { valueAsNumber: true })}
             className="bg-white"
           />
-          {watch("weight_kg") && (
+          {Number.isFinite(weight) && weight! > 0 && (
             <p className="text-xs text-slate-500">
-              <WeightDisplay weightKg={watch("weight_kg") || 0} />
+              ≈ {Math.round(weight! * 2.20462)} lbs
             </p>
           )}
           {errors.weight_kg && (
             <p className="text-sm text-red-600">{errors.weight_kg.message}</p>
           )}
         </div>
+      </div>
       </div>
 
       {/* Size Tier Selector */}
@@ -642,10 +904,7 @@ export function PostRequestForm() {
               setValue("departure_lon", place.lon);
               setValue("departure_category", place.category || null);
               setFromPlace({ description: place.name, place_id: place.id || "" });
-              // Calculate distance when both places are set
-              if (arrivalPlace) {
-                setTimeout(() => calculateDistance(), 100);
-              }
+              // Distance will be calculated automatically by useEffect when both places are set
             }
           }}
           showOnlyMarinas={false}
@@ -670,10 +929,7 @@ export function PostRequestForm() {
               setValue("arrival_lat", place.lat);
               setValue("arrival_lon", place.lon);
               setValue("arrival_category", place.category || null);
-              // Calculate distance when both places are set
-              if (departurePlace) {
-                setTimeout(() => calculateDistance(), 100);
-              }
+              // Distance will be calculated automatically by useEffect when both places are set
             }
           }}
           showOnlyMarinas={false}
@@ -813,6 +1069,14 @@ export function PostRequestForm() {
         )}
       </div>
 
+      {/* Buy & Ship Directly */}
+      <PurchaseOptions
+        itemTitle={title || "Your item"}
+        itemDescription={description || undefined}
+        selectedRetailer={(purchaseRetailer as "west_marine" | "svb" | "amazon" | undefined) || null}
+        onSelectRetailer={(retailer) => setValue("purchase_retailer", retailer)}
+      />
+
 
       {/* Restricted Items Checkbox */}
       <div className="flex items-start gap-2 p-4 bg-red-50 border border-red-200 rounded-lg">
@@ -875,6 +1139,7 @@ export function PostRequestForm() {
         hasBatteries={false}
         hasLiquids={false}
         liquidVolume={undefined}
+        restrictedItems={restrictedItems}
         travelMethod={preferredMethod === "boat" || preferredMethod === "any" ? "boat" : "plane"}
         fromLocation={departurePlace ? { name: departurePlace.name, latitude: departurePlace.lat, longitude: departurePlace.lon } : undefined}
         toLocation={arrivalPlace ? { name: arrivalPlace.name, latitude: arrivalPlace.lat, longitude: arrivalPlace.lon } : undefined}
@@ -889,47 +1154,176 @@ export function PostRequestForm() {
               ${maxReward?.toLocaleString() || 0}
             </span>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             {suggestedReward > 0 && (
-              <p className="text-xs text-slate-500">
-                Suggested: ${suggestedReward.toLocaleString()} (based on distance and weight)
-              </p>
+              <div className="flex items-center gap-2">
+                <p className="text-xs text-slate-500">
+                  Suggested: ${suggestedReward.toLocaleString()}
+                </p>
+                {shippingEstimate && (
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <button type="button" className="text-xs text-teal-600 hover:text-teal-700 flex items-center gap-1">
+                        <Info className="h-3 w-3" />
+                        How calculated?
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-80" align="start">
+                      <div className="space-y-3">
+                        <h4 className="font-semibold text-sm">Cost Breakdown</h4>
+                        {preferredMethod === "plane" && shippingEstimate.canTransportByPlane && shippingEstimate.spareCarryPlanePrice > 0 ? (
+                          <div className="space-y-2 text-xs">
+                            <div className="flex justify-between">
+                              <span className="text-slate-600">Plane Transport:</span>
+                              <span className="font-medium">${shippingEstimate.spareCarryPlanePrice.toFixed(2)}</span>
+                            </div>
+                            {distance && (
+                              <div className="text-slate-500 pl-2">
+                                • Distance: {distance.toFixed(0)} km
+                              </div>
+                            )}
+                            <div className="text-slate-500 pl-2">
+                              • Weight: {weight} kg
+                            </div>
+                            {shippingEstimate.distanceKm && (
+                              <div className="text-slate-500 pl-2">
+                                • Distance-based pricing applied
+                              </div>
+                            )}
+                            {shippingEstimate.platformFeePlane > 0 && (
+                              <div className="flex justify-between pt-2 border-t">
+                                <span className="text-slate-600">Platform Fee:</span>
+                                <span className="font-medium">${shippingEstimate.platformFeePlane.toFixed(2)}</span>
+                              </div>
+                            )}
+                          </div>
+                        ) : preferredMethod === "boat" && shippingEstimate.spareCarryBoatPrice > 0 ? (
+                          <div className="space-y-2 text-xs">
+                            <div className="flex justify-between">
+                              <span className="text-slate-600">Boat Transport:</span>
+                              <span className="font-medium">${shippingEstimate.spareCarryBoatPrice.toFixed(2)}</span>
+                            </div>
+                            {distance && (
+                              <div className="text-slate-500 pl-2">
+                                • Distance: {distance.toFixed(0)} km
+                              </div>
+                            )}
+                            <div className="text-slate-500 pl-2">
+                              • Weight: {weight} kg
+                            </div>
+                            {shippingEstimate.distanceKm && (
+                              <div className="text-slate-500 pl-2">
+                                • Distance-based pricing applied
+                              </div>
+                            )}
+                            {shippingEstimate.platformFeeBoat > 0 && (
+                              <div className="flex justify-between pt-2 border-t">
+                                <span className="text-slate-600">Platform Fee:</span>
+                                <span className="font-medium">${shippingEstimate.platformFeeBoat.toFixed(2)}</span>
+                              </div>
+                            )}
+                          </div>
+                        ) : shippingEstimate.spareCarryBoatPrice > 0 ? (
+                          <div className="space-y-2 text-xs">
+                            <div className="flex justify-between">
+                              <span className="text-slate-600">Boat Transport:</span>
+                              <span className="font-medium">${shippingEstimate.spareCarryBoatPrice.toFixed(2)}</span>
+                            </div>
+                            {shippingEstimate.canTransportByPlane === false && (
+                              <div className="text-amber-600 text-xs pl-2">
+                                • Plane not available: {shippingEstimate.planeRestrictionReason || 'Restrictions apply'}
+                              </div>
+                            )}
+                            {distance && (
+                              <div className="text-slate-500 pl-2">
+                                • Distance: {distance.toFixed(0)} km
+                              </div>
+                            )}
+                            <div className="text-slate-500 pl-2">
+                              • Weight: {weight} kg
+                            </div>
+                          </div>
+                        ) : null}
+                        {shippingEstimate.courierPrice > 0 && (
+                          <div className="pt-2 border-t text-xs">
+                            <div className="text-slate-500 space-y-0.5">
+                              <div>Courier alternative: ${shippingEstimate.courierTotal.toFixed(2)}</div>
+                              {shippingEstimate.customsBreakdown && shippingEstimate.customsCost > 0 && (
+                                <div className="pl-2 border-l-2 border-slate-300 text-xs">
+                                  <div>Shipping: ${shippingEstimate.courierPrice.toFixed(2)}</div>
+                                  <div>Duty: ${shippingEstimate.customsBreakdown.duty.toFixed(2)}</div>
+                                  {shippingEstimate.customsBreakdown.tax > 0 && (
+                                    <div>
+                                      {shippingEstimate.customsBreakdown.taxName || 'Tax'}: ${shippingEstimate.customsBreakdown.tax.toFixed(2)}
+                                    </div>
+                                  )}
+                                  <div>Processing: ${shippingEstimate.customsBreakdown.processingFee.toFixed(2)}</div>
+                                </div>
+                              )}
+                            </div>
+                            {shippingEstimate.savingsBoat > 0 && (
+                              <div className="text-teal-600 font-medium mt-1">
+                                Save ${shippingEstimate.savingsBoat.toFixed(2)} ({shippingEstimate.savingsPercentageBoat.toFixed(0)}%)
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+                )}
+              </div>
             )}
-            {departurePlace && arrivalPlace && (
-              <Link
-                href={`/shipping-estimator?from=${encodeURIComponent(departurePlace.name)}&to=${encodeURIComponent(arrivalPlace.name)}&weight=${weight || 0}&length=${length || 0}&width=${width || 0}&height=${height || 0}`}
-                className="text-xs text-teal-600 hover:text-teal-700 underline flex items-center gap-1"
-              >
-                <Calculator className="h-3 w-3" />
-                Open shipping calculator (auto‑fills this form)
-              </Link>
-            )}
+            <Link
+              href={(() => {
+                const params = new URLSearchParams();
+                if (departurePlace) {
+                  params.append('from', departurePlace.name);
+                  params.append('fromLat', departurePlace.lat.toString());
+                  params.append('fromLon', departurePlace.lon.toString());
+                }
+                if (arrivalPlace) {
+                  params.append('to', arrivalPlace.name);
+                  params.append('toLat', arrivalPlace.lat.toString());
+                  params.append('toLon', arrivalPlace.lon.toString());
+                }
+                params.append('weight', (weight || 0).toString());
+                params.append('length', (length || 0).toString());
+                params.append('width', (width || 0).toString());
+                params.append('height', (height || 0).toString());
+                params.append('declaredValue', (declaredValue || 0).toString());
+                // Include title, description, and category to preserve them
+                if (title) params.append('title', title);
+                if (description) params.append('description', description);
+                if (category) params.append('category', category);
+                if (categoryOtherDescription) params.append('categoryOtherDescription', categoryOtherDescription);
+                // Include restricted items flag
+                if (restrictedItems) params.append('restricted_items', 'true');
+                params.append('returnTo', 'post-request');
+                return `/shipping-estimator?${params.toString()}`;
+              })()}
+              className="text-xs text-teal-600 hover:text-teal-700 underline flex items-center gap-1"
+            >
+              <Calculator className="h-3 w-3" />
+              Use shipping estimator to suggest price
+            </Link>
           </div>
           <input
             id="max_reward"
             type="range"
             min="50"
-            max="10000"
+            max="1000"
             step="10"
             {...register("max_reward", { valueAsNumber: true })}
             className="w-full"
           />
           <div className="flex justify-between text-xs text-slate-500">
             <span>$50</span>
-            <span>$10,000</span>
+            <span>$1,000</span>
           </div>
         </div>
       </div>
 
-      {/* Purchase Options */}
-      <PurchaseOptions
-        itemTitle={watch("title") || ""}
-        itemDescription={watch("description")}
-        selectedRetailer={watch("purchase_retailer") || null}
-        onSelectRetailer={(retailer) => {
-          setValue("purchase_retailer", retailer || undefined);
-        }}
-      />
 
       {/* Emergency Option */}
       <div className="flex items-start gap-2 p-4 bg-amber-50 border border-amber-200 rounded-lg">

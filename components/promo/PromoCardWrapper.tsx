@@ -7,11 +7,11 @@
 
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { EarlySupporterPromoCard } from './EarlySupporterPromoCard';
 import { FirstDeliveryPromoCard } from './FirstDeliveryPromoCard';
 import { getPromoCardToShow } from '../../lib/promo/promo-utils';
-import { createClient } from '../../lib/supabase/client';
+import { useUser } from '../../hooks/useUser';
 
 interface PromoCardWrapperProps {
   className?: string;
@@ -26,21 +26,36 @@ export function PromoCardWrapper({
 }: PromoCardWrapperProps) {
   const [promoCardType, setPromoCardType] = useState<'early-supporter' | 'first-delivery' | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const supabase = createClient();
+  const { user } = useUser(); // Use shared hook instead of creating new supabase client
+
+  // Memoize suppress check to prevent unnecessary re-renders
+  const isSuppressed = useMemo(() => {
+    return currentPath && suppressOnPages.some(page => currentPath.includes(page));
+  }, [currentPath, suppressOnPages]);
 
   useEffect(() => {
     const checkPromo = async () => {
       setIsLoading(true);
       
+      try {
+        if (typeof window !== 'undefined') {
+          const params = new URL(window.location.href).searchParams;
+          if (params.get('resetPromo') === '1') {
+            localStorage.removeItem('promo_dismissed_until');
+          }
+        }
+      } catch (error) {
+        console.warn('Failed to reset promo state:', error);
+      }
+      
       // Check if suppressed on current page
-      if (currentPath && suppressOnPages.some(page => currentPath.includes(page))) {
+      if (isSuppressed) {
         setPromoCardType(null);
         setIsLoading(false);
         return;
       }
 
       try {
-        const { data: { user } } = await supabase.auth.getUser();
         const cardType = await getPromoCardToShow(user?.id);
         setPromoCardType(cardType);
       } catch (error) {
@@ -52,7 +67,7 @@ export function PromoCardWrapper({
     };
 
     checkPromo();
-  }, [supabase, currentPath, suppressOnPages]);
+  }, [user?.id, isSuppressed]); // Only depend on user ID and suppress status
 
   if (isLoading) {
     return null; // Don't show loading state, just hide

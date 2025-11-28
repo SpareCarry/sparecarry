@@ -56,15 +56,14 @@ export function TopRoutes({
 
         if (fetchError) {
           // If the view doesn't exist or cannot be queried, fail silently
-          console.warn('Top routes query failed; hiding widget:', fetchError);
+          // Don't log as error - this is expected if the view isn't set up
           setRoutes([]);
           return;
         }
 
         setRoutes(data || []);
       } catch (err) {
-        console.error('Error loading top routes:', err);
-        // Swallow unexpected errors and just hide the widget
+        // Silently handle errors - this is expected if the view doesn't exist
         setRoutes([]);
       } finally {
         setIsLoading(false);

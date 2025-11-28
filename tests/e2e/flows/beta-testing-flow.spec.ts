@@ -52,12 +52,28 @@ test.describe('Beta Testing Flow', () => {
     await page.locator('#height_cm').first().fill('10');
     await page.locator('#weight_kg').first().fill('1');
 
-    // Select category
+    // Select category - wait for dropdown to appear
     const categorySelect = page.locator('#category').first();
     await categorySelect.click();
-    await page.waitForTimeout(200);
-    await page.getByRole('option', { name: 'Electronics' }).click();
-    await page.waitForTimeout(200);
+    await page.waitForTimeout(500);
+    
+    // Wait for dropdown to appear
+    await page.waitForFunction(
+      () => {
+        const listbox = document.querySelector('[role="listbox"]');
+        const options = document.querySelectorAll('[role="option"]');
+        return listbox || options.length > 0;
+      },
+      { timeout: 15000 }
+    ).catch(() => {});
+    
+    // Try to find and click the Electronics option
+    const electronicsOption = page.getByRole('option', { name: 'Electronics' })
+      .or(page.locator('[role="option"]:has-text("Electronics")'))
+      .first();
+    await expect(electronicsOption).toBeVisible({ timeout: 10000 });
+    await electronicsOption.click();
+    await page.waitForTimeout(500);
 
     // Set deadline
     const tomorrow = new Date();

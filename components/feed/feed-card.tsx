@@ -88,16 +88,21 @@ function FeedCardComponent({ item, onClick }: FeedCardProps) {
     return "Dates TBD";
   }, [isTrip, item.departure_date, item.eta_window_start, item.eta_window_end, item.deadline_earliest, item.deadline_latest]);
 
-  // Memoize reward/capacity display
+  // Memoize reward/capacity display - use stable values to prevent flickering
+  const rewardAmount = item.max_reward ?? 0;
+  const spareKg = item.spare_kg ?? 0;
+  
   const rewardDisplay = useMemo(() => {
-    return isTrip
-      ? `Spare: ${item.spare_kg}kg`
-      : (
-          <>
-            Reward: <CurrencyDisplay amount={item.max_reward || 0} showSecondary={false} className="inline" />
-          </>
-        );
-  }, [isTrip, item.spare_kg, item.max_reward]);
+    if (isTrip) {
+      return `Spare: ${spareKg}kg`;
+    } else {
+      return (
+        <>
+          Reward: <CurrencyDisplay amount={rewardAmount} showSecondary={false} className="inline" />
+        </>
+      );
+    }
+  }, [isTrip, spareKg, rewardAmount]);
 
   return (
     <Card
@@ -202,10 +207,37 @@ function FeedCardComponent({ item, onClick }: FeedCardProps) {
 }
 
 // Optimized with React.memo to prevent unnecessary re-renders
+// Return true if props are equal (should NOT re-render), false if different (SHOULD re-render)
 export const FeedCard = React.memo(FeedCardComponent, (prevProps, nextProps) => {
-  // Only re-render if item ID changes or onClick reference changes
-  return prevProps.item.id === nextProps.item.id && 
-         prevProps.onClick === nextProps.onClick &&
-         JSON.stringify(prevProps.item) === JSON.stringify(nextProps.item);
+  // If IDs are different, we need to re-render
+  if (prevProps.item.id !== nextProps.item.id) return false;
+  if (prevProps.onClick !== nextProps.onClick) return false;
+  
+  // Compare key properties that affect rendering
+  const prev = prevProps.item;
+  const next = nextProps.item;
+  
+  // Return true if props are equal (skip re-render), false if different (re-render)
+  const propsEqual = (
+    prev.type === next.type &&
+    prev.from_location === next.from_location &&
+    prev.to_location === next.to_location &&
+    prev.departure_date === next.departure_date &&
+    prev.eta_window_start === next.eta_window_start &&
+    prev.eta_window_end === next.eta_window_end &&
+    prev.deadline_earliest === next.deadline_earliest &&
+    prev.deadline_latest === next.deadline_latest &&
+    prev.max_reward === next.max_reward &&
+    prev.spare_kg === next.spare_kg &&
+    prev.spare_volume_liters === next.spare_volume_liters &&
+    prev.user_id === next.user_id &&
+    prev.user_verified_sailor === next.user_verified_sailor &&
+    prev.user_verified_identity === next.user_verified_identity &&
+    prev.user_subscribed === next.user_subscribed &&
+    prev.user_supporter === next.user_supporter &&
+    prev.emergency === next.emergency
+  );
+  
+  return propsEqual; // true = skip re-render, false = re-render
 });
 

@@ -20,6 +20,7 @@ export interface ListingDetails {
   };
   hasBatteries?: boolean;
   hasLiquids?: boolean;
+  restrictedItems?: boolean; // Restricted goods (lithium batteries, flammable items, etc.) - boat only
   photoCount?: number;
 }
 

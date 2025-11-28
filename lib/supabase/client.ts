@@ -135,6 +135,8 @@ export function createClient(): TypedSupabaseClient {
   }
   
   // Browser client - use singleton
+  // createBrowserClient from @supabase/ssr automatically handles cookie syncing
+  // It uses localStorage for client-side and syncs to cookies for SSR
   if (!browserClientInstance) {
     browserClientInstance = createBrowserClient<Database>(supabaseUrl, supabaseAnonKey);
     browserClientInstance = withTestModeAuth(browserClientInstance);

@@ -7,15 +7,15 @@ import { createClient } from "../../../lib/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "../../../components/ui/card";
 import { Button } from "../../../components/ui/button";
 import { Loader2, User, Star, CreditCard, Lightbulb } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { SubscriptionCard } from "../../../components/subscription/subscription-card";
 import { ReferralCard } from "../../../components/referral/referral-card";
 import { ErrorBoundary } from "../../../app/_components/ErrorBoundary";
-import { First3DeliveriesBanner } from "../../../components/promo/First3DeliveriesBanner";
 import { LifetimeMarketingBanner } from "../../../components/subscription/lifetime-marketing-banner";
 import { KarmaDisplay } from "../../../components/karma/karma-display";
 import { useUser } from "../../../hooks/useUser";
 import { ProfileSettings } from "../../../components/profile/profile-settings";
+import { useEffect, Suspense } from "react";
 
 type ProfileRecord = {
   phone?: string | null;
@@ -26,12 +26,27 @@ type UserRecord = {
   subscription_status?: string | null;
 };
 
-export default function ProfilePage() {
+function ProfilePageContent() {
   const supabase = createClient();
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   // Use shared hook to prevent duplicate queries
   const { user, isLoading: userLoading, error: userError } = useUser();
+
+  // Handle return from Stripe checkout (cancel with return=true)
+  useEffect(() => {
+    const returnParam = searchParams.get("return");
+    const checkout = searchParams.get("checkout");
+    
+    if (returnParam === "true" || checkout === "cancelled") {
+      // Remove the query params to clean up the URL
+      const newUrl = new URL(window.location.href);
+      newUrl.searchParams.delete("return");
+      newUrl.searchParams.delete("checkout");
+      window.history.replaceState({}, "", newUrl.toString());
+    }
+  }, [searchParams]);
 
   const { data: profile, isLoading: profileLoading, error: profileError } = useQuery<ProfileRecord | null>({
     queryKey: ["profile", user?.id],
@@ -137,10 +152,6 @@ export default function ProfilePage() {
       </div>
 
       <div className="space-y-6">
-        {/* First 3 Deliveries Banner */}
-        <ErrorBoundary fallback={null}>
-          <First3DeliveriesBanner />
-        </ErrorBoundary>
 
         {/* Unified Subscription Card - combines Pro and Supporter */}
         <ErrorBoundary fallback={
@@ -268,5 +279,17 @@ export default function ProfilePage() {
         </Card>
       </div>
     </div>
+  );
+}
+
+export default function ProfilePage() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="h-8 w-8 animate-spin text-teal-600" />
+      </div>
+    }>
+      <ProfilePageContent />
+    </Suspense>
   );
 }

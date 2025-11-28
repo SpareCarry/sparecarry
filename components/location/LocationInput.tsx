@@ -51,7 +51,7 @@ export function LocationInput({
   
   const inputRef = useRef<HTMLInputElement>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
-  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Search function
   const performSearch = useCallback(async (searchQuery: string) => {
@@ -61,6 +61,13 @@ export function LocationInput({
       setNoMarinasFound(false);
       return;
     }
+
+    console.log('[LocationInput] Starting search:', {
+      query: searchQuery,
+      filterMode,
+      hasBbox: !!bbox,
+      allowFallback: allowFallbackToAny,
+    });
 
     setIsLoading(true);
     setNoMarinasFound(false);
@@ -73,6 +80,12 @@ export function LocationInput({
         allowFallback: allowFallbackToAny,
       });
 
+      console.log('[LocationInput] Search results:', {
+        query: searchQuery,
+        resultCount: results.length,
+        results: results.map(r => r.name),
+      });
+
       // Check if we filtered for marinas but got none
       if (filterMode === 'marina' && results.length === 0 && allowFallbackToAny) {
         setNoMarinasFound(true);
@@ -81,7 +94,11 @@ export function LocationInput({
       setSuggestions(results);
       setShowSuggestions(results.length > 0 || noMarinasFound);
     } catch (error) {
-      console.error('Location autocomplete error:', error);
+      console.error('[LocationInput] Autocomplete error:', {
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+        query: searchQuery,
+      });
       setSuggestions([]);
       setShowSuggestions(false);
     } finally {

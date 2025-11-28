@@ -33,6 +33,12 @@ export function computeSafetyScore(details: ListingDetails): SafetyScoreResult {
     reasons.push('Contains liquids - check volume limits');
   }
 
+  // Rule 3.5: Restricted items (lithium batteries, flammable items, etc.)
+  if (details.restrictedItems) {
+    score -= 25;
+    reasons.push('Contains restricted items - requires boat transport only and special handling');
+  }
+
   // Rule 4: High declared value (insurance risk)
   if (details.declaredValue && details.declaredValue > 1000) {
     score -= 10;

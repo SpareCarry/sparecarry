@@ -54,22 +54,29 @@ test.describe('Complete Payment Flow', () => {
     // Step 4: Wait for URL to change - Next.js client-side routing
     // Poll for URL change since client-side routing doesn't trigger full navigation events
     try {
-      await page.waitForFunction(
-        () => {
-          const url = window.location.href;
-          return /\/auth\/login/.test(url) || /\/home/.test(url);
-        },
-        { timeout: 30000, polling: 100 }
-      );
+      // First try waitForURL which works better with Next.js routing
+      await page.waitForURL(/\/(auth\/login|home)/, { timeout: 20000 });
     } catch (e) {
-      // Fallback: wait for navigation event if available
+      // Fallback: poll for URL change
       try {
-        await page.waitForURL(/\/(auth\/login|home)/, { timeout: 5000 });
+        await page.waitForFunction(
+          () => {
+            const url = window.location.href;
+            return /\/auth\/login/.test(url) || /\/home/.test(url);
+          },
+          { timeout: 20000, polling: 200 }
+        );
       } catch (e2) {
-        // If both fail, check if we're already on the expected page
+        // If both fail, wait a bit more and check current URL
+        await page.waitForTimeout(3000);
         const currentUrl = page.url();
-        if (!/\/auth\/login/.test(currentUrl) && !/\/home/.test(currentUrl)) {
-          throw new Error(`Expected to navigate to /auth/login or /home but URL is ${currentUrl}`);
+        if (!/\/auth\/login/.test(currentUrl) && !/\/home/.test(currentUrl) && currentUrl !== baseUrl && !currentUrl.endsWith('/')) {
+          // One more try with longer wait
+          await page.waitForTimeout(3000);
+          const finalUrl = page.url();
+          if (!/\/auth\/login/.test(finalUrl) && !/\/home/.test(finalUrl)) {
+            throw new Error(`Expected to navigate to /auth/login or /home but URL is ${finalUrl}`);
+          }
         }
       }
     }

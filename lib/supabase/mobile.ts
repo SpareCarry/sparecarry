@@ -21,80 +21,86 @@ function createCapacitorStorage() {
     };
   }
 
-  // Check if Capacitor is available
-  const isCapacitor = (window as any).Capacitor;
-  
-  if (isCapacitor) {
+  // Check if Capacitor is available (global, to avoid bundler imports)
+  const capacitor = (window as any).Capacitor;
+  const preferences =
+    capacitor && (capacitor.Preferences || capacitor.Plugins?.Preferences);
+
+  if (preferences) {
     // Use Capacitor Preferences API (similar to AsyncStorage)
-    try {
-      // Dynamically import Capacitor Preferences
-      return {
-        async getItem(key: string): Promise<string | null> {
+    return {
+      async getItem(key: string): Promise<string | null> {
+        try {
+          const { value } = await preferences.get({ key });
+          return value ?? null;
+        } catch (error) {
+          console.error("Error getting preference:", error);
+          // Fallback to localStorage
           try {
-            const { Preferences } = await import("@capacitor/preferences");
-            const { value } = await Preferences.get({ key });
-            return value;
-          } catch (error) {
-            console.error("Error getting preference:", error);
-            // Fallback to localStorage
             return localStorage.getItem(key);
+          } catch {
+            return null;
           }
-        },
-        async setItem(key: string, value: string): Promise<void> {
+        }
+      },
+      async setItem(key: string, value: string): Promise<void> {
+        try {
+          await preferences.set({ key, value });
+        } catch (error) {
+          console.error("Error setting preference:", error);
+          // Fallback to localStorage
           try {
-            const { Preferences } = await import("@capacitor/preferences");
-            await Preferences.set({ key, value });
-          } catch (error) {
-            console.error("Error setting preference:", error);
-            // Fallback to localStorage
             localStorage.setItem(key, value);
+          } catch {
+            // Ignore localStorage errors
           }
-        },
-        async removeItem(key: string): Promise<void> {
+        }
+      },
+      async removeItem(key: string): Promise<void> {
+        try {
+          // Capacitor Preferences uses remove() method
+          await preferences.remove({ key });
+        } catch (error) {
+          console.error("Error removing preference:", error);
+          // Fallback to localStorage
           try {
-            const { Preferences } = await import("@capacitor/preferences");
-            // Capacitor Preferences uses remove() method
-            await (Preferences as any).remove({ key });
-          } catch (error) {
-            console.error("Error removing preference:", error);
-            // Fallback to localStorage
-            try {
-              localStorage.removeItem(key);
-            } catch (e) {
-              // Ignore localStorage errors
-            }
+            localStorage.removeItem(key);
+          } catch {
+            // Ignore localStorage errors
           }
-        },
-      };
-    } catch (error) {
-      console.warn("Capacitor Preferences not available, falling back to localStorage");
-      // Fallback to localStorage if Capacitor is not available
-      return {
-        getItem: (key: string) => Promise.resolve(localStorage.getItem(key)),
-        setItem: (key: string, value: string) => {
-          localStorage.setItem(key, value);
-          return Promise.resolve();
-        },
-        removeItem: (key: string) => {
-          localStorage.removeItem(key);
-          return Promise.resolve();
-        },
-      };
-    }
+        }
+      },
+    };
   }
 
-  // Fallback to localStorage for web
-  return {
-    getItem: (key: string) => Promise.resolve(localStorage.getItem(key)),
-    setItem: (key: string, value: string) => {
-      localStorage.setItem(key, value);
-      return Promise.resolve();
-    },
-    removeItem: (key: string) => {
-      localStorage.removeItem(key);
-      return Promise.resolve();
-    },
-  };
+  // Fallback to localStorage for web / non-Capacitor environments
+  try {
+    return {
+      getItem: (key: string) => Promise.resolve(localStorage.getItem(key)),
+      setItem: (key: string, value: string) => {
+        localStorage.setItem(key, value);
+        return Promise.resolve();
+      },
+      removeItem: (key: string) => {
+        localStorage.removeItem(key);
+        return Promise.resolve();
+      },
+    };
+  } catch {
+    // If localStorage is not available (very rare), use in-memory no-op storage
+    const memoryStore = new Map<string, string>();
+    return {
+      getItem: (key: string) => Promise.resolve(memoryStore.get(key) ?? null),
+      setItem: (key: string, value: string) => {
+        memoryStore.set(key, value);
+        return Promise.resolve();
+      },
+      removeItem: (key: string) => {
+        memoryStore.delete(key);
+        return Promise.resolve();
+      },
+    };
+  }
 }
 
 /**

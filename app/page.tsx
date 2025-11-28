@@ -38,61 +38,19 @@ export default function Home() {
     setLoading(true);
     setTravelType(type);
     
+    // Always redirect to login first - let login page handle redirect if already authenticated
+    // This ensures users always go through login flow
+    const loginUrl = `/auth/login?redirect=/home&forceLogin=true`;
     try {
-      console.log("Checking authentication...");
-      
-      // Add timeout to prevent hanging if Supabase is unreachable
-      const getUserPromise = supabase.auth.getUser();
-      const timeoutPromise = new Promise<never>((_, reject) => 
-        setTimeout(() => reject(new Error('Auth check timeout')), 3000)
-      );
-
-      let authResult: any;
-      try {
-        authResult = await Promise.race([getUserPromise, timeoutPromise]);
-      } catch (timeoutError) {
-        // Timeout occurred - treat as not authenticated
-        console.log("Auth check timed out, treating as not authenticated");
-        authResult = { data: { user: null }, error: timeoutError };
-      }
-
-      const { data: { user }, error: authError } = authResult || { data: { user: null }, error: null };
-
-      console.log("Auth check result:", { user: user?.email, error: authError });
-
-      if (user && !authError) {
-        // User is authenticated - navigate to browse page
-        console.log("User authenticated, navigating to /home");
-        try {
-          await router.push("/home");
-          console.log("Navigation to /home successful");
-        } catch (pushError) {
-          console.error("Router.push failed, using window.location:", pushError);
-          window.location.href = "/home";
-        }
-      } else {
-        // User is not authenticated - navigate to login with redirect
-        console.log("User not authenticated, navigating to login");
-        try {
-          await router.push(`/auth/login?redirect=/home`);
-          console.log("Navigation to /auth/login successful");
-        } catch (pushError) {
-          console.error("Router.push failed, using window.location:", pushError);
-          window.location.href = `/auth/login?redirect=/home`;
-        }
-      }
-    } catch (error) {
-      console.error("Error checking authentication:", error);
-      // Fallback to login on any error (timeout, network error, etc.)
-      try {
-        await router.push(`/auth/login?redirect=/home`);
-      } catch (navError) {
-        console.error("Navigation error:", navError);
-        // Last resort: window.location
-        window.location.href = `/auth/login?redirect=/home`;
-      }
+      console.log("Redirecting to login page");
+      await router.push(loginUrl);
+    } catch (pushError) {
+      console.error("Router.push failed, using window.location:", pushError);
     } finally {
-      // Always reset loading state, but don't block navigation
+      if (typeof window !== 'undefined') {
+        window.location.href = loginUrl;
+      }
+      // Reset loading state after a short delay
       setTimeout(() => {
         setLoading(false);
       }, 100);

@@ -11,7 +11,7 @@
  */
 
 import { PLATFORM_FEE_PERCENT as CONFIG_PLATFORM_FEE } from '../../config/platformFees';
-import { getDaysLeft } from '@/utils/getDaysLeft';
+import { getDaysLeft } from '../../utils/getDaysLeft';
 
 export const PLATFORM_FEE_FLAT = 3.0; // $3 flat fee
 export const PLATFORM_FEE_PERCENT = CONFIG_PLATFORM_FEE; // From config (default 8%)

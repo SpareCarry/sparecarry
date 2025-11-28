@@ -78,6 +78,62 @@ serve(async (req) => {
           .update({ status: "completed" })
           .eq("id", match.id);
 
+        // Automatically apply karma points to the traveler
+        try {
+          // Get full match details including request
+          const { data: fullMatch } = await supabase
+            .from("matches")
+            .select(`
+              id,
+              request_id,
+              reward_amount,
+              platform_fee_percent,
+              trips!inner(user_id),
+              requests!inner(weight_kg)
+            `)
+            .eq("id", match.id)
+            .single();
+
+          if (fullMatch) {
+            const request = (fullMatch as any).requests;
+            const trip = (fullMatch as any).trips;
+            
+            if (request && request.weight_kg && request.weight_kg > 0 && trip) {
+              // Calculate platform fee in USD
+              const platformFeePercent = fullMatch.platform_fee_percent || 0;
+              const platformFee = (fullMatch.reward_amount * platformFeePercent) / 100;
+
+              // Calculate karma points: (weight * 10) + (platformFee * 2)
+              const weightPoints = request.weight_kg * 10;
+              const feePoints = platformFee * 2;
+              const karmaPoints = Math.round(weightPoints + feePoints);
+
+              if (karmaPoints > 0) {
+                // Get current karma points
+                const { data: currentUser } = await supabase
+                  .from("users")
+                  .select("karma_points")
+                  .eq("id", trip.user_id)
+                  .single();
+
+                const currentKarma = (currentUser?.karma_points as number) || 0;
+                const newKarma = currentKarma + karmaPoints;
+
+                // Update karma points
+                await supabase
+                  .from("users")
+                  .update({ karma_points: newKarma })
+                  .eq("id", trip.user_id);
+
+                console.log(`Applied ${karmaPoints} karma points to traveler ${trip.user_id} (total: ${newKarma})`);
+              }
+            }
+          }
+        } catch (karmaError) {
+          // Log but don't fail the escrow release if karma application fails
+          console.warn(`Error applying karma points for match ${match.id}:`, karmaError);
+        }
+
         results.push({
           matchId: match.id,
           deliveryId: delivery.id,

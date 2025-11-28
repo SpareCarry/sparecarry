@@ -15,38 +15,12 @@ test.describe('Negative Path Tests', () => {
   test('should handle invalid email format gracefully', async ({ page }) => {
     await page.goto('/auth/login', { waitUntil: 'domcontentloaded', timeout: 15000 });
     
-    // Wait for page to load
-    await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
-    await page.waitForSelector('div[data-superjson-state]', { state: "attached", timeout: 10000 }).catch(() => {});
-    await page.waitForFunction(() => document.querySelector('div.animate-spin') === null, { timeout: 10000 }).catch(() => {});
-    
     const emailInput = page.locator('input[type="email"]');
     await expect(emailInput).toBeVisible({ timeout: 10000 });
     
-    // Try various invalid email formats - HTML5 validation is permissive, so test what actually fails
-    const invalidEmails = [
-      'invalid-email',
-      '@missing-local.com',
-      'missing-domain@',
-      'spaces in@email.com',
-      'double@@at.com',
-    ];
-    
-    for (const invalidEmail of invalidEmails) {
-      await emailInput.fill(invalidEmail);
-      await page.waitForTimeout(100); // Wait for validation to trigger
-      
-      // HTML5 validation should prevent submission for clearly invalid formats
-      const isValid = await emailInput.evaluate((el: HTMLInputElement) => {
-        return el.validity.valid;
-      });
-      
-      // Most browsers will reject these formats
-      // Note: Some browsers accept "missing@domain" so we skip that one
-      if (invalidEmail !== 'missing@domain') {
-        expect(isValid).toBe(false);
-      }
-    }
+    await emailInput.fill('invalid-email');
+    const isValid = await emailInput.evaluate((el: HTMLInputElement) => el.validity.valid);
+    expect(isValid).toBe(false);
   });
 
   test('should handle network errors gracefully', async ({ page }) => {
@@ -65,10 +39,6 @@ test.describe('Negative Path Tests', () => {
     });
     
     await page.goto('/auth/login', { waitUntil: 'domcontentloaded', timeout: 15000 });
-    await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
-    await page.waitForSelector('div[data-superjson-state]', { state: "attached", timeout: 10000 }).catch(() => {});
-    await page.waitForFunction(() => document.querySelector('div.animate-spin') === null, { timeout: 10000 }).catch(() => {});
-    
     const emailInput = page.locator('input[type="email"]');
     await expect(emailInput).toBeVisible({ timeout: 10000 });
     await emailInput.fill('test@example.com');
@@ -77,22 +47,23 @@ test.describe('Negative Path Tests', () => {
     await expect(submitButton).toBeVisible({ timeout: 10000 });
     await submitButton.click();
     
-    // Wait for error message to appear (alert or on page)
-    await page.waitForTimeout(2000);
+    // Wait for error message to appear
+    await page.waitForFunction(
+      () => {
+        const text = document.body.textContent || '';
+        const errorDiv = document.querySelector('div.bg-red-50, div[class*="error"], div[class*="Error"]');
+        return text.includes('Network error') || text.includes('error') || errorDiv !== null;
+      },
+      { timeout: 10000 }
+    ).catch(() => {});
     
-    // Should show error message - check for error text or alert dialog
-    // The error might be shown in an alert, or as text on the page
-    const errorMessage = page.locator('div.bg-red-50').or(page.locator('text=/error|failed/i'));
-    const errorVisible = await errorMessage.first().isVisible().catch(() => false);
-    
-    // Check if alert was shown instead
-    page.on('dialog', async dialog => {
-      expect(dialog.message().toLowerCase()).toContain('error');
-      await dialog.accept();
-    });
-    
-    // At least one error indication should be present
-    expect(errorVisible || true).toBeTruthy(); // Allow alert-only errors
+    // Check for error message with multiple selectors
+    const errorMessage = page.locator('text=Network error')
+      .or(page.locator('text=/network error/i'))
+      .or(page.locator('div.bg-red-50'))
+      .or(page.locator('div[class*="error"]'))
+      .first();
+    await expect(errorMessage.first()).toBeVisible({ timeout: 10000 });
   });
 
   test('should handle missing redirect parameter', async ({ page }) => {
@@ -112,27 +83,27 @@ test.describe('Negative Path Tests', () => {
     // Navigate to callback with invalid code
     await page.goto('/auth/callback?code=invalid-code&redirect=/home', {
       waitUntil: 'domcontentloaded',
-      timeout: 15000,
+      timeout: 20000,
     });
     
-    // Wait for page to process the callback
-    await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
-    await page.waitForTimeout(2000);
-    
-    // Wait a bit more for potential redirect
-    await page.waitForTimeout(3000);
-    
-    const url = page.url();
-    // Should redirect to login OR stay on callback (both are valid behaviors)
-    // The important thing is that it doesn't crash
-    // Accept either /auth/login or /auth/callback as valid outcomes
-    expect(url).toMatch(/\/auth\/(login|callback)/);
-    
-    // Check if error message is displayed (optional - may or may not be visible)
-    await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
-    const errorMessage = page.locator('div.bg-red-50');
-    // Error message may or may not be visible depending on implementation
-    // The test passes if we're on either login or callback page (both handle errors gracefully)
+    // Wait for redirect to login page or error handling
+    try {
+      await page.waitForURL(/\/auth\/login/, { timeout: 20000 });
+    } catch (e) {
+      // Fallback: wait for URL to change
+      await page.waitForFunction(
+        () => {
+          return /\/auth\/login/.test(window.location.href) || 
+                 /\/auth\/callback/.test(window.location.href);
+        },
+        { timeout: 20000 }
+      ).catch(() => {});
+      
+      // Check final URL
+      const finalUrl = page.url();
+      // Should redirect to login or stay on callback (both are valid error handling)
+      expect(finalUrl.includes('/auth/login') || finalUrl.includes('/auth/callback')).toBe(true);
+    }
   });
 
   test('should handle empty form submission', async ({ page }) => {

@@ -390,18 +390,32 @@ test.describe('Shipping Cost Estimator', () => {
     // Ensure button is enabled (estimate is ready)
     await expect(createJobButton).toBeEnabled({ timeout: 5000 });
 
-    // Click button and wait for navigation
-    await Promise.all([
-      page.waitForURL(/.*\/home\/post-request.*/, { timeout: 15000 }),
-      createJobButton.click(),
-    ]).catch(async () => {
-      // Fallback: check URL after click
-      await page.waitForTimeout(2000);
+    // Click button and wait for navigation - use more robust approach
+    const navigationPromise = page.waitForURL(/.*\/home\/post-request.*/, { timeout: 20000 }).catch(() => {
+      // Also try without /home prefix
+      return page.waitForURL(/.*\/post-request.*/, { timeout: 5000 }).catch(() => null);
     });
+    
+    await createJobButton.click();
+    
+    // Wait for navigation
+    await navigationPromise;
+    
+    // Give extra time for navigation to complete
+    await page.waitForTimeout(2000);
+    await page.waitForLoadState('domcontentloaded', { timeout: 10000 }).catch(() => {});
 
-    // Should navigate to post-request page
+    // Should navigate to post-request page - check with more flexible matching
     const currentUrl = page.url();
-    expect(currentUrl).toContain('/post-request');
+    const hasPostRequest = currentUrl.includes('/post-request') || currentUrl.includes('/home/post-request');
+    if (!hasPostRequest) {
+      // If navigation didn't happen, wait a bit more and check again
+      await page.waitForTimeout(3000);
+      const finalUrl = page.url();
+      expect(finalUrl).toMatch(/.*\/post-request.*/);
+    } else {
+      expect(currentUrl).toContain('/post-request');
+    }
 
     // Wait for post-request page to load
     await page.waitForLoadState('domcontentloaded', { timeout: 10000 }).catch(() => {});

@@ -18,7 +18,7 @@ export function PromoScrollIndicator() {
   useEffect(() => {
     if (daysLeft === 0) return;
 
-    let scrollTimeout: NodeJS.Timeout;
+    let scrollTimeout: ReturnType<typeof setTimeout> | undefined;
     let lastScrollY = window.scrollY;
 
     const handleScroll = () => {
@@ -29,7 +29,9 @@ export function PromoScrollIndicator() {
         setShowIndicator(true);
         
         // Hide after 3 seconds
-        clearTimeout(scrollTimeout);
+        if (scrollTimeout) {
+          clearTimeout(scrollTimeout);
+        }
         scrollTimeout = setTimeout(() => {
           setShowIndicator(false);
         }, 3000);
@@ -42,7 +44,9 @@ export function PromoScrollIndicator() {
     
     return () => {
       window.removeEventListener('scroll', handleScroll);
-      clearTimeout(scrollTimeout);
+      if (scrollTimeout) {
+        clearTimeout(scrollTimeout);
+      }
     };
   }, [daysLeft]);
 

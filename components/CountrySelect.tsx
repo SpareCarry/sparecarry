@@ -72,7 +72,7 @@ export function CountrySelect({
 
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Get selected country from value (ISO2)
   const selectedCountry = useMemo(() => {

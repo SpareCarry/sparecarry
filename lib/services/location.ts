@@ -17,6 +17,8 @@ export interface Place {
   lat: number;
   lon: number;
   category?: string;
+  country?: string; // Country ISO2 code from Geoapify
+  formatted?: string;
   raw?: any;
 }
 
@@ -80,7 +82,7 @@ const cache = new LocationCache();
 // ============================================================================
 
 class Debouncer {
-  private timers = new Map<string, NodeJS.Timeout>();
+  private timers = new Map<string, ReturnType<typeof setTimeout>>();
 
   debounce<T extends (...args: any[]) => any>(
     key: string,
@@ -168,12 +170,23 @@ function normalizeFeature(feature: any): Place {
     category = props.type;
   }
 
+  // Extract country code from Geoapify response
+  // Geoapify returns country_code in ISO2 format in properties
+  // Also check raw feature properties for country information
+  const countryCode = props.country_code || 
+                      props.country || 
+                      props.country_iso2 || 
+                      feature.properties?.country_code ||
+                      feature.properties?.country ||
+                      undefined;
+
   return {
     id: feature.properties?.place_id || feature.id || undefined,
     name: props.name || props.formatted || props.place_name || 'Unknown location',
     lat: coords[1] || props.lat || 0,
     lon: coords[0] || props.lon || 0,
     category,
+    country: countryCode, // ISO2 country code
     raw: feature,
   };
 }
@@ -190,6 +203,7 @@ export async function autocomplete(
   opts?: AutocompleteOptions
 ): Promise<Place[]> {
   if (!query || query.trim().length < 2) {
+    console.log('[Geoapify] Query too short:', query);
     return [];
   }
 
@@ -201,17 +215,33 @@ export async function autocomplete(
   const cacheKey = `autocomplete:${query}:${limit}:${filter}:${JSON.stringify(opts?.bbox)}`;
   const cached = cache.get<Place[]>(cacheKey);
   if (cached) {
+    console.log('[Geoapify] Returning cached results:', cached.length, 'places');
     return cached;
   }
 
+  // Log API key status (without exposing the full key)
+  const apiKeyPresent = !!API_KEY;
+  const apiKeyPreview = API_KEY ? `${API_KEY.substring(0, 8)}...` : 'MISSING';
+  console.log('[Geoapify] Starting autocomplete:', {
+    query: query.trim(),
+    limit,
+    filter,
+    hasApiKey: apiKeyPresent,
+    apiKeyPreview,
+    hasBbox: !!opts?.bbox,
+  });
+
   try {
     // Build URL with optional bbox
+    // Note: Geoapify autocomplete doesn't support multiple types comma-separated
+    // We'll use 'amenity' to get places, POIs, and locations, or remove type to get all
     const params = new URLSearchParams({
       text: query.trim(),
       limit: (limit * 2).toString(), // Request more to account for filtering
       apiKey: API_KEY,
       lang: 'en',
-      type: 'amenity,poi,place',
+      // Removed 'type' parameter - let Geoapify return all location types
+      // We'll filter client-side if needed
     });
 
     if (opts?.bbox) {
@@ -221,6 +251,7 @@ export async function autocomplete(
     }
 
     const url = `${GEOAPIFY_BASE_URL}/geocode/autocomplete?${params.toString()}`;
+    console.log('[Geoapify] Request URL:', url.replace(API_KEY, 'API_KEY_HIDDEN'));
     
     const response = await fetch(url, {
       method: 'GET',
@@ -229,20 +260,41 @@ export async function autocomplete(
       },
     });
 
+    console.log('[Geoapify] Response status:', response.status, response.statusText);
+
     if (!response.ok) {
+      const errorText = await response.text();
+      console.error('[Geoapify] API error response:', {
+        status: response.status,
+        statusText: response.statusText,
+        body: errorText.substring(0, 500), // Limit error text length
+      });
       return [];
     }
 
     const data = await response.json();
+    console.log('[Geoapify] Response data:', {
+      hasFeatures: !!data.features,
+      featureCount: data.features?.length || 0,
+      rawDataKeys: Object.keys(data),
+    });
+
     const features = data.features || [];
 
     // Apply client-side marina/port filter if needed
     let results: any[] = features;
     if (filter === 'marina' || filter === 'port') {
+      const beforeFilter = results.length;
       results = features.filter(isMarinaOrPort);
+      console.log('[Geoapify] Marina filter:', {
+        before: beforeFilter,
+        after: results.length,
+        filterMode: filter,
+      });
       
       // Fallback: if no marinas found and fallback allowed, return all results
       if (results.length === 0 && allowFallback) {
+        console.log('[Geoapify] No marinas found, falling back to all results');
         results = features;
       }
     }
@@ -253,11 +305,21 @@ export async function autocomplete(
       .map(normalizeFeature)
       .filter(place => place.lat !== 0 && place.lon !== 0);
 
+    console.log('[Geoapify] Final results:', {
+      totalPlaces: places.length,
+      places: places.map(p => ({ name: p.name, lat: p.lat, lon: p.lon })),
+    });
+
     // Cache results
     cache.set(cacheKey, places);
 
     return places;
   } catch (error) {
+    console.error('[Geoapify] Exception during autocomplete:', {
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+      query: query.trim(),
+    });
     return [];
   }
 }

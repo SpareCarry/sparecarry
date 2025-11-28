@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, Suspense } from "react";
+import { useEffect, Suspense, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
@@ -8,6 +8,23 @@ function AuthCallbackContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const supabase = createClient();
+  const safePush = useCallback(
+    (path: string) => {
+      try {
+        router.push(path);
+      } catch (error) {
+        console.error("[AuthCallback] router.push failed, using window.location", error);
+        if (typeof window !== "undefined") {
+          window.location.href = path;
+        }
+        return;
+      }
+      if (typeof window !== "undefined") {
+        window.location.href = path;
+      }
+    },
+    [router]
+  );
 
   useEffect(() => {
     const handleCallback = async () => {
@@ -28,7 +45,7 @@ function AuthCallbackContent() {
           // Handle error - redirect to login with error message
           const error = queryError || hashError;
           const errorMessage = errorDescription || error || "Authentication failed";
-          router.push(
+          safePush(
             `/auth/login?error=invalid_link&message=${encodeURIComponent(errorMessage)}&redirect=${encodeURIComponent(redirectTo)}`
           );
           return;
@@ -54,14 +71,14 @@ function AuthCallbackContent() {
 
           if (sessionError) {
             console.error("Error setting session:", sessionError);
-            router.push(
+            safePush(
               `/auth/login?error=auth_failed&message=${encodeURIComponent(sessionError.message)}&redirect=${encodeURIComponent(redirectTo)}`
             );
             return;
           }
 
           // Success - redirect to the intended destination
-          router.push(redirectTo);
+          safePush(redirectTo);
           return;
         }
 
@@ -71,14 +88,14 @@ function AuthCallbackContent() {
           
           if (exchangeError) {
             console.error("Error exchanging code for session:", exchangeError);
-            router.push(
+            safePush(
               `/auth/login?error=auth_failed&message=${encodeURIComponent(exchangeError.message)}&redirect=${encodeURIComponent(redirectTo)}`
             );
             return;
           }
 
           // Success - redirect to the intended destination
-          router.push(redirectTo);
+          safePush(redirectTo);
           return;
         }
 
@@ -93,24 +110,24 @@ function AuthCallbackContent() {
 
         if (user && !userError) {
           // User is authenticated, redirect
-          router.push(redirectTo);
+          safePush(redirectTo);
         } else {
           // No code/tokens and not authenticated - redirect to login
-          router.push(
+          safePush(
             `/auth/login?error=no_code&message=${encodeURIComponent("No authentication code found. Please request a new magic link.")}&redirect=${encodeURIComponent(redirectTo)}`
           );
         }
       } catch (error: any) {
         console.error("Auth callback error:", error);
         const redirectTo = searchParams.get("redirect") || "/home";
-        router.push(
+        safePush(
           `/auth/login?error=auth_failed&message=${encodeURIComponent(error.message || "An unexpected error occurred")}&redirect=${encodeURIComponent(redirectTo)}`
         );
       }
     };
 
     handleCallback();
-  }, [router, searchParams, supabase]);
+  }, [router, searchParams, supabase, safePush]);
 
   // Show loading state while processing
   return (

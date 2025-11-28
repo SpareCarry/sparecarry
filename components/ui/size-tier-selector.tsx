@@ -35,7 +35,10 @@ export function SizeTierSelector({
   const tierInfo = selectedTier ? SIZE_TIERS.find(t => t.id === selectedTier) : null;
 
   return (
-    <div className={className}>
+    <div
+      className={className}
+      data-testid="size-tier-selector"
+    >
       <div className="flex items-center gap-2 mb-2">
         <Label htmlFor="size_tier">Package Size</Label>
         <TooltipProvider>

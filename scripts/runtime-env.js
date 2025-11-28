@@ -1,4 +1,26 @@
 const { z } = require("zod");
+const path = require("path");
+const fs = require("fs");
+
+// Load .env.local if it exists (Next.js doesn't load it during lint/build config phase)
+// This ensures env vars are available during validation
+const envLocalPath = path.join(process.cwd(), ".env.local");
+if (fs.existsSync(envLocalPath)) {
+  try {
+    // Use dotenv to parse .env.local (handles quotes, comments, etc.)
+    const dotenv = require("dotenv");
+    const envConfig = dotenv.parse(fs.readFileSync(envLocalPath, "utf8"));
+    // Set values from .env.local (don't override existing process.env values)
+    Object.keys(envConfig).forEach((key) => {
+      if (!process.env[key]) {
+        process.env[key] = envConfig[key];
+      }
+    });
+  } catch (error) {
+    // Silently fail if we can't read .env.local
+    // Uncomment for debugging: console.warn("[env] Failed to load .env.local:", error.message);
+  }
+}
 
 const EMAIL_PATTERN = /.+@.+\..+/;
 const STRIPE_PRICE_PATTERN = /^price_[A-Za-z0-9]+/;

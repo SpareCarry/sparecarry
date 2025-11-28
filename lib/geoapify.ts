@@ -98,12 +98,15 @@ export async function geoapifyAutocomplete(
 
   try {
     // Build URL with optional bbox
+    // Note: Geoapify autocomplete doesn't support multiple types comma-separated
+    // Removed 'type' parameter - let Geoapify return all location types
     const params = new URLSearchParams({
       text: query.trim(),
       limit: (limit * 2).toString(), // Request more to account for filtering
       apiKey: API_KEY,
       lang: 'en',
-      type: 'amenity,poi,place',
+      // Removed 'type' parameter - let Geoapify return all location types
+      // We'll filter client-side if needed
     });
 
     if (opts?.bbox) {

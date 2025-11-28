@@ -4,6 +4,7 @@ import { Button } from "../ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { CheckCircle2, Zap, Star, CreditCard, Anchor, Trophy, Infinity } from "lucide-react";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { createClient } from "../../lib/supabase/client";
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -26,6 +27,7 @@ type LifetimeStatus = {
 
 export function SubscriptionCard() {
   const supabase = createClient() as SupabaseClient;
+  const router = useRouter();
   const [loading, setLoading] = useState<string | null>(null);
 
   // Use shared hook to prevent duplicate queries
@@ -117,22 +119,67 @@ export function SubscriptionCard() {
   const handleSubscribe = async (priceId: "monthly" | "yearly" | "lifetime") => {
     setLoading(priceId);
     try {
+      // Check if user is logged in - use the hook's user state
+      if (!user) {
+        console.warn("[Subscription] No user found from useUser hook, redirecting to login");
+        setLoading(null);
+        window.location.href = `/auth/login?redirect=/home/profile&forceLogin=true`;
+        return;
+      }
+
+      console.log("[Subscription] User found:", user.email, "- Making API call...");
+      
+      // Get the current session to include the access token
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        console.warn("[Subscription] No session found, redirecting to login");
+        setLoading(null);
+        window.location.href = `/auth/login?redirect=/home/profile&forceLogin=true`;
+        return;
+      }
+      
+      // Call the API - include access token in header as fallback if cookies aren't set
+      // The middleware will refresh the session if needed
+      // If user is logged in, it will create checkout session
+      // If not, it will return 401 and we'll redirect to login
       const response = await fetch("/api/subscriptions/create-checkout", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          // Include access token as fallback if cookies aren't synced
+          "Authorization": `Bearer ${session.access_token}`,
+        },
+        credentials: "include", // Include cookies for authentication
         body: JSON.stringify({ priceId }),
+      }).catch((fetchError) => {
+        // Handle network errors (CORS, connection refused, etc.)
+        console.error("[Subscription] Network error:", fetchError);
+        throw new Error("Network error: Unable to connect to the server. Please check your internet connection and try again.");
       });
 
       if (!response.ok) {
-        // Try to parse error response
+        // Try to parse error response first
         let errorMsg = "Failed to create checkout";
         try {
           const errorData = await response.json();
           errorMsg = errorData.error || errorMsg;
-        } catch {
+          console.error("[Subscription] API error:", errorMsg, "Status:", response.status);
+        } catch (parseError) {
           // If JSON parsing fails, response might be HTML error page
           errorMsg = `Server error (${response.status}). Please try again.`;
+          console.error("[Subscription] Failed to parse error response. Status:", response.status, parseError);
         }
+        
+        // If unauthorized, redirect to login with forceLogin to prevent auto-redirect
+        if (response.status === 401) {
+          console.warn("[Subscription] User not authenticated. Redirecting to login...");
+          setLoading(null); // Reset loading state
+          // Use window.location for full page navigation to prevent flash
+          window.location.href = `/auth/login?redirect=/home/profile&forceLogin=true`;
+          return;
+        }
+        
         throw new Error(errorMsg);
       }
 
@@ -143,9 +190,13 @@ export function SubscriptionCard() {
         throw new Error(data.error || "Failed to create checkout");
       }
     } catch (error) {
-      console.error("Error:", error);
+      console.error("[Subscription] Error:", error);
       const message =
-        error instanceof Error ? error.message : "Failed to start subscription";
+        error instanceof Error 
+          ? error.message 
+          : "Failed to start subscription. Please try again.";
+      
+      // Show a more user-friendly error message
       alert(message);
     } finally {
       setLoading(null);
@@ -347,14 +398,14 @@ export function SubscriptionCard() {
 
             <div className={`grid gap-4 pt-2 ${showLifetimeOption ? 'grid-cols-1 sm:grid-cols-3' : 'grid-cols-1 sm:grid-cols-2'}`}>
               {/* Monthly */}
-              <div className="border border-slate-300 rounded-lg p-4 flex flex-col hover:border-teal-400 hover:shadow-md transition-all duration-200">
+              <div className="border border-slate-300 rounded-lg p-4 flex flex-col hover:border-teal-400 hover:shadow-md transform hover:scale-105 transition-all duration-200">
                 <div className="text-2xl font-bold text-slate-900 mb-1">$5</div>
                 <div className="text-xs text-slate-600 mb-1">per month</div>
                 <div className="text-xs text-slate-500 mb-3">$60/year total</div>
                 <div className="flex-grow"></div>
                 <Button
                   onClick={() => handleSubscribe("monthly")}
-                  disabled={loading !== null}
+                  disabled={loading !== null || userLoading}
                   size="sm"
                   className="w-full bg-teal-600 hover:bg-teal-700 text-white font-medium"
                 >
@@ -367,7 +418,7 @@ export function SubscriptionCard() {
               </div>
 
               {/* Yearly - Recommended */}
-              <div className="border-2 border-teal-600 rounded-lg p-4 bg-gradient-to-br from-teal-50 to-green-50 flex flex-col relative shadow-md hover:shadow-lg transition-all duration-200">
+              <div className="border-2 border-teal-600 rounded-lg p-4 bg-gradient-to-br from-teal-50 to-green-50 flex flex-col relative shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200">
                 <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-teal-600 text-white text-xs px-3 py-1 rounded-full font-bold shadow-md">
                   ⭐ Best Value
                 </div>
@@ -382,7 +433,7 @@ export function SubscriptionCard() {
                 <div className="flex-grow"></div>
                 <Button
                   onClick={() => handleSubscribe("yearly")}
-                  disabled={loading !== null}
+                  disabled={loading !== null || userLoading}
                   size="sm"
                   className="w-full bg-teal-600 hover:bg-teal-700 text-white font-semibold shadow-md"
                 >
@@ -416,7 +467,7 @@ export function SubscriptionCard() {
                   <div className="flex-grow"></div>
                   <Button
                     onClick={() => handleSubscribe("lifetime")}
-                    disabled={loading !== null}
+                    disabled={loading !== null || userLoading}
                     size="sm"
                     className="w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-teal-600 hover:from-blue-700 hover:via-indigo-700 hover:to-teal-700 text-white font-semibold shadow-md hover:shadow-lg transition-all duration-200"
                   >

@@ -36,6 +36,7 @@ interface Tier1IntegrationProps {
   hasBatteries?: boolean;
   hasLiquids?: boolean;
   liquidVolume?: number;
+  restrictedItems?: boolean; // Restricted goods - boat only
   
   // ETA
   travelMethod?: 'plane' | 'boat';
@@ -59,6 +60,7 @@ export function Tier1Integration({
   hasBatteries = false,
   hasLiquids = false,
   liquidVolume,
+  restrictedItems = false,
   travelMethod,
   fromLocation,
   toLocation,
@@ -88,7 +90,8 @@ export function Tier1Integration({
     photoCount: photos.length,
     hasBatteries,
     hasLiquids,
-  }), [title, description, displayCategory, declaredValue, weight, dimensions, photos.length, hasBatteries, hasLiquids]);
+    restrictedItems,
+  }), [title, description, displayCategory, declaredValue, weight, dimensions, photos.length, hasBatteries, hasLiquids, restrictedItems]);
 
   const safetyScore = useSafetyScore(listingId, listingDetails);
   

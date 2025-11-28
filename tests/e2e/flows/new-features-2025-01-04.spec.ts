@@ -98,11 +98,14 @@ test.describe('New Features - January 4, 2025', () => {
       await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
       await page.waitForTimeout(2000);
 
-      // Check for size tier selector
-      const sizeTierSelector = page.locator('[data-testid="size-tier-selector"]').or(
-        page.getByText(/Small|Medium|Large|Extra Large/i).first()
-      );
+      const sizeTierSelector = page.locator('[data-testid="size-tier-selector"]');
       await expect(sizeTierSelector).toBeVisible({ timeout: 10000 });
+
+      // Ensure combo box opens and options are visible
+      const trigger = sizeTierSelector.locator('[role="combobox"]').first();
+      await trigger.click();
+      await expect(page.getByRole('option', { name: /Small/i })).toBeVisible({ timeout: 5000 });
+      await page.keyboard.press('Escape');
     });
 
     test('should show tooltips for each size tier', async ({ page }) => {
@@ -112,17 +115,32 @@ test.describe('New Features - January 4, 2025', () => {
       await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
       await page.waitForTimeout(2000);
 
-      // Hover over size tier options to see tooltips
-      const smallOption = page.getByText(/Small/i).first();
-      await smallOption.hover();
-      await page.waitForTimeout(500);
+      const sizeTierSelector = page.locator('[data-testid="size-tier-selector"]');
+      await expect(sizeTierSelector).toBeVisible({ timeout: 10000 });
 
-      // Check for tooltip content (e.g., "Up to 5 kg")
-      const tooltip = page.locator('[role="tooltip"]').or(
-        page.getByText(/Up to 5 kg|Laptop, shoes/i)
-      );
-      // Tooltip may or may not be visible depending on implementation
-      // This is a basic check
+      const trigger = sizeTierSelector.locator('[role="combobox"]').first();
+      await trigger.click();
+      await page.waitForTimeout(500);
+      
+      // Wait for dropdown to appear
+      await page.waitForFunction(
+        () => {
+          const listbox = document.querySelector('[role="listbox"]');
+          const options = document.querySelectorAll('[role="option"]');
+          return listbox || options.length > 0;
+        },
+        { timeout: 15000 }
+      ).catch(() => {});
+      
+      // Try to find and click the option
+      const smallOption = page.getByRole('option', { name: /Small/i })
+        .or(page.locator('[role="option"]:has-text("Small")'))
+        .first();
+      await expect(smallOption).toBeVisible({ timeout: 10000 });
+      await smallOption.click();
+
+      // Selecting a tier should surface example helper text
+      await expect(sizeTierSelector.getByText(/Examples:/i)).toBeVisible({ timeout: 5000 });
     });
 
     test('should display size tier selector on shipping estimator', async ({ page }) => {
@@ -132,11 +150,28 @@ test.describe('New Features - January 4, 2025', () => {
       await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
       await page.waitForTimeout(2000);
 
-      // Check for size tier selector
-      const sizeTierSelector = page.locator('[data-testid="size-tier-selector"]').or(
-        page.getByText(/Small|Medium|Large|Extra Large/i).first()
-      );
+      const sizeTierSelector = page.locator('[data-testid="size-tier-selector"]');
       await expect(sizeTierSelector).toBeVisible({ timeout: 10000 });
+
+      const trigger = sizeTierSelector.locator('[role="combobox"]').first();
+      await trigger.click();
+      await page.waitForTimeout(500);
+      
+      // Wait for dropdown to appear
+      await page.waitForFunction(
+        () => {
+          const listbox = document.querySelector('[role="listbox"]');
+          const options = document.querySelectorAll('[role="option"]');
+          return listbox || options.length > 0;
+        },
+        { timeout: 15000 }
+      ).catch(() => {});
+      
+      const largeOption = page.getByRole('option', { name: /Large/i })
+        .or(page.locator('[role="option"]:has-text("Large")'))
+        .first();
+      await expect(largeOption).toBeVisible({ timeout: 10000 });
+      await page.keyboard.press('Escape');
     });
   });
 
@@ -148,9 +183,10 @@ test.describe('New Features - January 4, 2025', () => {
       await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
       await page.waitForTimeout(2000);
 
-      // Check for "I live on a boat or I'm a digital nomad" toggle
-      const yachtieToggle = page.getByText(/I live on a boat|digital nomad/i).first();
-      await expect(yachtieToggle).toBeVisible({ timeout: 10000 });
+      await expect(page.getByRole('heading', { name: /Profile Settings/i })).toBeVisible({ timeout: 10000 });
+
+      const yachtieToggle = page.locator('label:has-text("I live on a boat")');
+      await expect(yachtieToggle.first()).toBeVisible({ timeout: 10000 });
     });
 
     test('should show boat name field when Yachtie mode is enabled', async ({ page }) => {
@@ -160,10 +196,10 @@ test.describe('New Features - January 4, 2025', () => {
       await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
       await page.waitForTimeout(2000);
 
+      await expect(page.getByRole('heading', { name: /Profile Settings/i })).toBeVisible({ timeout: 10000 });
+
       // Find and enable the Yachtie toggle
-      const toggle = page.locator('input[type="checkbox"]').filter({ 
-        has: page.getByText(/I live on a boat|digital nomad/i) 
-      }).first();
+      const toggle = page.locator('#is_boater').first();
       
       if (await toggle.isVisible().catch(() => false)) {
         await toggle.check();
@@ -182,11 +218,22 @@ test.describe('New Features - January 4, 2025', () => {
         waitUntil: 'domcontentloaded',
       });
       await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
-      await page.waitForTimeout(2000);
+      await page.waitForTimeout(3000);
+
+      // Wait for Profile page to load
+      await page.waitForFunction(
+        () => {
+          const heading = document.querySelector('h1');
+          return heading && heading.textContent?.includes('Profile');
+        },
+        { timeout: 20000 }
+      ).catch(() => {});
 
       // This test would require mocking user data with 5+ completed deliveries
       // For now, just check that the profile page loads
-      await expect(page.locator('h1:has-text("Profile")').first()).toBeVisible({ timeout: 10000 });
+      const profileHeading = page.locator('h1:has-text("Profile")')
+        .or(page.getByRole('heading', { name: 'Profile' }));
+      await expect(profileHeading.first()).toBeVisible({ timeout: 15000 });
     });
   });
 
@@ -281,9 +328,10 @@ test.describe('New Features - January 4, 2025', () => {
       await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
       await page.waitForTimeout(2000);
 
-      // Check for "Notify me when someone needs something on routes I travel" toggle
-      const notifyToggle = page.getByText(/Notify me when someone needs something on routes/i).first();
-      await expect(notifyToggle).toBeVisible({ timeout: 10000 });
+      await expect(page.getByRole('heading', { name: /Profile Settings/i })).toBeVisible({ timeout: 10000 });
+
+      const notifyToggle = page.locator('label:has-text("Notify me when someone needs something on routes")');
+      await expect(notifyToggle.first()).toBeVisible({ timeout: 10000 });
     });
   });
 

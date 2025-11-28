@@ -52,7 +52,19 @@ test.describe("Subscription Flow", () => {
     // Wait for the page to render by checking for profile heading
     // This is a more reliable indicator that the page has loaded
     try {
-      await expect(page.locator('h1:has-text("Profile")')).toBeVisible({ timeout: 15000 });
+      // Use waitForFunction first for better reliability
+      await page.waitForFunction(
+        () => {
+          const heading = document.querySelector('h1');
+          return heading && heading.textContent?.includes('Profile');
+        },
+        { timeout: 20000 }
+      ).catch(() => {});
+      
+      // Then check with locator
+      const profileHeading = page.locator('h1:has-text("Profile")')
+        .or(page.getByRole('heading', { name: 'Profile' }));
+      await expect(profileHeading.first()).toBeVisible({ timeout: 15000 });
     } catch (e) {
       // If Profile heading not found, check URL
       const url = page.url();
@@ -60,7 +72,7 @@ test.describe("Subscription Flow", () => {
         throw new Error(`Not on profile page, URL: ${url}`);
       }
       // Wait a bit more and try again
-      await page.waitForTimeout(2000);
+      await page.waitForTimeout(3000);
     }
 
     // Wait for subscription card with a timeout - try multiple selectors
@@ -183,183 +195,18 @@ test.describe("Subscription Flow", () => {
   });
 
   test("should display subscription options on profile page", async ({ page }) => {
-    // FINAL APPROACH: Test mode bypass
-    // Simplest and most reliable - the app checks for test mode and bypasses auth
-    console.log('[TEST] Enabling test mode for:', USER_A.email);
     await enableTestMode(page, USER_A);
-    
-    // Navigate to profile page
-    await page.goto(`${process.env.PLAYWRIGHT_TEST_BASE_URL || 'http://localhost:3000'}/home/profile`, {
-      waitUntil: 'domcontentloaded',
-    });
-    
-    // Wait for page to load - first wait for Profile heading to ensure page rendered
-    await expect(page.locator('h1:has-text("Profile")')).toBeVisible({ timeout: 20000 });
-    await page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => {});
-    await page.waitForTimeout(3000); // Extra wait for components to render
-    
-    // Mock lifetime availability data BEFORE navigation
-    await page.route('**/rest/v1/rpc/get_lifetime_purchase_count**', async (route) => {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify([{ total: 500 }]), // 500 out of 1000 sold
-      });
-    });
-
-    await page.route('**/rest/v1/rpc/get_lifetime_availability**', async (route) => {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify(true), // RPC returns boolean: true = available
-      });
-    });
-
-    // Mock profile and user data
-    await page.route('**/rest/v1/profiles**', async (route) => {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify([]),
-      });
-    });
-
-    await page.route('**/rest/v1/users**', async (route) => {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify([]),
-      });
-    });
-    
-    // Wait to ensure routes are fully registered
-    await page.waitForTimeout(300);
-    
-    // Verify shared state is set
-    const { getMockedUser } = await import('./helpers/supabase-mocks');
-    const mockedUser = getMockedUser(page);
-    console.log('[TEST] Shared state user:', mockedUser?.email || 'null');
-
-    // CRITICAL STEP 3: Set up network listeners BEFORE navigation
-    // This helps us see if requests are being made
-    const networkRequests: Array<{method: string, url: string}> = [];
-    const networkResponses: Array<{status: number, url: string}> = [];
-
-    page.on('request', request => {
-      const url = request.url();
-      if (url.includes('supabase') || url.includes('/auth/') || url.includes('/rest/')) {
-        networkRequests.push({ method: request.method(), url });
-        console.log('[NETWORK REQUEST]', request.method(), url);
-      }
-    });
-
-    page.on('response', response => {
-      const url = response.url();
-      if (url.includes('supabase') || url.includes('/auth/') || url.includes('/rest/')) {
-        networkResponses.push({ status: response.status(), url });
-        console.log('[NETWORK RESPONSE]', response.status(), url);
-        response.text().then(text => {
-          try {
-            const data = JSON.parse(text);
-            console.log('[NETWORK RESPONSE BODY]', JSON.stringify(data, null, 2));
-          } catch (e) {
-            console.log('[NETWORK RESPONSE BODY (not JSON)]', text.substring(0, 200));
-          }
-        }).catch(() => {});
-      }
-    });
-
-    // Listen for ALL console messages (not just errors)
-    const consoleErrors: string[] = [];
-    const allConsoleMessages: string[] = [];
-    page.on('console', msg => {
-      const text = msg.text();
-      allConsoleMessages.push(`[${msg.type().toUpperCase()}] ${text}`);
-      
-      if (msg.type() === 'error') {
-        consoleErrors.push(text);
-        console.log('[PAGE ERROR]', text);
-      } else if (text.includes('SUPABASE_OVERRIDE') || text.includes('FETCH') || text.includes('Auth') || text.includes('auth')) {
-        console.log(`[PAGE_${msg.type().toUpperCase()}]`, text);
-      }
-    });
-
-    // Listen for page errors
-    page.on('pageerror', error => {
-      console.log('[PAGE EXCEPTION]', error.message);
-    });
 
     await page.goto(`${baseUrl}/home/profile`, { waitUntil: "domcontentloaded" });
+
+    await expect(page.locator('h1:has-text("Profile")')).toBeVisible({ timeout: 20000 });
     await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
-    
-    // Check if fetch override was installed by looking at page console
-    const consoleMessages: string[] = [];
-    page.on('console', msg => {
-      const text = msg.text();
-      if (text.includes('FETCH_OVERRIDE') || text.includes('MOCK_USER_AUTH') || text.includes('fetch')) {
-        consoleMessages.push(text);
-        console.log('[PAGE_CONSOLE]', text);
-      }
-    });
-    
-    // Wait for auth check to complete - React Query needs time to fetch user
-    await page.waitForTimeout(5000);
-    
-    // Log all console messages for debugging
-    console.log('[TEST] Console messages related to auth:', consoleMessages);
-    
-    // Wait for subscription card to be ready
-    try {
-      await waitForSubscriptionCard(page);
-    } catch (error: any) {
-      // If subscription card not found, check what's actually on the page
-      const pageContent = await page.evaluate(() => {
-        return {
-          bodyText: document.body.innerText || '',
-          hasErrorBoundary: document.body.innerText?.includes('Subscription card unavailable'),
-          hasLoginPrompt: document.body.innerText?.includes('Please log in'),
-          hasLoading: document.body.innerText?.includes('Loading'),
-          url: window.location.href,
-        };
-      });
-      
-      console.log('Page state when subscription card not found:', JSON.stringify(pageContent, null, 2));
-      console.log('Console errors:', consoleErrors);
-      console.log('All console messages:', allConsoleMessages.slice(0, 20)); // Show first 20 messages
-      
-      throw error;
-    }
-    
-    // Wait for React Query to finish loading - check if elements are ready
-    await page.waitForFunction(
-      () => {
-        const card = document.querySelector('text=SpareCarry Pro') || 
-                     Array.from(document.querySelectorAll('*')).find(el => 
-                       el.textContent?.includes('SpareCarry Pro')
-                     );
-        return card !== null;
-      },
-      { timeout: 10000 }
-    ).catch(() => {});
 
-    // Check for subscription card title
-    const subscriptionCard = page.locator('text=SpareCarry Pro').first();
-    await expect(subscriptionCard).toBeVisible({ timeout: 15000 });
+    await waitForSubscriptionCard(page);
 
-    // Wait a bit more for pricing cards to render
-    await page.waitForTimeout(2000);
-
-    // Check for pricing options (match actual pricing)
-    // Monthly: $5, Yearly: $30, Lifetime: $100 (if available)
+    await expect(page.locator('[data-testid="sparecarry-pro-title"]')).toBeVisible({ timeout: 15000 });
     await expect(page.locator('text=/\\$5/').first()).toBeVisible({ timeout: 15000 });
     await expect(page.locator('text=/\\$30/').first()).toBeVisible({ timeout: 15000 });
-    
-    // Lifetime option may or may not be visible depending on availability
-    const lifetimePrice = page.locator('text=/\\$100/').first();
-    const hasLifetime = await lifetimePrice.isVisible({ timeout: 5000 }).catch(() => false);
-    if (hasLifetime) {
-      await expect(lifetimePrice).toBeVisible();
-    }
   });
 
   test("should show lifetime option with early bird pricing", async ({ page }) => {
@@ -367,15 +214,26 @@ test.describe("Subscription Flow", () => {
 
     await page.goto(`${baseUrl}/home/profile`, { waitUntil: "domcontentloaded" });
     
-    // Wait for Profile heading first to ensure page loaded
-    await expect(page.locator('h1:has-text("Profile")')).toBeVisible({ timeout: 20000 });
-    await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
+    // Wait for Profile heading first to ensure page loaded - use more flexible wait
+    await page.waitForFunction(
+      () => {
+        const heading = document.querySelector('h1');
+        return heading && heading.textContent?.includes('Profile');
+      },
+      { timeout: 20000 }
+    ).catch(() => {});
+    
+    // Also check with locator
+    const profileHeading = page.locator('h1:has-text("Profile")').or(page.getByRole('heading', { name: 'Profile' }));
+    await expect(profileHeading.first()).toBeVisible({ timeout: 20000 });
+    
+    await page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => {});
     
     // Wait for auth check to complete
     await page.waitForTimeout(3000);
     
     // Wait for subscription card to be ready
-    await waitForSubscriptionCard(page);
+    await waitForSubscriptionCard(page, 40000);
     
     // Wait for pricing elements to be ready
     await page.waitForFunction(

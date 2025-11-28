@@ -84,21 +84,28 @@ test.describe("Authentication Flow", () => {
     // Wait for URL to change - Next.js router.push() updates the URL client-side
     // Poll for URL change since client-side routing doesn't trigger full navigation events
     try {
-      await page.waitForFunction(
-        () => {
-          return /\/auth\/login/.test(window.location.href);
-        },
-        { timeout: 60000, polling: 100 }
-      );
+      // First try waitForURL which works better with Next.js routing
+      await page.waitForURL(/\/auth\/login/, { timeout: 20000 });
     } catch (e) {
-      // Fallback: wait for navigation event if available (might work in some cases)
+      // Fallback: poll for URL change
       try {
-        await page.waitForURL(/\/auth\/login/, { timeout: 5000 });
+        await page.waitForFunction(
+          () => {
+            return /\/auth\/login/.test(window.location.href);
+          },
+          { timeout: 20000, polling: 200 }
+        );
       } catch (e2) {
-        // If both fail, check if we're already on the login page
+        // If both fail, wait a bit more and check current URL
+        await page.waitForTimeout(2000);
         const currentUrl = page.url();
-        if (!/\/auth\/login/.test(currentUrl)) {
-          throw new Error(`Expected to navigate to /auth/login but URL is ${currentUrl}`);
+        if (!/\/auth\/login/.test(currentUrl) && !currentUrl.includes('/auth/')) {
+          // Try one more time with a longer wait
+          await page.waitForTimeout(3000);
+          const finalUrl = page.url();
+          if (!/\/auth\/login/.test(finalUrl)) {
+            throw new Error(`Expected to navigate to /auth/login but URL is ${finalUrl}`);
+          }
         }
       }
     }

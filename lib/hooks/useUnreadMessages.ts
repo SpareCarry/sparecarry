@@ -1,18 +1,17 @@
 /**
  * Hook for fetching unread message count
- * Uses Supabase Realtime for real-time updates
+ * Uses Supabase Realtime for real-time updates via RealtimeManager
  */
 
-import { useEffect, useState, useMemo } from 'react';
+import { useMemo } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { createClient } from '../supabase/client';
-import { RealtimeChannel } from '@supabase/supabase-js';
+import { useRealtimeInvalidation } from '../realtime/useRealtime';
 
 export function useUnreadMessages(userId: string | undefined) {
   // Memoize supabase client to prevent creating new instances on every render
   const supabase = useMemo(() => createClient(), []);
   const queryClient = useQueryClient();
-  const [channel, setChannel] = useState<RealtimeChannel | null>(null);
 
   const { data: unreadCount = 0, isLoading } = useQuery<number>({
     queryKey: ['unread-messages', userId],
@@ -32,34 +31,17 @@ export function useUnreadMessages(userId: string | undefined) {
     refetchInterval: false, // Use Realtime instead of polling
   });
 
-  // Set up Realtime subscription for unread count
-  useEffect(() => {
-    if (!userId) return;
-
-    const newChannel = supabase
-      .channel(`unread-messages:${userId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'post_messages',
-          filter: `receiver_id=eq.${userId}`,
-        },
-        () => {
-          // Invalidate and refetch unread count
-          queryClient.invalidateQueries({ queryKey: ['unread-messages', userId] });
-        }
-      )
-      .subscribe();
-
-    setChannel(newChannel);
-
-    return () => {
-      newChannel.unsubscribe();
-    };
-    // supabase is memoized with useMemo, so it's stable across renders
-  }, [userId, queryClient, supabase]);
+  // Set up Realtime subscription for unread count using RealtimeManager
+  // Custom channel name ensures deduplication across multiple MessageBadge instances
+  useRealtimeInvalidation(
+    'post_messages',
+    ['unread-messages', userId],
+    {
+      filter: userId ? `receiver_id=eq.${userId}` : undefined,
+      enabled: !!userId,
+      customChannelName: userId ? `unread-messages:${userId}` : undefined,
+    }
+  );
 
   return {
     unreadCount,

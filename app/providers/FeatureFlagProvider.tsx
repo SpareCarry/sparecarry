@@ -45,7 +45,7 @@ export function FeatureFlagProvider({ children }: FeatureFlagProviderProps) {
       const unleashKey = process.env.NEXT_PUBLIC_UNLEASH_CLIENT_KEY;
 
       if (!unleashUrl || !unleashKey) {
-        console.warn('[FeatureFlags] Unleash not configured, using defaults');
+        // Not an error - just means feature flags aren't configured, which is fine
         setIsLoading(false);
         return;
       }

@@ -1,17 +1,18 @@
 // next-intl v2 request configuration
-import { routing } from "./routing";
+import { getRequestConfig } from 'next-intl/server';
+import { routing } from './routing';
 
-export async function getMessages(locale: string) {
-  return (await import(`../messages/${locale}.json`)).default;
-}
+export default getRequestConfig(async ({ requestLocale }) => {
+  // This typically corresponds to the `[locale]` segment
+  let locale = await requestLocale;
 
-export function getLocale(request: { headers: { get: (name: string) => string | null } }): string {
-  // For static export, locale comes from route params
-  // This function is mainly for SSR compatibility
-  const locale = request.headers.get("x-next-intl-locale");
-  if (locale && routing.locales.includes(locale as any)) {
-    return locale;
+  // Ensure that a valid locale is used
+  if (!locale || !routing.locales.includes(locale as any)) {
+    locale = routing.defaultLocale;
   }
-  return routing.defaultLocale;
-}
 
+  return {
+    locale,
+    messages: (await import(`../messages/${locale}.json`)).default
+  };
+});

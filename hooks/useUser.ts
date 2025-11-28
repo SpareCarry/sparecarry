@@ -40,10 +40,14 @@ export function useUser() {
       }
     },
     staleTime: 5 * 60 * 1000, // 5 minutes - user doesn't change that often
+    gcTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
     refetchOnWindowFocus: false, // Don't refetch when window regains focus
     refetchOnMount: false, // Use cached data if available
+    refetchOnReconnect: false, // Don't refetch on reconnect
     retry: false,
     throwOnError: false,
+    // Use placeholder data to prevent flickering during refetches
+    placeholderData: (previousData) => previousData,
   });
 
   return {

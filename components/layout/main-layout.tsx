@@ -109,6 +109,7 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
                   variant="ghost"
                   size="icon"
                   onClick={() => setSidebarOpen(false)}
+                  aria-label="Close navigation menu"
                   className="text-slate-300"
                 >
                   <X className="h-6 w-6" />
@@ -166,6 +167,7 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
               variant="ghost"
               size="icon"
               onClick={() => setSidebarOpen(true)}
+              aria-label="Open navigation menu"
             >
               <Menu className="h-6 w-6" />
             </Button>

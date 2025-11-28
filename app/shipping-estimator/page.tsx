@@ -6,7 +6,7 @@
 
 "use client";
 
-import React, { useState, useMemo, useCallback, useEffect, Suspense } from 'react';
+import React, { useState, useMemo, useCallback, useEffect, useRef, Suspense } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
@@ -19,29 +19,34 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../../components/ui/select';
-import { Calculator, TrendingDown, AlertCircle, ArrowRight, Heart, CheckCircle2, Info, Crown, Sparkles } from 'lucide-react';
+import { Calculator, TrendingDown, AlertCircle, ArrowRight, Info, Crown } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '../../components/ui/popover';
 import { calculateShippingEstimate, ShippingEstimateInput, getAvailableCouriers } from '../../lib/services/shipping';
 import { getCountryPreset } from '../../src/utils/countryPresets';
 import { CountrySelect } from '../../components/CountrySelect';
-import { Country } from '../../src/constants/countries';
+import { Country, getCountryByIso2 } from '../../src/constants/countries';
 import { isValidIso2 } from '../../src/utils/validateCountry';
 import { checkSubscriptionStatus } from '../../src/utils/subscriptionUtils';
-import { calculateKarma } from '../../src/utils/karma';
+// Karma points are automatically calculated and applied when delivery is completed
 import { useUser } from '../../hooks/useUser';
 import { createClient } from '../../lib/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 import { trackShippingEstimatorUsed, trackEmergencySelected } from '../../lib/analytics/tracking';
 import { TopRoutes } from '../../components/TopRoutes';
 import { TipsTooltip } from '../../components/TipsTooltip';
-import { getDaysLeft } from '@/utils/getDaysLeft';
 import { PLATFORM_FEE_PERCENT } from '../../config/platformFees';
 import { TrustedBadge } from '../../components/promo/TrustedBadge';
 import { SavingsCounter } from '../../components/promo/SavingsCounter';
-import { PromoScrollIndicator } from '../../components/promo/PromoScrollIndicator';
 import { useSearchParams } from 'next/navigation';
 import { SizeTierSelector } from '../../components/ui/size-tier-selector';
 import { getSizeTier } from '../../lib/utils/size-tier';
+import { reverseGeocode } from '../../lib/services/location';
+import { calculateDistance } from '../../lib/utils/distance-calculator';
+import { getDaysLeft } from '../../utils/getDaysLeft';
+import { checkPlaneRestrictions, getPlaneRestrictionDetails } from '../../lib/utils/plane-restrictions';
+import { Plane, Ship, Sparkles } from 'lucide-react';
+import { LocationFieldGroup } from '../../components/location/LocationFieldGroup';
+import { Place } from '../../lib/services/location';
 
 function ShippingEstimatorContent() {
   const router = useRouter();
@@ -58,11 +63,35 @@ function ShippingEstimatorContent() {
   const [declaredValue, setDeclaredValue] = useState<string>('');
   const [selectedCourier, setSelectedCourier] = useState<string>('DHL');
   const [errors, setErrors] = useState<{ origin?: string; destination?: string }>({});
-  const [wantsKarma, setWantsKarma] = useState<boolean>(true);
-  const [showKarmaNotification, setShowKarmaNotification] = useState<boolean>(false);
-  const [karmaPoints, setKarmaPoints] = useState<number>(0);
+  // Karma points are now automatically applied when delivery is completed
+  // Removed wantsKarma state and karma card UI
   const [suggestedReward, setSuggestedReward] = useState<number | null>(null);
   const [sizeTier, setSizeTier] = useState<'small' | 'medium' | 'large' | 'extra_large' | null>(null);
+  const [restrictedItems, setRestrictedItems] = useState<boolean>(false);
+  const [category, setCategory] = useState<string>('');
+  const [selectedTransportMethod, setSelectedTransportMethod] = useState<'plane' | 'boat' | 'auto'>('auto');
+  const [fragile, setFragile] = useState<boolean>(false);
+  const [deadlineDate, setDeadlineDate] = useState<string>('');
+  const FREE_DELIVERIES_LIMIT = 3;
+  const promoDaysLeft = getDaysLeft();
+  const isPromoActive = promoDaysLeft > 0;
+  
+  // Store original location data from post request form (if user came from there)
+  const [originalFromLocation, setOriginalFromLocation] = useState<string | null>(null);
+  const [originalToLocation, setOriginalToLocation] = useState<string | null>(null);
+  const [originalFromLat, setOriginalFromLat] = useState<number | null>(null);
+  const [originalFromLon, setOriginalFromLon] = useState<number | null>(null);
+  const [originalToLat, setOriginalToLat] = useState<number | null>(null);
+  const [originalToLon, setOriginalToLon] = useState<number | null>(null);
+  
+  // Location places for distance calculation
+  const [fromPlace, setFromPlace] = useState<Place | null>(null);
+  const [toPlace, setToPlace] = useState<Place | null>(null);
+  // Store title, description, and category from post request form
+  const [originalTitle, setOriginalTitle] = useState<string | null>(null);
+  const [originalDescription, setOriginalDescription] = useState<string | null>(null);
+  const [originalCategory, setOriginalCategory] = useState<string | null>(null);
+  const [originalCategoryOtherDescription, setOriginalCategoryOtherDescription] = useState<string | null>(null);
 
   // Use shared hook to prevent duplicate queries
   const { user } = useUser();
@@ -77,42 +106,278 @@ function ShippingEstimatorContent() {
 
   const isPremium = subscriptionStatus?.isPremium ?? false;
 
+  // Fetch completed deliveries count to check if user has early supporter benefits
+  const { data: userData } = useQuery<{ completed_deliveries_count?: number | null } | null>({
+    queryKey: ['user-deliveries', user?.id],
+    queryFn: async () => {
+      if (!user) return null;
+      try {
+        const { data, error } = await supabase
+          .from('users')
+          .select('completed_deliveries_count')
+          .eq('id', user.id)
+          .single();
+        
+        if (error && error.code !== 'PGRST116') {
+          console.warn('Error fetching completed deliveries:', error);
+          return null;
+        }
+        return (data ?? null) as { completed_deliveries_count?: number | null } | null;
+      } catch (error) {
+        console.warn('Exception fetching completed deliveries:', error);
+        return null;
+      }
+    },
+    enabled: !!user,
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+  });
+
+  const completedDeliveries = userData?.completed_deliveries_count ?? 0;
+  const hasEarlySupporterBenefits = completedDeliveries < 3; // First 3 deliveries are 100% profit (0% platform fee)
+
   // Get available options
   const availableCouriers = getAvailableCouriers();
 
-  // Pre-fill from query params
+  // Save form data to sessionStorage whenever it changes (for back navigation)
+  const prevFormDataRef = useRef<string>('');
+  const isInitialMountRef = useRef(true);
+  
+  useEffect(() => {
+    // Skip saving on initial mount
+    if (isInitialMountRef.current) {
+      isInitialMountRef.current = false;
+      return;
+    }
+
+    const formData = {
+      originCountryIso2,
+      destinationCountryIso2,
+      length,
+      width,
+      height,
+      weight,
+      declaredValue,
+      selectedCourier,
+      restrictedItems,
+      category,
+      selectedTransportMethod,
+      fragile,
+      deadlineDate,
+      fromPlaceLat: fromPlace?.lat,
+      fromPlaceLon: fromPlace?.lon,
+      fromPlaceName: fromPlace?.name,
+      fromPlaceCountry: fromPlace?.country,
+      toPlaceLat: toPlace?.lat,
+      toPlaceLon: toPlace?.lon,
+      toPlaceName: toPlace?.name,
+      toPlaceCountry: toPlace?.country,
+    };
+    
+    const formDataString = JSON.stringify(formData);
+    
+    // Only save if data has actually changed
+    if (formDataString !== prevFormDataRef.current) {
+      prevFormDataRef.current = formDataString;
+      
+      const hasData = Object.values(formData).some(val => val !== undefined && val !== null && val !== '');
+      if (hasData) {
+        try {
+          sessionStorage.setItem('shippingEstimatorFormData', formDataString);
+        } catch (error) {
+          console.warn('Failed to save form data to sessionStorage:', error);
+        }
+      }
+    }
+  }, [originCountryIso2, destinationCountryIso2, length, width, height, weight, declaredValue, selectedCourier, restrictedItems, category, selectedTransportMethod, fragile, deadlineDate, fromPlace, toPlace, originalFromLat, originalFromLon, originalToLat, originalToLon]);
+
+  // Pre-fill from query params or sessionStorage
   useEffect(() => {
     const from = searchParams?.get('from');
     const to = searchParams?.get('to');
-    const weightParam = searchParams?.get('weight');
-    const lengthParam = searchParams?.get('length');
-    const widthParam = searchParams?.get('width');
-    const heightParam = searchParams?.get('height');
-    const suggestedRewardParam = searchParams?.get('suggestedReward');
+    const fromLat = searchParams?.get('fromLat');
+    const fromLon = searchParams?.get('fromLon');
+    const toLat = searchParams?.get('toLat');
+    const toLon = searchParams?.get('toLon');
+    const departureLat = searchParams?.get('departureLat');
+    const departureLon = searchParams?.get('departureLon');
+    const arrivalLat = searchParams?.get('arrivalLat');
+    const arrivalLon = searchParams?.get('arrivalLon');
     
-    if (from) {
-      // Try to find country from location name
-      // This is simplified - in production, you'd use a geocoding service
-      setOriginCountryIso2('');
-    }
-    if (to) {
-      setDestinationCountryIso2('');
-    }
-    if (weightParam) setWeight(weightParam);
-    if (lengthParam) setLength(lengthParam);
-    if (widthParam) setWidth(widthParam);
-    if (heightParam) setHeight(heightParam);
-    if (suggestedRewardParam) {
-      const reward = parseFloat(suggestedRewardParam);
-      if (!isNaN(reward)) setSuggestedReward(reward);
-    }
-    
-    // Clean URL after reading params
-    if (searchParams && (from || to || weightParam || suggestedRewardParam)) {
-      const newUrl = window.location.pathname;
-      window.history.replaceState({}, '', newUrl);
+    // If there are query params, use them (from post request form)
+    if (from || to || searchParams?.get('weight')) {
+      // Store original location data if coming from post request form
+      if (from) {
+        setOriginalFromLocation(from);
+      }
+      if (to) {
+        setOriginalToLocation(to);
+      }
+      
+      // Store restricted items flag from post request form if available
+      const restrictedItemsParam = searchParams?.get('restricted_items');
+      if (restrictedItemsParam === 'true') {
+        setRestrictedItems(true);
+        setSelectedTransportMethod('boat'); // Auto-select boat if restricted
+      }
+      if (fromLat && fromLon) {
+        setOriginalFromLat(parseFloat(fromLat));
+        setOriginalFromLon(parseFloat(fromLon));
+      } else if (departureLat && departureLon) {
+        setOriginalFromLat(parseFloat(departureLat));
+        setOriginalFromLon(parseFloat(departureLon));
+      }
+      if (toLat && toLon) {
+        setOriginalToLat(parseFloat(toLat));
+        setOriginalToLon(parseFloat(toLon));
+      } else if (arrivalLat && arrivalLon) {
+        setOriginalToLat(parseFloat(arrivalLat));
+        setOriginalToLon(parseFloat(arrivalLon));
+      }
+      const weightParam = searchParams?.get('weight');
+      const lengthParam = searchParams?.get('length');
+      const widthParam = searchParams?.get('width');
+      const heightParam = searchParams?.get('height');
+      const declaredValueParam = searchParams?.get('declaredValue');
+      const suggestedRewardParam = searchParams?.get('suggestedReward');
+      // Get title, description, and category from URL params
+      const titleParam = searchParams?.get('title');
+      const descriptionParam = searchParams?.get('description');
+      const categoryParam = searchParams?.get('category');
+      const categoryOtherDescriptionParam = searchParams?.get('categoryOtherDescription');
+      
+      // Store category from post request form if available
+      if (categoryParam) {
+        setOriginalCategory(categoryParam);
+        setCategory(categoryParam); // Also set current category
+      }
+      
+      // Store title, description, and category if provided
+      if (titleParam) setOriginalTitle(titleParam);
+      if (descriptionParam) setOriginalDescription(descriptionParam);
+      if (categoryParam) setOriginalCategory(categoryParam);
+      if (categoryOtherDescriptionParam) setOriginalCategoryOtherDescription(categoryOtherDescriptionParam);
+      
+      if (weightParam) setWeight(weightParam);
+      if (lengthParam) setLength(lengthParam);
+      if (widthParam) setWidth(widthParam);
+      if (heightParam) setHeight(heightParam);
+      if (declaredValueParam) {
+        const value = parseFloat(declaredValueParam);
+        if (!isNaN(value) && value > 0) {
+          setDeclaredValue(declaredValueParam);
+        }
+      }
+      if (suggestedRewardParam) {
+        const reward = parseFloat(suggestedRewardParam);
+        if (!isNaN(reward)) setSuggestedReward(reward);
+      }
+      
+      // Clean URL after reading params
+      if (searchParams && (from || to || weightParam || suggestedRewardParam || fromLat || toLat || declaredValueParam)) {
+        const newUrl = window.location.pathname;
+        window.history.replaceState({}, '', newUrl);
+      }
+      
+      // Use coordinates to get country codes via reverse geocoding
+      const getCountryFromCoordinates = async (lat: string | null, lon: string | null) => {
+        if (!lat || !lon) return null;
+        const latNum = parseFloat(lat);
+        const lonNum = parseFloat(lon);
+        if (isNaN(latNum) || isNaN(lonNum)) return null;
+        
+        try {
+          const place = await reverseGeocode(latNum, lonNum);
+          return place?.country || null;
+        } catch (error) {
+          console.warn('Failed to reverse geocode for country:', error);
+          return null;
+        }
+      };
+      
+      // Get origin country from coordinates
+      if (fromLat && fromLon) {
+        getCountryFromCoordinates(fromLat, fromLon).then((countryCode) => {
+          if (countryCode) {
+            setOriginCountryIso2(countryCode.toUpperCase());
+          }
+        });
+      } else if (departureLat && departureLon) {
+        getCountryFromCoordinates(departureLat, departureLon).then((countryCode) => {
+          if (countryCode) {
+            setOriginCountryIso2(countryCode.toUpperCase());
+          }
+        });
+      }
+      
+      // Get destination country from coordinates
+      if (toLat && toLon) {
+        getCountryFromCoordinates(toLat, toLon).then((countryCode) => {
+          if (countryCode) {
+            setDestinationCountryIso2(countryCode.toUpperCase());
+          }
+        });
+      } else if (arrivalLat && arrivalLon) {
+        getCountryFromCoordinates(arrivalLat, arrivalLon).then((countryCode) => {
+          if (countryCode) {
+            setDestinationCountryIso2(countryCode.toUpperCase());
+          }
+        });
+      }
+    } else {
+      // No query params - try to restore from sessionStorage
+      try {
+        const savedFormData = sessionStorage.getItem('shippingEstimatorFormData');
+        if (savedFormData) {
+          const formData = JSON.parse(savedFormData);
+          if (formData.originCountryIso2) setOriginCountryIso2(formData.originCountryIso2);
+          if (formData.destinationCountryIso2) setDestinationCountryIso2(formData.destinationCountryIso2);
+          if (formData.length) setLength(formData.length);
+          if (formData.width) setWidth(formData.width);
+          if (formData.height) setHeight(formData.height);
+          if (formData.weight) setWeight(formData.weight);
+          if (formData.declaredValue) setDeclaredValue(formData.declaredValue);
+          if (formData.selectedCourier) setSelectedCourier(formData.selectedCourier);
+          if (formData.restrictedItems !== undefined) setRestrictedItems(formData.restrictedItems);
+          if (formData.category) setCategory(formData.category);
+          if (formData.selectedTransportMethod) setSelectedTransportMethod(formData.selectedTransportMethod);
+          if (formData.fragile !== undefined) setFragile(formData.fragile);
+          if (formData.deadlineDate) setDeadlineDate(formData.deadlineDate);
+          // Restore location places if available
+          if (formData.fromPlaceLat && formData.fromPlaceLon) {
+            setFromPlace({
+              name: formData.fromPlaceName || '',
+              lat: formData.fromPlaceLat,
+              lon: formData.fromPlaceLon,
+              country: formData.fromPlaceCountry || undefined,
+            });
+          }
+          if (formData.toPlaceLat && formData.toPlaceLon) {
+            setToPlace({
+              name: formData.toPlaceName || '',
+              lat: formData.toPlaceLat,
+              lon: formData.toPlaceLon,
+              country: formData.toPlaceCountry || undefined,
+            });
+          }
+        }
+      } catch (error) {
+        console.warn('Error restoring form data from sessionStorage:', error);
+      }
     }
   }, [searchParams]);
+
+  // Update country codes when location places change
+  useEffect(() => {
+    if (fromPlace?.country) {
+      setOriginCountryIso2(fromPlace.country.toUpperCase());
+    }
+  }, [fromPlace]);
+
+  useEffect(() => {
+    if (toPlace?.country) {
+      setDestinationCountryIso2(toPlace.country.toUpperCase());
+    }
+  }, [toPlace]);
 
   // Auto-fill when destination country changes
   const handleDestinationChange = useCallback((country: Country) => {
@@ -136,23 +401,7 @@ function ShippingEstimatorContent() {
   }, []);
 
   // Calculate estimate
-  // Memoize premium savings message to prevent re-renders
-  const premiumSavingsMessage = useMemo(() => {
-    const daysLeft = getDaysLeft();
-    if (!isPremium && daysLeft > 0) {
-      return (
-        <div key="early-supporter" className="p-3 bg-gradient-to-r from-teal-50 to-blue-50 border border-teal-200 rounded-lg mb-3">
-          <div className="flex items-center gap-2 text-sm text-teal-800">
-            <Sparkles className="h-4 w-4 text-teal-600" />
-            <span>
-              <strong>Early Supporter Reward:</strong> You&apos;re paying 0% platform fees (normally {Math.round(PLATFORM_FEE_PERCENT * 100)}%) until Feb 18, 2026!
-            </span>
-          </div>
-        </div>
-      );
-    }
-    return null;
-  }, [isPremium]);
+  // Removed Early Supporter Reward message - rewards should only be shown when delivery is completed, not during estimates
 
   const estimate = useMemo(() => {
     // Validate countries
@@ -184,6 +433,34 @@ function ShippingEstimatorContent() {
       return null;
     }
 
+    // Calculate distance if coordinates are available
+    // Priority: 1) Location places (from form), 2) Original coordinates (from post request form)
+    let distanceKm: number | undefined;
+    
+    // First try location places from the form
+    if (fromPlace?.lat && fromPlace?.lon && toPlace?.lat && toPlace?.lon) {
+      const calculatedDistance = calculateDistance(
+        { lat: fromPlace.lat, lon: fromPlace.lon },
+        { lat: toPlace.lat, lon: toPlace.lon }
+      );
+      if (calculatedDistance > 0) {
+        distanceKm = calculatedDistance;
+      }
+    }
+    // Fallback to original coordinates from post request form
+    else if (originalFromLat != null && originalFromLon != null && 
+        originalToLat != null && originalToLon != null &&
+        !isNaN(originalFromLat) && !isNaN(originalFromLon) &&
+        !isNaN(originalToLat) && !isNaN(originalToLon)) {
+      const calculatedDistance = calculateDistance(
+        { lat: originalFromLat, lon: originalFromLon },
+        { lat: originalToLat, lon: originalToLon }
+      );
+      if (calculatedDistance > 0) {
+        distanceKm = calculatedDistance;
+      }
+    }
+
     const input: ShippingEstimateInput = {
       originCountry: originCountryIso2,
       destinationCountry: destinationCountryIso2,
@@ -194,32 +471,26 @@ function ShippingEstimatorContent() {
       declaredValue: declaredValueNum,
       selectedCourier,
       isPremium, // Pass subscription status
+      distanceKm, // Include distance for distance-based pricing
+      restrictedItems, // Include restricted items flag
+      category: category || undefined, // Include category if provided
     };
 
-    const result = calculateShippingEstimate(input);
+    const result = calculateShippingEstimate({
+      ...input,
+      fragile: fragile,
+      deadlineDate: deadlineDate || undefined,
+      originLat: fromPlace?.lat || originalFromLat || undefined,
+      originLon: fromPlace?.lon || originalFromLon || undefined,
+      destinationLat: toPlace?.lat || originalToLat || undefined,
+      destinationLon: toPlace?.lon || originalToLon || undefined,
+    });
     
-    // Calculate karma points if estimate is available and user wants karma
-    if (result && wantsKarma && weightNum > 0) {
-      // Use average platform fee for karma calculation
-      const avgPlatformFee = (result.platformFeePlane + result.platformFeeBoat) / 2;
-      const karma = calculateKarma({
-        weight: weightNum,
-        platformFee: avgPlatformFee,
-      });
-      setKarmaPoints(karma);
-      
-      // Show notification if karma points > 0
-      if (karma > 0 && !showKarmaNotification) {
-        setShowKarmaNotification(true);
-        // Auto-hide after 5 seconds
-        setTimeout(() => setShowKarmaNotification(false), 5000);
-      }
-    } else {
-      setKarmaPoints(0);
-    }
+    // Karma points are now automatically calculated and applied when delivery is completed
+    // No need to calculate or display them here
 
     return result;
-  }, [originCountryIso2, destinationCountryIso2, length, width, height, weight, declaredValue, selectedCourier, isPremium, wantsKarma, showKarmaNotification]);
+  }, [originCountryIso2, destinationCountryIso2, length, width, height, weight, declaredValue, selectedCourier, isPremium, restrictedItems, category, fragile, deadlineDate, fromPlace, toPlace, originalFromLat, originalFromLon, originalToLat, originalToLon]);
 
   // Handle create job
   const handleCreateJob = useCallback(() => {
@@ -240,14 +511,35 @@ function ShippingEstimatorContent() {
 
     if (!estimate) return;
 
-    // Determine which price to prefill (prefer boat if available, otherwise plane)
-    const prefilledMaxReward = estimate.spareCarryBoatPrice > 0 
-      ? Math.round(estimate.spareCarryBoatPrice) 
-      : Math.round(estimate.spareCarryPlanePrice);
+    // Determine which price to prefill based on selected method or restrictions
+    let prefilledMaxReward: number;
+    if (estimate.canTransportByPlane === false) {
+      // If plane is not available, use boat price
+      prefilledMaxReward = Math.round(estimate.spareCarryBoatPrice);
+    } else if (selectedTransportMethod === 'plane' && estimate.spareCarryPlanePrice > 0) {
+      prefilledMaxReward = Math.round(estimate.spareCarryPlanePrice);
+    } else if (selectedTransportMethod === 'boat' && estimate.spareCarryBoatPrice > 0) {
+      prefilledMaxReward = Math.round(estimate.spareCarryBoatPrice);
+    } else {
+      // Auto-select: prefer boat (cheaper), otherwise plane
+      prefilledMaxReward = estimate.spareCarryBoatPrice > 0 
+        ? Math.round(estimate.spareCarryBoatPrice) 
+        : Math.round(estimate.spareCarryPlanePrice);
+    }
 
+    // Use original location data if available (from post request form), otherwise use country names
+    const fromLocationName = originalFromLocation || (originCountryIso2 ? getCountryByIso2(originCountryIso2)?.name || originCountryIso2 : '');
+    const toLocationName = originalToLocation || (destinationCountryIso2 ? getCountryByIso2(destinationCountryIso2)?.name || destinationCountryIso2 : '');
+    
     const prefillData = {
-      from_location: originCountryIso2,
-      to_location: destinationCountryIso2,
+      from_location: fromLocationName,
+      to_location: toLocationName,
+      // Include coordinates if available
+      departure_lat: originalFromLat || null,
+      departure_lon: originalFromLon || null,
+      arrival_lat: originalToLat || null,
+      arrival_lon: originalToLon || null,
+      // Also include country codes for reference
       originCountryIso2,
       destinationCountryIso2,
       length_cm: parseFloat(length) || 0,
@@ -256,6 +548,13 @@ function ShippingEstimatorContent() {
       weight_kg: parseFloat(weight) || 0,
       value_usd: parseFloat(declaredValue) || 0,
       max_reward: prefilledMaxReward, // Prefill with estimated SpareCarry price
+      // Include title, description, and category if they were provided
+      title: originalTitle || undefined,
+      description: originalDescription || undefined,
+      category: originalCategory || category || undefined, // Use current category or original
+      category_other_description: originalCategoryOtherDescription || undefined,
+      restricted_items: restrictedItems, // Include restricted items flag
+      preferred_method: estimate.canTransportByPlane === false ? 'boat' : (selectedTransportMethod === 'auto' ? 'any' : selectedTransportMethod), // Set preferred method based on restrictions
       selectedCourier,
       courierPrice: estimate.courierPrice,
       spareCarryPlanePrice: estimate.spareCarryPlanePrice,
@@ -267,21 +566,33 @@ function ShippingEstimatorContent() {
       netRevenuePlane: estimate.netRevenuePlane,
       netRevenueBoat: estimate.netRevenueBoat,
       customsCost: estimate.customsCost, // Include customs cost
-      karmaPoints: wantsKarma ? karmaPoints : 0,
-      wantsKarma,
+      // Karma points are automatically applied when delivery is completed
       size_tier: sizeTier,
     };
 
     // Track analytics
     trackShippingEstimatorUsed(originCountryIso2, destinationCountryIso2, false);
-
-    // Navigate to post request page with prefill data
-    router.push(`/home/post-request?prefill=${encodeURIComponent(JSON.stringify(prefillData))}`);
-  }, [estimate, originCountryIso2, destinationCountryIso2, length, width, height, weight, declaredValue, selectedCourier, router, karmaPoints, wantsKarma, sizeTier]);
+    
+    const targetUrl = `/home/post-request?prefill=${encodeURIComponent(JSON.stringify(prefillData))}`;
+    
+    try {
+      router.push(targetUrl);
+    } catch (error) {
+      console.error('[ShippingEstimator] Failed to push route, falling back to window.location', error);
+      if (typeof window !== 'undefined') {
+        window.location.href = targetUrl;
+      }
+      return;
+    }
+    
+    // Ensure hard navigation as fallback (prevents client-side routing issues during tests)
+    if (typeof window !== 'undefined') {
+      window.location.href = targetUrl;
+    }
+  }, [estimate, originCountryIso2, destinationCountryIso2, length, width, height, weight, declaredValue, selectedCourier, router, sizeTier, originalFromLocation, originalToLocation, originalFromLat, originalFromLon, originalToLat, originalToLon, originalTitle, originalDescription, originalCategory, originalCategoryOtherDescription, category, restrictedItems, selectedTransportMethod]);
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-6 pb-24 lg:pb-6 min-h-screen">
-      <PromoScrollIndicator />
       <div className="mb-6">
         <h1 className="text-3xl font-bold text-slate-900 mb-2 flex items-center gap-2">
           <Calculator className="h-8 w-8 text-teal-600" />
@@ -303,11 +614,53 @@ function ShippingEstimatorContent() {
             <CardDescription>Enter your shipment information</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {/* Origin & Destination */}
+            {/* Origin & Destination Locations */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <LocationFieldGroup
+                label="Origin Location"
+                placeholder="Search city, address, or location..."
+                value={fromPlace}
+                onChange={(place) => {
+                  setFromPlace(place);
+                  if (place?.country) {
+                    setOriginCountryIso2(place.country.toUpperCase());
+                    setErrors((prev) => ({ ...prev, origin: undefined }));
+                  }
+                }}
+                showMapPreview={true}
+                showCurrentLocation={true}
+                showMapPicker={true}
+                required
+                error={errors.origin}
+                inputId="origin_location"
+                inputName="origin_location"
+              />
+              <LocationFieldGroup
+                label="Destination Location"
+                placeholder="Search city, address, or location..."
+                value={toPlace}
+                onChange={(place) => {
+                  setToPlace(place);
+                  if (place?.country) {
+                    setDestinationCountryIso2(place.country.toUpperCase());
+                    setErrors((prev) => ({ ...prev, destination: undefined }));
+                  }
+                }}
+                showMapPreview={true}
+                showCurrentLocation={true}
+                showMapPicker={true}
+                required
+                error={errors.destination}
+                inputId="destination_location"
+                inputName="destination_location"
+              />
+            </div>
+            
+            {/* Origin & Destination Countries (fallback/override) */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <CountrySelect
                 id="origin_country"
-                label="Origin Country"
+                label="Origin Country (if location not specified)"
                 placeholder="Search country or ISO"
                 value={originCountryIso2}
                 onChange={(iso2) => {
@@ -315,13 +668,12 @@ function ShippingEstimatorContent() {
                   setErrors((prev) => ({ ...prev, origin: undefined }));
                 }}
                 onSelect={handleOriginChange}
-                required
                 error={errors.origin}
                 showIso2={true}
               />
               <CountrySelect
                 id="destination_country"
-                label="Destination Country"
+                label="Destination Country (if location not specified)"
                 placeholder="Search country or ISO"
                 value={destinationCountryIso2}
                 onChange={(iso2) => {
@@ -329,7 +681,6 @@ function ShippingEstimatorContent() {
                   setErrors((prev) => ({ ...prev, destination: undefined }));
                 }}
                 onSelect={handleDestinationChange}
-                required
                 error={errors.destination}
                 showIso2={true}
               />
@@ -412,6 +763,196 @@ function ShippingEstimatorContent() {
               <p className="text-xs text-slate-500">Optional - for customs calculation</p>
             </div>
 
+            {/* Transport Method Toggle */}
+            <div className="space-y-2">
+              <Label>Preferred Transport Method</Label>
+              <div className="flex gap-2 p-1 bg-slate-100 rounded-lg">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (!restrictedItems) {
+                      setSelectedTransportMethod('plane');
+                    }
+                  }}
+                  disabled={restrictedItems || estimate?.canTransportByPlane === false}
+                  className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors flex items-center justify-center gap-2 ${
+                    selectedTransportMethod === 'plane' && !restrictedItems && estimate?.canTransportByPlane !== false
+                      ? "bg-white text-slate-900 shadow-sm"
+                      : "text-slate-600 hover:text-slate-900 disabled:opacity-50 disabled:cursor-not-allowed"
+                  }`}
+                >
+                  <Plane className="h-4 w-4" />
+                  Plane
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedTransportMethod('boat')}
+                  className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors flex items-center justify-center gap-2 ${
+                    selectedTransportMethod === 'boat'
+                      ? "bg-white text-slate-900 shadow-sm"
+                      : "text-slate-600 hover:text-slate-900"
+                  }`}
+                >
+                  <Ship className="h-4 w-4" />
+                  Boat
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedTransportMethod('auto')}
+                  className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors flex items-center justify-center gap-2 ${
+                    selectedTransportMethod === 'auto'
+                      ? "bg-white text-slate-900 shadow-sm"
+                      : "text-slate-600 hover:text-slate-900"
+                  }`}
+                >
+                  <Sparkles className="h-4 w-4" />
+                  Auto
+                </button>
+              </div>
+              <p className="text-xs text-slate-500">
+                {restrictedItems
+                  ? "Plane transport is not available for restricted items."
+                  : "Choose your preferred transport method, or select Auto to let us choose the best option."}
+              </p>
+            </div>
+
+            {/* Restricted Items */}
+            <div className="space-y-2">
+              <div className="flex items-start gap-2">
+                <input
+                  type="checkbox"
+                  id="restricted_items"
+                  checked={restrictedItems}
+                  onChange={(e) => {
+                    setRestrictedItems(e.target.checked);
+                    if (e.target.checked) {
+                      setSelectedTransportMethod('boat'); // Auto-select boat if restricted
+                    }
+                  }}
+                  className="mt-1"
+                />
+                <Label htmlFor="restricted_items" className="cursor-pointer flex-1">
+                  <div className="font-medium flex items-center gap-2">
+                    Contains restricted goods
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <button type="button" className="text-slate-400 hover:text-slate-600">
+                          <Info className="h-4 w-4" />
+                        </button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-80">
+                        <div className="space-y-2">
+                          <h4 className="font-semibold text-sm">Restricted Goods</h4>
+                          <p className="text-xs text-slate-600">
+                            Items that cannot be transported by plane include:
+                          </p>
+                          <ul className="text-xs text-slate-600 list-disc list-inside space-y-1">
+                            <li>Lithium batteries (over 100Wh)</li>
+                            <li>Flammable liquids and gases</li>
+                            <li>Explosives and weapons</li>
+                            <li>Corrosive materials</li>
+                            <li>Toxic or radioactive substances</li>
+                          </ul>
+                          <p className="text-xs text-slate-500 mt-2">
+                            These items can only be transported by boat due to airline safety regulations.
+                          </p>
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                  <div className="text-xs text-slate-500 font-normal">
+                    Lithium batteries, flammable items, liquids, etc. (Boat transport only)
+                  </div>
+                </Label>
+              </div>
+            </div>
+
+            {/* Category (optional, for better restriction checking) */}
+            <div className="space-y-2">
+              <Label htmlFor="category">Item Category (Optional)</Label>
+              <Select value={category || 'none'} onValueChange={(value) => setCategory(value === 'none' ? '' : value)}>
+                <SelectTrigger id="category">
+                  <SelectValue placeholder="Select category" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">None</SelectItem>
+                  <SelectItem value="electronics">Electronics</SelectItem>
+                  <SelectItem value="marine">Marine Equipment</SelectItem>
+                  <SelectItem value="food">Food & Beverages</SelectItem>
+                  <SelectItem value="clothing">Clothing & Apparel</SelectItem>
+                  <SelectItem value="tools">Tools & Hardware</SelectItem>
+                  <SelectItem value="medical">Medical Supplies</SelectItem>
+                  <SelectItem value="automotive">Automotive Parts</SelectItem>
+                  <SelectItem value="sports">Sports & Recreation</SelectItem>
+                  <SelectItem value="books">Books & Media</SelectItem>
+                  <SelectItem value="other">Other</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-slate-500">Helps determine transport restrictions</p>
+            </div>
+
+            {/* Fragile Items */}
+            <div className="space-y-2">
+              <div className="flex items-start gap-3 p-3 border border-slate-200 rounded-lg bg-slate-50">
+                <input
+                  type="checkbox"
+                  id="fragile"
+                  checked={fragile}
+                  onChange={(e) => setFragile(e.target.checked)}
+                  className="mt-1 h-4 w-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500"
+                />
+                <Label htmlFor="fragile" className="cursor-pointer flex-1">
+                  <div className="font-medium flex items-center gap-2">
+                    Fragile item (requires extra care)
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <button type="button" className="text-slate-400 hover:text-slate-600">
+                          <Info className="h-4 w-4" />
+                        </button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-80">
+                        <div className="space-y-2">
+                          <h4 className="font-semibold text-sm">Fragile Items</h4>
+                          <p className="text-xs text-slate-600">
+                            Fragile items require extra care and handling. This includes:
+                          </p>
+                          <ul className="text-xs text-slate-600 list-disc list-inside space-y-1">
+                            <li>Glass items</li>
+                            <li>Electronics</li>
+                            <li>Artwork</li>
+                            <li>Ceramics</li>
+                            <li>Antiques</li>
+                          </ul>
+                          <p className="text-xs text-amber-600 mt-2 font-medium">
+                            A 15% premium applies to ensure proper handling.
+                          </p>
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                  <p className="text-xs text-slate-500 mt-1">
+                    Select if your item requires extra care during transport
+                  </p>
+                </Label>
+              </div>
+            </div>
+
+            {/* Deadline Date (Optional) */}
+            <div className="space-y-2">
+              <Label htmlFor="deadline_date">Deadline Date (Optional)</Label>
+              <Input
+                type="date"
+                id="deadline_date"
+                value={deadlineDate}
+                onChange={(e) => setDeadlineDate(e.target.value)}
+                min={new Date().toISOString().split('T')[0]}
+                className="w-full"
+              />
+              <p className="text-xs text-slate-500">
+                Urgent shipments may have a premium: 5% for &lt;14 days, 15% for &lt;7 days, 30% for &lt;3 days
+              </p>
+            </div>
+
             {/* Courier Selection */}
             <div className="space-y-2">
               <Label htmlFor="courier">Compare with Courier</Label>
@@ -438,8 +979,18 @@ function ShippingEstimatorContent() {
             <CardDescription>See how much you can save</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {estimate ? (
+                {estimate ? (
               <>
+                    {isPromoActive && !isPremium && hasEarlySupporterBenefits && (
+                      <div className="mb-4 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                        <p className="text-sm font-semibold text-amber-900">
+                          Early Supporter Reward: You&apos;re paying 0% platform fees on your first 3 deliveries.
+                        </p>
+                        <p className="text-xs text-amber-800 mt-1">
+                          Promo ends in {promoDaysLeft} {promoDaysLeft === 1 ? 'day' : 'days'}.
+                        </p>
+                      </div>
+                    )}
                 {/* Courier Price */}
                 <div className="p-4 bg-slate-50 rounded-lg">
                   <div className="text-sm text-slate-600 mb-1">Courier ({selectedCourier})</div>
@@ -447,32 +998,201 @@ function ShippingEstimatorContent() {
                     ${estimate.courierTotal.toFixed(2)}
                   </div>
                   {estimate.customsCost > 0 && (
-                    <div className="text-xs text-slate-500 mt-1">
-                      Shipping: ${estimate.courierPrice.toFixed(2)} + Customs: ${estimate.customsCost.toFixed(2)}
+                    <div className="text-xs text-slate-500 mt-1 space-y-0.5">
+                      <div>Shipping: ${estimate.courierPrice.toFixed(2)}</div>
+                      {estimate.customsBreakdown && (
+                        <div className="pl-2 border-l-2 border-slate-300">
+                          <div>Duty: ${estimate.customsBreakdown.duty.toFixed(2)}</div>
+                          {estimate.customsBreakdown.tax > 0 && (
+                            <div>
+                              {estimate.customsBreakdown.taxName || 'Tax'}: ${estimate.customsBreakdown.tax.toFixed(2)}
+                            </div>
+                          )}
+                          <div>Processing Fee: ${estimate.customsBreakdown.processingFee.toFixed(2)}</div>
+                          <div className="font-medium mt-0.5">
+                            Total Customs: ${estimate.customsCost.toFixed(2)}
+                          </div>
+                        </div>
+                      )}
+                      {!estimate.customsBreakdown && (
+                        <div>Customs: ${estimate.customsCost.toFixed(2)}</div>
+                      )}
                     </div>
                   )}
                 </div>
 
-                {/* SpareCarry Plane */}
-                <div className="p-4 bg-teal-50 border-2 border-teal-200 rounded-lg">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="text-sm font-medium text-teal-900">SpareCarry Plane</div>
-                    <div className="text-xs text-teal-700 bg-teal-100 px-2 py-1 rounded">
-                      Save {estimate.savingsPercentagePlane}%
+                {/* SpareCarry Plane - Only show if plane transport is allowed */}
+                {estimate.canTransportByPlane !== false && (() => {
+                  const lengthNum = parseFloat(length) || 0;
+                  const widthNum = parseFloat(width) || 0;
+                  const heightNum = parseFloat(height) || 0;
+                  const weightNum = parseFloat(weight) || 0;
+                  const restrictionDetails = getPlaneRestrictionDetails({
+                    weight: weightNum,
+                    length: lengthNum,
+                    width: widthNum,
+                    height: heightNum,
+                    restrictedItems,
+                    category: category || undefined,
+                    originCountry: originCountryIso2,
+                    destinationCountry: destinationCountryIso2,
+                  });
+                  const isOversized = !restrictionDetails.fitsCheckedBaggage && restrictionDetails.fitsOversized;
+                  
+                  return (
+                    <div className={`p-4 bg-teal-50 border-2 ${isOversized ? 'border-amber-300' : 'border-teal-200'} rounded-lg`}>
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <div className="text-sm font-medium text-teal-900">SpareCarry Plane</div>
+                          {isOversized && (
+                            <Popover>
+                              <PopoverTrigger asChild>
+                                <button className="text-amber-600 hover:text-amber-700">
+                                  <AlertCircle className="h-4 w-4" />
+                                </button>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-80">
+                                <div className="space-y-2">
+                                  <h4 className="font-semibold text-sm">Oversized Item</h4>
+                                  <p className="text-xs text-slate-600">
+                                    This item exceeds standard checked baggage limits but may still be accepted as oversized/overweight baggage.
+                                  </p>
+                                  <p className="text-xs text-amber-600 font-medium">
+                                    ⚠ Additional airline fees may apply (typically $50-200 depending on airline and route).
+                                  </p>
+                                  <p className="text-xs text-slate-500 mt-2">
+                                    The price shown is for SpareCarry service only. Airline fees are separate and will be handled by the traveler.
+                                  </p>
+                                </div>
+                              </PopoverContent>
+                            </Popover>
+                          )}
+                        </div>
+                        <div className="text-xs text-teal-700 bg-teal-100 px-2 py-1 rounded">
+                          Save {estimate.savingsPercentagePlane}%
+                        </div>
+                      </div>
+                      <div className="text-2xl font-bold text-teal-900 mb-1">
+                        ${estimate.spareCarryPlanePrice.toFixed(2)}
+                      </div>
+                      {isOversized && (
+                        <div className="text-xs text-amber-600 font-medium mb-1 flex items-center gap-1">
+                          <AlertCircle className="h-3 w-3" />
+                          Oversized - airline fees may apply
+                        </div>
+                      )}
+                      {isPremium && (
+                        <div className="text-xs text-teal-700 font-medium mb-1">
+                          Premium discount applied
+                        </div>
+                      )}
+                      <div className="text-sm font-semibold text-green-600">
+                        You save ${estimate.savingsPlane.toFixed(2)}
+                      </div>
+                      {estimate.distanceKm && (
+                        <div className="text-xs text-slate-500 mt-1">
+                          Distance: {estimate.distanceKm.toFixed(0)} km
+                        </div>
+                      )}
                     </div>
-                  </div>
-                  <div className="text-2xl font-bold text-teal-900 mb-1">
-                    ${estimate.spareCarryPlanePrice.toFixed(2)}
-                  </div>
-                  {isPremium && (
-                    <div className="text-xs text-teal-700 font-medium mb-1">
-                      Premium discount applied
+                  );
+                })()}
+
+                {/* Plane Restriction Warning with Detailed Breakdown */}
+                {estimate.canTransportByPlane === false && estimate.planeRestrictionReason && (() => {
+                  const lengthNum = parseFloat(length) || 0;
+                  const widthNum = parseFloat(width) || 0;
+                  const heightNum = parseFloat(height) || 0;
+                  const weightNum = parseFloat(weight) || 0;
+                  const restrictionDetails = getPlaneRestrictionDetails({
+                    weight: weightNum,
+                    length: lengthNum,
+                    width: widthNum,
+                    height: heightNum,
+                    restrictedItems,
+                    category: category || undefined,
+                    originCountry: originCountryIso2,
+                    destinationCountry: destinationCountryIso2,
+                  });
+                  
+                  return (
+                    <div className="p-4 bg-amber-50 border-2 border-amber-200 rounded-lg">
+                      <div className="flex items-start gap-2">
+                        <AlertCircle className="h-5 w-5 text-amber-600 mt-0.5 flex-shrink-0" />
+                        <div className="flex-1">
+                          <div className="text-sm font-medium text-amber-900 mb-2">
+                            Plane Transport Not Available
+                          </div>
+                          <div className="text-xs text-amber-800 mb-3">
+                            {estimate.planeRestrictionReason}
+                          </div>
+                          
+                          {/* Detailed Breakdown */}
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <button className="text-xs text-amber-700 font-medium hover:text-amber-900 underline">
+                                Why can&apos;t I use plane? →
+                              </button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-96" align="start">
+                              <div className="space-y-3">
+                                <h4 className="font-semibold text-sm">Plane Transport Restrictions</h4>
+                                
+                                {/* Size/Weight Breakdown */}
+                                <div className="space-y-2">
+                                  <div className="text-xs font-medium text-slate-700">Size & Weight Check:</div>
+                                  <div className="space-y-1 text-xs">
+                                    <div className={`flex justify-between ${restrictionDetails.fitsCarryOn ? 'text-green-600' : 'text-slate-600'}`}>
+                                      <span>Carry-on (≤7kg, ≤55×40×23cm):</span>
+                                      <span>{restrictionDetails.fitsCarryOn ? '✓ Fits' : '✗ Too large/heavy'}</span>
+                                    </div>
+                                    <div className={`flex justify-between ${restrictionDetails.fitsCheckedBaggage ? 'text-green-600' : 'text-slate-600'}`}>
+                                      <span>Checked baggage (≤32kg, ≤158cm):</span>
+                                      <span>{restrictionDetails.fitsCheckedBaggage ? '✓ Fits' : '✗ Too large/heavy'}</span>
+                                    </div>
+                                    <div className={`flex justify-between ${restrictionDetails.fitsOversized ? 'text-amber-600' : 'text-red-600'}`}>
+                                      <span>Oversized (≤45kg, ≤320cm):</span>
+                                      <span>{restrictionDetails.fitsOversized ? '⚠ May require extra fees' : '✗ Exceeds limits'}</span>
+                                    </div>
+                                  </div>
+                                </div>
+                                
+                                {/* Current Item Specs */}
+                                <div className="pt-2 border-t space-y-1 text-xs">
+                                  <div className="font-medium text-slate-700">Your Item:</div>
+                                  <div className="text-slate-600">
+                                    Weight: {weightNum.toFixed(1)}kg | 
+                                    Dimensions: {lengthNum.toFixed(0)}×{widthNum.toFixed(0)}×{heightNum.toFixed(0)}cm | 
+                                    Total: {(lengthNum + widthNum + heightNum).toFixed(0)}cm
+                                  </div>
+                                </div>
+                                
+                                {restrictedItems && (
+                                  <div className="pt-2 border-t">
+                                    <div className="text-xs font-medium text-red-600">Restricted Items:</div>
+                                    <div className="text-xs text-slate-600">
+                                      Contains restricted goods that cannot be transported by plane.
+                                    </div>
+                                  </div>
+                                )}
+                                
+                                <div className="pt-2 border-t">
+                                  <p className="text-xs text-slate-500">
+                                    Boat transport is available for all items, including oversized and restricted goods.
+                                  </p>
+                                </div>
+                              </div>
+                            </PopoverContent>
+                          </Popover>
+                          
+                          <div className="text-xs text-amber-700 mt-2 font-medium">
+                            Boat transport is available below ↓
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                  )}
-                  <div className="text-sm font-semibold text-green-600">
-                    You save ${estimate.savingsPlane.toFixed(2)}
-                  </div>
-                </div>
+                  );
+                })()}
 
                 {/* SpareCarry Boat */}
                 <div className="p-4 bg-blue-50 border-2 border-blue-200 rounded-lg">
@@ -496,11 +1216,9 @@ function ShippingEstimatorContent() {
                   />
                 </div>
 
-                {/* Premium Savings Message - Show during promo period */}
-                {premiumSavingsMessage}
-
-                {/* Premium CTA Card - Only show for non-premium users */}
-                {!isPremium && estimate.premiumPlanePrice && estimate.premiumBoatPrice && (
+                {/* Premium CTA Card - Only show for non-premium users and users who have completed 3+ deliveries */}
+                {/* Hide for first 3 deliveries since they already get 0% platform fee (early supporter benefit) */}
+                {!isPremium && !hasEarlySupporterBenefits && estimate.premiumPlanePrice && estimate.premiumBoatPrice && (
                   <div className="p-4 bg-gradient-to-br from-purple-50 to-pink-50 border-2 border-purple-300 rounded-lg">
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-2">
@@ -525,28 +1243,30 @@ function ShippingEstimatorContent() {
                       ) : null;
                     })()}
                     
-                    {/* Premium Plane Price */}
-                    <div className="mb-3 pb-3 border-b border-purple-200">
-                      <div className="flex items-center justify-between mb-1">
-                        <div className="text-xs font-medium text-purple-800">SpareCarry Plane (Premium)</div>
-                        {estimate.premiumSavingsPercentagePlane && (
-                          <div className="text-xs text-purple-700 bg-purple-100 px-2 py-0.5 rounded">
-                            Save {estimate.premiumSavingsPercentagePlane}%
+                    {/* Premium Plane Price - Only show if plane transport is allowed */}
+                    {estimate.canTransportByPlane !== false && estimate.premiumPlanePrice && (
+                      <div className="mb-3 pb-3 border-b border-purple-200">
+                        <div className="flex items-center justify-between mb-1">
+                          <div className="text-xs font-medium text-purple-800">SpareCarry Plane (Premium)</div>
+                          {estimate.premiumSavingsPercentagePlane && (
+                            <div className="text-xs text-purple-700 bg-purple-100 px-2 py-0.5 rounded">
+                              Save {estimate.premiumSavingsPercentagePlane}%
+                            </div>
+                          )}
+                        </div>
+                        <div className="text-xl font-bold text-purple-900 mb-1">
+                          ${estimate.premiumPlanePrice.toFixed(2)}
+                        </div>
+                        <div className="text-xs text-purple-700 font-medium mb-1">
+                          Premium discount applied
+                        </div>
+                        {estimate.premiumSavingsPlane && (
+                          <div className="text-xs font-semibold text-green-600">
+                            You save ${estimate.premiumSavingsPlane.toFixed(2)}
                           </div>
                         )}
                       </div>
-                      <div className="text-xl font-bold text-purple-900 mb-1">
-                        ${estimate.premiumPlanePrice.toFixed(2)}
-                      </div>
-                      <div className="text-xs text-purple-700 font-medium mb-1">
-                        Premium discount applied
-                      </div>
-                      {estimate.premiumSavingsPlane && (
-                        <div className="text-xs font-semibold text-green-600">
-                          You save ${estimate.premiumSavingsPlane.toFixed(2)}
-                        </div>
-                      )}
-                    </div>
+                    )}
 
                     {/* Premium Boat Price */}
                     <div>
@@ -582,93 +1302,7 @@ function ShippingEstimatorContent() {
                   </div>
                 )}
 
-                {/* Karma Toggle */}
-                {user && (
-                  <div className="p-3 bg-purple-50 border border-purple-200 rounded-lg">
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={wantsKarma}
-                        onChange={(e) => setWantsKarma(e.target.checked)}
-                        className="rounded"
-                      />
-                      <span className="text-sm text-purple-900 flex items-center gap-1">
-                        <Heart className="h-4 w-4 text-purple-600" />
-                        I want to earn karma points
-                      </span>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <button
-                            type="button"
-                            className="ml-auto text-purple-600 hover:text-purple-800"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            <Info className="h-4 w-4" />
-                          </button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-80" align="end">
-                          <div className="space-y-2">
-                            <h4 className="font-semibold text-sm text-purple-900">Why I earned this</h4>
-                            <p className="text-xs text-slate-600">
-                              You helped a traveller! Karma points reflect your contributions and encourage return usage.
-                            </p>
-                          </div>
-                        </PopoverContent>
-                      </Popover>
-                    </label>
-                    {wantsKarma && karmaPoints > 0 && (
-                      <div className="mt-2 text-xs text-purple-700">
-                        Estimated karma: +{karmaPoints} points
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* Karma Notification */}
-                {showKarmaNotification && karmaPoints > 0 && (
-                  <div className="p-3 bg-green-50 border border-green-200 rounded-lg flex items-center gap-2 animate-in fade-in slide-in-from-top-2">
-                    <CheckCircle2 className="h-5 w-5 text-green-600 flex-shrink-0" />
-                    <div className="flex-1">
-                      <div className="text-sm font-medium text-green-900">
-                        You helped a traveller!
-                      </div>
-                      <div className="text-xs text-green-700">
-                        +{karmaPoints} karma points
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => setShowKarmaNotification(false)}
-                      className="text-green-600 hover:text-green-800"
-                    >
-                      ×
-                    </button>
-                  </div>
-                )}
-
-                {/* Karma Info near Create Job Button */}
-                {user && wantsKarma && karmaPoints > 0 && (
-                  <div className="mt-3 flex items-center gap-2 text-xs text-purple-700">
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <button
-                          type="button"
-                          className="flex items-center gap-1 text-purple-600 hover:text-purple-800"
-                        >
-                          <Info className="h-3 w-3" />
-                          <span>About karma points</span>
-                        </button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-80" align="start">
-                        <div className="space-y-2">
-                          <h4 className="font-semibold text-sm text-purple-900">Why I earned this</h4>
-                          <p className="text-xs text-slate-600">
-                            You helped a traveller! Karma points reflect your contributions and encourage return usage.
-                          </p>
-                        </div>
-                      </PopoverContent>
-                    </Popover>
-                  </div>
-                )}
+                {/* Karma points are now automatically applied when delivery is completed */}
 
                 {/* Suggested Reward Buttons */}
                 {suggestedReward !== null && estimate && (
@@ -679,12 +1313,19 @@ function ShippingEstimatorContent() {
                     <div className="flex gap-2">
                       <Button
                         onClick={() => {
-                          const prefilledMaxReward = estimate.spareCarryBoatPrice > 0 
-                            ? Math.round(estimate.spareCarryBoatPrice) 
-                            : Math.round(estimate.spareCarryPlanePrice);
+                          // Use original location data if available (from post request form), otherwise use country names
+                          const fromLocationName = originalFromLocation || (originCountryIso2 ? getCountryByIso2(originCountryIso2)?.name || originCountryIso2 : '');
+                          const toLocationName = originalToLocation || (destinationCountryIso2 ? getCountryByIso2(destinationCountryIso2)?.name || destinationCountryIso2 : '');
+                          
                           const prefillData = {
-                            from_location: originCountryIso2,
-                            to_location: destinationCountryIso2,
+                            from_location: fromLocationName,
+                            to_location: toLocationName,
+                            // Include coordinates if available
+                            departure_lat: originalFromLat || null,
+                            departure_lon: originalFromLon || null,
+                            arrival_lat: originalToLat || null,
+                            arrival_lon: originalToLon || null,
+                            // Also include country codes for reference
                             originCountryIso2,
                             destinationCountryIso2,
                             length_cm: parseFloat(length) || 0,

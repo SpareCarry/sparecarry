@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { Capacitor } from "@capacitor/core";
+import { isNativePlatform } from "../../lib/utils/capacitor-safe";
 import { setupNotificationHandlers as setupExpoHandlers } from "../../lib/notifications/expo-notifications";
 import { setupNotificationHandlers as setupCapacitorHandlers } from "../../lib/notifications/capacitor-notifications";
 import { registerForExpoPushNotifications } from "../../lib/notifications/expo-push-service";
@@ -15,7 +15,7 @@ type ProfileNotificationSettings = {
 
 export function NotificationSetup() {
   useEffect(() => {
-    const isNative = Capacitor.isNativePlatform();
+    const isNative = isNativePlatform();
     
     if (isNative) {
       // Use Capacitor push notifications for native iOS/Android

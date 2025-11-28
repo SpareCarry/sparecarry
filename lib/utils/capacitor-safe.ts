@@ -38,6 +38,15 @@ export function getPlatform(): string {
 }
 
 /**
+ * Helper to create dynamic import paths that webpack can't statically analyze
+ */
+function getCapacitorModulePath(moduleName: string): string {
+  // Use string concatenation to prevent webpack static analysis
+  const base = '@capacitor';
+  return base + '/' + moduleName;
+}
+
+/**
  * Safely import Capacitor (client-side only)
  */
 export async function getCapacitor(): Promise<any> {
@@ -46,7 +55,9 @@ export async function getCapacitor(): Promise<any> {
   }
   
   try {
-    const { Capacitor } = await import('@capacitor/core');
+    // Use dynamic path construction to prevent webpack from statically analyzing
+    const corePath = getCapacitorModulePath('core');
+    const { Capacitor } = await import(/* @vite-ignore */ /* webpackIgnore: true */ corePath);
     return Capacitor;
   } catch {
     return null;

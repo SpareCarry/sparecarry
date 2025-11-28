@@ -2,8 +2,8 @@
 
 export const dynamic = 'force-dynamic';
 
-import { useState, useEffect, useRef } from "react";
-import { useInfiniteQuery } from "@tanstack/react-query";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
+import { useInfiniteQuery, keepPreviousData } from "@tanstack/react-query";
 import { FeedCard } from "../../components/feed/feed-card";
 import { FeedDetailModal } from "../../components/feed/feed-detail-modal";
 import { Loader2 } from "lucide-react";
@@ -15,7 +15,6 @@ import { NotificationPermissionRequest } from "../../components/notifications/pe
 import { ErrorBoundary } from "../../app/_components/ErrorBoundary";
 import { TopRoutes } from "../../components/TopRoutes";
 import { PromoCardWrapper } from "../../components/promo/PromoCardWrapper";
-import { First3DeliveriesBanner } from "../../components/promo/First3DeliveriesBanner";
 
 interface FeedItem {
   id: string;
@@ -62,104 +61,104 @@ async function fetchFeed(page: number = 0, userId?: string): Promise<{
     const from = page * pageSize;
     const to = from + pageSize - 1;
 
-  // Fetch trips - handle errors gracefully with timeout
-  let trips: any[] = [];
-  try {
-    const queryBuilder = supabase
-      .from("trips")
-      .select(`
-        *,
-        users!trips_user_id_fkey(subscription_status, supporter_status)
-      `)
-      .eq("status", "active")
-      .order("created_at", { ascending: false })
-      .range(from, to);
+    // Fetch trips and requests in parallel for better performance
+    const [tripsResult, requestsResult] = await Promise.allSettled([
+      (async () => {
+        try {
+          const queryBuilder = supabase
+            .from("trips")
+            .select(`
+              *,
+              users!trips_user_id_fkey(subscription_status, supporter_status)
+            `)
+            .eq("status", "active")
+            .order("created_at", { ascending: false })
+            .range(from, to);
 
-    // Supabase query builders return promises when awaited
-    const queryPromise = queryBuilder as unknown as Promise<{ data: any; error: any }>;
-    const { data: tripsData, error: tripsError } = await withTimeout(queryPromise, 8000);
+          const queryPromise = queryBuilder as unknown as Promise<{ data: any; error: any }>;
+          const { data: tripsData, error: tripsError } = await withTimeout(queryPromise, 5000);
 
-    if (tripsError) {
-      console.warn("Error fetching trips:", tripsError);
-      // Continue with empty trips array
-    } else {
-      trips = tripsData || [];
-    }
-  } catch (error) {
-    console.warn("Error fetching trips (timeout or exception):", error);
-    // Continue with empty trips array
-  }
+          if (tripsError) {
+            console.warn("Error fetching trips:", tripsError);
+            return [];
+          }
+          return tripsData || [];
+        } catch (error) {
+          console.warn("Error fetching trips (timeout or exception):", error);
+          return [];
+        }
+      })(),
+      (async () => {
+        try {
+          const queryBuilder = supabase
+            .from("requests")
+            .select(`
+              *,
+              users!requests_user_id_fkey(subscription_status, supporter_status)
+            `)
+            .eq("status", "open")
+            .order("created_at", { ascending: false })
+            .range(from, to);
 
-  // Fetch requests - handle errors gracefully with timeout
-  let requests: any[] = [];
-  try {
-    const queryBuilder = supabase
-      .from("requests")
-      .select(`
-        *,
-        users!requests_user_id_fkey(subscription_status, supporter_status)
-      `)
-      .eq("status", "open")
-      .order("created_at", { ascending: false })
-      .range(from, to);
+          const queryPromise = queryBuilder as unknown as Promise<{ data: any; error: any }>;
+          const { data: requestsData, error: requestsError } = await withTimeout(queryPromise, 5000);
 
-    // Supabase query builders return promises when awaited
-    const queryPromise = queryBuilder as unknown as Promise<{ data: any; error: any }>;
-    const { data: requestsData, error: requestsError } = await withTimeout(queryPromise, 8000);
+          if (requestsError) {
+            console.warn("Error fetching requests:", requestsError);
+            return [];
+          }
+          return requestsData || [];
+        } catch (error) {
+          console.warn("Error fetching requests (timeout or exception):", error);
+          return [];
+        }
+      })(),
+    ]);
 
-    if (requestsError) {
-      console.warn("Error fetching requests:", requestsError);
-      // Continue with empty requests array
-    } else {
-      requests = requestsData || [];
-    }
-  } catch (error) {
-    console.warn("Error fetching requests (timeout or exception):", error);
-    // Continue with empty requests array
-  }
+    const trips = tripsResult.status === "fulfilled" ? tripsResult.value : [];
+    const requests = requestsResult.status === "fulfilled" ? requestsResult.value : [];
 
-  // Fetch all relevant profiles - handle errors gracefully
-  const userIds = [
-    ...(trips || []).map((t) => t.user_id),
-    ...(requests || []).map((r) => r.user_id),
-  ];
-  const uniqueUserIds = [...new Set(userIds)];
+    // Fetch all relevant profiles in parallel - handle errors gracefully
+    const userIds = [
+      ...(trips || []).map((t: any) => t.user_id),
+      ...(requests || []).map((r: any) => r.user_id),
+    ];
+    const uniqueUserIds = [...new Set(userIds)];
 
-  let profilesMap = new Map();
-  if (uniqueUserIds.length > 0) {
-    try {
-      const queryBuilder = supabase
-        .from("profiles")
-        .select("user_id, verified_sailor_at, stripe_identity_verified_at")
-        .in("user_id", uniqueUserIds);
+    let profilesMap = new Map();
+    if (uniqueUserIds.length > 0) {
+      try {
+        const queryBuilder = supabase
+          .from("profiles")
+          .select("user_id, verified_sailor_at, stripe_identity_verified_at")
+          .in("user_id", uniqueUserIds);
 
-      // Supabase query builders return promises when awaited
-      const queryPromise = queryBuilder as unknown as Promise<{ data: any; error: any }>;
-      const { data: profiles, error: profilesError } = await withTimeout(queryPromise, 8000);
+        const queryPromise = queryBuilder as unknown as Promise<{ data: any; error: any }>;
+        const { data: profiles, error: profilesError } = await withTimeout(queryPromise, 5000);
 
-      if (profilesError) {
-        console.warn("Error fetching profiles:", profilesError);
-      } else {
-        profilesMap = new Map(
-          (profiles || []).map((p: any) => [
-            p.user_id,
-            {
-              verified_sailor: !!p.verified_sailor_at,
-              verified_identity: !!p.stripe_identity_verified_at,
-            },
-          ])
-        );
+        if (profilesError) {
+          console.warn("Error fetching profiles:", profilesError);
+        } else {
+          profilesMap = new Map(
+            (profiles || []).map((p: any) => [
+              p.user_id,
+              {
+                verified_sailor: !!p.verified_sailor_at,
+                verified_identity: !!p.stripe_identity_verified_at,
+              },
+            ])
+          );
+        }
+      } catch (error) {
+        console.warn("Error fetching profiles (timeout or exception):", error);
+        // Continue with empty profiles map
       }
-    } catch (error) {
-      console.warn("Error fetching profiles (timeout or exception):", error);
-      // Continue with empty profiles map
     }
-  }
 
   // Combine and format - handle missing data gracefully
   const tripItems: FeedItem[] = (trips || [])
-    .filter((trip) => trip && trip.id && trip.user_id) // Filter out invalid trips first
-    .map((trip) => {
+    .filter((trip: any) => trip && trip.id && trip.user_id) // Filter out invalid trips first
+    .map((trip: any) => {
       const profile = profilesMap.get(trip.user_id);
       const user = Array.isArray(trip.users) ? trip.users[0] : trip.users;
       const isSubscriber = user?.subscription_status === "active" || user?.subscription_status === "trialing";
@@ -185,8 +184,8 @@ async function fetchFeed(page: number = 0, userId?: string): Promise<{
     });
 
   const requestItems: FeedItem[] = (requests || [])
-    .filter((request) => request && request.id && request.user_id) // Filter out invalid requests first
-    .map((request) => {
+    .filter((request: any) => request && request.id && request.user_id) // Filter out invalid requests first
+    .map((request: any) => {
       const profile = profilesMap.get(request.user_id);
       const user = Array.isArray(request.users) ? request.users[0] : request.users;
       const isSubscriber = user?.subscription_status === "active" || user?.subscription_status === "trialing";
@@ -246,7 +245,6 @@ async function fetchFeed(page: number = 0, userId?: string): Promise<{
 export default function BrowsePage() {
   const [selectedItem, setSelectedItem] = useState<FeedItem | null>(null);
   const loadMoreRef = useRef<HTMLDivElement>(null);
-  const supabase = createClient();
 
   const {
     data,
@@ -256,17 +254,83 @@ export default function BrowsePage() {
     isLoading,
     error,
     refetch,
-  } = useInfiniteQuery({
+  } = useInfiniteQuery<{
+    items: FeedItem[];
+    hasMore: boolean;
+  }>({
     queryKey: ["feed"],
-    queryFn: ({ pageParam = 0 }) => fetchFeed(pageParam),
+    queryFn: ({ pageParam = 0 }) => fetchFeed(pageParam as number),
     getNextPageParam: (lastPage, pages) => {
       return lastPage.hasMore ? pages.length : undefined;
     },
     initialPageParam: 0,
     retry: false, // Don't retry automatically - let user click retry button
+    refetchOnWindowFocus: false, // Prevent refetch on window focus to avoid flickering
+    refetchOnMount: false, // Don't refetch on mount if we have cached data
+    refetchOnReconnect: false, // Prevent refetch on reconnect to avoid flickering
+    staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes to prevent unnecessary refetches
+    gcTime: 10 * 60 * 1000, // Keep data in cache for 10 minutes (formerly cacheTime)
+    placeholderData: keepPreviousData, // Keep previous data visible while refetching to prevent flickering
   });
 
-  const items = data?.pages.flatMap((page) => page.items) ?? [];
+  // Use ref-based memoization to prevent flickering
+  // Only update when item IDs actually change, not when data object reference changes
+  const itemsRef = useRef<FeedItem[]>([]);
+  const itemsKeyRef = useRef<string>('');
+  
+  // Calculate stable key from item IDs
+  const currentItemsKey = useMemo(() => {
+    if (!data?.pages || data.pages.length === 0) return '';
+    
+    const allItemIds: string[] = [];
+    let totalCount = 0;
+    
+    data.pages.forEach((page) => {
+      if (page.items) {
+        totalCount += page.items.length;
+        page.items.forEach((item) => {
+          if (item?.id) {
+            allItemIds.push(item.id);
+          }
+        });
+      }
+    });
+    
+    // Return empty string if no items
+    if (allItemIds.length === 0) return '';
+    
+    // Create stable key: count:ids
+    return `${totalCount}:${allItemIds.join(',')}`;
+  }, [data?.pages]);
+  
+  // Update items only when key changes
+  const items = useMemo(() => {
+    // If key hasn't changed, return cached items
+    if (currentItemsKey === itemsKeyRef.current && itemsRef.current.length > 0) {
+      return itemsRef.current;
+    }
+    
+    // If no data, return empty array
+    if (!data?.pages || data.pages.length === 0 || !currentItemsKey) {
+      itemsRef.current = [];
+      itemsKeyRef.current = '';
+      return [];
+    }
+    
+    // Flatten pages
+    const flattened = data.pages.flatMap((page) => page.items ?? []);
+    
+    // Update cache
+    itemsRef.current = flattened;
+    itemsKeyRef.current = currentItemsKey;
+    
+    return flattened;
+  }, [currentItemsKey, data?.pages]);
+
+  // Memoize the click handler to prevent FeedCard re-renders
+  const handleItemClick = useCallback((item: FeedItem) => {
+    setSelectedItem(item);
+  }, []);
 
   // Infinite scroll with IntersectionObserver
   useEffect(() => {
@@ -286,7 +350,10 @@ export default function BrowsePage() {
     return () => observer.disconnect();
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
-  if (isLoading) {
+  // Only show loading spinner if we have no data at all (first load)
+  // If we have cached data, show it immediately even if refetching
+  const hasPages = data && (data as any).pages && Array.isArray((data as any).pages) && (data as any).pages.length > 0;
+  if (isLoading && !hasPages) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <Loader2 className="h-8 w-8 animate-spin text-teal-600" />
@@ -351,12 +418,6 @@ export default function BrowsePage() {
         </p>
       </div>
 
-      {/* First 3 Deliveries Banner */}
-      <div className="mb-4">
-        <ErrorBoundary fallback={null}>
-          <First3DeliveriesBanner />
-        </ErrorBoundary>
-      </div>
 
       {/* Promo Card */}
       <div className="mb-4">
@@ -390,22 +451,22 @@ export default function BrowsePage() {
       </ErrorBoundary>
 
       <div className="space-y-4">
-        {items.length === 0 ? (
+        {items.length === 0 && !isLoading ? (
           <div className="text-center py-12">
             <p className="text-slate-600 mb-4">No trips or requests found yet.</p>
             <p className="text-sm text-slate-500">
               Be the first to post a trip or request!
             </p>
           </div>
-        ) : (
+        ) : items.length > 0 ? (
           items.map((item) => (
             <FeedCard
               key={`${item.type}-${item.id}`}
               item={item}
-              onClick={() => setSelectedItem(item)}
+              onClick={() => handleItemClick(item)}
             />
           ))
-        )}
+        ) : null}
       </div>
 
       {/* Infinite scroll trigger */}

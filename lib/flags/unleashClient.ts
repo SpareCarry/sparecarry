@@ -27,7 +27,7 @@ export interface UnleashConfig {
 class UnleashClient {
   private config: UnleashConfig;
   private flags: Map<string, FeatureFlag> = new Map();
-  private refreshInterval?: NodeJS.Timeout;
+  private refreshInterval?: ReturnType<typeof setInterval>;
   private isInitialized = false;
   private cacheKey = 'sparecarry_feature_flags';
   private lastFetchTime = 0;

@@ -67,8 +67,22 @@ const boatTripSchema = z.object({
   arrival_lat: z.number().nullable().optional(),
   arrival_lon: z.number().nullable().optional(),
   arrival_category: z.string().nullable().optional(),
-  spare_kg: z.number().positive("Spare capacity is required"),
-  spare_volume_liters: z.number().min(0).optional(),
+  spare_kg: z.preprocess(
+    (val) => {
+      if (val === "" || val === null || val === undefined) return undefined;
+      const num = Number(val);
+      return isNaN(num) ? undefined : num;
+    },
+    z.number().positive("Spare capacity must be positive").optional()
+  ),
+  spare_volume_liters: z.preprocess(
+    (val) => {
+      if (val === "" || val === null || val === undefined) return undefined;
+      const num = Number(val);
+      return isNaN(num) ? undefined : num;
+    },
+    z.number().min(0).optional()
+  ),
   can_take_outboard: z.boolean().default(false),
   can_take_spar: z.boolean().default(false),
   can_take_dinghy: z.boolean().default(false),
@@ -314,8 +328,8 @@ export function PostTripForm() {
             arrival_category: boatToPlace?.category || data.arrival_category || null,
             eta_window_start: data.eta_window_start,
             eta_window_end: data.eta_window_end,
-            spare_kg: data.spare_kg,
-            spare_volume_liters: data.spare_volume_liters || 0,
+            spare_kg: data.spare_kg || null,
+            spare_volume_liters: data.spare_volume_liters || null,
             max_dimensions: null, // Boats are more flexible
             can_oversize:
               data.can_oversize ||
@@ -718,30 +732,46 @@ export function PostTripForm() {
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="spare_kg">Max Tonnage (kg) *</Label>
+                <Label htmlFor="spare_kg">Max Tonnage (kg)</Label>
                 <Input
                   id="spare_kg"
                   type="number"
                   step="0.1"
                   min="0"
-                  {...register("spare_kg", { valueAsNumber: true })}
+                  {...register("spare_kg", { 
+                    valueAsNumber: true,
+                    setValueAs: (v) => v === "" || isNaN(Number(v)) ? undefined : Number(v)
+                  })}
                   className="bg-white"
                 />
+                {Number.isFinite(watch("spare_kg")) && watch("spare_kg")! > 0 && (
+                  <p className="text-xs text-slate-500">
+                    ≈ {Math.round(watch("spare_kg")! * 2.20462)} lbs
+                  </p>
+                )}
                 {errors.spare_kg && (
                   <p className="text-sm text-red-600">{errors.spare_kg.message}</p>
                 )}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="spare_volume_liters">Spare Cubic Meters (optional)</Label>
+                <Label htmlFor="spare_volume_liters">Spare Cubic Meters</Label>
                 <Input
                   id="spare_volume_liters"
                   type="number"
                   step="0.1"
                   min="0"
-                  {...register("spare_volume_liters", { valueAsNumber: true })}
+                  {...register("spare_volume_liters", { 
+                    valueAsNumber: true,
+                    setValueAs: (v) => v === "" || isNaN(Number(v)) ? undefined : Number(v)
+                  })}
                   placeholder="m³"
                   className="bg-white"
                 />
+                {Number.isFinite(watch("spare_volume_liters")) && watch("spare_volume_liters")! > 0 && (
+                  <p className="text-xs text-slate-500">
+                    ≈ {watch("spare_volume_liters")!.toFixed(2)} m³ ({Math.round(watch("spare_volume_liters")! * 35.3147)} ft³)
+                  </p>
+                )}
               </div>
             </div>
 

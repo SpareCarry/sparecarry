@@ -1,7 +1,12 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { isDevMode } from "@/config/devMode";
 
 export async function updateSession(request: NextRequest) {
+  // Dev mode: Skip authentication checks
+  if (isDevMode()) {
+    return NextResponse.next({ request });
+  }
   let supabaseResponse = NextResponse.next({
     request,
   });

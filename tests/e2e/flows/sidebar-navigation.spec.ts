@@ -48,7 +48,7 @@ test.describe('Sidebar Navigation', () => {
       expect(hasBrowseLink).toBe(true);
     } else {
       // Mobile: check for mobile menu button
-      const menuButton = page.getByRole('button').filter({ hasText: /Menu|☰/ });
+      const menuButton = page.getByRole('button', { name: /open navigation menu/i });
       const hasMenuButton = await menuButton.first().isVisible().catch(() => false);
       expect(hasMenuButton).toBe(true);
     }
@@ -73,22 +73,18 @@ test.describe('Sidebar Navigation', () => {
     const homeUrlPattern = /\/home($|[?#])/;
 
     if (hasBrowseLink) {
-      await Promise.all([
-        page.waitForURL(homeUrlPattern, { timeout: 15000 }),
-        browseLink.click(),
-      ]);
+      await browseLink.click();
+      await page.waitForURL(homeUrlPattern, { timeout: 15000 });
     } else {
       // On mobile, open menu first
-      const menuButton = page.getByRole('button').filter({ hasText: /Menu|☰/ }).first();
+      const menuButton = page.getByRole('button', { name: /open navigation menu/i }).first();
       if (await menuButton.isVisible().catch(() => false)) {
         await menuButton.click();
         await page.waitForTimeout(500);
         const browseLinkMobile = page.getByRole('link', { name: /Browse/i }).first();
         if (await browseLinkMobile.isVisible().catch(() => false)) {
-          await Promise.all([
-            page.waitForURL(homeUrlPattern, { timeout: 15000 }),
-            browseLinkMobile.click(),
-          ]);
+          await browseLinkMobile.click();
+          await page.waitForURL(homeUrlPattern, { timeout: 15000 });
         }
       }
     }

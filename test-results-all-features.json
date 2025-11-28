@@ -1,10 +1,10 @@
 {
-  "timestamp": "2025-11-24T08:32:46.222Z",
+  "timestamp": "2025-11-28T10:58:57.039Z",
   "testName": "Comprehensive Feature Tests",
   "summary": {
     "total": 3,
-    "passed": 3,
-    "failed": 0
+    "passed": 2,
+    "failed": 1
   },
   "results": [
     {
@@ -23,35 +23,32 @@
         "endpoints": [
           {
             "endpoint": "/api/matches/auto-match",
-            "status": 401
+            "status": "error",
+            "error": "The operation was aborted due to timeout"
           },
           {
             "endpoint": "/api/payments/create-intent",
-            "status": 401
+            "status": 500
           },
           {
             "endpoint": "/api/payments/confirm-delivery",
-            "status": 401
+            "status": 500
           },
           {
             "endpoint": "/api/payments/auto-release",
-            "status": 401
+            "status": 500
           },
           {
             "endpoint": "/api/notifications/register-token",
-            "status": 401
+            "status": 500
           }
         ]
       }
     },
     {
       "feature": "Auto-Release Cron",
-      "passed": true,
-      "details": {
-        "accessible": true,
-        "authenticated": true,
-        "status": 200
-      }
+      "passed": false,
+      "error": "Unexpected status: 500"
     }
   ],
   "environment": {

@@ -2,6 +2,11 @@
 
 import { PHASE_PRODUCTION_BUILD } from "next/constants";
 import runtimeEnvModule from "./scripts/runtime-env.js";
+import { fileURLToPath } from "url";
+import { dirname, join } from "path";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 const { validateRuntimeEnv } = runtimeEnvModule;
 
@@ -15,7 +20,23 @@ export default async function createNextConfig(phase) {
   const nextConfig = {
     reactStrictMode: true,
     experimental: {},
-    webpack(config) {
+    webpack(config, { isServer, webpack }) {
+      // Exclude Capacitor modules from web build (mobile-only)
+      // These are only used in mobile apps, not in web builds
+      
+      const stubsBasePath = join(__dirname, 'lib/stubs/@capacitor');
+      
+      // Set up aliases to point to stub modules
+      // The source code uses dynamic imports, but webpack may still try to resolve them
+      config.resolve.alias = {
+        ...(config.resolve.alias || {}),
+        '@capacitor/core': join(stubsBasePath, 'core.ts'),
+        '@capacitor/push-notifications': join(stubsBasePath, 'push-notifications.ts'),
+        '@capacitor/local-notifications': join(stubsBasePath, 'local-notifications.ts'),
+        '@capacitor/haptics': join(stubsBasePath, 'haptics.ts'),
+        '@capacitor/app': join(stubsBasePath, 'app.ts'),
+      };
+      
       return config;
     },
   };

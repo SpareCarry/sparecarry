@@ -26,15 +26,50 @@ export async function selectCountry(page: Page, inputId: string, countryName: st
   await page.waitForTimeout(500);
   
   // Wait for dropdown to be visible (has role="listbox")
-  const dropdown = page.locator('[role="listbox"]').first();
-  await dropdown.waitFor({ state: 'visible', timeout: 10000 });
+  // Try multiple selectors for Radix UI Select component
+  const dropdown = page.locator('[role="listbox"]')
+    .or(page.locator('[data-radix-popper-content-wrapper]'))
+    .or(page.locator('[data-radix-select-content]'))
+    .first();
+  
+  // Wait for dropdown with multiple strategies
+  try {
+    await dropdown.waitFor({ state: 'visible', timeout: 15000 });
+  } catch (e) {
+    // Fallback: wait for any visible option or content
+    await page.waitForFunction(
+      () => {
+        const listbox = document.querySelector('[role="listbox"]');
+        const popper = document.querySelector('[data-radix-popper-content-wrapper]');
+        const content = document.querySelector('[data-radix-select-content]');
+        return listbox || popper || content;
+      },
+      { timeout: 15000 }
+    ).catch(() => {});
+  }
   
   // Find the option button containing the country name
   // Options are buttons with role="option" containing the country name in a span
-  const option = dropdown.locator(`button[role="option"]:has-text("${countryName}")`).first();
+  // Try multiple selectors
+  const option = page.locator(`button[role="option"]:has-text("${countryName}")`)
+    .or(page.locator(`[role="option"]:has-text("${countryName}")`))
+    .or(page.getByRole('option', { name: countryName }))
+    .first();
   
   // Wait for option to be visible (might need scrolling)
-  await option.waitFor({ state: 'visible', timeout: 10000 });
+  try {
+    await option.waitFor({ state: 'visible', timeout: 15000 });
+  } catch (e) {
+    // Fallback: wait for any option to appear
+    await page.waitForFunction(
+      (name) => {
+        const options = Array.from(document.querySelectorAll('[role="option"]'));
+        return options.some(opt => opt.textContent?.includes(name));
+      },
+      countryName,
+      { timeout: 15000 }
+    ).catch(() => {});
+  }
   
   // Scroll option into view if needed
   await option.scrollIntoViewIfNeeded();

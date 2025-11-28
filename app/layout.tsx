@@ -5,6 +5,7 @@ import { Providers } from "./providers";
 import { ErrorBoundary } from "./_components/ErrorBoundary";
 import { TelemetryInitializer } from "./_components/TelemetryInitializer";
 import { MobileInit } from "./_mobile-init";
+import { SessionSync } from "@/components/auth/session-sync";
 
 export const metadata: Metadata = {
   title: "SpareCarry – Earn $200–$3,000 using spare space you already have",
@@ -52,6 +53,7 @@ export default function RootLayout({
       >
         <ErrorBoundary>
           <Providers>
+            <SessionSync />
             <TelemetryInitializer />
             <MobileInit />
             {children}

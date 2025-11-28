@@ -6,7 +6,7 @@ import { Button } from "../ui/button";
 import { Bell, X } from "lucide-react";
 import { requestNotificationPermission, registerForPushNotifications } from "../../lib/notifications/expo-notifications";
 import { registerForExpoPushNotifications } from "../../lib/notifications/expo-push-service";
-import { Capacitor } from "@capacitor/core";
+import { isNativePlatform } from "../../lib/utils/capacitor-safe";
 import { createClient } from "../../lib/supabase/client";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { useQuery } from "@tanstack/react-query";
@@ -70,7 +70,7 @@ export function NotificationPermissionRequest() {
   const handleAllow = async () => {
     setRequesting(true);
     try {
-      const isNative = Capacitor.isNativePlatform();
+      const isNative = isNativePlatform();
       let token: string | null = null;
       
       if (isNative) {

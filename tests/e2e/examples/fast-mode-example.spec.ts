@@ -44,10 +44,21 @@ test.describe('Fast Mode Examples', () => {
     await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
     
     // Wait for page to fully load
-    await page.waitForTimeout(2000);
+    await page.waitForTimeout(3000);
+
+    // Wait for Profile heading using waitForFunction first
+    await page.waitForFunction(
+      () => {
+        const heading = document.querySelector('h1');
+        return heading && heading.textContent?.includes('Profile');
+      },
+      { timeout: 20000 }
+    ).catch(() => {});
 
     // Should see profile content (use exact match to avoid strict mode violation)
-    await expect(page.getByRole('heading', { name: 'Profile', exact: true })).toBeVisible({ timeout: 15000 });
+    const profileHeading = page.locator('h1:has-text("Profile")')
+      .or(page.getByRole('heading', { name: 'Profile', exact: true }));
+    await expect(profileHeading.first()).toBeVisible({ timeout: 15000 });
     
     // Should see subscription card - use multiple selectors
     await expect(

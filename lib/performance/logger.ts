@@ -23,7 +23,7 @@ interface PerformanceReport {
 
 class PerformanceLogger {
   private enabled = true;
-  private reportInterval?: NodeJS.Timeout;
+  private reportInterval?: ReturnType<typeof setInterval>;
 
   constructor() {
     this.enabled = process.env.NODE_ENV !== 'production' || 

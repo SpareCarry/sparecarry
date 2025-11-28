@@ -1,0 +1,35 @@
+{
+  "extends": "expo/tsconfig.base",
+  "compilerOptions": {
+    "strict": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": [
+        "./*",
+        "../../*"
+      ],
+      "@sparecarry/lib": [
+        "../../packages/lib"
+      ],
+      "@sparecarry/lib/*": [
+        "../../packages/lib/*"
+      ],
+      "@sparecarry/hooks": [
+        "../../packages/hooks"
+      ],
+      "@sparecarry/hooks/*": [
+        "../../packages/hooks/*"
+      ],
+      "@sparecarry/ui": [
+        "../../packages/ui"
+      ],
+      "@sparecarry/ui/*": [
+        "../../packages/ui/*"
+      ]
+    }
+  },
+  "include": [
+    "**/*.ts",
+    "**/*.tsx"
+  ]
+}

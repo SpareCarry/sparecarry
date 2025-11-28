@@ -16,7 +16,7 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
   reporter: [
-    ["html", { outputFolder: "playwright-report" }],
+    ["json", { outputFile: "test-results-playwright.json" }],
     ["list"],
   ],
   timeout: 90000, // 90 second timeout per test (increased for slower pages)

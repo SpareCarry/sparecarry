@@ -31,10 +31,20 @@ test.describe('My Stuff Page', () => {
       waitUntil: 'domcontentloaded',
     });
     await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
-    await page.waitForTimeout(2000);
+    await page.waitForTimeout(3000);
 
-    // Verify page loaded
-    await expect(page.getByRole('heading', { name: 'My Stuff', exact: true })).toBeVisible({ timeout: 15000 });
+    // Wait for page to be ready - check for heading or any content
+    await page.waitForFunction(
+      () => {
+        const heading = document.querySelector('h1');
+        return heading && heading.textContent?.includes('My Stuff');
+      },
+      { timeout: 15000 }
+    ).catch(() => {});
+
+    // Verify page loaded - use more flexible selector
+    const heading = page.locator('h1:has-text("My Stuff")').or(page.getByRole('heading', { name: 'My Stuff', exact: true }));
+    await expect(heading.first()).toBeVisible({ timeout: 15000 });
   });
 
   test('should show only one support button with correct email link', async ({ page }) => {
@@ -44,10 +54,20 @@ test.describe('My Stuff Page', () => {
       waitUntil: 'domcontentloaded',
     });
     await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
-    await page.waitForTimeout(2000);
+    await page.waitForTimeout(3000);
 
-    // Verify page loaded
-    await expect(page.getByRole('heading', { name: 'My Stuff', exact: true })).toBeVisible({ timeout: 15000 });
+    // Wait for page to be ready
+    await page.waitForFunction(
+      () => {
+        const heading = document.querySelector('h1');
+        return heading && heading.textContent?.includes('My Stuff');
+      },
+      { timeout: 15000 }
+    ).catch(() => {});
+
+    // Verify page loaded - use more flexible selector
+    const heading = page.locator('h1:has-text("My Stuff")').or(page.getByRole('heading', { name: 'My Stuff', exact: true }));
+    await expect(heading.first()).toBeVisible({ timeout: 15000 });
 
     // There should be at least one visible Contact Support button
     const contactButtons = page.getByRole('button', { name: /Contact Support/i });
@@ -69,10 +89,20 @@ test.describe('My Stuff Page', () => {
       waitUntil: 'domcontentloaded',
     });
     await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
-    await page.waitForTimeout(2000);
+    await page.waitForTimeout(3000);
 
-    // Verify page loaded
-    await expect(page.getByRole('heading', { name: 'My Stuff', exact: true })).toBeVisible({ timeout: 15000 });
+    // Wait for page to be ready
+    await page.waitForFunction(
+      () => {
+        const heading = document.querySelector('h1');
+        return heading && heading.textContent?.includes('My Stuff');
+      },
+      { timeout: 15000 }
+    ).catch(() => {});
+
+    // Verify page loaded - use more flexible selector
+    const heading = page.locator('h1:has-text("My Stuff")').or(page.getByRole('heading', { name: 'My Stuff', exact: true }));
+    await expect(heading.first()).toBeVisible({ timeout: 15000 });
 
     // Verify "Start chat" button does NOT exist
     const startChatButton = page.getByText(/Start chat|Start a chat/i);
@@ -87,11 +117,20 @@ test.describe('My Stuff Page', () => {
       waitUntil: 'domcontentloaded',
     });
     await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
-    await page.waitForTimeout(2000);
+    await page.waitForTimeout(3000);
 
-    // Find the contact support button
-    const supportButton = page.getByRole('button', { name: /Contact Support/i });
-    await expect(supportButton).toBeVisible({ timeout: 5000 });
+    // Wait for page to be ready
+    await page.waitForFunction(
+      () => {
+        const heading = document.querySelector('h1');
+        return heading && heading.textContent?.includes('My Stuff');
+      },
+      { timeout: 15000 }
+    ).catch(() => {});
+
+    // Find the contact support button - use more flexible selector
+    const supportButton = page.getByRole('button', { name: /Contact Support/i }).or(page.locator('button:has-text("Contact Support")'));
+    await expect(supportButton.first()).toBeVisible({ timeout: 10000 });
 
     // Verify it has a reasonable touch target
     const boundingBox = await supportButton.boundingBox();
@@ -118,11 +157,20 @@ test.describe('My Stuff Page', () => {
       waitUntil: 'domcontentloaded',
     });
     await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
-    await page.waitForTimeout(2000);
+    await page.waitForTimeout(3000);
 
-    // Find and click the contact support button
-    const supportButton = page.getByRole('button', { name: /Contact Support/i });
-    await expect(supportButton).toBeVisible({ timeout: 5000 });
+    // Wait for page to be ready
+    await page.waitForFunction(
+      () => {
+        const heading = document.querySelector('h1');
+        return heading && heading.textContent?.includes('My Stuff');
+      },
+      { timeout: 15000 }
+    ).catch(() => {});
+
+    // Find and click the contact support button - use more flexible selector
+    const supportButton = page.getByRole('button', { name: /Contact Support/i }).or(page.locator('button:has-text("Contact Support")'));
+    await expect(supportButton.first()).toBeVisible({ timeout: 10000 });
 
     await supportButton.click();
 

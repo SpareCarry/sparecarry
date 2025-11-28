@@ -7,6 +7,7 @@
 
 import { Page } from '@playwright/test';
 import { TestUser } from './testUserFactory';
+import { setupUserMocks } from './supabaseHelpers';
 
 export async function enableTestMode(page: Page, user: TestUser) {
   console.log(`[TEST_MODE] Enabling test mode for user: ${user.email}`);
@@ -42,6 +43,9 @@ export async function enableTestMode(page: Page, user: TestUser) {
     console.log('[TEST_MODE] ✓ Test mode enabled for:', userData.email);
     console.log('[TEST_MODE] ✓ Test user stored');
   }, user);
+
+  // Ensure Supabase REST endpoints return this user's data
+  await setupUserMocks(page, user);
 
   console.log(`[TEST_MODE] Test mode setup complete for: ${user.email}`);
 }

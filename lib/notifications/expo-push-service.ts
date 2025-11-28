@@ -17,6 +17,13 @@ import { isNativePlatform } from "@/lib/utils/capacitor-safe";
 // Lazy load Capacitor plugins only on native platforms
 let PushNotifications: any = null;
 
+// Helper to create dynamic import paths that webpack can't statically analyze
+function getCapacitorModulePath(moduleName: string): string {
+  // Use string concatenation to prevent webpack static analysis
+  const base = '@capacitor';
+  return base + '/' + moduleName;
+}
+
 async function loadPushNotifications() {
   if (typeof window === 'undefined' || !isNativePlatform()) {
     return null;
@@ -24,9 +31,12 @@ async function loadPushNotifications() {
   
   if (!PushNotifications) {
     try {
-      const pushModule = await import("@capacitor/push-notifications");
+      // Use dynamic path construction to prevent webpack from statically analyzing
+      const pushPath = getCapacitorModulePath('push-notifications');
+      const pushModule = await import(/* @vite-ignore */ /* webpackIgnore: true */ pushPath);
       PushNotifications = pushModule.PushNotifications;
     } catch (error) {
+      // Silently fail - this module doesn't exist in web builds
       console.warn('[Expo Push] Failed to load Capacitor plugin:', error);
     }
   }

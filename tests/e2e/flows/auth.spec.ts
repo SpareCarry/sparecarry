@@ -134,37 +134,20 @@ test.describe('Authentication Flow', () => {
       timeout: 10000,
     });
 
-    // Should redirect to login with error
-    try {
-      await waitForNavigation(page, /\/auth\/login/, 10000);
-    } catch (e) {
-      // May already be on login page or redirecting
-    }
+    await waitForNavigation(page, /\/auth\/login/, 10000).catch(() => {
+      expect(page.url()).toContain('/auth/login');
+    });
   });
 
   test('should handle auth callback with no code', async ({ page }) => {
     await page.goto(`${baseUrl}/auth/callback`, {
       waitUntil: 'domcontentloaded',
-      timeout: 15000, // Increase timeout
+      timeout: 15000,
     });
 
-    // Wait for navigation or check if already on login page
-    await page.waitForTimeout(2000);
-    
-    const currentUrl = page.url();
-    const isOnLoginPage = /\/auth\/login/.test(currentUrl);
-    
-    // Should redirect to login or already be on login page
-    if (!isOnLoginPage) {
-      // Wait for redirect
-      try {
-        await page.waitForURL(/\/auth\/login/, { timeout: 10000 });
-      } catch (e) {
-        // If no redirect, that's OK - callback might handle it differently
-        // Just verify we're not on an error page
-        expect(currentUrl).not.toContain('error');
-      }
-    }
+    await waitForNavigation(page, /\/auth\/login/, 10000).catch(() => {
+      expect(page.url()).toContain('/auth/login');
+    });
   });
 
   test('should protect home route when not authenticated', async ({ page, context }) => {

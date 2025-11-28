@@ -11,22 +11,33 @@ import { Card, CardContent } from '../ui/card';
 import { Button } from '../ui/button';
 import { Sparkles, X, Shield } from 'lucide-react';
 import { cn } from '../../lib/utils';
-import { getDaysLeft } from '@/utils/getDaysLeft';
-import { PLATFORM_FEE_PERCENT } from '../../config/platformFees';
+import { useQuery } from '@tanstack/react-query';
 import { createClient } from '../../lib/supabase/client';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { useUser } from '../../hooks/useUser';
 
 type PromoProfile = {
   promo_dismissed_until?: string | null;
 };
 
+type UserDeliveryData = {
+  completed_deliveries_count?: number | null;
+};
+
+const FREE_DELIVERIES_LIMIT = 3;
+
 // A/B testing text variants (localization-ready)
 const PROMO_COPY = {
   title: "🔥 Early Supporter Reward",
-  message: (actualPlatformFee: number) => 
-    `As an early SpareCarry user, you automatically pay 0% platform fees (normally ${(actualPlatformFee * 100).toFixed(0)}%) until Feb 18, 2026.`,
-  countdown: (daysLeft: number) => `⏳ ${daysLeft} ${daysLeft === 1 ? 'day' : 'days'} left`,
-  footer: "Stripe processing fees still apply.",
+  message: (remaining: number) => 
+    `Your first ${FREE_DELIVERIES_LIMIT} deliveries are 100% profit for you — we take $0 platform fee.`,
+  countdown: (remaining: number) => {
+    if (remaining === 1) {
+      return `⏳ ${remaining} free delivery left`;
+    }
+    return `⏳ ${remaining} free deliveries left`;
+  },
+  footer: "Stripe payment processing fees still apply.",
   dismiss: "Don't show again",
 } as const;
 
@@ -41,26 +52,46 @@ export function EarlySupporterPromoCard({
   onDismiss,
   variant = 'default' 
 }: EarlySupporterPromoCardProps) {
-  const [daysLeft, setDaysLeft] = useState(getDaysLeft());
   const [isDismissed, setIsDismissed] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
   // Memoize supabase client to prevent creating new instances on every render
   const supabase = useMemo(() => createClient() as SupabaseClient, []);
+  const { user } = useUser();
 
-  // Update countdown every minute
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const newDaysLeft = getDaysLeft();
-      setDaysLeft(newDaysLeft);
-      
-      // Hide if expired
-      if (newDaysLeft === 0) {
-        setIsVisible(false);
+  // Fetch user's completed deliveries count
+  const { data: userDeliveryData } = useQuery<UserDeliveryData | null>({
+    queryKey: ["user-deliveries", user?.id],
+    queryFn: async () => {
+      if (!user) return null;
+      try {
+        const { data, error } = await supabase
+          .from("users")
+          .select("completed_deliveries_count")
+          .eq("id", user.id)
+          .single();
+        
+        if (error) {
+          console.warn("Error fetching completed deliveries:", error);
+          return null;
+        }
+        return (data ?? null) as UserDeliveryData | null;
+      } catch (error) {
+        console.warn("Exception fetching completed deliveries:", error);
+        return null;
       }
-    }, 60000); // Update every minute
+    },
+    enabled: !!user,
+    staleTime: 30 * 1000, // Cache for 30 seconds
+    gcTime: 5 * 60 * 1000, // Keep in cache for 5 minutes
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    retry: false,
+    throwOnError: false,
+  });
 
-    return () => clearInterval(interval);
-  }, []);
+  // Calculate remaining free deliveries
+  const completedDeliveries = userDeliveryData?.completed_deliveries_count ?? 0;
+  const remainingFreeDeliveries = Math.max(0, FREE_DELIVERIES_LIMIT - completedDeliveries);
 
   // Check if dismissed in localStorage or Supabase
   useEffect(() => {
@@ -142,16 +173,14 @@ export function EarlySupporterPromoCard({
     onDismiss?.();
   };
 
-  const actualPlatformFee = PLATFORM_FEE_PERCENT;
-
   // Reduced motion support (must be called before early return)
   const prefersReducedMotion = useMemo(() => {
     if (typeof window === 'undefined') return false;
     return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   }, []);
 
-  // Don't show if dismissed or expired
-  if (isDismissed || !isVisible || daysLeft === 0) {
+  // Don't show if dismissed, no remaining free deliveries, or user not loaded yet
+  if (isDismissed || !isVisible || remainingFreeDeliveries === 0 || (user && completedDeliveries === undefined)) {
     return null;
   }
 
@@ -193,7 +222,7 @@ export function EarlySupporterPromoCard({
             </div>
 
             <p className="text-sm text-slate-700 mb-2 leading-relaxed">
-              {PROMO_COPY.message(actualPlatformFee)}
+              {PROMO_COPY.message(remainingFreeDeliveries)}
             </p>
 
             {/* Countdown */}
@@ -202,7 +231,7 @@ export function EarlySupporterPromoCard({
                 "text-sm font-semibold text-teal-700",
                 !prefersReducedMotion && "animate-[fadeIn_0.5s_ease-in-out]"
               )}>
-                {PROMO_COPY.countdown(daysLeft)}
+                {PROMO_COPY.countdown(remainingFreeDeliveries)}
               </span>
             </div>
 

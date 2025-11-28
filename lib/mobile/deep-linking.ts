@@ -1,9 +1,14 @@
 /**
- * Deep linking handler for Capacitor mobile app
- * Handles authentication callbacks from Supabase magic links
+ * Deep linking handler for Capacitor / mobile app
+ * Handles authentication callbacks from Supabase magic links.
+ *
+ * NOTE:
+ * - We removed the direct import of '@capacitor/app' so that web builds
+ *   (Next.js) don't fail when Capacitor is not installed.
+ * - At runtime on a true Capacitor shell, we rely on `window.Capacitor.App`
+ *   if it exists. In Expo Go / web, this module simply no-ops.
  */
 
-import { App } from "@capacitor/app";
 import { getAppScheme, createMobileClient } from "../supabase/mobile";
 
 /**
@@ -16,7 +21,8 @@ export async function setupDeepLinking() {
   }
 
   // Check if we're in a mobile Capacitor environment
-  const isCapacitor = !!(window as any).Capacitor;
+  const capacitor = (window as any).Capacitor;
+  const isCapacitor = !!capacitor && !!capacitor.App;
   
   if (!isCapacitor) {
     // Not mobile, handle web auth normally
@@ -24,6 +30,8 @@ export async function setupDeepLinking() {
   }
 
   try {
+    const App = capacitor.App;
+
     // Listen for app URL events (deep links)
     App.addListener("appUrlOpen", async (event: { url: string }) => {
       console.log("Deep link received:", event.url);

@@ -224,6 +224,26 @@ export function DeliveryConfirmation({
 
       if (matchError) throw matchError;
 
+      // Automatically apply karma points to the traveler
+      try {
+        const karmaResponse = await fetch("/api/karma/apply", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ matchId }),
+        });
+        
+        if (karmaResponse.ok) {
+          const karmaData = await karmaResponse.json();
+          console.log("Karma points applied:", karmaData.karmaPoints);
+        } else {
+          // Log but don't fail the delivery if karma application fails
+          console.warn("Failed to apply karma points:", await karmaResponse.text());
+        }
+      } catch (karmaError) {
+        // Log but don't fail the delivery if karma application fails
+        console.warn("Error applying karma points:", karmaError);
+      }
+
       // Update request status
       if (match) {
         await supabase

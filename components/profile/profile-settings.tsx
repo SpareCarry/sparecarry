@@ -7,7 +7,7 @@ import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { Switch } from "../ui/switch";
-import { Anchor, Loader2, CheckCircle2 } from "lucide-react";
+import { Anchor, Loader2, CheckCircle2, Lock, Eye, EyeOff } from "lucide-react";
 import { createClient } from "../../lib/supabase/client";
 import { useUser } from "../../hooks/useUser";
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -26,6 +26,17 @@ export function ProfileSettings() {
   const { user } = useUser();
   const queryClient = useQueryClient();
   const [saving, setSaving] = useState(false);
+  const [passwordSectionOpen, setPasswordSectionOpen] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [showPasswords, setShowPasswords] = useState({
+    new: false,
+    confirm: false,
+    current: false,
+  });
+  const [passwordMessage, setPasswordMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [passwordLoading, setPasswordLoading] = useState(false);
 
   type ProfileSettingsData = {
     is_boater?: boolean;
@@ -112,6 +123,63 @@ export function ProfileSettings() {
     setSaving(true);
     // Get current form values (would need form state management)
     // For now, this is a placeholder
+  };
+
+  const handleSetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPasswordLoading(true);
+    setPasswordMessage(null);
+
+    // Validate passwords
+    if (newPassword.length < 6) {
+      setPasswordMessage({
+        type: "error",
+        text: "Password must be at least 6 characters long",
+      });
+      setPasswordLoading(false);
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      setPasswordMessage({
+        type: "error",
+        text: "Passwords do not match",
+      });
+      setPasswordLoading(false);
+      return;
+    }
+
+    try {
+      // Update user password using Supabase auth
+      // Note: If user doesn't have a password, we can set it directly
+      // If they do have a password, we need the current password (but Supabase doesn't require it for updateUser)
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword,
+      });
+
+      if (error) throw error;
+
+      setPasswordMessage({
+        type: "success",
+        text: "Password set successfully! You can now use password login.",
+      });
+
+      // Clear form
+      setNewPassword("");
+      setConfirmPassword("");
+      setCurrentPassword("");
+      setPasswordSectionOpen(false);
+
+      // Clear message after 5 seconds
+      setTimeout(() => setPasswordMessage(null), 5000);
+    } catch (error: any) {
+      setPasswordMessage({
+        type: "error",
+        text: error.message || "Failed to set password. Please try again.",
+      });
+    } finally {
+      setPasswordLoading(false);
+    }
   };
 
   if (isLoading) {
@@ -238,6 +306,136 @@ export function ProfileSettings() {
               ))}
             </SelectContent>
           </Select>
+        </div>
+
+        {/* Password Management */}
+        <div className="space-y-4 pt-4 border-t">
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <Label className="text-base flex items-center gap-2">
+                <Lock className="h-4 w-4" />
+                Password Login
+              </Label>
+              <p className="text-sm text-slate-500">
+                {passwordSectionOpen 
+                  ? "Set a password to enable password login (in addition to magic link and Google OAuth)"
+                  : "Set a password to enable password login. You can still use magic link or Google OAuth."}
+              </p>
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                setPasswordSectionOpen(!passwordSectionOpen);
+                setPasswordMessage(null);
+                setNewPassword("");
+                setConfirmPassword("");
+                setCurrentPassword("");
+              }}
+            >
+              {passwordSectionOpen ? "Cancel" : "Set Password"}
+            </Button>
+          </div>
+
+          {passwordSectionOpen && (
+            <form onSubmit={handleSetPassword} className="space-y-4 p-4 bg-slate-50 rounded-lg border">
+              <div className="space-y-2">
+                <Label htmlFor="newPassword">New Password</Label>
+                <div className="relative">
+                  <Input
+                    id="newPassword"
+                    type={showPasswords.new ? "text" : "password"}
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="Enter new password (min. 6 characters)"
+                    required
+                    disabled={passwordLoading}
+                    minLength={6}
+                    className="pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPasswords({ ...showPasswords, new: !showPasswords.new })}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700"
+                  >
+                    {showPasswords.new ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="confirmPassword">Confirm Password</Label>
+                <div className="relative">
+                  <Input
+                    id="confirmPassword"
+                    type={showPasswords.confirm ? "text" : "password"}
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="Confirm new password"
+                    required
+                    disabled={passwordLoading}
+                    minLength={6}
+                    className="pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPasswords({ ...showPasswords, confirm: !showPasswords.confirm })}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700"
+                  >
+                    {showPasswords.confirm ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              {passwordMessage && (
+                <div
+                  className={`p-3 rounded-md text-sm ${
+                    passwordMessage.type === "success"
+                      ? "bg-green-50 text-green-800 border border-green-200"
+                      : "bg-red-50 text-red-800 border border-red-200"
+                  }`}
+                >
+                  {passwordMessage.text}
+                </div>
+              )}
+
+              <Button
+                type="submit"
+                className="w-full bg-teal-600 hover:bg-teal-700"
+                disabled={passwordLoading}
+              >
+                {passwordLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Setting password...
+                  </>
+                ) : (
+                  <>
+                    <Lock className="mr-2 h-4 w-4" />
+                    Set Password
+                  </>
+                )}
+              </Button>
+
+              <p className="text-xs text-slate-500">
+                After setting a password, you can log in using:
+                <br />
+                • Password login
+                <br />
+                • Magic link (passwordless)
+                <br />
+                • Google OAuth
+              </p>
+            </form>
+          )}
         </div>
       </CardContent>
     </Card>

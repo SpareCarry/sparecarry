@@ -20,12 +20,15 @@ import { setupComprehensiveMocks } from '../helpers/comprehensive-mocks';
 const openCategoryDropdown = async (page: Page) => {
   const trigger = page.locator('#category').first();
   await trigger.click();
-  await page.waitForTimeout(200);
+  await page.keyboard.press('ArrowDown');
+  await page.waitForTimeout(300);
 };
 
 const selectCategoryOption = async (page: Page, optionName: string | RegExp) => {
   await openCategoryDropdown(page);
-  await page.getByRole('option', { name: optionName }).click();
+  const option = page.getByRole('option', { name: optionName });
+  await expect(option).toBeVisible({ timeout: 5000 });
+  await option.click();
   await page.waitForTimeout(200);
 };
 

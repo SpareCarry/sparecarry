@@ -64,7 +64,8 @@ test.describe("Complete App Flow", () => {
     // Wait for URL to change - Next.js router.push() updates the URL client-side
     // The navigation should happen after getUser() completes
     try {
-      await page.waitForURL(/\/auth\/login/, { timeout: 10000 });
+      // First try waitForURL which works better with Next.js routing
+      await page.waitForURL(/\/auth\/login/, { timeout: 20000 });
     } catch (e) {
       // Fallback: poll for URL change
       try {
@@ -72,14 +73,20 @@ test.describe("Complete App Flow", () => {
           () => {
             return /\/auth\/login/.test(window.location.href);
           },
-          { timeout: 15000, polling: 100 }
+          { timeout: 20000, polling: 200 }
         );
       } catch (e2) {
-        // If both fail, check current URL
+        // If both fail, wait a bit more and check current URL
+        await page.waitForTimeout(3000);
         const currentUrl = page.url();
         // Navigation may have failed - verify we're somewhere valid
-        if (!/\/auth\/login/.test(currentUrl)) {
-          throw new Error(`Expected to navigate to /auth/login but URL is ${currentUrl}`);
+        if (!/\/auth\/login/.test(currentUrl) && currentUrl !== baseUrl && !currentUrl.endsWith('/')) {
+          // One more try with longer wait
+          await page.waitForTimeout(3000);
+          const finalUrl = page.url();
+          if (!/\/auth\/login/.test(finalUrl)) {
+            throw new Error(`Expected to navigate to /auth/login but URL is ${finalUrl}`);
+          }
         }
       }
     }

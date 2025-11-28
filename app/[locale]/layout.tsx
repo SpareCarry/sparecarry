@@ -6,6 +6,9 @@ import { NotificationSetup } from "../../components/notifications/notification-s
 import "../globals.css";
 
 export function generateStaticParams() {
+  // Generate static params for all locales
+  // Note: The [locale]/page.tsx route is excluded from static generation
+  // by using dynamic = 'force-dynamic' to avoid next-intl config issues
   return routing.locales.map((locale) => ({ locale }));
 }
 

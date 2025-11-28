@@ -15,7 +15,6 @@ export default ({ config }: ConfigContext): ExpoConfig => {
   }
 
   return {
-    ...config,
     name: 'SpareCarry',
     slug: 'sparecarry',
     version: '0.1.0',

@@ -10,8 +10,8 @@
  * Respects Early Supporter promo (0% until Feb 18, 2026)
  */
 
-import { PLATFORM_FEE_PERCENT as CONFIG_PLATFORM_FEE } from '../../config/platformFees';
-import { getDaysLeft } from '../../utils/getDaysLeft';
+import { PLATFORM_FEE_PERCENT as CONFIG_PLATFORM_FEE } from '@root-config/platformFees';
+import { getDaysLeft } from '@root-utils/getDaysLeft';
 
 export const PLATFORM_FEE_FLAT = 3.0; // $3 flat fee
 export const PLATFORM_FEE_PERCENT = CONFIG_PLATFORM_FEE; // From config (default 8%)

@@ -1,4 +1,14 @@
 // Add aggressive logging at module level (using console.log for debug info)
+import '../lib/debug-mode'; // Initialize debug mode first
+
+// React resolution diagnostic (temporary)
+try {
+  const reactCheck = require('../debug/checkReact');
+  console.log('React diagnostic loaded:', reactCheck);
+} catch (e) {
+  console.warn('Could not load React diagnostic:', e.message);
+}
+
 console.log('');
 console.log('========================================');
 console.log('📱 APP MODULE LOADING');

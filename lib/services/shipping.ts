@@ -16,7 +16,7 @@ import {
   calculateStripeFee, 
   calculateNetRevenue,
   validatePlatformFeeCoversStripe 
-} from '../../src/constants/shippingFees';
+} from '@root-src/constants/shippingFees';
 import { checkPlaneRestrictions } from '../utils/plane-restrictions';
 import { calculateBoatShippingDistance } from '../utils/distance-calculator';
 

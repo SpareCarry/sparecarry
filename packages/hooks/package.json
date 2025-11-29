@@ -4,15 +4,17 @@
   "private": true,
   "main": "./index.ts",
   "types": "./index.ts",
+  "peerDependencies": {
+    "react": "^18.0.0"
+  },
   "dependencies": {
     "@sparecarry/lib": "workspace:*",
     "@tanstack/react-query": "^5.17.0",
-    "react": "19.1.0",
     "expo-location": "~19.0.7",
     "expo-image-picker": "~17.0.8"
   },
   "devDependencies": {
-    "@types/react": "~19.1.0"
+    "@types/react": "~18.2.0"
   }
 }
 

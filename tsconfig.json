@@ -26,6 +26,30 @@
     "paths": {
       "@/*": [
         "./*"
+      ],
+      "@root-lib": [
+        "./lib"
+      ],
+      "@root-lib/*": [
+        "./lib/*"
+      ],
+      "@root-src": [
+        "./src"
+      ],
+      "@root-src/*": [
+        "./src/*"
+      ],
+      "@root-config": [
+        "./config"
+      ],
+      "@root-config/*": [
+        "./config/*"
+      ],
+      "@root-utils": [
+        "./utils"
+      ],
+      "@root-utils/*": [
+        "./utils/*"
       ]
     }
   },

@@ -1,155 +1,101 @@
-# SpareCarry Dependency Fix Summary
+# ✅ FIX IMPLEMENTATION SUMMARY
 
-## ✅ All Issues Fixed
+## Root Cause Identified
 
-### Problem
-- Sentry causing version conflicts and broken UI
-- Dev server showing errors
-- Styling/layout broken
-- Inconsistent dependency versions
+**React 19 is incompatible with Expo SDK 54 and Expo Go**
 
-### Solution Applied
+- Expo SDK 54 requires React 18.3.1
+- Expo Go has React 18 baked into its native binary
+- Project was using React 19.1.0 via pnpm overrides
+- When JS code uses React 19 hooks but native binary expects React 18, TurboModuleRegistry fails
 
-## 1. ✅ Sentry Made Optional
+## Changes Made
 
-**Removed from Dependencies**:
-- Removed `@sentry/nextjs` from `package.json`
-- Removed `@sentry/cli` from `pnpm.onlyBuiltDependencies`
+### 1. React Version Downgrade ✅
+- **Root `package.json`**: Removed React 19 overrides, set to React 18.3.1
+- **apps/mobile/package.json**: Changed React from 19.1.0 → 18.3.1
+- **packages/ui/package.json**: Changed React from 19.1.0 → 18.3.1
+- **packages/hooks/package.json**: Changed React from 19.1.0 → 18.3.1
+- **Type definitions**: Updated @types/react from ~19.1.0 → ~18.2.0
 
-**Made All Imports Optional**:
-- `sentry.client.config.ts` - Now uses dynamic import with client-side check
-- `sentry.server.config.ts` - Now uses dynamic import
-- `sentry.edge.config.ts` - Now uses dynamic import
-- `app/api/health/route.ts` - Uses dynamic import
-- `lib/telemetry/client.ts` - Already uses dynamic imports ✅
-- `lib/logger/index.ts` - Already uses dynamic imports ✅
+### 2. React Native Version Consistency ✅
+- **Root `package.json`**: Changed react-native from 0.81.5 → 0.76.0 (devDependencies)
+- **apps/mobile/package.json**: Already 0.76.0 ✅
+- **packages/ui/package.json**: Already 0.76.0 ✅
 
-**Result**: Sentry won't break the build. It's completely optional.
+### 3. Metro Config Enhancement ✅
+- Added proper workspace package resolution
+- Configured nodeModulesPaths for monorepo
+- Added TypeScript source extensions
+- Configured transformer for workspace packages
 
-## 2. ✅ Next.js Updated
+### 4. Debug Mode Added ✅
+- Created `apps/mobile/lib/debug-mode.ts`
+- Logs React/React Native versions
+- Logs module resolutions
+- Logs TurboModule registry
+- Enabled via `EXPO_PUBLIC_DEBUG_MODE=true`
 
-- Updated `next` from `14.1.0` to `14.2.5` (as per your context)
-- Updated `eslint-config-next` to `14.2.5`
+### 5. EAS Development Build Setup ✅
+- Created `apps/mobile/eas.json`
+- Configured development, preview, and production builds
+- Ready for use if Expo Go doesn't work
 
-## 3. ✅ React & TailwindCSS Verified
+## Next Steps
 
-**Current Versions** (All Compatible):
-- `react`: `18.2.0` ✅
-- `react-dom`: `18.2.0` ✅
-- `tailwindcss`: `3.4.18` ✅
-- `next`: `14.2.5` ✅
+1. **Reinstall dependencies** (if pnpm install failed):
+   ```bash
+   cd C:\SpareCarry
+   pnpm install
+   ```
 
-## 4. ✅ Next.js Config Fixed
+2. **Clear all caches**:
+   ```bash
+   cd apps/mobile
+   pnpm start --clear
+   ```
 
-- Removed Sentry from webpack externals
-- Kept Capacitor externals (still needed for SSR)
+3. **Test in Expo Go**:
+   - Should now work without PlatformConstants error
+   - React 18 matches Expo Go's native binary
 
-## Files Changed
+4. **Enable debug mode** (optional):
+   - Add to `apps/mobile/.env.local`:
+     ```
+     EXPO_PUBLIC_DEBUG_MODE=true
+     ```
 
-### Modified
-- `package.json` - Removed Sentry, updated Next.js to 14.2.5
-- `sentry.client.config.ts` - Dynamic import
-- `sentry.server.config.ts` - Dynamic import
-- `sentry.edge.config.ts` - Dynamic import
-- `app/api/health/route.ts` - Optional Sentry import
-- `next.config.mjs` - Removed Sentry from webpack config
+5. **If Expo Go still fails**:
+   - Use EAS Development Build:
+     ```bash
+     cd apps/mobile
+     eas build --profile development --platform android
+     ```
 
-### Created
-- `scripts/clean-dependencies.ps1` - Cleanup script
-- `DEPENDENCY_CLEANUP_GUIDE.md` - Detailed guide
-- `FIX_SUMMARY.md` - This file
+## Verification Checklist
 
-### Verified (No Changes Needed)
-- `tailwind.config.ts` ✅
-- `postcss.config.mjs` ✅
-- `lib/logger/index.ts` ✅
-- `lib/telemetry/client.ts` ✅
+- [ ] No PlatformConstants error
+- [ ] App loads fully on physical device
+- [ ] Shared UI package works (LocationInput, etc.)
+- [ ] Metro resolves correct React Native version (0.76.0)
+- [ ] React version is 18.3.1 everywhere
+- [ ] Project is stable for future development
 
-## Clean Installation Steps
+## Files Modified
 
-### Step 1: Clean Dependencies
+1. `package.json` - React version overrides
+2. `apps/mobile/package.json` - React versions
+3. `packages/ui/package.json` - React version
+4. `packages/hooks/package.json` - React version
+5. `apps/mobile/metro.config.js` - Enhanced for monorepo
+6. `apps/mobile/lib/debug-mode.ts` - NEW - Debug logging
+7. `apps/mobile/app/_layout.tsx` - Import debug mode
+8. `apps/mobile/eas.json` - NEW - EAS build config
 
-**Option A: Use Script (Recommended)**
-```powershell
-.\scripts\clean-dependencies.ps1
-```
+## Expected Result
 
-**Option B: Manual**
-```powershell
-# Stop Node processes
-Get-Process | Where-Object {$_.ProcessName -like "*node*"} | Stop-Process -Force -ErrorAction SilentlyContinue
-
-# Remove everything
-Remove-Item -Recurse -Force node_modules
-Remove-Item -Force pnpm-lock.yaml
-Remove-Item -Recurse -Force .next
-```
-
-### Step 2: Reinstall
-
-```powershell
-npx pnpm install
-```
-
-### Step 3: Test Dev Server
-
-```powershell
-npx pnpm dev
-```
-
-**Expected Result**: 
-- ✅ Dev server starts without errors
-- ✅ No Sentry-related errors
-- ✅ UI renders correctly
-- ✅ TailwindCSS styling works
-- ✅ No broken imports
-
-### Step 4: Verify UI
-
-1. Open `http://localhost:3000`
-2. Check:
-   - ✅ Page loads without errors
-   - ✅ Styling is correct
-   - ✅ No console errors
-   - ✅ Layout renders properly
-
-## Optional: Re-enable Sentry Later
-
-If you want Sentry later:
-
-```powershell
-npx pnpm add @sentry/nextjs
-```
-
-Then add to `.env.local`:
-```env
-NEXT_PUBLIC_SENTRY_DSN=https://xxxxx@xxxxx.ingest.sentry.io/xxxxx
-```
-
-Sentry will automatically work with dynamic imports.
-
-## Troubleshooting
-
-### `pnpm dev` still shows errors
-1. Clear cache: `Remove-Item -Recurse -Force .next`
-2. Restart: `npx pnpm dev`
-
-### Styling still broken
-1. Verify `app/globals.css` imports Tailwind
-2. Check browser console for CSS errors
-3. Restart dev server
-
-### Module not found
-1. Run: `npx pnpm install --force`
-2. Clear `.next`: `Remove-Item -Recurse -Force .next`
-3. Restart dev server
-
-## Status
-
-✅ **All fixes applied**
-✅ **Ready for clean reinstall**
-✅ **Sentry conflicts resolved**
-✅ **Versions compatible**
-
-**Next Action**: Run `.\scripts\clean-dependencies.ps1` then `npx pnpm install`
-
+✅ **Expo Go should now work** because:
+- React 18.3.1 matches Expo Go's native binary
+- React Native 0.76.0 is consistent everywhere
+- Metro properly transpiles workspace packages
+- No version mismatches

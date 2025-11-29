@@ -1,31 +1,73 @@
+// apps/mobile/metro.config.js
 const { getDefaultConfig } = require('expo/metro-config');
 const path = require('path');
 
-/** @type {import('metro-config').MetroConfig} */
-const config = getDefaultConfig(__dirname);
+const projectRoot = path.resolve(__dirname);
+const workspaceRoot = path.resolve(projectRoot, '../..');
+const rootNodeModules = path.resolve(workspaceRoot, 'node_modules');
 
-// Ensure Metro treats the mobile app folder as the project root
-config.projectRoot = __dirname;
+const config = getDefaultConfig(projectRoot);
 
-// Allow Metro to watch the monorepo root so it can resolve pnpm hoisted deps
-config.watchFolders = Array.from(
-  new Set([...(config.watchFolders || []), path.resolve(__dirname, '../..')]),
-);
+// Make sure Metro watches the workspace packages and root lib folder
+config.watchFolders = [
+  path.resolve(workspaceRoot, 'packages'),
+  path.resolve(workspaceRoot, 'node_modules'),
+  path.resolve(workspaceRoot, 'lib'), // Watch root lib folder for services
+  path.resolve(workspaceRoot, 'src'), // Watch root src folder (shipping depends on src/constants)
+  path.resolve(workspaceRoot, 'config'), // Watch root config folder
+  path.resolve(workspaceRoot, 'utils'), // Watch root utils folder
+];
 
-// Workspace-aware resolver settings for pnpm + Expo Router
+// Ensure Metro resolves to app node_modules first (avoid duplicate react)
 config.resolver = {
   ...config.resolver,
-  unstable_enablePackageExports: true,
-  unstable_enableSymlinks: true,
-  // Ensure standard source extensions are always enabled
-  sourceExts: Array.from(
-    new Set([...(config.resolver?.sourceExts ?? []), 'js', 'jsx', 'ts', 'tsx']),
-  ),
-  // Allow resolving from app node_modules and workspace root
   nodeModulesPaths: [
-    path.resolve(__dirname, 'node_modules'),
-    path.resolve(__dirname, '../..', 'node_modules'),
+    // Prefer the root node_modules where pnpm actually installs React/RN
+    rootNodeModules,
+    path.resolve(projectRoot, 'node_modules'),
   ],
+  // Force React, React-DOM, and React-Native to resolve from mobile app's node_modules
+  // This prevents multiple React instances in monorepo
+  extraNodeModules: {
+    // Explicitly map React packages to the single root node_modules
+    // With pnpm, this is where the real packages live (symlinked into apps)
+    react: path.join(rootNodeModules, 'react'),
+    'react-dom': path.join(rootNodeModules, 'react-dom'),
+    'react-native': path.join(rootNodeModules, 'react-native'),
+    // Ensure JSX runtime also resolves from the same React instance
+    'react/jsx-runtime': path.join(
+      rootNodeModules,
+      'node_modules',
+      'react',
+      'jsx-runtime.js'
+    ),
+    'react/jsx-dev-runtime': path.join(
+      rootNodeModules,
+      'node_modules',
+      'react',
+      'jsx-dev-runtime.js'
+    ),
+  },
+  // Metro aliases for root-level folders (allows importing from root-level code)
+  alias: {
+    '@root-lib': path.resolve(workspaceRoot, 'lib'),
+    '@root-src': path.resolve(workspaceRoot, 'src'),
+    '@root-config': path.resolve(workspaceRoot, 'config'),
+    '@root-utils': path.resolve(workspaceRoot, 'utils'),
+  },
+  // include cjs extension (helps with some hoisted libs)
+  sourceExts: [...config.resolver.sourceExts, 'cjs', 'ts', 'tsx'],
+};
+
+// Keep transform options
+config.transformer = {
+  ...config.transformer,
+  getTransformOptions: async () => ({
+    transform: {
+      experimentalImportSupport: false,
+      inlineRequires: true,
+    },
+  }),
 };
 
 module.exports = config;

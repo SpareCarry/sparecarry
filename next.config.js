@@ -40,6 +40,14 @@ module.exports = (phase) => {
           level: 'verbose',
         };
       }
+      // Add aliases for root-level folders (matches Metro config for mobile)
+      config.resolve.alias = {
+        ...config.resolve.alias,
+        '@root-lib': require('path').resolve(__dirname, 'lib'),
+        '@root-src': require('path').resolve(__dirname, 'src'),
+        '@root-config': require('path').resolve(__dirname, 'config'),
+        '@root-utils': require('path').resolve(__dirname, 'utils'),
+      };
       return config;
     },
     generateBuildId: async () => {

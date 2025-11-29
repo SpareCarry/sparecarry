@@ -18,11 +18,12 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LocationInput } from '@sparecarry/ui';
+// Import shipping service from root lib using Metro alias
 import {
   calculateShippingEstimate,
   type ShippingEstimateInput,
   getAvailableCouriers,
-} from '../../../../lib/services/shipping';
+} from '@root-lib/services/shipping';
 
 // Simple subscription check - check users table directly
 async function checkSubscriptionStatus(userId: string | undefined): Promise<{ isPremium: boolean }> {

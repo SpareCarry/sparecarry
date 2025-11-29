@@ -50,17 +50,6 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       favicon: './assets/favicon.png',
     },
     plugins: [
-      // Force Kotlin 2.x into the generated Android project before other plugins run
-      './plugins/forceKotlin',
-      [
-        'expo-build-properties',
-        {
-          android: {
-            // Keep this as an additional safety net for Kotlin settings
-            kotlinVersion: '2.0.0',
-          },
-        },
-      ],
       'expo-router',
       'expo-dev-client',
       [

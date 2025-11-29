@@ -4,13 +4,15 @@
   "private": true,
   "main": "./index.ts",
   "types": "./index.ts",
-  "dependencies": {
-    "@sparecarry/hooks": "workspace:*",
-    "react": "19.1.0",
+  "peerDependencies": {
+    "react": "^18.0.0",
     "react-native": "0.76.0"
   },
+  "dependencies": {
+    "@sparecarry/hooks": "workspace:*"
+  },
   "devDependencies": {
-    "@types/react": "~19.1.0"
+    "@types/react": "~18.2.0"
   }
 }
 

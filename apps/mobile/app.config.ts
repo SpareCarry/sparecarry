@@ -1,19 +1,9 @@
 import { ExpoConfig, ConfigContext } from 'expo/config';
 
 export default ({ config }: ConfigContext): ExpoConfig => {
-  // Load environment variables from .env file
-  // Expo automatically loads .env files, but we can also access them here
-  const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
-  const supabaseKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
-
-  // Warn if env vars are missing (but don't fail - let runtime handle it)
-  if (!supabaseUrl || !supabaseKey) {
-    console.warn('⚠️  Missing Supabase environment variables!');
-    console.warn('   Create apps/mobile/.env with:');
-    console.warn('   EXPO_PUBLIC_SUPABASE_URL=your_url');
-    console.warn('   EXPO_PUBLIC_SUPABASE_ANON_KEY=your_key');
-  }
-
+  // Expo automatically loads .env/.env.local/.env.* files.
+  // We don't log missing Supabase env vars here anymore to keep builds quiet;
+  // the runtime code is responsible for handling misconfiguration gracefully.
   return {
     name: 'SpareCarry',
     slug: 'sparecarry',
@@ -28,7 +18,9 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       resizeMode: 'contain',
       backgroundColor: '#14b8a6',
     },
-    assetBundlePatterns: ['**/*'],
+    assetBundlePatterns: [
+      '**/*',
+    ],
     ios: {
       supportsTablet: true,
       bundleIdentifier: 'com.sparecarry.app',
@@ -59,6 +51,16 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     },
     plugins: [
       'expo-router',
+      'expo-dev-client',
+      [
+        'expo-build-properties',
+        {
+          android: {
+            // expo-root-project / KSP expect Kotlin 2.x; 2.0.0 is a safe baseline
+            kotlinVersion: '2.0.0',
+          },
+        },
+      ],
       [
         'expo-location',
         {
@@ -76,16 +78,8 @@ export default ({ config }: ConfigContext): ExpoConfig => {
         {
           icon: './assets/icon.png',
           color: '#14b8a6',
-          // Sounds are optional - comment out if files don't exist
-          // sounds: [
-          //   './assets/sounds/boat-horn.wav',
-          //   './assets/sounds/airplane-ding.wav',
-          //   './assets/sounds/foghorn.wav',
-          // ],
         },
       ],
-      'expo-secure-store',
-      'expo-font',
     ],
     scheme: 'sparecarry',
     extra: {
@@ -93,7 +87,8 @@ export default ({ config }: ConfigContext): ExpoConfig => {
         origin: false,
       },
       eas: {
-        projectId: process.env.EAS_PROJECT_ID || 'your-project-id',
+        // Must match the project.id in eas.json for EAS builds to work
+        projectId: '252620b4-c84e-4dd5-9d76-31bfd5e22854',
       },
     },
   };

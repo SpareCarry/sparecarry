@@ -4,26 +4,49 @@ React Native mobile app built with Expo.
 
 ## Quick Start
 
-### Development (Expo Go)
+### Dev Client (Recommended)
 
 1. **Install dependencies:**
    ```bash
    pnpm install
    ```
 
-2. **Start development server:**
+2. **Build and install Dev Client (one-time per device):**
+   ```bash
+   # Android
+   pnpm build:dev:android
+
+   # iOS (macOS only)
+   pnpm build:dev:ios
+   ```
+
+3. **Start development server (Dev Client):**
+   ```bash
+   pnpm dev:mobile
+   ```
+
+4. **On your phone:**
+   - Open the **Expo Dev Client** installed from the EAS build
+   - Scan the QR code from the terminal or Dev Tools
+   - The app opens in the Dev Client and connects to the dev server
+
+### Legacy: Expo Go (not recommended)
+
+You can still use Expo Go for very basic testing, but some native features (camera, auto-measure, etc.) may be limited or unstable.
+
+1. **Start development server:**
    ```bash
    pnpm start
    ```
 
-3. **On your phone:**
+2. **On your phone:**
    - Install **Expo Go** from App Store/Play Store
    - Scan QR code from terminal
    - App opens in Expo Go
 
-### Development Build (Full Native Features)
+### Development Build (Full Native Features without Dev Client)
 
-For testing camera, sensors, and other native features:
+For testing camera, sensors, and other native features without using a Dev Client:
 
 1. **Prebuild native code:**
    ```bash
@@ -34,7 +57,7 @@ For testing camera, sensors, and other native features:
    ```bash
    # Android
    pnpm android
-   
+
    # iOS (macOS only)
    pnpm ios
    ```

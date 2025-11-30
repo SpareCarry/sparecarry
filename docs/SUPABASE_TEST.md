@@ -5,6 +5,7 @@ This document explains how Supabase is mocked for testing and CI/CD environments
 ## Overview
 
 The SpareCarry application uses a **mock Supabase environment** for:
+
 - Unit and integration tests
 - CI/CD pipelines
 - Local development without Supabase credentials
@@ -56,16 +57,16 @@ The mock Supabase client provides:
 Mock data is stored in memory during test execution:
 
 ```typescript
-import { seedMockData, resetMockDataStore } from '@/lib/supabase/mock';
+import { seedMockData, resetMockDataStore } from "@/lib/supabase/mock";
 
 // Seed data before tests
 beforeEach(() => {
   resetMockDataStore();
-  seedMockData('trips', [
-    { id: 'trip-1', from_location: 'Miami', to_location: 'St. Martin' },
+  seedMockData("trips", [
+    { id: "trip-1", from_location: "Miami", to_location: "St. Martin" },
   ]);
-  seedMockData('requests', [
-    { id: 'req-1', from_location: 'Miami', to_location: 'St. Martin' },
+  seedMockData("requests", [
+    { id: "req-1", from_location: "Miami", to_location: "St. Martin" },
   ]);
 });
 ```
@@ -77,11 +78,11 @@ beforeEach(() => {
 Mocks are automatically set up when running tests:
 
 ```typescript
-import { createClient } from '@/lib/supabase/client';
+import { createClient } from "@/lib/supabase/client";
 
 // This will use the mock in test environment
 const supabase = createClient();
-const { data } = await supabase.from('trips').select('*');
+const { data } = await supabase.from("trips").select("*");
 ```
 
 ### Manual Mocking
@@ -133,7 +134,7 @@ pnpm test
 Reset mock data between tests:
 
 ```typescript
-import { resetMockDataStore } from '@/lib/supabase/mock';
+import { resetMockDataStore } from "@/lib/supabase/mock";
 
 beforeEach(() => {
   resetMockDataStore();
@@ -145,11 +146,11 @@ beforeEach(() => {
 Seed specific data for tests:
 
 ```typescript
-import { seedMockData } from '@/lib/supabase/mock';
+import { seedMockData } from "@/lib/supabase/mock";
 
-seedMockData('users', [
-  { id: 'user-1', email: 'test@example.com' },
-  { id: 'user-2', email: 'test2@example.com' },
+seedMockData("users", [
+  { id: "user-1", email: "test@example.com" },
+  { id: "user-2", email: "test2@example.com" },
 ]);
 ```
 
@@ -181,7 +182,7 @@ Focus on testing business logic, not Supabase internals:
 const result = await calculateMatchScore(params);
 
 // Avoid: Testing Supabase query syntax
-const { data } = await supabase.from('trips').select('*');
+const { data } = await supabase.from("trips").select("*");
 ```
 
 ### 2. Use Real Types
@@ -212,7 +213,9 @@ Mock error scenarios:
 
 ```typescript
 const supabase = createMockSupabaseClient();
-vi.spyOn(supabase.from('trips'), 'select').mockRejectedValue(new Error('Network error'));
+vi.spyOn(supabase.from("trips"), "select").mockRejectedValue(
+  new Error("Network error")
+);
 ```
 
 ## Environment Variables
@@ -267,4 +270,3 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 ---
 
 **Last Updated**: November 20, 2025
-

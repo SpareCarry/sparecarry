@@ -11,7 +11,9 @@
 ## ✅ Working Test Suites
 
 ### Subscription Flow (8/8 passing) ✅
+
 All subscription tests are fully working with the new `setupSubscriptionTest()` helper:
+
 - ✅ should display subscription options on profile page
 - ✅ should show lifetime option with early bird pricing
 - ✅ should create checkout session for monthly subscription
@@ -24,10 +26,12 @@ All subscription tests are fully working with the new `setupSubscriptionTest()` 
 ## ❌ Failing Test Suites
 
 ### 1. Debug Tests (1 failing)
+
 - ❌ `tests/e2e/debug/route-interception.spec.ts`
   - **Status:** Can be deleted (debug/temporary test)
 
 ### 2. Fast Mode Examples (6 failing)
+
 - ❌ should load home page with authenticated user
 - ❌ should display user profile with subscription options
 - ❌ should show subscription options for monthly user
@@ -38,26 +42,31 @@ All subscription tests are fully working with the new `setupSubscriptionTest()` 
   - **Fix:** Update to use test mode bypass
 
 ### 3. Auth Flow (1 failing)
+
 - ❌ `tests/e2e/flows/auth.spec.ts` - should protect home route when not authenticated
   - **Root Cause:** Test expects redirect to login but might be showing login prompt instead
   - **Fix:** Update assertion to check for login prompt OR redirect
 
 ### 4. Multi-User Flow (1 failing)
+
 - ❌ `tests/e2e/flows/fullFlowMultiUser.spec.ts` - complete multi-user interaction flow
   - **Root Cause:** Auth issues with multiple users
   - **Fix:** Update to use `enableTestMode()` for each user
 
 ### 5. Job Posting Flow (1 failing)
+
 - ❌ `tests/e2e/flows/jobs.spec.ts` - should show form fields for posting trip
   - **Root Cause:** Auth or form loading issues
   - **Fix:** Update to use `enableTestMode()`
 
 ### 6. Profile Flow (1 failing)
+
 - ❌ `tests/e2e/flows/profile.spec.ts` - should display user email
   - **Root Cause:** Auth issues
   - **Fix:** Already using `setupUserMocks`, might need `enableTestMode()`
 
 ### 7. Lifetime Tests (7 failing)
+
 - ❌ `test_compat_with_monthly_yearly.spec.ts` (2 tests)
 - ❌ `test_existing_lifetime_user.spec.ts` (2 tests)
 - ❌ `test_lifetime_purchase_flow.spec.ts` (1 test)
@@ -77,4 +86,3 @@ All subscription tests are fully working with the new `setupSubscriptionTest()` 
 - **Subscription tests** are the gold standard - use them as reference
 - **Test mode bypass** is the most reliable approach (vs network mocking)
 - **Dev server restart** needed for `subscription-card.tsx` UI changes to take effect
-

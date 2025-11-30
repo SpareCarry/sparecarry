@@ -34,6 +34,7 @@ NEXT_PUBLIC_AMAZON_AFFILIATE_ID=your_amazon_associate_tag
 ## Address Auto-Fill
 
 The system attempts to auto-fill shipping addresses, but:
+
 - Some retailers don't support URL-based address pre-fill
 - Users may need to manually copy/paste the address
 - The address is displayed in a copyable format for easy use
@@ -41,8 +42,8 @@ The system attempts to auto-fill shipping addresses, but:
 ## Testing
 
 To test affiliate links:
+
 1. Post a request with a retailer selected
 2. Create a match
 3. Check the purchase link button in the chat
 4. Verify affiliate ID is appended to URL
-

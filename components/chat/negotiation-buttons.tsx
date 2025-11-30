@@ -3,7 +3,12 @@
 import { useState } from "react";
 import { Button } from "../ui/button";
 import { Card, CardContent } from "../ui/card";
-import { CheckCircle2, ArrowDownLeft, ArrowUpRight, DollarSign } from "lucide-react";
+import {
+  CheckCircle2,
+  ArrowDownLeft,
+  ArrowUpRight,
+  DollarSign,
+} from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createClient } from "../../lib/supabase/client";
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -88,7 +93,7 @@ export function NegotiationButtons({
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["match", matchId] });
       queryClient.invalidateQueries({ queryKey: ["conversation", matchId] });
-      
+
       // Trigger payment flow if requester accepted
       if (isRequester && onAccept) {
         onAccept();
@@ -172,23 +177,23 @@ export function NegotiationButtons({
   };
 
   return (
-    <Card className="border-teal-200 bg-gradient-to-r from-teal-50 to-blue-50 my-4">
+    <Card className="my-4 border-teal-200 bg-gradient-to-r from-teal-50 to-blue-50">
       <CardContent className="p-4">
-        <div className="flex items-center gap-2 mb-3">
+        <div className="mb-3 flex items-center gap-2">
           <DollarSign className="h-5 w-5 text-teal-600" />
           <span className="font-semibold text-slate-900">
             Price Proposed: ${proposedAmount.toFixed(0)}
           </span>
         </div>
 
-        <div className="grid grid-cols-3 gap-2 mb-3">
+        <div className="mb-3 grid grid-cols-3 gap-2">
           {/* Accept Button */}
           <Button
             onClick={handleAccept}
             disabled={loading !== null}
-            className="bg-green-600 hover:bg-green-700 text-white h-14 text-base font-semibold"
+            className="h-14 bg-green-600 text-base font-semibold text-white hover:bg-green-700"
           >
-            <CheckCircle2 className="h-5 w-5 mr-2" />
+            <CheckCircle2 className="mr-2 h-5 w-5" />
             Accept ${proposedAmount.toFixed(0)}
           </Button>
 
@@ -197,9 +202,9 @@ export function NegotiationButtons({
             onClick={() => handleCounter(counterLower)}
             disabled={loading !== null}
             variant="outline"
-            className="border-slate-300 hover:bg-slate-50 h-14 text-base font-semibold"
+            className="h-14 border-slate-300 text-base font-semibold hover:bg-slate-50"
           >
-            <ArrowDownLeft className="h-5 w-5 mr-2" />
+            <ArrowDownLeft className="mr-2 h-5 w-5" />
             Counter ${counterLower.toFixed(0)}
           </Button>
 
@@ -208,14 +213,14 @@ export function NegotiationButtons({
             onClick={() => handleCounter(counterHigher)}
             disabled={loading !== null}
             variant="outline"
-            className="border-slate-300 hover:bg-slate-50 h-14 text-base font-semibold"
+            className="h-14 border-slate-300 text-base font-semibold hover:bg-slate-50"
           >
-            <ArrowUpRight className="h-5 w-5 mr-2" />
+            <ArrowUpRight className="mr-2 h-5 w-5" />
             Counter ${counterHigher.toFixed(0)}
           </Button>
         </div>
 
-        <p className="text-xs text-slate-500 text-center">
+        <p className="text-center text-xs text-slate-500">
           {isRequester
             ? "Accept to proceed to payment"
             : "Accept to confirm the deal"}
@@ -224,4 +229,3 @@ export function NegotiationButtons({
     </Card>
   );
 }
-

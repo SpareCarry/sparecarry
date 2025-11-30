@@ -114,18 +114,18 @@ After running each migration, verify it worked:
 Run this query in SQL Editor to see which tables exist:
 
 ```sql
-SELECT table_name 
-FROM information_schema.tables 
-WHERE table_schema = 'public' 
+SELECT table_name
+FROM information_schema.tables
+WHERE table_schema = 'public'
 ORDER BY table_name;
 ```
 
 Run this to see which columns exist in a specific table:
 
 ```sql
-SELECT column_name, data_type 
-FROM information_schema.columns 
-WHERE table_schema = 'public' 
+SELECT column_name, data_type
+FROM information_schema.columns
+WHERE table_schema = 'public'
 AND table_name = 'users'  -- Change 'users' to any table name
 ORDER BY ordinal_position;
 ```
@@ -168,4 +168,3 @@ If you continue to have issues:
 ---
 
 **Last Updated**: 2024-12-19
-

@@ -10,5 +10,3 @@ export function createServiceRoleClient() {
 
   return createClient(supabaseUrl, serviceRoleKey);
 }
-
-

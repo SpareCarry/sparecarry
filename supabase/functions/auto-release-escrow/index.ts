@@ -83,25 +83,28 @@ serve(async (req) => {
           // Get full match details including request
           const { data: fullMatch } = await supabase
             .from("matches")
-            .select(`
+            .select(
+              `
               id,
               request_id,
               reward_amount,
               platform_fee_percent,
               trips!inner(user_id),
               requests!inner(weight_kg)
-            `)
+            `
+            )
             .eq("id", match.id)
             .single();
 
           if (fullMatch) {
             const request = (fullMatch as any).requests;
             const trip = (fullMatch as any).trips;
-            
+
             if (request && request.weight_kg && request.weight_kg > 0 && trip) {
               // Calculate platform fee in USD
               const platformFeePercent = fullMatch.platform_fee_percent || 0;
-              const platformFee = (fullMatch.reward_amount * platformFeePercent) / 100;
+              const platformFee =
+                (fullMatch.reward_amount * platformFeePercent) / 100;
 
               // Calculate karma points: (weight * 10) + (platformFee * 2)
               const weightPoints = request.weight_kg * 10;
@@ -125,13 +128,18 @@ serve(async (req) => {
                   .update({ karma_points: newKarma })
                   .eq("id", trip.user_id);
 
-                console.log(`Applied ${karmaPoints} karma points to traveler ${trip.user_id} (total: ${newKarma})`);
+                console.log(
+                  `Applied ${karmaPoints} karma points to traveler ${trip.user_id} (total: ${newKarma})`
+                );
               }
             }
           }
         } catch (karmaError) {
           // Log but don't fail the escrow release if karma application fails
-          console.warn(`Error applying karma points for match ${match.id}:`, karmaError);
+          console.warn(
+            `Error applying karma points for match ${match.id}:`,
+            karmaError
+          );
         }
 
         results.push({
@@ -162,7 +170,9 @@ serve(async (req) => {
     );
   } catch (error: any) {
     return new Response(
-      JSON.stringify({ error: error.message || "Failed to auto-release escrow" }),
+      JSON.stringify({
+        error: error.message || "Failed to auto-release escrow",
+      }),
       {
         headers: { "Content-Type": "application/json" },
         status: 500,
@@ -170,4 +180,3 @@ serve(async (req) => {
     );
   }
 });
-

@@ -23,16 +23,19 @@
 ### ✅ Currently Used & Setup Status
 
 #### 1. Supabase
+
 **Status**: ✅ Required  
 **Purpose**: Database, authentication, storage
 
 **Setup Steps**:
+
 1. Create account at [supabase.com](https://supabase.com)
 2. Create new project
 3. Get project URL and anon key from Settings → API
 4. Get service role key from Settings → API (keep secret!)
 
 **Environment Variables**:
+
 ```env
 NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
@@ -40,6 +43,7 @@ SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
 ```
 
 **Configuration**:
+
 - ✅ Run `supabase/schema.sql` in SQL Editor
 - ✅ Run `supabase/storage-setup.sql` for storage buckets
 - ✅ Enable Row Level Security (RLS) on all tables
@@ -50,10 +54,12 @@ SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
 ---
 
 #### 2. Stripe
+
 **Status**: ✅ Required  
 **Purpose**: Payments, subscriptions, Connect
 
 **Setup Steps**:
+
 1. Create account at [stripe.com](https://stripe.com)
 2. Get API keys from Dashboard → Developers → API keys
 3. Create products and prices for subscriptions:
@@ -64,6 +70,7 @@ SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
 5. Get webhook signing secret
 
 **Environment Variables**:
+
 ```env
 STRIPE_SECRET_KEY=sk_test_... (or sk_live_...)
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_... (or pk_live_...)
@@ -74,6 +81,7 @@ STRIPE_SUPPORTER_PRICE_ID=price_...
 ```
 
 **Configuration**:
+
 - ✅ Enable Stripe Connect (for traveler payouts)
 - ✅ Enable Stripe Identity (for KYC verification)
 - ✅ Configure webhook events:
@@ -88,20 +96,24 @@ STRIPE_SUPPORTER_PRICE_ID=price_...
 ---
 
 #### 3. Geoapify API
+
 **Status**: ✅ Required  
 **Purpose**: Location autocomplete and geocoding
 
 **Setup Steps**:
+
 1. Create account at [geoapify.com](https://geoapify.com)
 2. Get API key from dashboard
 3. Choose plan (Free tier: 3,000 requests/day)
 
 **Environment Variables**:
+
 ```env
 NEXT_PUBLIC_GEOAPIFY_KEY=your_geoapify_key
 ```
 
 **Configuration**:
+
 - ✅ Service integrated in `lib/services/location.ts`
 - ✅ Caching enabled (24-hour TTL)
 - ✅ Debouncing enabled (300ms delay)
@@ -111,10 +123,12 @@ NEXT_PUBLIC_GEOAPIFY_KEY=your_geoapify_key
 ---
 
 #### 4. Google Maps API
+
 **Status**: ⚠️ Optional (Recommended)  
 **Purpose**: Interactive maps, distance calculations
 
 **Setup Steps**:
+
 1. Create account at [Google Cloud Console](https://console.cloud.google.com)
 2. Enable Maps JavaScript API
 3. Enable Places API
@@ -122,11 +136,13 @@ NEXT_PUBLIC_GEOAPIFY_KEY=your_geoapify_key
 5. Create API key and restrict to your domain
 
 **Environment Variables**:
+
 ```env
 NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=your_google_maps_key
 ```
 
 **Configuration**:
+
 - ✅ Used in `LocationDraggablePicker.tsx`
 - ✅ Used in `LocationMapPreview.tsx`
 - ✅ Used for distance calculations
@@ -136,21 +152,25 @@ NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=your_google_maps_key
 ---
 
 #### 5. Resend
+
 **Status**: ⚠️ Optional (Recommended)  
 **Purpose**: Transactional email
 
 **Setup Steps**:
+
 1. Create account at [resend.com](https://resend.com)
 2. Get API key from dashboard
 3. Verify domain (for production)
 
 **Environment Variables**:
+
 ```env
 RESEND_API_KEY=re_...
 NOTIFICATIONS_EMAIL_FROM=SpareCarry <notifications@sparecarry.com>
 ```
 
 **Configuration**:
+
 - ✅ Email templates ready
 - ✅ Welcome emails
 - ✅ Match notifications
@@ -161,21 +181,25 @@ NOTIFICATIONS_EMAIL_FROM=SpareCarry <notifications@sparecarry.com>
 ---
 
 #### 6. Expo Push Notifications
+
 **Status**: ⚠️ Optional (For Mobile)  
 **Purpose**: Mobile push notifications
 
 **Setup Steps**:
+
 1. Create account at [expo.dev](https://expo.dev)
 2. Get access token
 3. Configure push notification certificates (iOS/Android)
 
 **Environment Variables**:
+
 ```env
 EXPO_ACCESS_TOKEN=your_expo_token
 FCM_SERVER_KEY=your_fcm_key (Android)
 ```
 
 **Configuration**:
+
 - ✅ Capacitor push notifications plugin installed
 - ✅ Database field: `profiles.expo_push_token`
 
@@ -184,20 +208,24 @@ FCM_SERVER_KEY=your_fcm_key (Android)
 ---
 
 #### 7. Google Analytics
+
 **Status**: ⚠️ Optional (Recommended)  
 **Purpose**: Web analytics
 
 **Setup Steps**:
+
 1. Create account at [analytics.google.com](https://analytics.google.com)
 2. Create property for your domain
 3. Get Measurement ID (G-XXXXXXX)
 
 **Environment Variables**:
+
 ```env
 NEXT_PUBLIC_GA_MEASUREMENT_ID=G-XXXXXXX
 ```
 
 **Configuration**:
+
 - ✅ Analytics tracking in `lib/analytics/tracking.ts`
 - ✅ Events tracked: post_created, message_sent, etc.
 
@@ -206,14 +234,17 @@ NEXT_PUBLIC_GA_MEASUREMENT_ID=G-XXXXXXX
 ---
 
 #### 8. Meta Pixel
+
 **Status**: ⚠️ Optional  
 **Purpose**: Facebook/Instagram advertising tracking
 
 **Setup Steps**:
+
 1. Create pixel in Facebook Business Manager
 2. Get Pixel ID
 
 **Environment Variables**:
+
 ```env
 NEXT_PUBLIC_META_PIXEL_ID=your_pixel_id
 ```
@@ -223,19 +254,23 @@ NEXT_PUBLIC_META_PIXEL_ID=your_pixel_id
 ---
 
 #### 9. Sentry
+
 **Status**: ⚠️ Optional (Recommended)  
 **Purpose**: Error tracking and monitoring
 
 **Setup Steps**:
+
 1. Create account at [sentry.io](https://sentry.io)
 2. Create project for Next.js
 3. Get DSN
 
 **Configuration**:
+
 - ✅ Package installed: `@sentry/nextjs`
 - ✅ Configuration in `sentry.client.config.ts` and `sentry.server.config.ts`
 
 **Environment Variables**:
+
 ```env
 NEXT_PUBLIC_SENTRY_DSN=your_sentry_dsn
 SENTRY_AUTH_TOKEN=your_auth_token
@@ -248,12 +283,14 @@ SENTRY_AUTH_TOKEN=your_auth_token
 ### ❌ Missing Accounts/APIs
 
 #### 1. Allianz Travel Insurance API
+
 **Status**: ❌ Missing  
 **Purpose**: Insurance integration for cargo coverage
 
 **Required For**: Insurance feature (currently placeholder)
 
 **Setup Steps**:
+
 1. Contact Allianz for API access
 2. Get API credentials
 3. Integrate quote generation endpoint
@@ -261,6 +298,7 @@ SENTRY_AUTH_TOKEN=your_auth_token
 5. Integrate claims submission endpoint
 
 **Environment Variables** (when available):
+
 ```env
 ALLIANZ_API_KEY=your_allianz_key
 ALLIANZ_API_URL=https://api.allianz.com
@@ -271,17 +309,20 @@ ALLIANZ_API_URL=https://api.allianz.com
 ---
 
 #### 2. Courier Rate APIs
+
 **Status**: ⚠️ Partial  
 **Purpose**: Real-time courier rate calculations
 
 **Current**: Placeholder calculations in `lib/services/shipping.ts`
 
 **Required APIs**:
+
 - DHL API
 - FedEx API
 - UPS API
 
 **Setup Steps**:
+
 1. Create accounts with each courier
 2. Get API credentials
 3. Integrate rate calculation endpoints
@@ -292,15 +333,18 @@ ALLIANZ_API_URL=https://api.allianz.com
 ---
 
 #### 3. Unleash Feature Flags
+
 **Status**: ⚠️ Partial  
 **Purpose**: Feature flag management
 
 **Setup Steps**:
+
 1. Create account at [unleash.io](https://www.unleash.io) or self-host
 2. Get API URL and client key
 3. Configure feature flags
 
 **Environment Variables**:
+
 ```env
 NEXT_PUBLIC_UNLEASH_URL=https://your-unleash-instance.com
 NEXT_PUBLIC_UNLEASH_CLIENT_KEY=your_client_key
@@ -318,6 +362,7 @@ NEXT_PUBLIC_UNLEASH_CLIENT_KEY=your_client_key
 **Schema File**: `supabase/schema.sql`
 
 **Core Tables** (15 total):
+
 1. ✅ `users` - User accounts and subscriptions
 2. ✅ `profiles` - Extended user information
 3. ✅ `trips` - Traveler trips
@@ -335,6 +380,7 @@ NEXT_PUBLIC_UNLEASH_CLIENT_KEY=your_client_key
 15. ✅ `lifetime_purchases` - Lifetime Pro purchases
 
 **Setup Steps**:
+
 1. ✅ Run `supabase/schema.sql` in SQL Editor
 2. ✅ Verify all tables created
 3. ✅ Check indexes created
@@ -348,6 +394,7 @@ NEXT_PUBLIC_UNLEASH_CLIENT_KEY=your_client_key
 **Policies File**: Included in `supabase/schema.sql`
 
 **All Tables Have RLS Enabled**:
+
 - ✅ `users` - Users can view/update own data
 - ✅ `profiles` - Public read, private write
 - ✅ `trips` - Public read, private write
@@ -366,6 +413,7 @@ NEXT_PUBLIC_UNLEASH_CLIENT_KEY=your_client_key
 - ✅ `lifetime_purchases` - Authenticated write
 
 **Setup Steps**:
+
 1. ✅ RLS enabled on all tables
 2. ✅ Policies created for SELECT, INSERT, UPDATE, DELETE
 3. ✅ Test policies with different user roles
@@ -377,6 +425,7 @@ NEXT_PUBLIC_UNLEASH_CLIENT_KEY=your_client_key
 **Status**: ✅ Complete
 
 **Functions** (12 total):
+
 1. ✅ `update_updated_at_column()` - Auto-update timestamps
 2. ✅ `handle_new_user()` - Auto-create profile on signup
 3. ✅ `handle_new_match()` - Auto-create conversation on match
@@ -391,6 +440,7 @@ NEXT_PUBLIC_UNLEASH_CLIENT_KEY=your_client_key
 12. ✅ `assign_admin_role()` - Admin role assignment
 
 **Setup Steps**:
+
 1. ✅ All functions created
 2. ✅ Search path set for security
 3. ✅ Permissions granted
@@ -403,11 +453,13 @@ NEXT_PUBLIC_UNLEASH_CLIENT_KEY=your_client_key
 **Status**: ✅ Complete
 
 **Extensions**:
+
 1. ✅ `uuid-ossp` - UUID generation (in `public` schema)
 2. ✅ `cube` - Distance calculations (in `extensions` schema)
 3. ✅ `earthdistance` - Geographic distance (in `extensions` schema)
 
 **Setup Steps**:
+
 1. ✅ Extensions created in correct schemas
 2. ✅ GIST indexes recreated after extension move
 3. ✅ Permissions granted
@@ -420,11 +472,13 @@ NEXT_PUBLIC_UNLEASH_CLIENT_KEY=your_client_key
 **Schema File**: `supabase/storage-setup.sql`
 
 **Buckets**:
+
 1. ✅ `item-photos` - Item photos (public read, authenticated write)
 2. ✅ `avatars` - User avatars (public read, authenticated write)
 3. ✅ `delivery-proof` - Delivery proof photos (private, participants only)
 
 **Setup Steps**:
+
 1. ✅ Run `supabase/storage-setup.sql`
 2. ✅ Verify buckets created
 3. ✅ Check RLS policies on buckets
@@ -438,6 +492,7 @@ NEXT_PUBLIC_UNLEASH_CLIENT_KEY=your_client_key
 **Directory**: `supabase/migrations/`
 
 **Migrations** (18 total):
+
 1. ✅ `001_initial_schema.sql`
 2. ✅ `002_rls_policies.sql`
 3. ✅ `003_seed_data.sql`
@@ -458,6 +513,7 @@ NEXT_PUBLIC_UNLEASH_CLIENT_KEY=your_client_key
 18. ✅ `add-supporter-tier.sql`
 
 **Setup Steps**:
+
 1. ✅ All migrations applied
 2. ✅ Verify no migration errors
 3. ✅ Check database state matches schema
@@ -472,6 +528,7 @@ NEXT_PUBLIC_UNLEASH_CLIENT_KEY=your_client_key
 **File**: `package.json`
 
 **Key Dependencies**:
+
 - ✅ Next.js 14.2.5
 - ✅ React 18.3.1
 - ✅ TypeScript 5.9.3
@@ -483,6 +540,7 @@ NEXT_PUBLIC_UNLEASH_CLIENT_KEY=your_client_key
 - ✅ Capacitor 5.5.0 (mobile)
 
 **Setup Steps**:
+
 1. ✅ Run `pnpm install`
 2. ✅ Verify all dependencies installed
 3. ✅ Check for security vulnerabilities: `pnpm audit`
@@ -494,17 +552,20 @@ NEXT_PUBLIC_UNLEASH_CLIENT_KEY=your_client_key
 **Status**: ✅ Complete
 
 **Testing**:
+
 - ✅ Playwright 1.40.0 (E2E)
 - ✅ Vitest 1.0.4 (Unit)
 - ✅ Testing Library (React, Jest DOM, User Event)
 - ✅ Detox 20.14.0 (Mobile E2E)
 
 **Linting**:
+
 - ✅ ESLint 8.56.0
 - ✅ Prettier 3.2.4
 - ✅ TypeScript ESLint
 
 **Setup Steps**:
+
 1. ✅ All dev dependencies installed
 2. ✅ Run `pnpm lint` to verify
 3. ✅ Run `pnpm typecheck` to verify
@@ -520,6 +581,7 @@ NEXT_PUBLIC_UNLEASH_CLIENT_KEY=your_client_key
 **Test Files**: 13 files
 
 **Coverage**:
+
 - ✅ Karma calculation (`tests/karma.test.ts`)
 - ✅ Shipping fees (`tests/shippingFees.test.ts`)
 - ✅ Stripe fees (`tests/stripeFees.test.ts`)
@@ -529,6 +591,7 @@ NEXT_PUBLIC_UNLEASH_CLIENT_KEY=your_client_key
 - ✅ Match scoring (`tests/unit/lib/matching/match-score.test.ts`)
 
 **Setup Steps**:
+
 1. ✅ Run `pnpm test` to verify
 2. ✅ Check test coverage: `pnpm coverage`
 
@@ -541,6 +604,7 @@ NEXT_PUBLIC_UNLEASH_CLIENT_KEY=your_client_key
 **Test Files**: 6 files
 
 **Coverage**:
+
 - ✅ Subscription flow
 - ✅ Payment flow
 - ✅ Auto-release
@@ -549,6 +613,7 @@ NEXT_PUBLIC_UNLEASH_CLIENT_KEY=your_client_key
 - ✅ Auto-matching
 
 **Setup Steps**:
+
 1. ✅ Run `pnpm test` to verify
 2. ✅ Check integration test results
 
@@ -561,6 +626,7 @@ NEXT_PUBLIC_UNLEASH_CLIENT_KEY=your_client_key
 **Test Files**: 30+ files
 
 **Coverage**:
+
 - ✅ Authentication flow
 - ✅ Subscription flow
 - ✅ Shipping estimator
@@ -575,6 +641,7 @@ NEXT_PUBLIC_UNLEASH_CLIENT_KEY=your_client_key
 - ✅ Lifetime Pro purchases
 
 **Setup Steps**:
+
 1. ✅ Install Playwright: `pnpm playwright:install`
 2. ✅ Run E2E tests: `pnpm test:e2e`
 3. ✅ Verify all tests pass
@@ -589,6 +656,7 @@ NEXT_PUBLIC_UNLEASH_CLIENT_KEY=your_client_key
 **Framework**: Detox
 
 **Setup Steps**:
+
 1. ✅ Detox installed
 2. ⚠️ iOS/Android simulators configured
 3. ⚠️ Run `pnpm e2e:build:ios` or `pnpm e2e:build:android`
@@ -605,6 +673,7 @@ NEXT_PUBLIC_UNLEASH_CLIENT_KEY=your_client_key
 **Status**: ⚠️ Partial
 
 **Requirements**:
+
 - ✅ Capacitor iOS plugin installed
 - ⚠️ Xcode installed (macOS only)
 - ⚠️ Apple Developer account ($99/year)
@@ -612,6 +681,7 @@ NEXT_PUBLIC_UNLEASH_CLIENT_KEY=your_client_key
 - ⚠️ App Store Connect account
 
 **Setup Steps**:
+
 1. ✅ Run `pnpm mobile:build`
 2. ⚠️ Open Xcode: `pnpm capacitor:ios`
 3. ⚠️ Configure signing certificates
@@ -627,6 +697,7 @@ NEXT_PUBLIC_UNLEASH_CLIENT_KEY=your_client_key
 **Status**: ⚠️ Partial
 
 **Requirements**:
+
 - ✅ Capacitor Android plugin installed
 - ⚠️ Android Studio installed
 - ⚠️ Android SDK configured
@@ -634,6 +705,7 @@ NEXT_PUBLIC_UNLEASH_CLIENT_KEY=your_client_key
 - ⚠️ Signing keys configured
 
 **Setup Steps**:
+
 1. ✅ Run `pnpm mobile:build`
 2. ⚠️ Open Android Studio: `pnpm capacitor:android`
 3. ⚠️ Configure signing keys
@@ -651,6 +723,7 @@ NEXT_PUBLIC_UNLEASH_CLIENT_KEY=your_client_key
 **Status**: ⚠️ Required
 
 **Requirements**:
+
 - ⚠️ Domain name (e.g., sparecarry.com)
 - ⚠️ Hosting provider (Vercel, Netlify, AWS, etc.)
 - ⚠️ SSL certificate
@@ -667,6 +740,7 @@ NEXT_PUBLIC_UNLEASH_CLIENT_KEY=your_client_key
 **Status**: ⚠️ Optional (Recommended)
 
 **Options**:
+
 1. Resend (recommended)
 2. SendGrid
 3. Mailgun
@@ -681,6 +755,7 @@ NEXT_PUBLIC_UNLEASH_CLIENT_KEY=your_client_key
 **Status**: ⚠️ Optional (Recommended)
 
 **Tools**:
+
 1. Sentry (error tracking) - ⚠️ Account needed
 2. Google Analytics - ⚠️ Account needed
 3. Meta Pixel - ⚠️ Account needed
@@ -695,6 +770,7 @@ NEXT_PUBLIC_UNLEASH_CLIENT_KEY=your_client_key
 **Status**: ⚠️ Optional (Recommended)
 
 **Options**:
+
 1. GitHub Actions
 2. Vercel (automatic)
 3. CircleCI
@@ -707,6 +783,7 @@ NEXT_PUBLIC_UNLEASH_CLIENT_KEY=your_client_key
 ## Pre-Launch Checklist
 
 ### Backend
+
 - [x] Supabase project created and configured
 - [x] All database tables created
 - [x] RLS policies enabled and tested
@@ -717,6 +794,7 @@ NEXT_PUBLIC_UNLEASH_CLIENT_KEY=your_client_key
 - [ ] Backup strategy configured
 
 ### Frontend
+
 - [x] All dependencies installed
 - [x] Environment variables configured
 - [x] Build succeeds: `pnpm build`
@@ -726,6 +804,7 @@ NEXT_PUBLIC_UNLEASH_CLIENT_KEY=your_client_key
 - [ ] Performance optimized
 
 ### Payments
+
 - [x] Stripe account created
 - [x] Products and prices created
 - [x] Webhook endpoint configured
@@ -734,12 +813,14 @@ NEXT_PUBLIC_UNLEASH_CLIENT_KEY=your_client_key
 - [ ] Webhook signature verified
 
 ### Location Services
+
 - [x] Geoapify API key configured
 - [x] Location service tested
 - [ ] Google Maps API key configured (optional)
 - [ ] Location features tested in production
 
 ### Testing
+
 - [x] Unit tests passing
 - [x] Integration tests passing
 - [x] E2E tests passing
@@ -748,6 +829,7 @@ NEXT_PUBLIC_UNLEASH_CLIENT_KEY=your_client_key
 - [ ] Performance testing
 
 ### Security
+
 - [x] RLS policies enabled
 - [x] Input validation implemented
 - [x] API keys secured
@@ -756,12 +838,14 @@ NEXT_PUBLIC_UNLEASH_CLIENT_KEY=your_client_key
 - [ ] Penetration testing (optional)
 
 ### Monitoring
+
 - [ ] Sentry configured (optional)
 - [ ] Google Analytics configured (optional)
 - [ ] Error logging tested
 - [ ] Performance monitoring active
 
 ### Mobile Apps
+
 - [x] Capacitor configured
 - [ ] iOS app built and tested
 - [ ] Android app built and tested
@@ -769,6 +853,7 @@ NEXT_PUBLIC_UNLEASH_CLIENT_KEY=your_client_key
 - [ ] Play Store submission (Android)
 
 ### Documentation
+
 - [x] README.md complete
 - [x] Setup guide complete
 - [x] API documentation (if needed)
@@ -776,6 +861,7 @@ NEXT_PUBLIC_UNLEASH_CLIENT_KEY=your_client_key
 - [ ] Admin documentation
 
 ### Legal & Compliance
+
 - [ ] Terms of Service
 - [ ] Privacy Policy
 - [ ] GDPR compliance
@@ -819,11 +905,13 @@ pnpm capacitor:android # Open in Android Studio
 ## Support & Resources
 
 **Documentation**:
+
 - `README.md` - Project overview
 - `SETUP.md` - Detailed setup guide
 - `SpareCarry_CompleteAppOverview.md` - Complete app documentation
 
 **Support**:
+
 - Email: support@sparecarry.com
 - GitHub Issues: For bug reports
 - Documentation: See `/docs` directory
@@ -832,4 +920,3 @@ pnpm capacitor:android # Open in Android Studio
 
 **Document Version**: 1.0  
 **Last Updated**: January 2025
-

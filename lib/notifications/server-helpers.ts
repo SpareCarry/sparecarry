@@ -1,6 +1,6 @@
-import type { SupabaseClient } from '@supabase/supabase-js';
+import type { SupabaseClient } from "@supabase/supabase-js";
 
-import type { Database } from '@/types/supabase';
+import type { Database } from "@/types/supabase";
 
 type TypedSupabaseClient = SupabaseClient<Database>;
 
@@ -27,7 +27,7 @@ export async function fetchMatchParticipants(
   matchId: string
 ): Promise<MatchParticipants | null> {
   const { data, error } = await supabase
-    .from('matches')
+    .from("matches")
     .select(
       `
         id,
@@ -35,7 +35,7 @@ export async function fetchMatchParticipants(
         requests ( user_id )
       `
     )
-    .eq('id', matchId)
+    .eq("id", matchId)
     .single<{
       id: string;
       trips: RelationField;
@@ -63,9 +63,9 @@ export async function fetchNotificationProfile(
   push_notifications_enabled: boolean | null;
 } | null> {
   const { data, error } = await supabase
-    .from('profiles')
-    .select('user_id, full_name, expo_push_token, push_notifications_enabled')
-    .eq('user_id', userId)
+    .from("profiles")
+    .select("user_id, full_name, expo_push_token, push_notifications_enabled")
+    .eq("user_id", userId)
     .maybeSingle();
 
   if (error || !data) {
@@ -74,5 +74,3 @@ export async function fetchNotificationProfile(
 
   return data;
 }
-
-

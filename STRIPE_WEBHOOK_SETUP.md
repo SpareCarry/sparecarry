@@ -37,6 +37,7 @@ This will expose your local server at `http://localhost:3000` via the ngrok URL.
 ### Step 2: Select Events to Listen For
 
 Select these events:
+
 - ✅ `checkout.session.completed`
 - ✅ `customer.subscription.created`
 - ✅ `customer.subscription.updated`
@@ -101,6 +102,7 @@ STRIPE_WEBHOOK_SECRET=YOUR_WEBHOOK_SECRET_HERE  # Get this from Stripe Dashboard
 ## Webhook Endpoint
 
 Your webhook endpoint is located at:
+
 - **Path**: `/api/stripe/webhook`
 - **Method**: `POST`
 - **Full URL**: `https://your-ngrok-url.ngrok-free.dev/api/stripe/webhook`
@@ -120,11 +122,13 @@ Any future expiry date and any CVC will work.
 ### Test Webhook Locally
 
 1. Start your dev server:
+
    ```bash
    pnpm dev
    ```
 
 2. Start ngrok (if not already running):
+
    ```bash
    ngrok http 3000
    ```
@@ -140,6 +144,7 @@ Any future expiry date and any CVC will work.
 ## Security Notes
 
 ⚠️ **Important**:
+
 - The webhook secret (`STRIPE_WEBHOOK_SECRET`) is used to verify webhook signatures
 - Never commit webhook secrets to version control
 - Always verify webhook signatures in production
@@ -165,4 +170,3 @@ Any future expiry date and any CVC will work.
 ---
 
 **Last Updated**: 2024-12-19
-

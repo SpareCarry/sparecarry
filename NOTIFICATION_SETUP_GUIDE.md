@@ -103,6 +103,7 @@ You can verify this by running the schema SQL in your Supabase SQL Editor, or ch
    - The token will be automatically registered
 
 2. **Send a test push notification**:
+
    ```bash
    # Using curl
    curl -X POST http://localhost:3000/api/notifications/send-message \
@@ -168,24 +169,28 @@ You can verify this by running the schema SQL in your Supabase SQL Editor, or ch
 ## API Endpoints
 
 ### Register Push Token
+
 ```
 POST /api/notifications/register-token
 Body: { expoPushToken: string, enableNotifications?: boolean }
 ```
 
 ### Send Message Notification
+
 ```
 POST /api/notifications/send-message
 Body: { matchId: string, recipientId: string, senderName?: string, messagePreview?: string }
 ```
 
 ### Send Match Notification
+
 ```
 POST /api/notifications/send-match
 Body: { matchId: string, recipientId: string }
 ```
 
 ### Send Counter Offer Notification
+
 ```
 POST /api/notifications/send-counter-offer
 Body: { matchId: string, recipientId: string, amount: number }
@@ -206,4 +211,3 @@ Once everything is configured:
 - Expo Push Notifications: https://docs.expo.dev/push-notifications/overview/
 - Resend Documentation: https://resend.com/docs
 - Supabase Documentation: https://supabase.com/docs
-

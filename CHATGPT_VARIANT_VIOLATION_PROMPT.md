@@ -3,6 +3,7 @@
 ## CURRENT STATUS
 
 **✅ PROGRESS MADE:**
+
 - ✅ Fixed React version compatibility (19.1.0 → 18.3.1)
 - ✅ Fixed module resolution errors (added Metro aliases)
 - ✅ Bundling now succeeds: "Android Bundled 12163ms apps\mobile\index.js (1673 modules)"
@@ -10,6 +11,7 @@
 - ✅ Metro server starts successfully
 
 **❌ NEW ERROR:**
+
 - **Variant Violation** error at runtime (after successful bundling)
 - Error appears when app tries to load in Expo Go
 - User mentioned they sent a screenshot previously (similar to PlatformConstants error)
@@ -17,12 +19,14 @@
 ## PROJECT CONTEXT
 
 ### Monorepo Structure
+
 - **Package Manager**: pnpm workspaces
 - **Root**: `C:\SpareCarry`
 - **Mobile App**: `apps/mobile` (Expo SDK 54)
 - **Shared Packages**: `packages/ui`, `packages/hooks`, `packages/lib`
 
 ### Current Versions
+
 ```json
 {
   "react": "18.3.1",
@@ -58,6 +62,7 @@
 ## ERROR DETAILS
 
 ### What We Know
+
 - Bundling completes successfully
 - Metro server runs without errors
 - QR code displays correctly
@@ -89,6 +94,7 @@
 ## CURRENT CONFIGURATION
 
 ### apps/mobile/package.json
+
 ```json
 {
   "main": "./index.js",
@@ -106,46 +112,51 @@
 ```
 
 ### apps/mobile/metro.config.js
+
 ```javascript
-const { getDefaultConfig } = require('expo/metro-config');
-const path = require('path');
+const { getDefaultConfig } = require("expo/metro-config");
+const path = require("path");
 
 const projectRoot = path.resolve(__dirname);
-const workspaceRoot = path.resolve(projectRoot, '../..');
+const workspaceRoot = path.resolve(projectRoot, "../..");
 
 const config = getDefaultConfig(projectRoot);
 
 config.watchFolders = [
-  path.resolve(workspaceRoot, 'packages'),
-  path.resolve(workspaceRoot, 'node_modules'),
-  path.resolve(workspaceRoot, 'lib'),
-  path.resolve(workspaceRoot, 'src'),
-  path.resolve(workspaceRoot, 'config'),
-  path.resolve(workspaceRoot, 'utils'),
+  path.resolve(workspaceRoot, "packages"),
+  path.resolve(workspaceRoot, "node_modules"),
+  path.resolve(workspaceRoot, "lib"),
+  path.resolve(workspaceRoot, "src"),
+  path.resolve(workspaceRoot, "config"),
+  path.resolve(workspaceRoot, "utils"),
 ];
 
 config.resolver = {
   ...config.resolver,
   nodeModulesPaths: [
-    path.resolve(projectRoot, 'node_modules'),
-    path.resolve(workspaceRoot, 'node_modules'),
+    path.resolve(projectRoot, "node_modules"),
+    path.resolve(workspaceRoot, "node_modules"),
   ],
-  extraNodeModules: new Proxy({}, {
-    get: (_, name) => path.join(projectRoot, 'node_modules', name)
-  }),
+  extraNodeModules: new Proxy(
+    {},
+    {
+      get: (_, name) => path.join(projectRoot, "node_modules", name),
+    }
+  ),
   alias: {
-    '@root-lib': path.resolve(workspaceRoot, 'lib'),
-    '@root-src': path.resolve(workspaceRoot, 'src'),
-    '@root-config': path.resolve(workspaceRoot, 'config'),
-    '@root-utils': path.resolve(workspaceRoot, 'utils'),
+    "@root-lib": path.resolve(workspaceRoot, "lib"),
+    "@root-src": path.resolve(workspaceRoot, "src"),
+    "@root-config": path.resolve(workspaceRoot, "config"),
+    "@root-utils": path.resolve(workspaceRoot, "utils"),
   },
-  sourceExts: [...config.resolver.sourceExts, 'cjs', 'ts', 'tsx'],
+  sourceExts: [...config.resolver.sourceExts, "cjs", "ts", "tsx"],
 };
 ```
 
 ### Workspace Packages
 
 **packages/ui/package.json:**
+
 ```json
 {
   "peerDependencies": {
@@ -160,6 +171,7 @@ config.resolver = {
 ```
 
 **packages/hooks/package.json:**
+
 ```json
 {
   "peerDependencies": {
@@ -234,4 +246,3 @@ Provide a solution that:
 - Any files using React hooks conditionally
 
 Please provide a comprehensive solution that addresses the variant violation error while maintaining all the fixes we've already applied.
-

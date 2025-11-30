@@ -37,6 +37,7 @@ The Auto-Measure feature allows users to estimate item dimensions (length, width
 ### Integration
 
 The feature is integrated into `components/forms/post-request-form.tsx`:
+
 - Button appears above dimension inputs
 - On mobile: Opens camera screen
 - On web: Shows info message
@@ -62,9 +63,9 @@ The feature is integrated into `components/forms/post-request-form.tsx`:
    - Converts pixel dimensions to real-world using:
      - `real_size = (pixel_size * distance) / focal_length`
    - Estimates height using heuristics:
-     - Vertical objects (aspect ratio > 1.5): height = length * 0.8
-     - Horizontal objects (aspect ratio < 0.7): height = length * 0.3
-     - Square objects: height = min(width, length) * 0.5
+     - Vertical objects (aspect ratio > 1.5): height = length \* 0.8
+     - Horizontal objects (aspect ratio < 0.7): height = length \* 0.3
+     - Square objects: height = min(width, length) \* 0.5
 
 4. **Confidence Calculation**
    - Based on bounding box coverage of frame
@@ -101,6 +102,7 @@ The feature is integrated into `components/forms/post-request-form.tsx`:
 ### Expo Config
 
 Camera permissions are already configured in `apps/mobile/app.json`:
+
 ```json
 {
   "plugins": [
@@ -227,4 +229,3 @@ Camera permissions are already configured in `apps/mobile/app.json`:
 ## Dependencies Added
 
 - `expo-image-manipulator`: ~12.0.0 (mobile app only)
-

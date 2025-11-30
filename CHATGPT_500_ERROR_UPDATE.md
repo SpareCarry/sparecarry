@@ -3,6 +3,7 @@
 ## CURRENT STATUS
 
 **Progress Made:**
+
 - ✅ Fixed React version (19.1.0 → 18.3.1) - PlatformConstants error resolved
 - ✅ Created `apps/mobile/index.js` entry shim
 - ✅ Updated Metro config for monorepo
@@ -10,12 +11,14 @@
 - ✅ Clean reinstall completed
 
 **NEW ERROR:**
+
 - **500 Internal Server Error** on phone when trying to load app
 - **Metro Bundling Error**: `Unable to resolve "../../../../lib/services/shipping"`
 
 ## ERROR DETAILS
 
 ### Metro Bundling Error
+
 ```
 Android Bundling failed 13868ms apps\mobile\index.js (1663 modules)
 
@@ -28,6 +31,7 @@ Unable to resolve "../../../../lib/services/shipping" from "apps\mobile\app\(tab
 ```
 
 ### Expo Version Mismatch Warning
+
 ```
 The following packages should be updated for best compatibility with the installed expo version:
   react@18.3.1 - expected version: 19.1.0
@@ -40,6 +44,7 @@ The following packages should be updated for best compatibility with the install
 ## PROJECT STRUCTURE
 
 ### Monorepo Layout
+
 ```
 C:\SpareCarry\
 ├── apps/
@@ -61,14 +66,17 @@ C:\SpareCarry\
 ### The Problem
 
 **shipping-estimator.tsx** is trying to import from:
+
 ```typescript
 import { ... } from '../../../../lib/services/shipping';
 ```
 
 This relative path goes:
+
 - `apps/mobile/app/(tabs)/` → up 4 levels → `C:\SpareCarry\lib/services/shipping`
 
 **But Metro bundler cannot resolve this** because:
+
 1. The `lib` folder is at the root, outside the mobile app structure
 2. Metro's `watchFolders` may not include the root `lib` folder
 3. Relative paths from deep in app structure are fragile
@@ -76,34 +84,39 @@ This relative path goes:
 ## CURRENT CONFIGURATION
 
 ### apps/mobile/metro.config.js
+
 ```javascript
-const { getDefaultConfig } = require('expo/metro-config');
-const path = require('path');
+const { getDefaultConfig } = require("expo/metro-config");
+const path = require("path");
 
 const projectRoot = path.resolve(__dirname);
-const workspaceRoot = path.resolve(projectRoot, '../..');
+const workspaceRoot = path.resolve(projectRoot, "../..");
 
 const config = getDefaultConfig(projectRoot);
 
 config.watchFolders = [
-  path.resolve(workspaceRoot, 'packages'),
-  path.resolve(workspaceRoot, 'node_modules'),
+  path.resolve(workspaceRoot, "packages"),
+  path.resolve(workspaceRoot, "node_modules"),
 ];
 
 config.resolver = {
   ...config.resolver,
   nodeModulesPaths: [
-    path.resolve(projectRoot, 'node_modules'),
-    path.resolve(workspaceRoot, 'node_modules'),
+    path.resolve(projectRoot, "node_modules"),
+    path.resolve(workspaceRoot, "node_modules"),
   ],
-  extraNodeModules: new Proxy({}, {
-    get: (_, name) => path.join(projectRoot, 'node_modules', name)
-  }),
-  sourceExts: [...config.resolver.sourceExts, 'cjs', 'ts', 'tsx'],
+  extraNodeModules: new Proxy(
+    {},
+    {
+      get: (_, name) => path.join(projectRoot, "node_modules", name),
+    }
+  ),
+  sourceExts: [...config.resolver.sourceExts, "cjs", "ts", "tsx"],
 };
 ```
 
 ### apps/mobile/package.json
+
 ```json
 {
   "main": "./index.js",
@@ -126,6 +139,7 @@ config.resolver = {
 ## THE CORE ISSUE
 
 **The shipping service is in the wrong location for a monorepo:**
+
 - It's in `lib/services/shipping.ts` (root level)
 - It should be in `packages/lib/services/shipping.ts` (workspace package)
 - OR Metro needs to be configured to resolve root `lib` folder properly
@@ -164,8 +178,8 @@ Provide a solution that:
 - `apps/mobile/metro.config.js` - Metro configuration
 
 Please provide the best solution considering:
+
 - Minimal code changes
 - Proper monorepo structure
 - Metro bundler compatibility
 - Fast iteration (avoid breaking other parts of the app)
-

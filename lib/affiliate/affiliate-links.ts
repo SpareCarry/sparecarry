@@ -95,4 +95,3 @@ export function formatShippingAddress(address: ShippingAddress): string {
     address.address_line2 ? `\n${address.address_line2}` : ""
   }\n${address.city}, ${address.state} ${address.postal_code}\n${address.country}`;
 }
-

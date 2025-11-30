@@ -22,16 +22,19 @@ The `FF_STAGING_ONLY` flag allows features to be enabled only in staging environ
 ### 2. Configure Environments
 
 #### Staging Environment
+
 - **Default**: `true` (enabled)
 - **Strategy**: Default (100% enabled)
 
 #### Production Environment
+
 - **Default**: `false` (disabled)
 - **Strategy**: Default (0% enabled)
 
 ### 3. Add Variants (Optional)
 
 If you need multiple variants:
+
 - `control` - Feature disabled
 - `variant-a` - Feature enabled with variant A
 - `variant-b` - Feature enabled with variant B
@@ -45,11 +48,11 @@ import { useFlag } from '@/app/providers/FeatureFlagProvider';
 
 function MyComponent() {
   const stagingOnly = useFlag('FF_STAGING_ONLY', false);
-  
+
   if (stagingOnly) {
     return <StagingOnlyFeature />;
   }
-  
+
   return <StandardFeature />;
 }
 ```
@@ -61,7 +64,7 @@ import { useFeatureFlag } from '@/app/providers/FeatureFlagProvider';
 
 function MyComponent() {
   const flag = useFeatureFlag('FF_STAGING_ONLY');
-  
+
   if (flag?.enabled) {
     switch (flag.variant) {
       case 'variant-a':
@@ -72,7 +75,7 @@ function MyComponent() {
         return <DefaultVariant />;
     }
   }
-  
+
   return <StandardFeature />;
 }
 ```
@@ -80,15 +83,15 @@ function MyComponent() {
 ### Server-Side Usage
 
 ```typescript
-import { isFeatureEnabled } from '@/lib/flags/unleashClient';
+import { isFeatureEnabled } from "@/lib/flags/unleashClient";
 
 export async function GET(request: Request) {
-  const stagingOnly = isFeatureEnabled('FF_STAGING_ONLY', false);
-  
+  const stagingOnly = isFeatureEnabled("FF_STAGING_ONLY", false);
+
   if (stagingOnly) {
     // Staging-only logic
   }
-  
+
   // Standard logic
 }
 ```
@@ -96,6 +99,7 @@ export async function GET(request: Request) {
 ## Gradual Rollout Strategy
 
 ### Phase 1: Staging Only (Week 1)
+
 - **Target**: Staging environment only
 - **Percentage**: 100% in staging, 0% in production
 - **Actions**:
@@ -105,6 +109,7 @@ export async function GET(request: Request) {
   - Collect feedback
 
 ### Phase 2: Internal Testing (Week 2)
+
 - **Target**: Internal testers in staging
 - **Percentage**: 100% in staging
 - **Actions**:
@@ -114,6 +119,7 @@ export async function GET(request: Request) {
   - Fix issues
 
 ### Phase 3: 10% Rollout (Week 3)
+
 - **Target**: 10% of staging users
 - **Strategy**: Gradual rollout
 - **Actions**:
@@ -123,6 +129,7 @@ export async function GET(request: Request) {
   - Check performance metrics
 
 ### Phase 4: 25% Rollout (Week 4)
+
 - **Target**: 25% of staging users
 - **Actions**:
   - Increase to 25%
@@ -131,6 +138,7 @@ export async function GET(request: Request) {
   - Collect feedback
 
 ### Phase 5: 50% Rollout (Week 5)
+
 - **Target**: 50% of staging users
 - **Actions**:
   - Increase to 50%
@@ -139,6 +147,7 @@ export async function GET(request: Request) {
   - Prepare for 100%
 
 ### Phase 6: 100% Rollout (Week 6)
+
 - **Target**: 100% of staging users
 - **Actions**:
   - Enable for all staging users
@@ -147,6 +156,7 @@ export async function GET(request: Request) {
   - Prepare for production
 
 ### Phase 7: Production (After Staging Validation)
+
 - **Target**: Production environment
 - **Actions**:
   - Enable in production (if validated in staging)
@@ -174,6 +184,7 @@ export async function GET(request: Request) {
 ### Alert Rules
 
 Set up alerts for:
+
 - Error rate > 1%
 - API latency > 1s
 - Feature usage drops > 20%
@@ -260,4 +271,3 @@ return <LegacyMatchFlowComponent />;
 - [ ] Plan gradual rollout
 - [ ] Set up monitoring
 - [ ] Document flag usage
-

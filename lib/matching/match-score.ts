@@ -9,14 +9,14 @@ interface MatchScoreParams {
   requestTo: string;
   tripFrom: string;
   tripTo: string;
-  
+
   // Date matching
   requestEarliest: string; // ISO date
   requestLatest: string; // ISO date
   tripStart?: string; // ISO date (for boat trips)
   tripEnd?: string; // ISO date (for boat trips)
   tripDate?: string; // ISO date (for plane trips)
-  
+
   // Capacity matching
   requestWeight: number; // kg
   requestDimensions: { length: number; width: number; height: number }; // cm
@@ -26,14 +26,14 @@ interface MatchScoreParams {
   tripMaxTonnage?: number; // kg (for boats)
   tripSpareCubicMeters?: number; // m³ (for boats)
   tripMaxDimensions?: { length: number; width: number; height: number }; // cm
-  
+
   // Trust level
   travelerVerifiedIdentity: boolean;
   travelerVerifiedSailor: boolean;
   travelerRating?: number; // 1-5
   travelerCompletedDeliveries: number;
   travelerSubscribed: boolean;
-  
+
   // Method preference
   requestPreferredMethod?: "plane" | "boat" | "any";
   tripType: "plane" | "boat";
@@ -51,7 +51,9 @@ export interface MatchScoreBreakdown {
   trustLevel: "excellent" | "good" | "fair" | "new";
 }
 
-export function calculateMatchScore(params: MatchScoreParams): MatchScoreBreakdown {
+export function calculateMatchScore(
+  params: MatchScoreParams
+): MatchScoreBreakdown {
   // 1. Route Score (0-40 points)
   const routeScore = calculateRouteScore(
     params.requestFrom,
@@ -91,7 +93,8 @@ export function calculateMatchScore(params: MatchScoreParams): MatchScoreBreakdo
     params.travelerSubscribed
   );
 
-  const totalScore = routeScore.score + dateScore.score + capacityScore.score + trustScore.score;
+  const totalScore =
+    routeScore.score + dateScore.score + capacityScore.score + trustScore.score;
 
   return {
     routeScore: routeScore.score,
@@ -113,7 +116,8 @@ function calculateRouteScore(
   tripTo: string
 ): { score: number; match: "exact" | "nearby" | "partial" | "none" } {
   // Normalize locations (lowercase, remove extra spaces)
-  const normalize = (loc: string) => loc.toLowerCase().trim().replace(/\s+/g, " ");
+  const normalize = (loc: string) =>
+    loc.toLowerCase().trim().replace(/\s+/g, " ");
   const reqFrom = normalize(requestFrom);
   const reqTo = normalize(requestTo);
   const trFrom = normalize(tripFrom);
@@ -175,7 +179,8 @@ function calculateDateScore(
     const tripEndDate = parseISO(tripEnd);
 
     // Check if there's any overlap
-    const overlapStart = tripStartDate > reqEarliest ? tripStartDate : reqEarliest;
+    const overlapStart =
+      tripStartDate > reqEarliest ? tripStartDate : reqEarliest;
     const overlapEnd = tripEndDate < reqLatest ? tripEndDate : reqLatest;
 
     if (overlapStart <= overlapEnd) {
@@ -241,7 +246,11 @@ function calculateCapacityScore(
 
     const weightFit = requestWeight <= tripMaxTonnage;
     const volumeFit = tripSpareCubicMeters
-      ? (requestDimensions.length * requestDimensions.width * requestDimensions.height) / 1000000 <= tripSpareCubicMeters
+      ? (requestDimensions.length *
+          requestDimensions.width *
+          requestDimensions.height) /
+          1000000 <=
+        tripSpareCubicMeters
       : true;
 
     if (!weightFit || !volumeFit) {
@@ -303,4 +312,3 @@ function calculateTrustScore(
 
   return { score, level };
 }
-

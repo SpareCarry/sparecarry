@@ -1,13 +1,13 @@
 /**
  * Smart Matching Service
- * 
+ *
  * Extends existing match-score.ts with automatic matching suggestions
  * and confidence scoring for trip-request pairs
  */
 
-import { calculateMatchScore, MatchScoreBreakdown } from './match-score';
-import { createClient } from '../supabase/client';
-import type { SupabaseClient } from '@supabase/supabase-js';
+import { calculateMatchScore, MatchScoreBreakdown } from "./match-score";
+import { createClient } from "../supabase/client";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
 export interface MatchCandidate {
   tripId: string;
@@ -15,11 +15,11 @@ export interface MatchCandidate {
   travelerId: string;
   requesterId: string;
   score: number;
-  confidence: 'high' | 'medium' | 'low';
+  confidence: "high" | "medium" | "low";
   breakdown: MatchScoreBreakdown;
-  routeMatch: 'exact' | 'nearby' | 'partial' | 'none';
+  routeMatch: "exact" | "nearby" | "partial" | "none";
   dateOverlap: boolean;
-  capacityMatch: 'fits' | 'no_capacity';
+  capacityMatch: "fits" | "no_capacity";
   travelerReliability: number;
   travelerRating?: number;
 }
@@ -28,7 +28,7 @@ export interface MatchSuggestion {
   candidate: MatchCandidate;
   trip: {
     id: string;
-    type: 'plane' | 'boat';
+    type: "plane" | "boat";
     from_location: string;
     to_location: string;
     departure_date: string;
@@ -68,12 +68,13 @@ type MatchedCandidateRow = {
 /**
  * Find matches for a trip or request
  */
-export async function findMatches(
-  postOrTrip: { type: 'trip' | 'request'; id: string }
-): Promise<MatchSuggestion[]> {
+export async function findMatches(postOrTrip: {
+  type: "trip" | "request";
+  id: string;
+}): Promise<MatchSuggestion[]> {
   const supabase = createClient() as SupabaseClient;
-  
-  if (postOrTrip.type === 'trip') {
+
+  if (postOrTrip.type === "trip") {
     return findMatchesForTrip(postOrTrip.id, supabase);
   } else {
     return findMatchesForRequest(postOrTrip.id, supabase);
@@ -89,9 +90,9 @@ async function findMatchesForTrip(
 ): Promise<MatchSuggestion[]> {
   // Get trip details
   const { data: trip, error: tripError } = await supabase
-    .from('trips')
-    .select('*, users(*)')
-    .eq('id', tripId)
+    .from("trips")
+    .select("*, users(*)")
+    .eq("id", tripId)
     .single();
 
   if (tripError || !trip) {
@@ -102,13 +103,13 @@ async function findMatchesForTrip(
 
   // Get matching requests from materialized view or direct query
   const { data: candidates, error: candidatesError } = await supabase
-    .from('matched_candidates')
-    .select('*')
-    .eq('trip_id', tripId)
-    .eq('route_match', 'exact')
-    .eq('date_overlap', true)
-    .eq('capacity_match', 'fits')
-    .order('reliability_score', { ascending: false })
+    .from("matched_candidates")
+    .select("*")
+    .eq("trip_id", tripId)
+    .eq("route_match", "exact")
+    .eq("date_overlap", true)
+    .eq("capacity_match", "fits")
+    .order("reliability_score", { ascending: false })
     .limit(20);
 
   if (candidatesError || !candidates) {
@@ -118,12 +119,12 @@ async function findMatchesForTrip(
   const candidateRows = candidates as MatchedCandidateRow[];
 
   // Get request details for candidates
-  const requestIds = candidateRows.map(c => c.request_id);
+  const requestIds = candidateRows.map((c) => c.request_id);
   const { data: requests, error: requestsError } = await supabase
-    .from('requests')
-    .select('*, users(*)')
-    .in('id', requestIds)
-    .eq('status', 'open');
+    .from("requests")
+    .select("*, users(*)")
+    .in("id", requestIds)
+    .eq("status", "open");
 
   if (requestsError || !requests) {
     return [];
@@ -133,7 +134,7 @@ async function findMatchesForTrip(
   const suggestions: MatchSuggestion[] = [];
 
   for (const candidate of candidates) {
-    const request = requests.find(r => r.id === candidate.request_id);
+    const request = requests.find((r) => r.id === candidate.request_id);
     if (!request) continue;
 
     const requester = request.users as any;
@@ -169,16 +170,23 @@ async function findMatchesForTrip(
       travelerVerifiedSailor: traveler.verified_sailor_at ? true : false,
       travelerRating: traveler.average_rating,
       travelerCompletedDeliveries: traveler.completed_deliveries_count || 0,
-      travelerSubscribed: traveler.subscription_status === 'active',
-      requestPreferredMethod: request.preferred_method || 'any',
+      travelerSubscribed: traveler.subscription_status === "active",
+      requestPreferredMethod: request.preferred_method || "any",
     });
 
     // Determine confidence level
-    let confidence: 'high' | 'medium' | 'low' = 'low';
-    if (breakdown.totalScore >= 70 && breakdown.routeMatch === 'exact' && candidate.date_overlap) {
-      confidence = 'high';
-    } else if (breakdown.totalScore >= 50 && (breakdown.routeMatch === 'exact' || breakdown.routeMatch === 'nearby')) {
-      confidence = 'medium';
+    let confidence: "high" | "medium" | "low" = "low";
+    if (
+      breakdown.totalScore >= 70 &&
+      breakdown.routeMatch === "exact" &&
+      candidate.date_overlap
+    ) {
+      confidence = "high";
+    } else if (
+      breakdown.totalScore >= 50 &&
+      (breakdown.routeMatch === "exact" || breakdown.routeMatch === "nearby")
+    ) {
+      confidence = "medium";
     }
 
     suggestions.push({
@@ -192,7 +200,7 @@ async function findMatchesForTrip(
         breakdown,
         routeMatch: breakdown.routeMatch,
         dateOverlap: candidate.date_overlap,
-        capacityMatch: candidate.capacity_match as 'fits' | 'no_capacity',
+        capacityMatch: candidate.capacity_match as "fits" | "no_capacity",
         travelerReliability: candidate.reliability_score || 0,
         travelerRating: candidate.average_rating ?? undefined,
       },
@@ -219,7 +227,7 @@ async function findMatchesForTrip(
         reliability_score: candidate.reliability_score || 0,
         average_rating: candidate.average_rating ?? undefined,
         completed_deliveries_count: candidate.completed_deliveries_count || 0,
-        subscription_status: candidate.traveler_premium ? 'active' : undefined,
+        subscription_status: candidate.traveler_premium ? "active" : undefined,
       },
     });
   }
@@ -237,9 +245,9 @@ async function findMatchesForRequest(
 ): Promise<MatchSuggestion[]> {
   // Get request details
   const { data: request, error: requestError } = await supabase
-    .from('requests')
-    .select('*')
-    .eq('id', requestId)
+    .from("requests")
+    .select("*")
+    .eq("id", requestId)
     .single();
 
   if (requestError || !request) {
@@ -248,13 +256,13 @@ async function findMatchesForRequest(
 
   // Get matching trips from materialized view
   const { data: candidates, error: candidatesError } = await supabase
-    .from('matched_candidates')
-    .select('*')
-    .eq('request_id', requestId)
-    .in('route_match', ['exact', 'nearby'])
-    .eq('date_overlap', true)
-    .eq('capacity_match', 'fits')
-    .order('reliability_score', { ascending: false })
+    .from("matched_candidates")
+    .select("*")
+    .eq("request_id", requestId)
+    .in("route_match", ["exact", "nearby"])
+    .eq("date_overlap", true)
+    .eq("capacity_match", "fits")
+    .order("reliability_score", { ascending: false })
     .limit(20);
 
   if (candidatesError || !candidates) {
@@ -264,12 +272,12 @@ async function findMatchesForRequest(
   const candidateRows = candidates as MatchedCandidateRow[];
 
   // Get trip details for candidates
-  const tripIds = candidateRows.map(c => c.trip_id);
+  const tripIds = candidateRows.map((c) => c.trip_id);
   const { data: trips, error: tripsError } = await supabase
-    .from('trips')
-    .select('*, users(*)')
-    .in('id', tripIds)
-    .eq('status', 'active');
+    .from("trips")
+    .select("*, users(*)")
+    .in("id", tripIds)
+    .eq("status", "active");
 
   if (tripsError || !trips) {
     return [];
@@ -279,7 +287,7 @@ async function findMatchesForRequest(
   const suggestions: MatchSuggestion[] = [];
 
   for (const candidate of candidateRows) {
-    const trip = trips.find(t => t.id === candidate.trip_id);
+    const trip = trips.find((t) => t.id === candidate.trip_id);
     if (!trip) continue;
 
     const traveler = trip.users as any;
@@ -315,16 +323,23 @@ async function findMatchesForRequest(
       travelerVerifiedSailor: traveler.verified_sailor_at ? true : false,
       travelerRating: traveler.average_rating,
       travelerCompletedDeliveries: traveler.completed_deliveries_count || 0,
-      travelerSubscribed: traveler.subscription_status === 'active',
-      requestPreferredMethod: request.preferred_method || 'any',
+      travelerSubscribed: traveler.subscription_status === "active",
+      requestPreferredMethod: request.preferred_method || "any",
     });
 
     // Determine confidence level
-    let confidence: 'high' | 'medium' | 'low' = 'low';
-    if (breakdown.totalScore >= 70 && breakdown.routeMatch === 'exact' && candidate.date_overlap) {
-      confidence = 'high';
-    } else if (breakdown.totalScore >= 50 && (breakdown.routeMatch === 'exact' || breakdown.routeMatch === 'nearby')) {
-      confidence = 'medium';
+    let confidence: "high" | "medium" | "low" = "low";
+    if (
+      breakdown.totalScore >= 70 &&
+      breakdown.routeMatch === "exact" &&
+      candidate.date_overlap
+    ) {
+      confidence = "high";
+    } else if (
+      breakdown.totalScore >= 50 &&
+      (breakdown.routeMatch === "exact" || breakdown.routeMatch === "nearby")
+    ) {
+      confidence = "medium";
     }
 
     suggestions.push({
@@ -338,7 +353,7 @@ async function findMatchesForRequest(
         breakdown,
         routeMatch: breakdown.routeMatch,
         dateOverlap: candidate.date_overlap,
-        capacityMatch: candidate.capacity_match as 'fits' | 'no_capacity',
+        capacityMatch: candidate.capacity_match as "fits" | "no_capacity",
         travelerReliability: candidate.reliability_score || 0,
         travelerRating: candidate.average_rating ?? undefined,
       },
@@ -365,7 +380,7 @@ async function findMatchesForRequest(
         reliability_score: candidate.reliability_score || 0,
         average_rating: candidate.average_rating ?? undefined,
         completed_deliveries_count: candidate.completed_deliveries_count || 0,
-        subscription_status: candidate.traveler_premium ? 'active' : undefined,
+        subscription_status: candidate.traveler_premium ? "active" : undefined,
       },
     });
   }
@@ -377,14 +392,15 @@ async function findMatchesForRequest(
 /**
  * Get match confidence label
  */
-export function getConfidenceLabel(confidence: 'high' | 'medium' | 'low'): string {
+export function getConfidenceLabel(
+  confidence: "high" | "medium" | "low"
+): string {
   switch (confidence) {
-    case 'high':
-      return 'High Match';
-    case 'medium':
-      return 'Good Match';
-    case 'low':
-      return 'Possible Match';
+    case "high":
+      return "High Match";
+    case "medium":
+      return "Good Match";
+    case "low":
+      return "Possible Match";
   }
 }
-

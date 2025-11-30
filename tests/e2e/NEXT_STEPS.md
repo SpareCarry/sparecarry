@@ -8,6 +8,7 @@
 ## The Issue
 
 Next.js has cached the old version of `app/home/profile/page.tsx`. The bundle at:
+
 ```
 http://localhost:3000/_next/static/chunks/app/home/profile/page-1057b9e05a6c945f.js
 ```
@@ -25,6 +26,7 @@ npm run dev
 ```
 
 After restarting, the tests should pass because:
+
 1. ✅ Test mode is being set: `[TEST_MODE] ✓ Test mode enabled for: usera@test.sparecarry.com`
 2. ✅ Test user is stored: `[TEST_MODE] ✓ Test user stored`
 3. ✅ Profile page will check for test mode and use the test user
@@ -62,6 +64,7 @@ npx playwright test tests/e2e/subscription-flow.spec.ts --grep "should display s
 ```
 
 You should see:
+
 - `[TEST_MODE] ✓ Test mode enabled for: usera@test.sparecarry.com`
 - `[PROFILE_PAGE] Auth query running...`
 - `[PROFILE_PAGE] Test mode flag: true`
@@ -71,7 +74,7 @@ You should see:
 ## If Still Failing
 
 If the test still fails after restarting:
+
 1. Check console messages for `[PROFILE_PAGE]` logs
 2. If missing, the build still hasn't updated - try clearing `.next` folder
 3. If present but test mode is false, check the test setup in `enableTestMode()`
-

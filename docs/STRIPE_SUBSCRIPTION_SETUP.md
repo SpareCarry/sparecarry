@@ -49,6 +49,7 @@ STRIPE_WEBHOOK_SECRET=whsec_xxxxx    # Webhook signing secret
 ## Testing
 
 Use Stripe test mode:
+
 - Test card: `4242 4242 4242 4242`
 - Any future expiry date
 - Any CVC
@@ -71,6 +72,7 @@ Use Stripe test mode:
 ## Database Schema
 
 The `users` table includes:
+
 - `stripe_customer_id`: Stripe Customer ID
 - `subscription_status`: active, canceled, past_due, trialing, etc.
 - `subscription_current_period_end`: When subscription expires
@@ -87,10 +89,10 @@ The lifetime Pro option is limited to the first 1,000 customers. The API automat
 ## Customer Portal
 
 Users can manage subscriptions via Stripe Customer Portal:
+
 - Cancel subscription
 - Update payment method
 - View billing history
 - Download invoices
 
 Access via `/subscription` page → "Manage Subscription" button.
-

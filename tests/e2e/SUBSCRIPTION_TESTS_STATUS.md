@@ -55,11 +55,11 @@ Replace the old `setupUserMocks + manual page.route` pattern with `setupSubscrip
 ## Key Learning
 
 The `setupSubscriptionTest()` helper provides:
+
 - ✅ Test mode auth bypass
 - ✅ Lifetime availability mocks
 - ✅ Profile data mocks
-- ✅ User data mocks  
+- ✅ User data mocks
 - ✅ Proper data structure for all user types
 
 This is much more reliable than manually mocking each route.
-

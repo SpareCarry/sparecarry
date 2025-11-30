@@ -3,9 +3,11 @@
 ## Issues Fixed
 
 ### 1. Session Cookie Persistence (CRITICAL FIX)
+
 **Problem**: Session cookies were not being properly persisted in the redirect response after successful authentication.
 
 **Fix Applied**:
+
 - Enhanced `setAll` callback in both PKCE and legacy flows to properly set cookie options
 - Ensured session cookies are copied to redirect response with proper options (path, sameSite, secure, httpOnly)
 - Added logging to track cookie persistence
@@ -13,49 +15,61 @@
 **Location**: `app/auth/callback/route.ts` (lines 153-164 and 323-349)
 
 ### 2. Cookie Options Configuration
+
 **Problem**: Cookies might not persist properly if options are not correctly set.
 
 **Fix Applied**:
+
 - Set default cookie options: `path: "/"`, `sameSite: "lax"`, `secure: true` (production), `httpOnly: true`
 - Ensured cookies persist across redirects
 
 ### 3. Redirect Response Cookie Copying
+
 **Problem**: Session cookies from `exchangeCodeForSession` weren't being copied to the redirect response.
 
 **Fix Applied**:
+
 - Properly copy all cookies from the Supabase response to the redirect response
 - Added comprehensive logging to track which cookies are being set
 
 ## Supabase Configuration Checklist
 
 ### 1. Redirect URLs Configuration
+
 In Supabase Dashboard → Authentication → URL Configuration:
 
 **Required Redirect URLs**:
+
 - `http://localhost:3000/auth/callback` (for local development)
 - `https://yourdomain.com/auth/callback` (for production)
 - Include any other domains you're using
 
 **Site URL**:
+
 - Should be set to your production domain: `https://yourdomain.com`
 - Or local: `http://localhost:3000` for development
 
 ### 2. Email Redirect Configuration
-The magic link email will use the `emailRedirectTo` parameter from `signInWithOtp()`. 
+
+The magic link email will use the `emailRedirectTo` parameter from `signInWithOtp()`.
 Current implementation uses: `${window.location.origin}/auth/callback?redirect=${encodeURIComponent(redirectTo)}`
 
 **Verify**:
+
 - The callback URL matches what's in Supabase redirect URLs
 - The URL includes the correct domain and port
 
 ### 3. Environment Variables
+
 **Required**:
+
 ```env
 NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 ```
 
 **Verify**:
+
 - `NEXT_PUBLIC_SUPABASE_URL` is correct and accessible
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY` is correct
 - Both are set in `.env.local` for local development
@@ -83,13 +97,16 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 ## Debugging
 
 ### Check Server Logs
+
 When clicking magic link, check terminal/console for:
+
 - `"Auth callback received:"` - Shows what parameters were received
 - `"Successfully exchanged code for session:"` - Confirms session creation
 - `"Copying cookies to redirect response:"` - Shows which cookies are being set
 - `"Session cookies set via setAll:"` - Confirms cookies were set by Supabase
 
 ### Check Browser
+
 1. Open DevTools → Network tab
 2. Click magic link
 3. Check `/auth/callback` request:

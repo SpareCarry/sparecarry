@@ -28,7 +28,10 @@ import { LithiumWarningModal } from "../modals/lithium-warning-modal";
 import { LocationFieldGroup } from "../location/LocationFieldGroup";
 import { Place } from "../../lib/services/location";
 import { AlertCircle } from "lucide-react";
-import { trackPostCreated, trackLocationSelected } from "../../lib/analytics/tracking";
+import {
+  trackPostCreated,
+  trackLocationSelected,
+} from "../../lib/analytics/tracking";
 
 const planeTripSchema = z.object({
   type: z.literal("plane"),
@@ -47,12 +50,10 @@ const planeTripSchema = z.object({
   max_length_cm: z.number().positive("Length must be positive"),
   max_width_cm: z.number().positive("Width must be positive"),
   max_height_cm: z.number().positive("Height must be positive"),
-  prohibited_items_confirmed: z
-    .boolean()
-    .refine((val) => val === true, {
-      message: "You must confirm that you are not carrying prohibited items",
-      path: ["prohibited_items_confirmed"],
-    }),
+  prohibited_items_confirmed: z.boolean().refine((val) => val === true, {
+    message: "You must confirm that you are not carrying prohibited items",
+    path: ["prohibited_items_confirmed"],
+  }),
 });
 
 const boatTripSchema = z.object({
@@ -67,22 +68,16 @@ const boatTripSchema = z.object({
   arrival_lat: z.number().nullable().optional(),
   arrival_lon: z.number().nullable().optional(),
   arrival_category: z.string().nullable().optional(),
-  spare_kg: z.preprocess(
-    (val) => {
-      if (val === "" || val === null || val === undefined) return undefined;
-      const num = Number(val);
-      return isNaN(num) ? undefined : num;
-    },
-    z.number().positive("Spare capacity must be positive").optional()
-  ),
-  spare_volume_liters: z.preprocess(
-    (val) => {
-      if (val === "" || val === null || val === undefined) return undefined;
-      const num = Number(val);
-      return isNaN(num) ? undefined : num;
-    },
-    z.number().min(0).optional()
-  ),
+  spare_kg: z.preprocess((val) => {
+    if (val === "" || val === null || val === undefined) return undefined;
+    const num = Number(val);
+    return isNaN(num) ? undefined : num;
+  }, z.number().positive("Spare capacity must be positive").optional()),
+  spare_volume_liters: z.preprocess((val) => {
+    if (val === "" || val === null || val === undefined) return undefined;
+    const num = Number(val);
+    return isNaN(num) ? undefined : num;
+  }, z.number().min(0).optional()),
   can_take_outboard: z.boolean().default(false),
   can_take_spar: z.boolean().default(false),
   can_take_dinghy: z.boolean().default(false),
@@ -90,7 +85,10 @@ const boatTripSchema = z.object({
   can_take_hazardous: z.boolean().default(false),
 });
 
-const tripSchema = z.discriminatedUnion("type", [planeTripSchema, boatTripSchema]);
+const tripSchema = z.discriminatedUnion("type", [
+  planeTripSchema,
+  boatTripSchema,
+]);
 
 type TripFormData = z.infer<typeof tripSchema>;
 
@@ -135,12 +133,16 @@ function PortSelect({
           type="button"
           onClick={() => setIsOpen(!isOpen)}
           className={cn(
-            "w-full flex items-center justify-between rounded-md border border-input bg-white px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+            "flex w-full items-center justify-between rounded-md border border-input bg-white px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
             error && "border-red-500"
           )}
         >
-          <span className={cn(selectedPort ? "text-slate-900" : "text-slate-500")}>
-            {selectedPort ? `${selectedPort.name}, ${selectedPort.country}` : placeholder}
+          <span
+            className={cn(selectedPort ? "text-slate-900" : "text-slate-500")}
+          >
+            {selectedPort
+              ? `${selectedPort.name}, ${selectedPort.country}`
+              : placeholder}
           </span>
           <ChevronDown className="h-4 w-4 text-slate-400" />
         </button>
@@ -151,8 +153,8 @@ function PortSelect({
               className="fixed inset-0 z-10"
               onClick={() => setIsOpen(false)}
             />
-            <div className="absolute z-20 w-full mt-1 bg-white border border-slate-200 rounded-md shadow-lg max-h-60 overflow-auto">
-              <div className="sticky top-0 bg-white border-b border-slate-200 p-2">
+            <div className="absolute z-20 mt-1 max-h-60 w-full overflow-auto rounded-md border border-slate-200 bg-white shadow-lg">
+              <div className="sticky top-0 border-b border-slate-200 bg-white p-2">
                 <div className="relative">
                   <Search className="absolute left-2 top-2.5 h-4 w-4 text-slate-400" />
                   <Input
@@ -160,7 +162,7 @@ function PortSelect({
                     placeholder="Search ports..."
                     value={searchQuery}
                     onChange={(e) => handleSearch(e.target.value)}
-                    className="pl-8 bg-white"
+                    className="bg-white pl-8"
                     autoFocus
                   />
                 </div>
@@ -180,11 +182,15 @@ function PortSelect({
                         setIsOpen(false);
                         setSearchQuery("");
                       }}
-                      className="w-full text-left px-3 py-2 text-sm hover:bg-slate-100 rounded-md flex items-center justify-between"
+                      className="flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-sm hover:bg-slate-100"
                     >
                       <div>
-                        <div className="font-medium text-slate-900">{port.name}</div>
-                        <div className="text-xs text-slate-500">{port.country}</div>
+                        <div className="font-medium text-slate-900">
+                          {port.name}
+                        </div>
+                        <div className="text-xs text-slate-500">
+                          {port.country}
+                        </div>
                       </div>
                       {value === port.name && (
                         <Check className="h-4 w-4 text-teal-600" />
@@ -212,7 +218,7 @@ export function PostTripForm() {
   const [pendingLithiumCheck, setPendingLithiumCheck] = useState(false);
   const [departurePlace, setDeparturePlace] = useState<Place | null>(null);
   const [arrivalPlace, setArrivalPlace] = useState<Place | null>(null);
-  
+
   // Location place states for boat trips
   const [boatFromPlace, setBoatFromPlace] = useState<Place | null>(null);
   const [boatToPlace, setBoatToPlace] = useState<Place | null>(null);
@@ -228,7 +234,7 @@ export function PostTripForm() {
     resolver: zodResolver(tripSchema),
     defaultValues: {
       type: "plane",
-    prohibited_items_confirmed: false,
+      prohibited_items_confirmed: false,
     } as TripFormData,
   });
 
@@ -307,9 +313,9 @@ export function PostTripForm() {
 
         if (error) throw error;
         tripData = insertedTrip;
-        
+
         // Track analytics
-        trackPostCreated('trip', false, false);
+        trackPostCreated("trip", false, false);
       } else {
         // Boat trip - use boatFromPlace and boatToPlace for coordinates if available
         const { data: insertedTrip, error } = await supabase
@@ -322,10 +328,12 @@ export function PostTripForm() {
             departure_date: data.eta_window_start, // Use ETA start as departure
             departure_lat: boatFromPlace?.lat || data.departure_lat || null,
             departure_lon: boatFromPlace?.lon || data.departure_lon || null,
-            departure_category: boatFromPlace?.category || data.departure_category || null,
+            departure_category:
+              boatFromPlace?.category || data.departure_category || null,
             arrival_lat: boatToPlace?.lat || data.arrival_lat || null,
             arrival_lon: boatToPlace?.lon || data.arrival_lon || null,
-            arrival_category: boatToPlace?.category || data.arrival_category || null,
+            arrival_category:
+              boatToPlace?.category || data.arrival_category || null,
             eta_window_start: data.eta_window_start,
             eta_window_end: data.eta_window_end,
             spare_kg: data.spare_kg || null,
@@ -342,9 +350,9 @@ export function PostTripForm() {
 
         if (error) throw error;
         tripData = insertedTrip;
-        
+
         // Track analytics
-        trackPostCreated('trip', false, false);
+        trackPostCreated("trip", false, false);
       }
 
       // Trigger auto-matching
@@ -374,26 +382,26 @@ export function PostTripForm() {
   if (!tripType) {
     return (
       <div className="space-y-4">
-        <h3 className="text-lg font-semibold text-slate-900 mb-4">
+        <h3 className="mb-4 text-lg font-semibold text-slate-900">
           How are you traveling?
         </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <Card
-            className="cursor-pointer hover:shadow-lg transition-shadow border-2 border-transparent hover:border-teal-600"
+            className="cursor-pointer border-2 border-transparent transition-shadow hover:border-teal-600 hover:shadow-lg"
             onClick={() => {
               setTripType("plane");
               reset({
                 type: "plane",
-              prohibited_items_confirmed: false,
+                prohibited_items_confirmed: false,
               });
             }}
           >
             <CardContent className="pt-6">
-              <div className="flex flex-col items-center text-center space-y-3">
-                <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center">
+              <div className="flex flex-col items-center space-y-3 text-center">
+                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-blue-100">
                   <Plane className="h-8 w-8 text-blue-600" />
                 </div>
-                <h4 className="font-semibold text-lg">✈ Plane</h4>
+                <h4 className="text-lg font-semibold">✈ Plane</h4>
                 <p className="text-sm text-slate-600">
                   I&apos;m flying and can carry items
                 </p>
@@ -402,7 +410,7 @@ export function PostTripForm() {
           </Card>
 
           <Card
-            className="cursor-pointer hover:shadow-lg transition-shadow border-2 border-transparent hover:border-teal-600"
+            className="cursor-pointer border-2 border-transparent transition-shadow hover:border-teal-600 hover:shadow-lg"
             onClick={() => {
               setTripType("boat");
               const startDate = format(new Date(), "yyyy-MM-dd");
@@ -420,11 +428,11 @@ export function PostTripForm() {
             }}
           >
             <CardContent className="pt-6">
-              <div className="flex flex-col items-center text-center space-y-3">
-                <div className="w-16 h-16 rounded-full bg-teal-100 flex items-center justify-center">
+              <div className="flex flex-col items-center space-y-3 text-center">
+                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-teal-100">
                   <Ship className="h-8 w-8 text-teal-600" />
                 </div>
-                <h4 className="font-semibold text-lg">⚓ Boat</h4>
+                <h4 className="text-lg font-semibold">⚓ Boat</h4>
                 <p className="text-sm text-slate-600">
                   I&apos;m sailing and can carry items
                 </p>
@@ -457,9 +465,11 @@ export function PostTripForm() {
       {tripType === "plane" && (
         <>
           <div className="space-y-4">
-            <div className="flex items-center gap-2 mb-4">
+            <div className="mb-4 flex items-center gap-2">
               <Plane className="h-5 w-5 text-blue-600" />
-              <h3 className="text-lg font-semibold text-slate-900">Plane Trip Details</h3>
+              <h3 className="text-lg font-semibold text-slate-900">
+                Plane Trip Details
+              </h3>
             </div>
 
             {/* Departure Location */}
@@ -484,7 +494,11 @@ export function PostTripForm() {
                 }
               }}
               required
-              error={watchedType === "plane" && "from_location" in errors ? errors.from_location?.message : undefined}
+              error={
+                watchedType === "plane" && "from_location" in errors
+                  ? errors.from_location?.message
+                  : undefined
+              }
               showOnlyMarinas={false}
               showMapPreview={true}
               showCurrentLocation={true}
@@ -513,7 +527,11 @@ export function PostTripForm() {
                 }
               }}
               required
-              error={watchedType === "plane" && "to_location" in errors ? errors.to_location?.message : undefined}
+              error={
+                watchedType === "plane" && "to_location" in errors
+                  ? errors.to_location?.message
+                  : undefined
+              }
               showOnlyMarinas={false}
               showMapPreview={true}
               showCurrentLocation={true}
@@ -530,9 +548,13 @@ export function PostTripForm() {
                 min={format(new Date(), "yyyy-MM-dd")}
                 className="bg-white"
               />
-              {watchedType === "plane" && "departure_date" in errors && errors.departure_date && (
-                <p className="text-sm text-red-600">{errors.departure_date.message}</p>
-              )}
+              {watchedType === "plane" &&
+                "departure_date" in errors &&
+                errors.departure_date && (
+                  <p className="text-sm text-red-600">
+                    {errors.departure_date.message}
+                  </p>
+                )}
             </div>
 
             {/* Arrival Date */}
@@ -542,12 +564,18 @@ export function PostTripForm() {
                 id="arrival_date"
                 type="date"
                 {...register("arrival_date")}
-                min={watch("departure_date") || format(new Date(), "yyyy-MM-dd")}
+                min={
+                  watch("departure_date") || format(new Date(), "yyyy-MM-dd")
+                }
                 className="bg-white"
               />
-              {watchedType === "plane" && "arrival_date" in errors && errors.arrival_date && (
-                <p className="text-sm text-red-600">{errors.arrival_date.message}</p>
-              )}
+              {watchedType === "plane" &&
+                "arrival_date" in errors &&
+                errors.arrival_date && (
+                  <p className="text-sm text-red-600">
+                    {errors.arrival_date.message}
+                  </p>
+                )}
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -564,11 +592,15 @@ export function PostTripForm() {
                 />
                 <p className="text-xs text-slate-500">Max 32kg for carry-on</p>
                 {errors.spare_kg && (
-                  <p className="text-sm text-red-600">{errors.spare_kg.message}</p>
+                  <p className="text-sm text-red-600">
+                    {errors.spare_kg.message}
+                  </p>
                 )}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="spare_volume_liters">Spare Volume (liters)</Label>
+                <Label htmlFor="spare_volume_liters">
+                  Spare Volume (liters)
+                </Label>
                 <Input
                   id="spare_volume_liters"
                   type="number"
@@ -623,25 +655,30 @@ export function PostTripForm() {
               </div>
             </div>
 
-            <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg space-y-3">
+            <div className="space-y-3 rounded-lg border border-amber-200 bg-amber-50 p-4">
               <div className="flex items-start gap-2">
                 <input
                   id="prohibited_items_confirmed"
                   type="checkbox"
                   {...register("prohibited_items_confirmed")}
-                  className="h-4 w-4 rounded border-slate-300 text-teal-600 focus:ring-teal-600 mt-0.5"
+                  className="mt-0.5 h-4 w-4 rounded border-slate-300 text-teal-600 focus:ring-teal-600"
                 />
-                <Label htmlFor="prohibited_items_confirmed" className="cursor-pointer flex-1">
+                <Label
+                  htmlFor="prohibited_items_confirmed"
+                  className="flex-1 cursor-pointer"
+                >
                   <span className="font-medium text-amber-900">
-                    I confirm I am not transporting prohibited items for this route.
+                    I confirm I am not transporting prohibited items for this
+                    route.
                   </span>
                 </Label>
               </div>
               <div className="flex items-start gap-2 text-sm text-amber-800">
-                <AlertCircle className="h-4 w-4 text-amber-600 mt-0.5 flex-shrink-0" />
+                <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0 text-amber-600" />
                 <p>
-                  Airlines and customs agencies enforce strict rules. Double-check your cargo
-                  to avoid seizures, fines, or legal issues.
+                  Airlines and customs agencies enforce strict rules.
+                  Double-check your cargo to avoid seizures, fines, or legal
+                  issues.
                 </p>
               </div>
               {"prohibited_items_confirmed" in errors &&
@@ -651,7 +688,6 @@ export function PostTripForm() {
                   </p>
                 )}
             </div>
-
           </div>
         </>
       )}
@@ -659,12 +695,14 @@ export function PostTripForm() {
       {tripType === "boat" && (
         <>
           <div className="space-y-4">
-            <div className="flex items-center gap-2 mb-4">
+            <div className="mb-4 flex items-center gap-2">
               <Ship className="h-5 w-5 text-teal-600" />
-              <h3 className="text-lg font-semibold text-slate-900">Boat Trip Details</h3>
+              <h3 className="text-lg font-semibold text-slate-900">
+                Boat Trip Details
+              </h3>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <LocationFieldGroup
                 label="From Port"
                 inputId="boat_from_location"
@@ -676,7 +714,11 @@ export function PostTripForm() {
                   trackLocationSelected("autocomplete", "departure");
                 }}
                 required
-                error={watchedType === "boat" && "from_location" in errors ? errors.from_location?.message : undefined}
+                error={
+                  watchedType === "boat" && "from_location" in errors
+                    ? errors.from_location?.message
+                    : undefined
+                }
                 showOnlyMarinas={true}
                 showMapPreview={true}
                 showCurrentLocation={true}
@@ -693,7 +735,11 @@ export function PostTripForm() {
                   trackLocationSelected("autocomplete", "arrival");
                 }}
                 required
-                error={watchedType === "boat" && "to_location" in errors ? errors.to_location?.message : undefined}
+                error={
+                  watchedType === "boat" && "to_location" in errors
+                    ? errors.to_location?.message
+                    : undefined
+                }
                 showOnlyMarinas={true}
                 showMapPreview={true}
                 showCurrentLocation={true}
@@ -701,7 +747,7 @@ export function PostTripForm() {
               />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="eta_window_start">ETA Window Start *</Label>
                 <Input
@@ -711,9 +757,13 @@ export function PostTripForm() {
                   min={format(new Date(), "yyyy-MM-dd")}
                   className="bg-white"
                 />
-                {watchedType === "boat" && "eta_window_start" in errors && errors.eta_window_start && (
-                  <p className="text-sm text-red-600">{errors.eta_window_start.message}</p>
-                )}
+                {watchedType === "boat" &&
+                  "eta_window_start" in errors &&
+                  errors.eta_window_start && (
+                    <p className="text-sm text-red-600">
+                      {errors.eta_window_start.message}
+                    </p>
+                  )}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="eta_window_end">ETA Window End *</Label>
@@ -721,12 +771,19 @@ export function PostTripForm() {
                   id="eta_window_end"
                   type="date"
                   {...register("eta_window_end")}
-                  min={watch("eta_window_start") || format(new Date(), "yyyy-MM-dd")}
+                  min={
+                    watch("eta_window_start") ||
+                    format(new Date(), "yyyy-MM-dd")
+                  }
                   className="bg-white"
                 />
-                {watchedType === "boat" && "eta_window_end" in errors && errors.eta_window_end && (
-                  <p className="text-sm text-red-600">{errors.eta_window_end.message}</p>
-                )}
+                {watchedType === "boat" &&
+                  "eta_window_end" in errors &&
+                  errors.eta_window_end && (
+                    <p className="text-sm text-red-600">
+                      {errors.eta_window_end.message}
+                    </p>
+                  )}
               </div>
             </div>
 
@@ -738,19 +795,23 @@ export function PostTripForm() {
                   type="number"
                   step="0.1"
                   min="0"
-                  {...register("spare_kg", { 
+                  {...register("spare_kg", {
                     valueAsNumber: true,
-                    setValueAs: (v) => v === "" || isNaN(Number(v)) ? undefined : Number(v)
+                    setValueAs: (v) =>
+                      v === "" || isNaN(Number(v)) ? undefined : Number(v),
                   })}
                   className="bg-white"
                 />
-                {Number.isFinite(watch("spare_kg")) && watch("spare_kg")! > 0 && (
-                  <p className="text-xs text-slate-500">
-                    ≈ {Math.round(watch("spare_kg")! * 2.20462)} lbs
-                  </p>
-                )}
+                {Number.isFinite(watch("spare_kg")) &&
+                  watch("spare_kg")! > 0 && (
+                    <p className="text-xs text-slate-500">
+                      ≈ {Math.round(watch("spare_kg")! * 2.20462)} lbs
+                    </p>
+                  )}
                 {errors.spare_kg && (
-                  <p className="text-sm text-red-600">{errors.spare_kg.message}</p>
+                  <p className="text-sm text-red-600">
+                    {errors.spare_kg.message}
+                  </p>
                 )}
               </div>
               <div className="space-y-2">
@@ -760,18 +821,21 @@ export function PostTripForm() {
                   type="number"
                   step="0.1"
                   min="0"
-                  {...register("spare_volume_liters", { 
+                  {...register("spare_volume_liters", {
                     valueAsNumber: true,
-                    setValueAs: (v) => v === "" || isNaN(Number(v)) ? undefined : Number(v)
+                    setValueAs: (v) =>
+                      v === "" || isNaN(Number(v)) ? undefined : Number(v),
                   })}
                   placeholder="m³"
                   className="bg-white"
                 />
-                {Number.isFinite(watch("spare_volume_liters")) && watch("spare_volume_liters")! > 0 && (
-                  <p className="text-xs text-slate-500">
-                    ≈ {watch("spare_volume_liters")!.toFixed(2)} m³ ({Math.round(watch("spare_volume_liters")! * 35.3147)} ft³)
-                  </p>
-                )}
+                {Number.isFinite(watch("spare_volume_liters")) &&
+                  watch("spare_volume_liters")! > 0 && (
+                    <p className="text-xs text-slate-500">
+                      ≈ {watch("spare_volume_liters")!.toFixed(2)} m³ (
+                      {Math.round(watch("spare_volume_liters")! * 35.3147)} ft³)
+                    </p>
+                  )}
               </div>
             </div>
 
@@ -785,7 +849,10 @@ export function PostTripForm() {
                     {...register("can_take_outboard")}
                     className="h-4 w-4 rounded border-slate-300 text-teal-600 focus:ring-teal-600"
                   />
-                  <Label htmlFor="can_take_outboard" className="cursor-pointer text-sm">
+                  <Label
+                    htmlFor="can_take_outboard"
+                    className="cursor-pointer text-sm"
+                  >
                     Outboard motors
                   </Label>
                 </div>
@@ -796,7 +863,10 @@ export function PostTripForm() {
                     {...register("can_take_spar")}
                     className="h-4 w-4 rounded border-slate-300 text-teal-600 focus:ring-teal-600"
                   />
-                  <Label htmlFor="can_take_spar" className="cursor-pointer text-sm">
+                  <Label
+                    htmlFor="can_take_spar"
+                    className="cursor-pointer text-sm"
+                  >
                     Spars/masts
                   </Label>
                 </div>
@@ -807,7 +877,10 @@ export function PostTripForm() {
                     {...register("can_take_dinghy")}
                     className="h-4 w-4 rounded border-slate-300 text-teal-600 focus:ring-teal-600"
                   />
-                  <Label htmlFor="can_take_dinghy" className="cursor-pointer text-sm">
+                  <Label
+                    htmlFor="can_take_dinghy"
+                    className="cursor-pointer text-sm"
+                  >
                     Dinghies
                   </Label>
                 </div>
@@ -818,7 +891,10 @@ export function PostTripForm() {
                     {...register("can_oversize")}
                     className="h-4 w-4 rounded border-slate-300 text-teal-600 focus:ring-teal-600"
                   />
-                  <Label htmlFor="can_oversize" className="cursor-pointer text-sm">
+                  <Label
+                    htmlFor="can_oversize"
+                    className="cursor-pointer text-sm"
+                  >
                     Oversized items
                   </Label>
                 </div>
@@ -829,7 +905,10 @@ export function PostTripForm() {
                     {...register("can_take_hazardous")}
                     className="h-4 w-4 rounded border-slate-300 text-teal-600 focus:ring-teal-600"
                   />
-                  <Label htmlFor="can_take_hazardous" className="cursor-pointer text-sm">
+                  <Label
+                    htmlFor="can_take_hazardous"
+                    className="cursor-pointer text-sm"
+                  >
                     Hazardous materials
                   </Label>
                 </div>
@@ -856,4 +935,3 @@ export function PostTripForm() {
     </form>
   );
 }
-

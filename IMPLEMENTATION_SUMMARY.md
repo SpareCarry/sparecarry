@@ -3,12 +3,14 @@
 ## Completed Features
 
 ### 1. ✅ Post Request ↔ Shipping Estimator Two-Way Link + Auto-Fill
+
 - Added "Get suggested price" link next to reward input in post request form
 - Shipping estimator now accepts query params for pre-filling (from, to, weight, dimensions)
 - Added "Use $XX" and "I'll set my own" buttons on estimator results
 - Clean URL after reading params
 
 ### 2. ✅ Size Selector (4 Tiers with Tooltips)
+
 - Created `SizeTierSelector` component with 4 tiers:
   - Small: Up to 5 kg
   - Medium: 5–15 kg
@@ -19,6 +21,7 @@
 - Perfect tooltips with examples
 
 ### 3. ✅ Yachtie / Digital Nomad Mode
+
 - Added profile settings component with toggle "I live on a boat or I'm a digital nomad"
 - Optional "Boat name" field when toggle is ON
 - Database migration adds `is_boater` and `boat_name` columns
@@ -26,6 +29,7 @@
 - Profile cards show boat_name + Anchor icon under username
 
 ### 4. ✅ Replace Message/Chat Buttons with WhatsApp
+
 - Created `WhatsAppButton` component
 - Replaced Message buttons in `feed-detail-modal.tsx` with WhatsApp
 - URL format: `https://wa.me/${phone}?text=Hi! About your SpareCarry posting – ${title} from ${origin} to ${destination}. Still available?`
@@ -34,12 +38,14 @@
 ## In Progress Features
 
 ### 5. 🔄 Auto Currency Conversion
+
 - Created `lib/utils/currency.ts` with conversion utilities
 - Detects user locale and shows preferred currency first
 - Original currency shown in small gray below
 - Needs integration into payment displays and reward displays
 
 ### 6. 🔄 Auto Imperial Units
+
 - Created `lib/utils/imperial.ts` with conversion utilities
 - Detects en-US locale or user preference
 - Shows lbs + ft/in first, kg/cm in parentheses
@@ -50,12 +56,14 @@
 ## Pending Features
 
 ### 7. ⏳ Instant Push Notifications for Route Matches
+
 - Database migration adds `notify_route_matches` column
 - Profile settings toggle added
 - Needs Supabase edge function for route matching
 - Needs realtime subscription + Capacitor/FCM integration
 
 ### 8. ⏳ Nautical Polish
+
 - Bottom-sheet style modals (needs implementation)
 - Dark mode with deep nautical blue background (needs theme update)
 - 100% shadcn/ui + lucide-react consistency (mostly done)

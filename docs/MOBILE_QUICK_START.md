@@ -3,6 +3,7 @@
 ## ✅ Dependencies Installed
 
 All dependencies are now installed, including:
+
 - `expo-image-manipulator` ✅
 - `expo-file-system` ✅
 - `react-native-view-shot` ✅
@@ -18,6 +19,7 @@ pnpm start
 ```
 
 Then:
+
 1. Install **Expo Go** on your phone
 2. Scan the QR code
 3. App opens in Expo Go
@@ -51,12 +53,14 @@ This gives you full native camera and sensor access.
 ## 🔧 Troubleshooting
 
 ### "expo-image-manipulator not installed"
+
 ```bash
 cd apps/mobile
 pnpm install
 ```
 
 ### App won't start
+
 ```bash
 # Clear cache
 expo start -c
@@ -67,6 +71,7 @@ pnpm install
 ```
 
 ### Prebuild errors
+
 ```bash
 # Create placeholder assets
 node scripts/create-placeholder-assets.js
@@ -79,4 +84,3 @@ pnpm prebuild
 
 - Full guide: `docs/MOBILE_BUILD_AND_TEST.md`
 - Auto-Measure docs: `docs/AUTO_MEASURE_ENHANCED_SUMMARY.md`
-

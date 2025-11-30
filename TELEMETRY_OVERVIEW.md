@@ -5,6 +5,7 @@ This document describes the telemetry and monitoring system for SpareCarry.
 ## Overview
 
 SpareCarry uses a comprehensive telemetry system to track:
+
 - User events (signup, login, matches, etc.)
 - Performance metrics (TTFB, FCP, LCP, etc.)
 - API request latency
@@ -91,23 +92,23 @@ SpareCarry uses a comprehensive telemetry system to track:
 ### Track Event
 
 ```typescript
-import { trackEvent } from '@/lib/telemetry/client';
+import { trackEvent } from "@/lib/telemetry/client";
 
 // Track user signup
-trackEvent('user.signup', {
-  method: 'email',
-  userType: 'traveler',
+trackEvent("user.signup", {
+  method: "email",
+  userType: "traveler",
 });
 
 // Track match creation
-trackEvent('match.created', {
-  matchId: '123',
-  tripId: '456',
-  requestId: '789',
+trackEvent("match.created", {
+  matchId: "123",
+  tripId: "456",
+  requestId: "789",
   rewardAmount: 100,
   route: {
-    from: 'New York',
-    to: 'London',
+    from: "New York",
+    to: "London",
   },
 });
 ```
@@ -115,21 +116,21 @@ trackEvent('match.created', {
 ### Track Performance
 
 ```typescript
-import { captureApiLatency } from '@/lib/telemetry/performance';
+import { captureApiLatency } from "@/lib/telemetry/performance";
 
 // Track API latency
 captureApiLatency(
-  '/api/matches/create',
-  'POST',
+  "/api/matches/create",
+  "POST",
   150, // duration in ms
-  200, // status code
+  200 // status code
 );
 ```
 
 ### Set User Context
 
 ```typescript
-import { setTelemetryUser } from '@/lib/telemetry/client';
+import { setTelemetryUser } from "@/lib/telemetry/client";
 
 // Set user context
 setTelemetryUser(userId, email);
@@ -161,6 +162,7 @@ clearTelemetryUser();
 ### Error Tracking
 
 Errors are automatically captured by:
+
 - React Error Boundary
 - API error handlers
 - Unhandled promise rejections
@@ -169,6 +171,7 @@ Errors are automatically captured by:
 ### Performance Monitoring
 
 Sentry tracks:
+
 - Page load performance
 - API request performance
 - Database query performance
@@ -177,6 +180,7 @@ Sentry tracks:
 ### User Context
 
 User context is automatically set:
+
 - User ID
 - Email
 - Session ID
@@ -187,6 +191,7 @@ User context is automatically set:
 ### Google Analytics
 
 Events are sent to Google Analytics 4:
+
 - Custom events
 - Page views
 - User properties
@@ -194,6 +199,7 @@ Events are sent to Google Analytics 4:
 ### Meta Pixel
 
 Events are sent to Meta Pixel:
+
 - Custom events
 - Conversions
 - User properties
@@ -226,6 +232,7 @@ Set `NEXT_PUBLIC_ENABLE_TELEMETRY=false` to disable telemetry.
 ### PII Redaction
 
 Sensitive data is automatically redacted:
+
 - Email addresses
 - Credit card numbers
 - Phone numbers
@@ -235,6 +242,7 @@ Sensitive data is automatically redacted:
 ### Sampling
 
 Production logs are sampled to reduce volume:
+
 - Default: 10% of logs
 - Error logs: Never sampled
 - Performance metrics: Always tracked
@@ -244,6 +252,7 @@ Production logs are sampled to reduce volume:
 ### Sentry Dashboard
 
 View events in Sentry:
+
 - Errors and exceptions
 - Performance metrics
 - User sessions
@@ -252,6 +261,7 @@ View events in Sentry:
 ### Analytics Dashboards
 
 View events in:
+
 - Google Analytics
 - Meta Events Manager
 
@@ -299,4 +309,3 @@ View events in:
 - [ ] Create alert rules
 - [ ] Implement A/B testing telemetry
 - [ ] Add user journey tracking
-

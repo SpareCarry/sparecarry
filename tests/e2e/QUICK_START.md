@@ -49,23 +49,23 @@ npx playwright test tests/e2e/subscription-flow.spec.ts
 Create `tests/e2e/my-first-test.spec.ts`:
 
 ```typescript
-import { test, expect } from '@playwright/test';
-import { beforeEachSetup } from './setup/testSetup';
-import { startFromHome } from './setup/authSession';
-import { USER_A } from './setup/testUsers';
+import { test, expect } from "@playwright/test";
+import { beforeEachSetup } from "./setup/testSetup";
+import { startFromHome } from "./setup/authSession";
+import { USER_A } from "./setup/testUsers";
 
-test.describe('My First Test', () => {
+test.describe("My First Test", () => {
   test.beforeEach(async ({ page, context }) => {
     // Set up test environment (fast mode by default)
     await beforeEachSetup(page, context);
   });
 
-  test('should load home page', async ({ page }) => {
+  test("should load home page", async ({ page }) => {
     // Start from home with authenticated user (skips login)
     await startFromHome(page, USER_A);
 
     // Verify page loaded
-    await expect(page.locator('text=SpareCarry')).toBeVisible();
+    await expect(page.locator("text=SpareCarry")).toBeVisible();
   });
 });
 ```
@@ -83,7 +83,7 @@ npx playwright test tests/e2e/my-first-test.spec.ts
 ✅ **Pre-authenticated**: Users are automatically logged in  
 ✅ **Fast**: Tests run 5-10x faster  
 ✅ **Feature Focused**: Test features without auth delays  
-✅ **Use For**: Daily development, CI/CD, feature testing  
+✅ **Use For**: Daily development, CI/CD, feature testing
 
 ```typescript
 // Fast mode - start from home with authenticated user
@@ -95,12 +95,12 @@ await startFromHome(page, USER_A);
 ✅ **Real Auth**: Complete login/signup flows  
 ✅ **Comprehensive**: Test actual authentication  
 ✅ **Slower**: Includes full auth workflows  
-✅ **Use For**: Auth flow testing, onboarding, signup  
+✅ **Use For**: Auth flow testing, onboarding, signup
 
 ```typescript
 // Full auth mode - test real login flow
-await page.goto('/login');
-await page.fill('input[type="email"]', 'test@example.com');
+await page.goto("/login");
+await page.fill('input[type="email"]', "test@example.com");
 await page.click('button:has-text("Send magic link")');
 ```
 
@@ -110,18 +110,18 @@ Import from `setup/testUsers` or `setup/testUserFactory`:
 
 ```typescript
 // Basic users
-import { USER_A, USER_B, USER_C } from './setup/testUsers';
+import { USER_A, USER_B, USER_C } from "./setup/testUsers";
 
 // Subscription users
 import {
-  USER_NO_SUB,      // No subscription
-  USER_MONTHLY,     // Monthly subscription
-  USER_YEARLY,      // Yearly subscription
-  USER_LIFETIME,    // Lifetime Pro
-  USER_SAILOR,      // Verified sailor
-  USER_VETERAN,     // High-rating user
-  USER_NEW,         // New user
-} from './setup/testUserFactory';
+  USER_NO_SUB, // No subscription
+  USER_MONTHLY, // Monthly subscription
+  USER_YEARLY, // Yearly subscription
+  USER_LIFETIME, // Lifetime Pro
+  USER_SAILOR, // Verified sailor
+  USER_VETERAN, // High-rating user
+  USER_NEW, // New user
+} from "./setup/testUserFactory";
 ```
 
 ## Common Patterns
@@ -129,35 +129,35 @@ import {
 ### Test Profile Page
 
 ```typescript
-import { startFromProfile } from './setup/authSession';
+import { startFromProfile } from "./setup/authSession";
 
-test('should show profile', async ({ page }) => {
+test("should show profile", async ({ page }) => {
   await startFromProfile(page, USER_A);
-  await expect(page.locator('text=Profile')).toBeVisible();
+  await expect(page.locator("text=Profile")).toBeVisible();
 });
 ```
 
 ### Test Subscription Flow
 
 ```typescript
-import { USER_MONTHLY } from './setup/testUserFactory';
+import { USER_MONTHLY } from "./setup/testUserFactory";
 
-test('should show subscription status', async ({ page }) => {
+test("should show subscription status", async ({ page }) => {
   await startFromProfile(page, USER_MONTHLY);
-  await expect(page.locator('text=/active/i')).toBeVisible();
+  await expect(page.locator("text=/active/i")).toBeVisible();
 });
 ```
 
 ### Multi-User Test
 
 ```typescript
-import { switchToUser } from './setup/authSession';
-import { USER_A, USER_B } from './setup/testUsers';
+import { switchToUser } from "./setup/authSession";
+import { USER_A, USER_B } from "./setup/testUsers";
 
-test('should switch users', async ({ page }) => {
+test("should switch users", async ({ page }) => {
   await startFromHome(page, USER_A);
   // ... do something as User A ...
-  
+
   await switchToUser(page, USER_B);
   // ... do something as User B ...
 });
@@ -180,7 +180,7 @@ test('should switch users', async ({ page }) => {
 await startFromHome(page, USER_A);
 // or
 await setupUserMocks(page, USER_A);
-await page.goto('/home');
+await page.goto("/home");
 ```
 
 ### Tests timing out
@@ -188,7 +188,7 @@ await page.goto('/home');
 **Solution**: Increase timeout or check selectors:
 
 ```typescript
-await expect(page.locator('text=Loading')).toBeVisible({ timeout: 10000 });
+await expect(page.locator("text=Loading")).toBeVisible({ timeout: 10000 });
 ```
 
 ### Need help?
@@ -205,4 +205,3 @@ await expect(page.locator('text=Loading')).toBeVisible({ timeout: 10000 });
 - 🚀 **Quick Start**: This file
 
 Happy Testing! 🎉
-

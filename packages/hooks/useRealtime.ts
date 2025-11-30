@@ -1,18 +1,18 @@
 /**
  * useRealtime - React hook for Supabase Realtime subscriptions
- * 
+ *
  * Automatically subscribes on mount and unsubscribes on unmount.
  * Prevents duplicate subscriptions using RealtimeManager.
  */
 
-import { useEffect, useRef, useCallback } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
-import { RealtimeManager } from '@sparecarry/lib/realtime';
-import type { RealtimePostgresChangesPayload } from '@supabase/supabase-js';
+import { useEffect, useRef, useCallback } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { RealtimeManager } from "@sparecarry/lib/realtime";
+import type { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
 
 export interface UseRealtimeOptions {
   table: string;
-  event?: '*' | 'INSERT' | 'UPDATE' | 'DELETE';
+  event?: "*" | "INSERT" | "UPDATE" | "DELETE";
   schema?: string;
   filter?: string;
   callback: (payload: RealtimePostgresChangesPayload<any>) => void;
@@ -26,8 +26,8 @@ export interface UseRealtimeOptions {
  */
 export function useRealtime({
   table,
-  event = '*',
-  schema = 'public',
+  event = "*",
+  schema = "public",
   filter,
   callback,
   enabled = true,
@@ -42,9 +42,12 @@ export function useRealtime({
   }, [callback]);
 
   // Create stable callback that uses ref
-  const stableCallback = useCallback((payload: RealtimePostgresChangesPayload<any>) => {
-    callbackRef.current(payload);
-  }, []);
+  const stableCallback = useCallback(
+    (payload: RealtimePostgresChangesPayload<any>) => {
+      callbackRef.current(payload);
+    },
+    []
+  );
 
   useEffect(() => {
     if (!enabled) {
@@ -74,9 +77,17 @@ export function useRealtime({
         }
       };
     } catch (error) {
-      console.error('[useRealtime] Error subscribing:', error);
+      console.error("[useRealtime] Error subscribing:", error);
     }
-  }, [enabled, table, event, schema, filter, stableCallback, customChannelName]);
+  }, [
+    enabled,
+    table,
+    event,
+    schema,
+    filter,
+    stableCallback,
+    customChannelName,
+  ]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -111,8 +122,9 @@ export function useRealtimeInvalidation(
     customChannelName: options?.customChannelName,
     callback: () => {
       // Filter out undefined and invalidate query on any change
-      queryClient.invalidateQueries({ queryKey: queryKey.filter(Boolean) as string[] });
+      queryClient.invalidateQueries({
+        queryKey: queryKey.filter(Boolean) as string[],
+      });
     },
   });
 }
-

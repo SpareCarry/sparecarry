@@ -65,6 +65,7 @@ ls -la .env.staging
 ```
 
 **Checklist**:
+
 - [ ] Code up to date
 - [ ] Dependencies installed
 - [ ] `.env.staging` exists
@@ -75,6 +76,7 @@ ls -la .env.staging
 ### Step 1.2: Team Briefing
 
 **Agenda**:
+
 1. Review rehearsal objectives
 2. Assign roles:
    - **DEV**: Script execution, build verification
@@ -84,6 +86,7 @@ ls -la .env.staging
 4. Set up communication channels
 
 **Checklist**:
+
 - [ ] All team members briefed
 - [ ] Roles assigned
 - [ ] Timeline agreed
@@ -101,6 +104,7 @@ pnpm preflight:beta
 ```
 
 **Expected Output**:
+
 - ✅ All required files exist
 - ✅ Build scripts configured
 - ✅ Fastlane lanes configured
@@ -109,6 +113,7 @@ pnpm preflight:beta
 - ✅ Environment variables validated
 
 **Checklist**:
+
 - [ ] Preflight check passes
 - [ ] All items green
 - [ ] No critical failures
@@ -124,11 +129,13 @@ pnpm validate:env staging
 ```
 
 **Expected Output**:
+
 - ✅ All required variables present
 - ✅ Format validation passes
 - ✅ No missing variables
 
 **Checklist**:
+
 - [ ] Environment validation passes
 - [ ] All required variables set
 - [ ] Format validation passes
@@ -144,6 +151,7 @@ pnpm db:migrate:staging
 ```
 
 **Expected Output**:
+
 - ✅ Schema applied successfully
 - ✅ Storage buckets created
 - ✅ Realtime configured
@@ -151,6 +159,7 @@ pnpm db:migrate:staging
 - ✅ Meetup locations seeded
 
 **Checklist**:
+
 - [ ] Migrations complete
 - [ ] Tables created
 - [ ] RLS policies enabled
@@ -167,6 +176,7 @@ pnpm db:seed:staging
 ```
 
 **Expected Output**:
+
 - ✅ 5 test users created
 - ✅ 3 test trips created
 - ✅ 5 test requests created
@@ -175,6 +185,7 @@ pnpm db:seed:staging
 - ✅ Test delivery created
 
 **Checklist**:
+
 - [ ] Seed complete
 - [ ] Test data created
 - [ ] Test credentials available
@@ -196,6 +207,7 @@ pnpm mobile:build:staging
 ```
 
 **Expected Output**:
+
 - ✅ Build completes successfully
 - ✅ `out/` directory created
 - ✅ Export validation passes
@@ -203,6 +215,7 @@ pnpm mobile:build:staging
 - ✅ Capacitor sync successful
 
 **Checklist**:
+
 - [ ] Web build successful
 - [ ] Export validation passes
 - [ ] Mobile builds successful
@@ -222,12 +235,14 @@ pnpm verify:mobile android path/to/app.aab
 ```
 
 **Expected Output**:
+
 - ✅ Bundle ID/Package name correct (staging suffix)
 - ✅ Version numbers correct
 - ✅ Signing valid
 - ✅ Environment variables embedded
 
 **Checklist**:
+
 - [ ] iOS build verified
 - [ ] Android build verified
 - [ ] All checks pass
@@ -248,6 +263,7 @@ pnpm start
 ```
 
 **Verification**:
+
 1. Open staging URL in browser
 2. Verify homepage loads
 3. Check browser console for errors
@@ -258,6 +274,7 @@ pnpm start
    - Create request
 
 **Checklist**:
+
 - [ ] Web app accessible
 - [ ] No console errors
 - [ ] Critical flows work
@@ -269,6 +286,7 @@ pnpm start
 ### Step 3.2: iOS Build Verification
 
 **Steps**:
+
 1. Open Xcode project: `pnpm mobile:ios`
 2. Select "Any iOS Device" or simulator
 3. Build and run
@@ -276,6 +294,7 @@ pnpm start
 5. Test critical flows
 
 **Checklist**:
+
 - [ ] App builds successfully
 - [ ] App launches without crashes
 - [ ] Environment variables correct
@@ -287,6 +306,7 @@ pnpm start
 ### Step 3.3: Android Build Verification
 
 **Steps**:
+
 1. Open Android Studio project: `pnpm mobile:android`
 2. Select device/emulator
 3. Build and run
@@ -294,6 +314,7 @@ pnpm start
 5. Test critical flows
 
 **Checklist**:
+
 - [ ] App builds successfully
 - [ ] App launches without crashes
 - [ ] Environment variables correct
@@ -330,6 +351,7 @@ curl https://staging.sparecarry.com/api/health
 ```
 
 **Checklist**:
+
 - [ ] Deployment successful
 - [ ] Staging URL accessible
 - [ ] Health check passes
@@ -357,6 +379,7 @@ fastlane ios beta_staging --dry_run
 6. Verify archive created
 
 **Checklist**:
+
 - [ ] Archive created successfully
 - [ ] Build number correct
 - [ ] Version number correct
@@ -382,6 +405,7 @@ fastlane android beta_staging --dry_run
 4. Verify signing valid
 
 **Checklist**:
+
 - [ ] AAB created successfully
 - [ ] Build number correct
 - [ ] Version number correct
@@ -400,6 +424,7 @@ curl https://staging.sparecarry.com/api/health | jq .
 ```
 
 **Expected Response**:
+
 ```json
 {
   "status": "ok",
@@ -414,6 +439,7 @@ curl https://staging.sparecarry.com/api/health | jq .
 ```
 
 **Checklist**:
+
 - [ ] Health check returns 200 OK
 - [ ] All services show "ok"
 - [ ] No degraded services
@@ -429,6 +455,7 @@ curl https://staging.sparecarry.com/api/health/error-test?type=sentry
 ```
 
 **Steps**:
+
 1. Trigger test error
 2. Check Sentry Dashboard
 3. Verify error captured
@@ -436,6 +463,7 @@ curl https://staging.sparecarry.com/api/health/error-test?type=sentry
 5. Verify PII redaction working
 
 **Checklist**:
+
 - [ ] Error captured in Sentry
 - [ ] Source maps available
 - [ ] PII redaction working
@@ -452,6 +480,7 @@ grep "NEXT_PUBLIC_UNLEASH" .env.staging
 ```
 
 **Steps**:
+
 1. Go to Unleash Dashboard
 2. Verify flags configured
 3. Test flag toggling
@@ -459,6 +488,7 @@ grep "NEXT_PUBLIC_UNLEASH" .env.staging
 5. Test fallback behavior
 
 **Checklist**:
+
 - [ ] Flags load in app
 - [ ] Flags toggle correctly
 - [ ] Fallback works
@@ -476,6 +506,7 @@ stripe trigger payment_intent.succeeded
 ```
 
 **Steps**:
+
 1. Trigger test webhook event
 2. Verify webhook received
 3. Verify signature verification works
@@ -483,6 +514,7 @@ stripe trigger payment_intent.succeeded
 5. Check Stripe Dashboard
 
 **Checklist**:
+
 - [ ] Webhook endpoint configured
 - [ ] Webhook events received
 - [ ] Signature verification works
@@ -499,11 +531,13 @@ pnpm loadtest
 ```
 
 **Expected Output**:
+
 - ✅ Load tests complete
 - ✅ Thresholds met (p95 < 500ms, error rate < 0.5%)
 - ✅ No critical failures
 
 **Checklist**:
+
 - [ ] Load tests complete
 - [ ] Performance acceptable
 - [ ] Error rate < 0.5%
@@ -537,6 +571,7 @@ pnpm loadtest
 **All items must be GREEN for GO decision**:
 
 #### Critical (Must Pass)
+
 - [ ] **Security**: No critical vulnerabilities
 - [ ] **Builds**: All builds successful
 - [ ] **Services**: All services healthy
@@ -545,6 +580,7 @@ pnpm loadtest
 - [ ] **Health Check**: All services OK
 
 #### Important (Should Pass)
+
 - [ ] **Tests**: All tests passing
 - [ ] **Linting**: No critical lint errors
 - [ ] **Type Checking**: 100% type coverage
@@ -552,6 +588,7 @@ pnpm loadtest
 - [ ] **Documentation**: Complete
 
 #### Nice to Have
+
 - [ ] **Coverage**: Test coverage > 80%
 - [ ] **Load Tests**: All thresholds met
 - [ ] **Mobile E2E**: All tests passing
@@ -560,18 +597,19 @@ pnpm loadtest
 
 ### Step 6.3: Decision Matrix
 
-| Criteria | Status | Weight | Score |
-|----------|--------|--------|-------|
-| Security | ✅/❌ | Critical | 10 |
-| Builds | ✅/❌ | Critical | 10 |
-| Services | ✅/❌ | Critical | 10 |
-| Database | ✅/❌ | Critical | 10 |
-| Environment | ✅/❌ | Critical | 10 |
-| Tests | ✅/❌ | Important | 5 |
-| Performance | ✅/❌ | Important | 5 |
-| Documentation | ✅/❌ | Important | 5 |
+| Criteria      | Status | Weight    | Score |
+| ------------- | ------ | --------- | ----- |
+| Security      | ✅/❌  | Critical  | 10    |
+| Builds        | ✅/❌  | Critical  | 10    |
+| Services      | ✅/❌  | Critical  | 10    |
+| Database      | ✅/❌  | Critical  | 10    |
+| Environment   | ✅/❌  | Critical  | 10    |
+| Tests         | ✅/❌  | Important | 5     |
+| Performance   | ✅/❌  | Important | 5     |
+| Documentation | ✅/❌  | Important | 5     |
 
 **Scoring**:
+
 - **80+ points**: ✅ **GO** - Ready for beta launch
 - **60-79 points**: ⚠️ **CONDITIONAL GO** - Address issues before launch
 - **< 60 points**: ❌ **NO-GO** - Fix critical issues first
@@ -581,12 +619,14 @@ pnpm loadtest
 ### Step 6.4: Communication
 
 **If GO**:
+
 1. Notify team: "Rehearsal complete - Ready for beta launch"
 2. Schedule actual launch date
 3. Prepare launch announcement
 4. Finalize tester list
 
 **If NO-GO**:
+
 1. Document issues found
 2. Prioritize fixes
 3. Schedule follow-up rehearsal
@@ -606,32 +646,38 @@ pnpm loadtest
 ## Results Summary
 
 - ✅ Passed: X
-- ⚠️  Warnings: X
+- ⚠️ Warnings: X
 - ❌ Failed: X
 
 ## Phase Results
 
 ### Phase 1: Pre-Rehearsal Setup
+
 - Status: ✅/❌
 - Notes: ...
 
 ### Phase 2: Script Execution
+
 - Status: ✅/❌
 - Notes: ...
 
 ### Phase 3: Build Verification
+
 - Status: ✅/❌
 - Notes: ...
 
 ### Phase 4: Deployment Dry-Run
+
 - Status: ✅/❌
 - Notes: ...
 
 ### Phase 5: Service Verification
+
 - Status: ✅/❌
 - Notes: ...
 
 ### Phase 6: Go/No-Go Decision
+
 - Decision: ✅ GO / ❌ NO-GO
 - Score: X/100
 - Notes: ...
@@ -657,6 +703,7 @@ pnpm loadtest
 ### Issue: Preflight Check Fails
 
 **Solution**:
+
 1. Review error messages
 2. Fix missing files/variables
 3. Re-run preflight check
@@ -667,6 +714,7 @@ pnpm loadtest
 ### Issue: Database Migration Fails
 
 **Solution**:
+
 1. Check Supabase credentials
 2. Verify SQL syntax
 3. Check database connection
@@ -678,6 +726,7 @@ pnpm loadtest
 ### Issue: Build Fails
 
 **Solution**:
+
 1. Check build logs
 2. Verify dependencies installed
 3. Check environment variables
@@ -689,6 +738,7 @@ pnpm loadtest
 ### Issue: Health Check Fails
 
 **Solution**:
+
 1. Check service credentials
 2. Verify network connectivity
 3. Check service status
@@ -733,4 +783,3 @@ pnpm loadtest
 
 **Last Updated**: 2024-12-19  
 **Version**: 1.0.0
-

@@ -3,8 +3,8 @@
  * Event batching and debouncing
  */
 
-import { RealtimeManager } from './RealtimeManager';
-import type { RealtimePostgresChangesPayload } from '@supabase/supabase-js';
+import { RealtimeManager } from "./RealtimeManager";
+import type { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
 
 // Batch events within this time window (ms)
 const BATCH_WINDOW = 100;
@@ -59,4 +59,3 @@ class EventBatcher {
 
 // Export batcher for use in RealtimeManager if needed
 export const eventBatcher = new EventBatcher();
-

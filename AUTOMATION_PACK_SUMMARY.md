@@ -76,12 +76,14 @@ pnpm preflight:beta
 ### 4. Deploy to Staging
 
 **Web:**
+
 ```bash
 # Push to staging branch triggers automatic deployment
 git push origin staging
 ```
 
 **Mobile:**
+
 ```bash
 # iOS
 cd ios && fastlane ios deploy_staging
@@ -102,11 +104,13 @@ cd android && fastlane android deploy_staging
 ## 🔧 Fastlane Lanes
 
 ### iOS
+
 - `fastlane ios build_staging` - Build only (no upload)
 - `fastlane ios deploy_staging` - Build and upload to TestFlight
 - `fastlane ios beta` - Production beta build
 
 ### Android
+
 - `fastlane android build_staging` - Build only (no upload)
 - `fastlane android deploy_staging` - Build and upload to Play Store
 - `fastlane android beta` - Production beta build
@@ -114,12 +118,14 @@ cd android && fastlane android deploy_staging
 ## 📊 Monitoring
 
 ### Sentry
+
 - Automatic release creation
 - Sourcemap upload
 - Error tracking
 - Performance monitoring
 
 ### Telemetry
+
 - User events
 - Performance metrics
 - API latency
@@ -128,6 +134,7 @@ cd android && fastlane android deploy_staging
 ## 🎯 Feature Flags
 
 ### FF_STAGING_ONLY
+
 - Enable features only in staging
 - Gradual rollout support
 - Automatic environment detection
@@ -194,4 +201,3 @@ All automation is in place. Follow the checklist in `BETA_LAUNCH_CHECKLIST.md` t
 
 **Last Updated**: [Date]
 **Version**: 1.0.0
-

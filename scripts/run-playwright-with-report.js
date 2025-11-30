@@ -3,32 +3,32 @@
  * Usage: node scripts/run-playwright-with-report.js
  */
 
-const { execSync } = require('child_process');
-const fs = require('fs');
-const path = require('path');
-const { 
-  generateDetailedReport, 
-  saveReportToFile, 
+const { execSync } = require("child_process");
+const fs = require("fs");
+const path = require("path");
+const {
+  generateDetailedReport,
+  saveReportToFile,
   saveJSONReport,
   setupUnbufferedOutput,
-  printStartupBanner 
-} = require('./test-report-utils');
+  printStartupBanner,
+} = require("./test-report-utils");
 
 const startTime = Date.now();
 setupUnbufferedOutput();
-printStartupBanner('Playwright E2E Tests');
+printStartupBanner("Playwright E2E Tests");
 
-const outputFile = 'test-results-playwright.txt';
-const detailedReportFile = 'test-results-playwright-detailed.txt';
-const jsonReportFile = 'test-results-playwright.json';
+const outputFile = "test-results-playwright.txt";
+const detailedReportFile = "test-results-playwright-detailed.txt";
+const jsonReportFile = "test-results-playwright.json";
 
-console.log('Running Playwright E2E tests...\n');
+console.log("Running Playwright E2E tests...\n");
 
 try {
   // Run playwright and capture output
-  const output = execSync('pnpm test:e2e', { 
-    encoding: 'utf-8', 
-    stdio: 'pipe',
+  const output = execSync("pnpm test:e2e", {
+    encoding: "utf-8",
+    stdio: "pipe",
     maxBuffer: 10 * 1024 * 1024, // 10MB buffer
   });
 
@@ -36,36 +36,40 @@ try {
   const duration = ((endTime - startTime) / 1000).toFixed(2);
 
   // Save raw output
-  fs.writeFileSync(outputFile, output, 'utf8');
+  fs.writeFileSync(outputFile, output, "utf8");
 
   // Parse results (basic parsing - Playwright output format)
-  const lines = output.split('\n');
+  const lines = output.split("\n");
   const testResults = [];
   let passed = 0;
   let failed = 0;
 
-  lines.forEach(line => {
+  lines.forEach((line) => {
     // Look for test results
-    if (line.includes('✓') || line.includes('passed')) {
+    if (line.includes("✓") || line.includes("passed")) {
       passed++;
-      const testName = line.replace(/[✓passed]/g, '').trim();
-      if (testName && !testName.includes('Running')) {
+      const testName = line.replace(/[✓passed]/g, "").trim();
+      if (testName && !testName.includes("Running")) {
         testResults.push({ feature: testName, passed: true });
       }
-    } else if (line.includes('✗') || line.includes('failed')) {
+    } else if (line.includes("✗") || line.includes("failed")) {
       failed++;
-      const testName = line.replace(/[✗failed]/g, '').trim();
-      if (testName && !testName.includes('Running')) {
-        testResults.push({ feature: testName, passed: false, error: 'Test failed' });
+      const testName = line.replace(/[✗failed]/g, "").trim();
+      if (testName && !testName.includes("Running")) {
+        testResults.push({
+          feature: testName,
+          passed: false,
+          error: "Test failed",
+        });
       }
     }
   });
 
   // If we couldn't parse individual tests, create a summary
   if (testResults.length === 0) {
-    const hasPassed = output.includes('passed') && !output.includes('failed');
+    const hasPassed = output.includes("passed") && !output.includes("failed");
     testResults.push({
-      feature: 'All E2E Tests',
+      feature: "All E2E Tests",
       passed: hasPassed,
       output: output.substring(0, 5000), // First 5000 chars
     });
@@ -75,7 +79,7 @@ try {
 
   // Generate detailed report
   const report = generateDetailedReport(
-    'Playwright E2E Tests',
+    "Playwright E2E Tests",
     testResults,
     passed,
     failed,
@@ -83,15 +87,16 @@ try {
       startTime,
       endTime,
       environment: {
-        'NODE_ENV': process.env.NODE_ENV || 'not set',
-        'PLAYWRIGHT_BROWSERS_PATH': process.env.PLAYWRIGHT_BROWSERS_PATH || 'not set',
+        NODE_ENV: process.env.NODE_ENV || "not set",
+        PLAYWRIGHT_BROWSERS_PATH:
+          process.env.PLAYWRIGHT_BROWSERS_PATH || "not set",
       },
     }
   );
 
-  console.log('\n' + '='.repeat(70));
-  console.log('📄 DETAILED REPORT');
-  console.log('='.repeat(70));
+  console.log("\n" + "=".repeat(70));
+  console.log("📄 DETAILED REPORT");
+  console.log("=".repeat(70));
   console.log(report);
 
   // Save reports
@@ -102,8 +107,13 @@ try {
 
   const jsonData = {
     timestamp: new Date().toISOString(),
-    testName: 'Playwright E2E Tests',
-    summary: { total: testResults.length, passed, failed, duration: `${duration}s` },
+    testName: "Playwright E2E Tests",
+    summary: {
+      total: testResults.length,
+      passed,
+      failed,
+      duration: `${duration}s`,
+    },
     results: testResults,
     rawOutput: output.substring(0, 10000), // First 10KB
   };
@@ -116,7 +126,12 @@ try {
   console.log(`📄 Raw output saved to: ${outputFile}`);
 
   // Check for Playwright HTML report
-  const htmlReportPath = path.join(__dirname, '..', 'playwright-report', 'index.html');
+  const htmlReportPath = path.join(
+    __dirname,
+    "..",
+    "playwright-report",
+    "index.html"
+  );
   if (fs.existsSync(htmlReportPath)) {
     console.log(`📊 HTML report available at: ${htmlReportPath}`);
   }
@@ -126,17 +141,17 @@ try {
   const endTime = Date.now();
   const duration = ((endTime - startTime) / 1000).toFixed(2);
 
-  console.error('\n❌ Test execution failed');
-  console.error('Error:', error.message);
-  
+  console.error("\n❌ Test execution failed");
+  console.error("Error:", error.message);
+
   // Save error report
   const errorReport = {
     timestamp: new Date().toISOString(),
-    testName: 'Playwright E2E Tests',
-    status: 'failed',
+    testName: "Playwright E2E Tests",
+    status: "failed",
     error: error.message,
     duration: `${duration}s`,
-    output: error.stdout || error.stderr || 'No output captured',
+    output: error.stdout || error.stderr || "No output captured",
   };
 
   const jsonSave = saveJSONReport(errorReport, jsonReportFile);
@@ -146,4 +161,3 @@ try {
 
   process.exit(1);
 }
-

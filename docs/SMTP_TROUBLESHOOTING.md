@@ -44,6 +44,7 @@ You can test if Supabase can connect to Resend:
 4. Check if you receive the test email
 
 **If test email works but signup emails don't:**
+
 - The SMTP connection is fine
 - The issue is with email templates or confirmation settings
 
@@ -90,6 +91,7 @@ Some networks/firewalls block port 465. Try port 587:
 ### Step 8: Verify Sender Email Format
 
 The sender email must be:
+
 - ✅ Valid format: `onboarding@resend.dev` or `noreply@yourdomain.com`
 - ❌ Invalid: `onboarding resend.dev` (missing @)
 - ❌ Invalid: `@resend.dev` (missing username)
@@ -144,8 +146,8 @@ If Resend isn't working, you can temporarily use Supabase's built-in email:
 ### Get Help
 
 If still stuck:
+
 1. Check Supabase community forums
 2. Check Resend support/docs
 3. Verify your Resend account is active
 4. Try a different email provider (SendGrid, Mailgun) to test if it's Resend-specific
-

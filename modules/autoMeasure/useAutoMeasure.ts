@@ -1,22 +1,28 @@
 /**
  * useAutoMeasure - Lightweight dimension estimation hook
- * 
+ *
  * Uses camera focal length, sensor size, and bounding box detection
  * to estimate object dimensions. Accuracy: ~20-30% (rough estimates only)
  */
 
-import { useState, useCallback, useRef } from 'react';
-import { Dimensions, MeasurementResult, BoundingBox, CameraFrame, MultiFrameMeasurement } from './types';
-import { correctDimensionsForTilt } from './useTiltDetection';
-import { applyReferenceCalibration } from './useReferenceObject';
+import { useState, useCallback, useRef } from "react";
+import {
+  Dimensions,
+  MeasurementResult,
+  BoundingBox,
+  CameraFrame,
+  MultiFrameMeasurement,
+} from "./types";
+import { correctDimensionsForTilt } from "./useTiltDetection";
+import { applyReferenceCalibration } from "./useReferenceObject";
 
 // Conditional import for expo-image-manipulator (mobile only)
 // TypeScript-safe conditional import
 let ImageManipulator: any = null;
-if (typeof require !== 'undefined') {
+if (typeof require !== "undefined") {
   try {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
-    ImageManipulator = require('expo-image-manipulator');
+    ImageManipulator = require("expo-image-manipulator");
   } catch (e) {
     // expo-image-manipulator not available (e.g., on web)
     ImageManipulator = null;
@@ -34,7 +40,7 @@ const DEFAULT_DISTANCE_CM = 40;
 // Frame processing throttle (10fps max)
 const FRAME_THROTTLE_MS = 100;
 
-import { ReferenceObject } from './types';
+import { ReferenceObject } from "./types";
 
 interface UseAutoMeasureOptions {
   onMeasurement?: (result: MeasurementResult) => void;
@@ -69,7 +75,8 @@ function estimateDistance(
   // distance = (focal_length * assumed_object_size) / object_size_on_sensor
   // We assume a typical object is ~20cm wide (common item size)
   const assumedObjectSizeMm = 200; // 20cm in mm
-  const estimatedDistanceMm = (focalLength * assumedObjectSizeMm) / objectSizeOnSensor;
+  const estimatedDistanceMm =
+    (focalLength * assumedObjectSizeMm) / objectSizeOnSensor;
 
   // Convert to cm and clamp to reasonable range
   const distanceCm = estimatedDistanceMm / 10;
@@ -211,9 +218,11 @@ function estimateDimensions(
 /**
  * Average multiple measurement results for better accuracy
  */
-function averageMeasurements(measurements: MeasurementResult[]): MeasurementResult {
+function averageMeasurements(
+  measurements: MeasurementResult[]
+): MeasurementResult {
   if (measurements.length === 0) {
-    throw new Error('Cannot average empty measurements');
+    throw new Error("Cannot average empty measurements");
   }
 
   if (measurements.length === 1) {
@@ -221,12 +230,20 @@ function averageMeasurements(measurements: MeasurementResult[]): MeasurementResu
   }
 
   // Calculate average dimensions
-  const avgLength = measurements.reduce((sum, m) => sum + m.dimensions.length, 0) / measurements.length;
-  const avgWidth = measurements.reduce((sum, m) => sum + m.dimensions.width, 0) / measurements.length;
-  const avgHeight = measurements.reduce((sum, m) => sum + m.dimensions.height, 0) / measurements.length;
+  const avgLength =
+    measurements.reduce((sum, m) => sum + m.dimensions.length, 0) /
+    measurements.length;
+  const avgWidth =
+    measurements.reduce((sum, m) => sum + m.dimensions.width, 0) /
+    measurements.length;
+  const avgHeight =
+    measurements.reduce((sum, m) => sum + m.dimensions.height, 0) /
+    measurements.length;
 
   // Calculate average confidence
-  const avgConfidence = measurements.reduce((sum, m) => sum + m.confidence, 0) / measurements.length;
+  const avgConfidence =
+    measurements.reduce((sum, m) => sum + m.confidence, 0) /
+    measurements.length;
 
   // Use average bounding box (or first one if available)
   const avgBoundingBox = measurements[0]?.boundingBox;
@@ -243,10 +260,19 @@ function averageMeasurements(measurements: MeasurementResult[]): MeasurementResu
 }
 
 export function useAutoMeasure(options: UseAutoMeasureOptions = {}) {
-  const { onMeasurement, enabled = true, multiFrameCount = 3, tiltData, referenceObject } = options;
+  const {
+    onMeasurement,
+    enabled = true,
+    multiFrameCount = 3,
+    tiltData,
+    referenceObject,
+  } = options;
   const [isProcessing, setIsProcessing] = useState(false);
-  const [lastMeasurement, setLastMeasurement] = useState<MeasurementResult | null>(null);
-  const [multiFrameMeasurements, setMultiFrameMeasurements] = useState<MeasurementResult[]>([]);
+  const [lastMeasurement, setLastMeasurement] =
+    useState<MeasurementResult | null>(null);
+  const [multiFrameMeasurements, setMultiFrameMeasurements] = useState<
+    MeasurementResult[]
+  >([]);
   const lastProcessTime = useRef<number>(0);
 
   /**
@@ -304,7 +330,10 @@ export function useAutoMeasure(options: UseAutoMeasureOptions = {}) {
 
         // Apply tilt correction if available
         if (tiltData) {
-          const tiltCorrected = correctDimensionsForTilt(result.dimensions, tiltData);
+          const tiltCorrected = correctDimensionsForTilt(
+            result.dimensions,
+            tiltData
+          );
           result = {
             ...result,
             dimensions: tiltCorrected,
@@ -312,8 +341,11 @@ export function useAutoMeasure(options: UseAutoMeasureOptions = {}) {
         }
 
         // Apply reference object calibration if available
-        if (referenceObject && referenceObject.type !== 'none') {
-          const calibrated = applyReferenceCalibration(result.dimensions, referenceObject);
+        if (referenceObject && referenceObject.type !== "none") {
+          const calibrated = applyReferenceCalibration(
+            result.dimensions,
+            referenceObject
+          );
           result = {
             ...result,
             dimensions: calibrated,
@@ -326,7 +358,7 @@ export function useAutoMeasure(options: UseAutoMeasureOptions = {}) {
 
         return result;
       } catch (error) {
-        console.error('[useAutoMeasure] Error measuring frame:', error);
+        console.error("[useAutoMeasure] Error measuring frame:", error);
         return null;
       } finally {
         setIsProcessing(false);
@@ -346,7 +378,7 @@ export function useAutoMeasure(options: UseAutoMeasureOptions = {}) {
         setIsProcessing(true);
 
         if (!ImageManipulator) {
-          throw new Error('expo-image-manipulator not available');
+          throw new Error("expo-image-manipulator not available");
         }
 
         // Get image dimensions
@@ -364,7 +396,7 @@ export function useAutoMeasure(options: UseAutoMeasureOptions = {}) {
 
         return await measureFrame(frame);
       } catch (error) {
-        console.error('[useAutoMeasure] Error measuring photo:', error);
+        console.error("[useAutoMeasure] Error measuring photo:", error);
         return null;
       } finally {
         setIsProcessing(false);
@@ -402,7 +434,10 @@ export function useAutoMeasure(options: UseAutoMeasureOptions = {}) {
         // Apply tilt correction to averaged result
         let tiltCorrected = averaged;
         if (tiltData) {
-          const corrected = correctDimensionsForTilt(averaged.dimensions, tiltData);
+          const corrected = correctDimensionsForTilt(
+            averaged.dimensions,
+            tiltData
+          );
           tiltCorrected = {
             ...averaged,
             dimensions: corrected,
@@ -411,8 +446,11 @@ export function useAutoMeasure(options: UseAutoMeasureOptions = {}) {
 
         // Apply reference calibration
         let referenceCalibrated: MeasurementResult | undefined;
-        if (referenceObject && referenceObject.type !== 'none') {
-          const calibrated = applyReferenceCalibration(tiltCorrected.dimensions, referenceObject);
+        if (referenceObject && referenceObject.type !== "none") {
+          const calibrated = applyReferenceCalibration(
+            tiltCorrected.dimensions,
+            referenceObject
+          );
           referenceCalibrated = {
             ...tiltCorrected,
             dimensions: calibrated,
@@ -436,7 +474,10 @@ export function useAutoMeasure(options: UseAutoMeasureOptions = {}) {
 
         return multiFrameResult;
       } catch (error) {
-        console.error('[useAutoMeasure] Error in multi-frame measurement:', error);
+        console.error(
+          "[useAutoMeasure] Error in multi-frame measurement:",
+          error
+        );
         return null;
       } finally {
         setIsProcessing(false);
@@ -444,7 +485,6 @@ export function useAutoMeasure(options: UseAutoMeasureOptions = {}) {
     },
     [enabled, measurePhoto, tiltData, referenceObject, onMeasurement]
   );
-
 
   return {
     measureFrame,
@@ -455,4 +495,3 @@ export function useAutoMeasure(options: UseAutoMeasureOptions = {}) {
     multiFrameMeasurements,
   };
 }
-

@@ -1,21 +1,21 @@
 /**
  * Watchlist Button Component
- * 
+ *
  * Toggle button to add/remove items from watchlist
  */
 
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import { Heart, HeartOff, Loader2 } from 'lucide-react';
-import { Button } from './ui/button';
-import { createClient } from '../lib/supabase/client';
-import type { SupabaseClient } from '@supabase/supabase-js';
-import { cn } from '../lib/utils';
+import React, { useState, useEffect } from "react";
+import { Heart, HeartOff, Loader2 } from "lucide-react";
+import { Button } from "./ui/button";
+import { createClient } from "../lib/supabase/client";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import { cn } from "../lib/utils";
 
 export interface WatchlistButtonProps {
   userId: string;
-  type: 'route' | 'item';
+  type: "route" | "item";
   payload: {
     from_location?: string;
     to_location?: string;
@@ -26,7 +26,7 @@ export interface WatchlistButtonProps {
     description?: string;
   };
   className?: string;
-  size?: 'sm' | 'md' | 'lg';
+  size?: "sm" | "md" | "lg";
   onToggle?: (isWatched: boolean) => void;
 }
 
@@ -35,7 +35,7 @@ export function WatchlistButton({
   type,
   payload,
   className,
-  size = 'md',
+  size = "md",
   onToggle,
 }: WatchlistButtonProps) {
   const [isWatched, setIsWatched] = useState(false);
@@ -58,21 +58,22 @@ export function WatchlistButton({
       try {
         // Check if watchlist item exists (JSONB comparison)
         const { data, error } = await supabase
-          .from('watchlists')
-          .select('id')
-          .eq('user_id', userId)
-          .eq('type', type)
-          .eq('payload->>from_location', payload.from_location || '')
-          .eq('payload->>to_location', payload.to_location || '')
+          .from("watchlists")
+          .select("id")
+          .eq("user_id", userId)
+          .eq("type", type)
+          .eq("payload->>from_location", payload.from_location || "")
+          .eq("payload->>to_location", payload.to_location || "")
           .single();
 
-        if (error && error.code !== 'PGRST116') { // PGRST116 = not found
-          console.error('Error checking watchlist:', error);
+        if (error && error.code !== "PGRST116") {
+          // PGRST116 = not found
+          console.error("Error checking watchlist:", error);
         } else {
           setIsWatched(!!data);
         }
       } catch (error) {
-        console.error('Error checking watchlist:', error);
+        console.error("Error checking watchlist:", error);
       } finally {
         setIsChecking(false);
       }
@@ -90,23 +91,23 @@ export function WatchlistButton({
       if (isWatched) {
         // Remove from watchlist (find by matching payload fields)
         const { data: existing, error: findError } = await supabase
-          .from('watchlists')
-          .select('id')
-          .eq('user_id', userId)
-          .eq('type', type)
+          .from("watchlists")
+          .select("id")
+          .eq("user_id", userId)
+          .eq("type", type)
           .limit(1)
           .single();
 
         const record = existing as WatchlistRecord | null;
 
         if (findError || !record) {
-          throw new Error('Watchlist item not found');
+          throw new Error("Watchlist item not found");
         }
 
         const { error } = await supabase
-          .from('watchlists')
+          .from("watchlists")
           .delete()
-          .eq('id', record.id);
+          .eq("id", record.id);
 
         if (error) throw error;
 
@@ -115,22 +116,20 @@ export function WatchlistButton({
       } else {
         // Check if already exists first
         const { data: existing } = await supabase
-          .from('watchlists')
-          .select('id')
-          .eq('user_id', userId)
-          .eq('type', type)
+          .from("watchlists")
+          .select("id")
+          .eq("user_id", userId)
+          .eq("type", type)
           .limit(1)
           .single();
 
         if (!existing) {
           // Add to watchlist
-          const { error } = await supabase
-            .from('watchlists')
-            .insert({
-              user_id: userId,
-              type,
-              payload,
-            });
+          const { error } = await supabase.from("watchlists").insert({
+            user_id: userId,
+            type,
+            payload,
+          });
 
           if (error) throw error;
         }
@@ -139,14 +138,14 @@ export function WatchlistButton({
         onToggle?.(true);
       }
     } catch (error) {
-      console.error('Error toggling watchlist:', error);
+      console.error("Error toggling watchlist:", error);
     } finally {
       setIsLoading(false);
     }
   };
 
   // Map size to Button's accepted sizes
-  const buttonSize = size === 'md' ? 'default' : size;
+  const buttonSize = size === "md" ? "default" : size;
 
   if (isChecking) {
     return (
@@ -168,22 +167,21 @@ export function WatchlistButton({
       onClick={handleToggle}
       disabled={isLoading}
       className={cn(className)}
-      title={isWatched ? 'Remove from watchlist' : 'Add to watchlist'}
+      title={isWatched ? "Remove from watchlist" : "Add to watchlist"}
     >
       {isLoading ? (
         <Loader2 className="h-4 w-4 animate-spin" />
       ) : isWatched ? (
         <>
-          <HeartOff className="h-4 w-4 mr-1" />
+          <HeartOff className="mr-1 h-4 w-4" />
           <span className="hidden sm:inline">Watching</span>
         </>
       ) : (
         <>
-          <Heart className="h-4 w-4 mr-1" />
+          <Heart className="mr-1 h-4 w-4" />
           <span className="hidden sm:inline">Watch</span>
         </>
       )}
     </Button>
   );
 }
-

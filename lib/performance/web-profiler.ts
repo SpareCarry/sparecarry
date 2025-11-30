@@ -1,6 +1,6 @@
 /**
  * Web Performance Profiler
- * 
+ *
  * Lightweight performance instrumentation for Next.js web app
  * Uses Web Performance API and Next.js measure utilities
  */
@@ -15,7 +15,7 @@ interface PerformanceMark {
 interface PerformanceMetric {
   name: string;
   value: number;
-  unit: 'ms' | 'bytes' | 'count';
+  unit: "ms" | "bytes" | "count";
   metadata?: Record<string, unknown>;
 }
 
@@ -26,9 +26,10 @@ class WebPerformanceProfiler {
   private enabled = true;
 
   constructor() {
-    if (typeof window !== 'undefined') {
-      this.enabled = process.env.NODE_ENV !== 'production' || 
-                     process.env.NEXT_PUBLIC_ENABLE_PERF === 'true';
+    if (typeof window !== "undefined") {
+      this.enabled =
+        process.env.NODE_ENV !== "production" ||
+        process.env.NEXT_PUBLIC_ENABLE_PERF === "true";
     }
   }
 
@@ -41,7 +42,7 @@ class WebPerformanceProfiler {
     const startTime = performance.now();
     this.marks.set(name, startTime);
 
-    if (typeof window !== 'undefined' && window.performance) {
+    if (typeof window !== "undefined" && window.performance) {
       try {
         window.performance.mark(`${name}-start`);
       } catch {
@@ -69,7 +70,7 @@ class WebPerformanceProfiler {
     this.recordMetric({
       name,
       value: duration,
-      unit: 'ms',
+      unit: "ms",
       metadata: {
         ...metadata,
         startTime,
@@ -86,7 +87,7 @@ class WebPerformanceProfiler {
     this.marks.delete(name);
 
     // Performance API measure
-    if (typeof window !== 'undefined' && window.performance) {
+    if (typeof window !== "undefined" && window.performance) {
       try {
         window.performance.mark(`${name}-end`);
         window.performance.measure(name, `${name}-start`, `${name}-end`);
@@ -130,16 +131,25 @@ class WebPerformanceProfiler {
   /**
    * Sanitize metadata to remove sensitive data
    */
-  private sanitizeMetadata(metadata?: Record<string, unknown>): Record<string, unknown> | undefined {
+  private sanitizeMetadata(
+    metadata?: Record<string, unknown>
+  ): Record<string, unknown> | undefined {
     if (!metadata) return undefined;
 
-    const sensitiveKeys = ['password', 'token', 'jwt', 'secret', 'key', 'authorization'];
+    const sensitiveKeys = [
+      "password",
+      "token",
+      "jwt",
+      "secret",
+      "key",
+      "authorization",
+    ];
     const sanitized: Record<string, unknown> = {};
 
     for (const [key, value] of Object.entries(metadata)) {
       const lowerKey = key.toLowerCase();
       if (sensitiveKeys.some((sk) => lowerKey.includes(sk))) {
-        sanitized[key] = '[REDACTED]';
+        sanitized[key] = "[REDACTED]";
       } else {
         sanitized[key] = value;
       }
@@ -178,7 +188,7 @@ class WebPerformanceProfiler {
    */
   getSlowestOperations(limit: number = 10): PerformanceMetric[] {
     return [...this.metrics]
-      .filter((m) => m.unit === 'ms')
+      .filter((m) => m.unit === "ms")
       .sort((a, b) => b.value - a.value)
       .slice(0, limit);
   }
@@ -201,21 +211,25 @@ class WebPerformanceProfiler {
     averageRouteTransition?: number;
   } {
     const slowOps = this.metrics.filter(
-      (m) => m.unit === 'ms' && m.value > this.slowThreshold
+      (m) => m.unit === "ms" && m.value > this.slowThreshold
     ).length;
 
-    const pageLoadMetrics = this.getMetricsByName('page-load');
-    const routeTransitionMetrics = this.getMetricsByName('route-transition');
+    const pageLoadMetrics = this.getMetricsByName("page-load");
+    const routeTransitionMetrics = this.getMetricsByName("route-transition");
 
     return {
       totalMetrics: this.metrics.length,
       slowOperations: slowOps,
-      averagePageLoad: pageLoadMetrics.length > 0
-        ? pageLoadMetrics.reduce((acc, m) => acc + m.value, 0) / pageLoadMetrics.length
-        : undefined,
-      averageRouteTransition: routeTransitionMetrics.length > 0
-        ? routeTransitionMetrics.reduce((acc, m) => acc + m.value, 0) / routeTransitionMetrics.length
-        : undefined,
+      averagePageLoad:
+        pageLoadMetrics.length > 0
+          ? pageLoadMetrics.reduce((acc, m) => acc + m.value, 0) /
+            pageLoadMetrics.length
+          : undefined,
+      averageRouteTransition:
+        routeTransitionMetrics.length > 0
+          ? routeTransitionMetrics.reduce((acc, m) => acc + m.value, 0) /
+            routeTransitionMetrics.length
+          : undefined,
     };
   }
 }
@@ -226,14 +240,20 @@ export const webProfiler = new WebPerformanceProfiler();
 /**
  * Performance mark helper
  */
-export function perfMark(name: string, metadata?: Record<string, unknown>): void {
+export function perfMark(
+  name: string,
+  metadata?: Record<string, unknown>
+): void {
   webProfiler.mark(name, metadata);
 }
 
 /**
  * Performance measure helper
  */
-export function perfMeasure(name: string, metadata?: Record<string, unknown>): number | null {
+export function perfMeasure(
+  name: string,
+  metadata?: Record<string, unknown>
+): number | null {
   return webProfiler.measure(name, metadata);
 }
 
@@ -251,7 +271,11 @@ export async function perfWrap<T>(
     perfMeasure(name, { ...metadata, success: true });
     return result;
   } catch (error) {
-    perfMeasure(name, { ...metadata, success: false, error: error instanceof Error ? error.message : 'Unknown error' });
+    perfMeasure(name, {
+      ...metadata,
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error",
+    });
     throw error;
   }
 }
@@ -270,8 +294,11 @@ export function perfWrapSync<T>(
     perfMeasure(name, { ...metadata, success: true });
     return result;
   } catch (error) {
-    perfMeasure(name, { ...metadata, success: false, error: error instanceof Error ? error.message : 'Unknown error' });
+    perfMeasure(name, {
+      ...metadata,
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error",
+    });
     throw error;
   }
 }
-

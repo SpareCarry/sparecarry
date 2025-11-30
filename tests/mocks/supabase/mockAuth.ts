@@ -2,8 +2,13 @@
  * Mock Supabase Auth Implementation
  */
 
-import type { MockAuth, MockUser, MockSession, MockSubscription } from './types';
-import { mockAuthState } from './mockAuthState';
+import type {
+  MockAuth,
+  MockUser,
+  MockSession,
+  MockSubscription,
+} from "./types";
+import { mockAuthState } from "./mockAuthState";
 
 export function createMockAuth(): MockAuth {
   return {
@@ -31,9 +36,12 @@ export function createMockAuth(): MockAuth {
 
     signInWithOAuth: async (options) => {
       // Simulate OAuth redirect
-      const redirectUrl = options.options?.redirectTo || 'http://localhost:3000/auth/callback';
+      const redirectUrl =
+        options.options?.redirectTo || "http://localhost:3000/auth/callback";
       return {
-        data: { url: `https://oauth.provider.com/auth?redirect=${encodeURIComponent(redirectUrl)}` },
+        data: {
+          url: `https://oauth.provider.com/auth?redirect=${encodeURIComponent(redirectUrl)}`,
+        },
         error: null,
       };
     },
@@ -42,7 +50,7 @@ export function createMockAuth(): MockAuth {
       mockAuthState.currentUser = null;
       mockAuthState.currentSession = null;
       // Trigger auth state change
-      mockAuthState.notifyListeners('SIGNED_OUT', null);
+      mockAuthState.notifyListeners("SIGNED_OUT", null);
       return { error: null };
     },
 
@@ -55,4 +63,3 @@ export function createMockAuth(): MockAuth {
     },
   };
 }
-

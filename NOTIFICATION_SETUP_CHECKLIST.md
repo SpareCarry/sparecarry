@@ -54,6 +54,7 @@ Use this checklist to track your progress on setting up notifications.
 ### How to Verify
 
 **Option 1: Use Supabase Dashboard**
+
 1. Go to https://supabase.com/dashboard
 2. Select your project
 3. Go to **Table Editor**
@@ -61,23 +62,25 @@ Use this checklist to track your progress on setting up notifications.
 5. Check `users` table - should have `email` column
 
 **Option 2: Run Verification Script**
+
 ```bash
 node scripts/verify-notifications-setup.js
 ```
 
 **Option 3: SQL Query**
 Run this in Supabase SQL Editor:
+
 ```sql
 -- Check profiles columns
-SELECT column_name, data_type 
-FROM information_schema.columns 
-WHERE table_name = 'profiles' 
+SELECT column_name, data_type
+FROM information_schema.columns
+WHERE table_name = 'profiles'
 AND column_name IN ('expo_push_token', 'push_notifications_enabled');
 
 -- Check users columns
-SELECT column_name, data_type 
-FROM information_schema.columns 
-WHERE table_name = 'users' 
+SELECT column_name, data_type
+FROM information_schema.columns
+WHERE table_name = 'users'
 AND column_name = 'email';
 ```
 
@@ -97,6 +100,7 @@ node scripts/test-notifications.js --type=email --recipientId=USER_ID_HERE
 ```
 
 **Prerequisites:**
+
 - User must be authenticated (or use a test user ID)
 - For push: User must have `expo_push_token` in profiles
 - For email: User must have `email` in users table
@@ -116,6 +120,7 @@ node scripts/test-notifications.js --type=email --recipientId=USER_ID_HERE
 ### Option 3: Manual Test
 
 **Send Message Notification:**
+
 ```bash
 curl -X POST https://your-app.vercel.app/api/notifications/send-message \
   -H "Content-Type: application/json" \
@@ -153,6 +158,7 @@ node scripts/verify-notifications-setup.js
 ```
 
 This will check:
+
 - ✅ Environment variables are set
 - ✅ Supabase schema has required columns
 - ✅ Supabase has users with emails and profiles with tokens
@@ -167,4 +173,3 @@ Once all checkboxes are marked:
 4. ✅ Both push and email channels verified
 
 **Your notification system is fully operational!** 🚀
-

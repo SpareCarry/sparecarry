@@ -37,12 +37,14 @@ I can create all migration files, scripts, and configuration, but **direct SQL e
 ## Why This Limitation Exists
 
 Supabase's JavaScript client is designed for:
+
 - ✅ Data operations (SELECT, INSERT, UPDATE, DELETE)
 - ✅ Authentication
 - ✅ Real-time subscriptions
 - ✅ Storage operations
 
 It is **NOT designed for**:
+
 - ❌ Schema changes (CREATE TABLE, ALTER TABLE)
 - ❌ DDL operations
 - ❌ Raw SQL execution
@@ -101,6 +103,7 @@ pnpm db:setup
 ```
 
 This script will:
+
 - ✅ Connect to your Supabase project
 - ✅ Check if all 7 tables exist
 - ✅ Report row counts for each table
@@ -154,6 +157,7 @@ This script will:
 ### Step 1: Apply Migrations (You Do This)
 
 **Via Dashboard** (5 minutes):
+
 1. Open Supabase Dashboard
 2. SQL Editor
 3. Copy/paste each migration
@@ -166,6 +170,7 @@ pnpm db:setup
 ```
 
 This will automatically:
+
 - ✅ Check all tables exist
 - ✅ Verify RLS policies
 - ✅ Count rows in each table
@@ -192,4 +197,3 @@ This will add test data if tables are empty.
 ---
 
 **Last Updated**: 2024-12-19
-

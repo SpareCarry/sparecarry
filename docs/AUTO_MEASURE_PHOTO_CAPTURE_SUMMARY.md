@@ -7,6 +7,7 @@ The Auto-Measure feature has been enhanced to capture photos with the measuremen
 ## What Was Added
 
 ### New Files
+
 1. **`modules/autoMeasure/useAutoMeasurePhoto.ts`**
    - Hook for capturing, saving, and uploading auto-measure photos
    - Handles view capture with overlay
@@ -15,6 +16,7 @@ The Auto-Measure feature has been enhanced to capture photos with the measuremen
    - Upload to Supabase Storage
 
 ### Updated Files
+
 2. **`modules/autoMeasure/types.ts`**
    - Added `CapturedPhoto` interface
 
@@ -46,6 +48,7 @@ The Auto-Measure feature has been enhanced to capture photos with the measuremen
 ## Features
 
 ### ✅ Photo Capture
+
 - Captures camera view with measurement overlay
 - Freezes frame before capture
 - Includes bounding box rectangle in photo
@@ -53,6 +56,7 @@ The Auto-Measure feature has been enhanced to capture photos with the measuremen
 - Saves locally for offline support
 
 ### ✅ Integration
+
 - Automatically adds photo to listing photos gallery
 - Photo appears in PhotoUploader component
 - Can be reordered with other photos
@@ -60,12 +64,14 @@ The Auto-Measure feature has been enhanced to capture photos with the measuremen
 - Works seamlessly with existing photo system
 
 ### ✅ Upload
+
 - Uploads to Supabase Storage when online
 - Stores in "item-photos" bucket
 - Generates public URL
 - Includes in form submission
 
 ### ✅ Offline Support
+
 - Saves photo locally when offline
 - Photo appears in gallery immediately
 - Uploads when network available
@@ -74,17 +80,20 @@ The Auto-Measure feature has been enhanced to capture photos with the measuremen
 ## Technical Details
 
 ### View Capture
+
 - Uses `react-native-view-shot` to capture view
 - Captures entire camera view + overlay
 - Format: JPEG
 - Quality: 0.9 (high quality for overlay visibility)
 
 ### Photo Processing
+
 - Compression: 0.8 quality, max width 1920px
 - Local storage: Saved to app document directory (mobile) or URI (web)
 - File conversion: Converts to File object for web compatibility
 
 ### Upload
+
 - Path format: `requests/{userId}/auto-measure-{timestamp}.jpg`
 - Bucket: `item-photos`
 - Content type: `image/jpeg`
@@ -122,6 +131,7 @@ The Auto-Measure feature has been enhanced to capture photos with the measuremen
 See `docs/AUTO_MEASURE_PHOTO_CAPTURE_CHECKLIST.md` for complete testing checklist.
 
 ### Quick Test
+
 1. Run mobile app: `cd apps/mobile && pnpm start`
 2. Navigate to post request form
 3. Tap "Auto-Fill Dimensions (Camera)"
@@ -167,4 +177,3 @@ See `docs/AUTO_MEASURE_PHOTO_CAPTURE_CHECKLIST.md` for complete testing checklis
 **Status**: ✅ **IMPLEMENTATION COMPLETE - READY FOR TESTING**
 
 **Note**: Requires native rebuild for new dependencies (`react-native-view-shot`, `expo-file-system`)
-

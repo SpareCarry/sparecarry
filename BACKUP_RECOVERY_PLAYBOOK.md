@@ -46,6 +46,7 @@ export PGDATABASE=your-db-name
 ```
 
 **Or using Supabase connection string:**
+
 ```bash
 export SUPABASE_DB_URL="postgresql://user:password@host:port/database"
 ./scripts/backup/backup_db.sh
@@ -66,12 +67,14 @@ export BUCKETS_TO_BACKUP=avatars,item-images,documents
 ### Automated Backups
 
 **GitHub Actions:**
+
 - Runs daily at 2 AM UTC
 - Can be triggered manually via workflow dispatch
 - Uploads to S3 (if configured)
 - Creates GitHub artifacts
 
 **Cron (Local):**
+
 ```bash
 # Add to crontab
 0 2 * * * /path/to/scripts/backup/backup_db.sh
@@ -88,6 +91,7 @@ export BUCKETS_TO_BACKUP=avatars,item-images,documents
 #### Prerequisites
 
 1. **Backup file available**
+
    ```bash
    ./scripts/backup/restore_db.sh --list
    ```
@@ -132,6 +136,7 @@ pg_restore -d target_db -t table_name backup.sql
 #### Prerequisites
 
 1. **Backup archive available**
+
    ```bash
    ./scripts/backup/restore_storage.sh --list
    ```
@@ -178,6 +183,7 @@ curl -X POST \
 ### Scenario 1: Database Corruption
 
 **Symptoms:**
+
 - Database queries failing
 - Data inconsistencies
 - Application errors
@@ -185,6 +191,7 @@ curl -X POST \
 **Recovery Steps:**
 
 1. **Immediate Actions:**
+
    ```bash
    # Stop application (if possible)
    # Verify backup availability
@@ -192,19 +199,21 @@ curl -X POST \
    ```
 
 2. **Restore from Latest Backup:**
+
    ```bash
    # Find latest backup
    LATEST_BACKUP=$(ls -t backups/db/*.sql.gz | head -1)
-   
+
    # Restore
    ./scripts/backup/restore_db.sh --file "$LATEST_BACKUP"
    ```
 
 3. **Verify Restore:**
+
    ```bash
    # Test database connection
    psql -d restored_db -c "SELECT COUNT(*) FROM users;"
-   
+
    # Run application tests
    ```
 
@@ -220,6 +229,7 @@ curl -X POST \
 ### Scenario 2: Storage Data Loss
 
 **Symptoms:**
+
 - Missing files in storage buckets
 - Broken image links
 - User upload failures
@@ -227,16 +237,18 @@ curl -X POST \
 **Recovery Steps:**
 
 1. **Immediate Actions:**
+
    ```bash
    # Verify backup availability
    ./scripts/backup/verify_backup.sh --storage
    ```
 
 2. **Restore from Latest Backup:**
+
    ```bash
    # Find latest backup
    LATEST_BACKUP=$(ls -t backups/storage/*.tar.gz | head -1)
-   
+
    # Restore
    ./scripts/backup/restore_storage.sh --file "$LATEST_BACKUP"
    ```
@@ -255,6 +267,7 @@ curl -X POST \
 ### Scenario 3: Complete System Failure
 
 **Symptoms:**
+
 - Database unreachable
 - Storage unreachable
 - Application completely down
@@ -267,12 +280,14 @@ curl -X POST \
    - Verify credentials
 
 2. **Restore Database:**
+
    ```bash
    # Restore from S3 or local backup
    ./scripts/backup/restore_db.sh --file latest-backup.sql.gz
    ```
 
 3. **Restore Storage:**
+
    ```bash
    # Restore from S3 or local backup
    ./scripts/backup/restore_storage.sh --file latest-backup.tar.gz
@@ -290,6 +305,7 @@ curl -X POST \
 ### Scenario 4: Accidental Data Deletion
 
 **Symptoms:**
+
 - Specific data missing
 - User reports missing content
 - Audit logs show deletion
@@ -302,13 +318,14 @@ curl -X POST \
    - Find appropriate backup
 
 2. **Selective Restore:**
+
    ```bash
    # Restore to temporary database
    ./scripts/backup/restore_db.sh --file backup-before-deletion.sql.gz --target temp_restore
-   
+
    # Extract specific data
    psql -d temp_restore -c "SELECT * FROM table WHERE condition;" > recovered_data.sql
-   
+
    # Import to production
    psql -d production_db < recovered_data.sql
    ```
@@ -322,10 +339,10 @@ curl -X POST \
 
 ### Current RTO/RPO
 
-| Component | RTO | RPO |
-|-----------|-----|-----|
-| Database | 1-2 hours | 24 hours |
-| Storage | 2-4 hours | 24 hours |
+| Component       | RTO       | RPO      |
+| --------------- | --------- | -------- |
+| Database        | 1-2 hours | 24 hours |
+| Storage         | 2-4 hours | 24 hours |
 | Complete System | 4-8 hours | 24 hours |
 
 ### Improvement Recommendations
@@ -363,6 +380,7 @@ curl -X POST \
 ### Manual Verification
 
 **Database Backup:**
+
 ```bash
 # Test restore to temporary database
 ./scripts/backup/restore_db.sh --file backup.sql.gz --target test_restore
@@ -375,6 +393,7 @@ dropdb test_restore
 ```
 
 **Storage Backup:**
+
 ```bash
 # Extract and verify
 tar -xzf backup.tar.gz -C /tmp/test
@@ -417,6 +436,7 @@ cat /tmp/test/*/manifest.json | jq .
 ### Encryption
 
 **Enable GPG Encryption:**
+
 ```bash
 export ENCRYPT=true
 export GPG_RECIPIENT=your-email@example.com
@@ -424,6 +444,7 @@ export GPG_RECIPIENT=your-email@example.com
 ```
 
 **Decrypt for Restore:**
+
 ```bash
 gpg --decrypt backup.sql.gz.gpg > backup.sql.gz
 ./scripts/backup/restore_db.sh --file backup.sql.gz
@@ -449,6 +470,7 @@ gpg --decrypt backup.sql.gz.gpg > backup.sql.gz
 ### Backup Monitoring
 
 **Check Backup Status:**
+
 ```bash
 # List recent backups
 ls -lht backups/db/ | head -10
@@ -459,6 +481,7 @@ find backups/db -name "*.sql.gz" -mtime +1
 ```
 
 **GitHub Actions:**
+
 - Monitor workflow runs
 - Set up notifications for failures
 - Review backup summaries
@@ -466,6 +489,7 @@ find backups/db -name "*.sql.gz" -mtime +1
 ### Alerting
 
 **Recommended Alerts:**
+
 1. Backup failure (GitHub Actions)
 2. Backup age > 25 hours
 3. Backup size anomalies
@@ -553,6 +577,7 @@ dropdb test_restore_env
 ### Common Issues
 
 **Backup Fails:**
+
 ```bash
 # Check database connection
 psql -h $PGHOST -U $PGUSER -d $PGDATABASE -c "SELECT 1;"
@@ -565,6 +590,7 @@ ls -la backups/
 ```
 
 **Restore Fails:**
+
 ```bash
 # Verify backup integrity
 ./scripts/backup/verify_backup.sh --file backup.sql.gz
@@ -577,6 +603,7 @@ df -h
 ```
 
 **Storage Backup Slow:**
+
 - Reduce bucket size
 - Backup buckets separately
 - Use rclone for better performance
@@ -598,4 +625,3 @@ df -h
 ---
 
 **Last Updated**: November 20, 2025
-

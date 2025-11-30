@@ -20,6 +20,7 @@ Security hardening has been applied across the entire SpareCarry application. Al
 **Location**: `lib/api/` (helpers)
 
 **Implemented**:
+
 - ✅ `withApiErrorHandler` - Wraps handlers with try/catch and sanitized errors
 - ✅ `rateLimit` - Rate limiting per IP (local memory)
 - ✅ `assertAuthenticated` - Server-side authentication guard
@@ -40,6 +41,7 @@ All API routes in `app/api/` are protected with:
 - ✅ Standardized error responses
 
 **Routes Protected**:
+
 - ✅ `/api/auth/*` - Authentication routes
 - ✅ `/api/payments/*` - Payment routes
 - ✅ `/api/matches/*` - Match routes
@@ -71,11 +73,13 @@ All API routes in `app/api/` are protected with:
 **Helper**: `assertAuthenticated(request)`
 
 **Features**:
+
 - ✅ Extracts user from request
 - ✅ Throws sanitized error if not authenticated
 - ✅ Returns user ID for use in route handlers
 
 **Usage**:
+
 ```typescript
 const userId = await assertAuthenticated(request);
 ```
@@ -102,6 +106,7 @@ const userId = await assertAuthenticated(request);
 ### MIME Type Validation
 
 **Allowed Types**:
+
 - ✅ Images: `image/jpeg`, `image/png`, `image/webp`
 - ✅ Documents: `application/pdf`
 - ✅ Other: Configurable via env
@@ -113,6 +118,7 @@ const userId = await assertAuthenticated(request);
 ### File Size Limits
 
 **Default Limits**:
+
 - ✅ Images: 5MB
 - ✅ Documents: 10MB
 - ✅ Configurable via env
@@ -138,6 +144,7 @@ const userId = await assertAuthenticated(request);
 ### Signature Verification
 
 **Method**:
+
 - ✅ Extracts Stripe signature from headers
 - ✅ Verifies using `stripe.webhooks.constructEvent()`
 - ✅ Rejects invalid signatures
@@ -209,12 +216,14 @@ const userId = await assertAuthenticated(request);
 **Location**: `lib/api/rateLimit.ts`
 
 **Features**:
+
 - ✅ Per-IP rate limiting
 - ✅ Local memory storage
 - ✅ Configurable limits
 - ✅ Clear error messages
 
 **Limits**:
+
 - ✅ Default: 100 requests per 15 minutes
 - ✅ Configurable per route
 - ✅ Stricter limits for auth routes
@@ -301,4 +310,3 @@ Security hardening has been applied across the entire application. All API route
 
 **Last Updated**: 2024-12-19  
 **Report Version**: 1.0.0
-

@@ -1,15 +1,14 @@
 // Platform detection
-export * from './platform';
+export * from "./platform";
 
 // Supabase
-export * from './supabase';
+export * from "./supabase";
 
 // Realtime
-export * from './realtime';
+export * from "./realtime";
 
 // Shared services
-export * from './services/location';
+export * from "./services/location";
 
 // Pricing utilities
-export * from './pricing/platform-fee';
-
+export * from "./pricing/platform-fee";

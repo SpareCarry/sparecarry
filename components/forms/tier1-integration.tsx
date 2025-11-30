@@ -1,6 +1,6 @@
 /**
  * Tier-1 Features Integration Component
- * 
+ *
  * Integrates all Tier-1 features into listing forms:
  * - Safety Score
  * - Auto Category Detection
@@ -11,13 +11,19 @@
 
 "use client";
 
-import React, { useMemo } from 'react';
-import { SafetyBadge, AllowedWarningBox } from '../../modules/tier1Features/ui';
-import { useSafetyScore, computeSafetyScore } from '../../modules/tier1Features/safety';
-import { useAutoCategory } from '../../modules/tier1Features/categories';
-import { useEtaEstimator, Location } from '../../modules/tier1Features/eta';
-import { isAllowedToCarry, ItemDetails } from '../../modules/tier1Features/rules';
-import { Card } from '../ui/card';
+import React, { useMemo } from "react";
+import { SafetyBadge, AllowedWarningBox } from "../../modules/tier1Features/ui";
+import {
+  useSafetyScore,
+  computeSafetyScore,
+} from "../../modules/tier1Features/safety";
+import { useAutoCategory } from "../../modules/tier1Features/categories";
+import { useEtaEstimator, Location } from "../../modules/tier1Features/eta";
+import {
+  isAllowedToCarry,
+  ItemDetails,
+} from "../../modules/tier1Features/rules";
+import { Card } from "../ui/card";
 
 interface Tier1IntegrationProps {
   // Form values
@@ -37,20 +43,20 @@ interface Tier1IntegrationProps {
   hasLiquids?: boolean;
   liquidVolume?: number;
   restrictedItems?: boolean; // Restricted goods - boat only
-  
+
   // ETA
-  travelMethod?: 'plane' | 'boat';
+  travelMethod?: "plane" | "boat";
   fromLocation?: Location;
   toLocation?: Location;
   manualBoatDays?: number;
-  
+
   // Listing ID (if editing)
   listingId?: string | null;
 }
 
 export function Tier1Integration({
-  title = '',
-  description = '',
+  title = "",
+  description = "",
   category,
   onCategoryChange,
   declaredValue,
@@ -69,32 +75,51 @@ export function Tier1Integration({
 }: Tier1IntegrationProps) {
   // Auto-detect category
   const categoryMatch = useAutoCategory(title, description);
-  
+
   // Update category if auto-detected and no manual category set
   const displayCategory = category || categoryMatch.category;
-  
+
   React.useEffect(() => {
-    if (!category && categoryMatch.category !== 'other' && categoryMatch.confidence > 0.7 && onCategoryChange) {
+    if (
+      !category &&
+      categoryMatch.category !== "other" &&
+      categoryMatch.confidence > 0.7 &&
+      onCategoryChange
+    ) {
       onCategoryChange(categoryMatch.category);
     }
   }, [category, categoryMatch, onCategoryChange]);
 
   // Compute safety score
-  const listingDetails = useMemo(() => ({
-    title,
-    description,
-    category: displayCategory,
-    declaredValue,
-    weight,
-    dimensions,
-    photoCount: photos.length,
-    hasBatteries,
-    hasLiquids,
-    restrictedItems,
-  }), [title, description, displayCategory, declaredValue, weight, dimensions, photos.length, hasBatteries, hasLiquids, restrictedItems]);
+  const listingDetails = useMemo(
+    () => ({
+      title,
+      description,
+      category: displayCategory,
+      declaredValue,
+      weight,
+      dimensions,
+      photoCount: photos.length,
+      hasBatteries,
+      hasLiquids,
+      restrictedItems,
+    }),
+    [
+      title,
+      description,
+      displayCategory,
+      declaredValue,
+      weight,
+      dimensions,
+      photos.length,
+      hasBatteries,
+      hasLiquids,
+      restrictedItems,
+    ]
+  );
 
   const safetyScore = useSafetyScore(listingId, listingDetails);
-  
+
   // Compute allowed check
   const allowedCheck = useMemo(() => {
     const itemDetails: ItemDetails = {
@@ -106,16 +131,27 @@ export function Tier1Integration({
       liquidVolume,
       weight,
       value: declaredValue,
-      isFood: displayCategory?.toLowerCase().includes('food'),
-      isMedicine: displayCategory?.toLowerCase().includes('medicine'),
-      containsAlcohol: title.toLowerCase().includes('alcohol') || description.toLowerCase().includes('alcohol'),
+      isFood: displayCategory?.toLowerCase().includes("food"),
+      isMedicine: displayCategory?.toLowerCase().includes("medicine"),
+      containsAlcohol:
+        title.toLowerCase().includes("alcohol") ||
+        description.toLowerCase().includes("alcohol"),
     };
     return isAllowedToCarry(itemDetails);
-  }, [displayCategory, title, description, hasBatteries, hasLiquids, liquidVolume, weight, declaredValue]);
+  }, [
+    displayCategory,
+    title,
+    description,
+    hasBatteries,
+    hasLiquids,
+    liquidVolume,
+    weight,
+    declaredValue,
+  ]);
 
   // Compute ETA
   const etaResult = useEtaEstimator(
-    travelMethod || 'plane',
+    travelMethod || "plane",
     fromLocation,
     toLocation,
     manualBoatDays
@@ -124,15 +160,19 @@ export function Tier1Integration({
   return (
     <div className="space-y-4">
       {/* Auto-detected Category */}
-      {categoryMatch.category !== 'other' && categoryMatch.confidence > 0.7 && !category && (
-        <Card className="p-3 bg-blue-50 border-blue-200">
-          <div className="text-sm">
-            <span className="font-medium">Suggested category:</span>{' '}
-            <span className="text-blue-700">{categoryMatch.category}</span>
-            <span className="text-blue-600 ml-1">({Math.round(categoryMatch.confidence * 100)}% confidence)</span>
-          </div>
-        </Card>
-      )}
+      {categoryMatch.category !== "other" &&
+        categoryMatch.confidence > 0.7 &&
+        !category && (
+          <Card className="border-blue-200 bg-blue-50 p-3">
+            <div className="text-sm">
+              <span className="font-medium">Suggested category:</span>{" "}
+              <span className="text-blue-700">{categoryMatch.category}</span>
+              <span className="ml-1 text-blue-600">
+                ({Math.round(categoryMatch.confidence * 100)}% confidence)
+              </span>
+            </div>
+          </Card>
+        )}
 
       {/* Safety Score */}
       {title && (
@@ -144,11 +184,10 @@ export function Tier1Integration({
       )}
 
       {/* Allowed Check */}
-      {(allowedCheck.warnings.length > 0 || allowedCheck.restrictions.length > 0) && (
+      {(allowedCheck.warnings.length > 0 ||
+        allowedCheck.restrictions.length > 0) && (
         <AllowedWarningBox result={allowedCheck} />
       )}
-
     </div>
   );
 }
-

@@ -1,23 +1,23 @@
 /**
  * Helper functions for mocking Supabase endpoints in Playwright tests
- * 
+ *
  * Call setupSupabaseMocks() BEFORE any page.goto() or form interactions
- * 
+ *
  * This mock helper provides type-safe responses matching Supabase's actual API structure
  */
 
-import { Page } from '@playwright/test';
+import { Page } from "@playwright/test";
 import type {
   OTPResponse,
   UserResponse,
   TokenResponse,
   SupabaseUser,
-} from './types';
+} from "./types";
 import {
   createMockOTPResponse,
   createMockUserResponse,
   createMockTokenResponse,
-} from './types';
+} from "./types";
 
 // Shared state to track mocked users - allows setupSupabaseMocks to return user if set
 const mockedUsers = new WeakMap<Page, SupabaseUser>();
@@ -42,19 +42,19 @@ export async function setupSupabaseMocks(page: Page) {
   // Mock OTP endpoint (magic link sign-in)
   // IMPORTANT: Match all possible URL patterns, including query parameters
   // Pattern must match: **/auth/v1/otp* (with or without query params)
-  
+
   // Route pattern that matches OTP endpoint with or without query parameters
   await page.route("**/auth/v1/otp**", async (route) => {
     const request = route.request();
     // Only mock POST requests (OTP requests)
     if (request.method() === "POST") {
-      console.log('[MOCK] Intercepting OTP request:', request.url());
+      console.log("[MOCK] Intercepting OTP request:", request.url());
       await route.fulfill({
         status: 200,
-        contentType: 'application/json',
+        contentType: "application/json",
         headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*",
         },
         // Supabase OTP success response is just an empty object
         body: JSON.stringify({}),
@@ -68,13 +68,16 @@ export async function setupSupabaseMocks(page: Page) {
   await page.route("**/*supabase*/auth/v1/otp**", async (route) => {
     const request = route.request();
     if (request.method() === "POST") {
-      console.log('[MOCK] Intercepting OTP request (supabase domain):', request.url());
+      console.log(
+        "[MOCK] Intercepting OTP request (supabase domain):",
+        request.url()
+      );
       await route.fulfill({
         status: 200,
-        contentType: 'application/json',
+        contentType: "application/json",
         headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*",
         },
         body: JSON.stringify({}),
       });
@@ -88,10 +91,10 @@ export async function setupSupabaseMocks(page: Page) {
   await page.route("**/auth/v1/token**", async (route) => {
     await route.fulfill({
       status: 200,
-      contentType: 'application/json',
+      contentType: "application/json",
       headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*',
+        "Content-Type": "application/json",
+        "Access-Control-Allow-Origin": "*",
       },
       body: JSON.stringify({}),
     });
@@ -101,10 +104,10 @@ export async function setupSupabaseMocks(page: Page) {
   await page.route("**/*supabase*/auth/v1/token**", async (route) => {
     await route.fulfill({
       status: 200,
-      contentType: 'application/json',
+      contentType: "application/json",
       headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*',
+        "Content-Type": "application/json",
+        "Access-Control-Allow-Origin": "*",
       },
       body: JSON.stringify({}),
     });
@@ -118,44 +121,52 @@ export async function setupSupabaseMocks(page: Page) {
   const userRouteHandler = async (route: any) => {
     const request = route.request();
     const url = request.url();
-    
+
     // Only handle GET requests to /auth/v1/user endpoints (but not with code param)
-    if (request.method() === "GET" && url.includes('/auth/v1/user') && !url.includes('/auth/v1/user?code=')) {
+    if (
+      request.method() === "GET" &&
+      url.includes("/auth/v1/user") &&
+      !url.includes("/auth/v1/user?code=")
+    ) {
       // Check shared state FIRST - this is checked dynamically on every request
       // This allows setupUserMocks to set a user that will be returned here
       const mockedUser = getMockedUser(page);
-      
+
       // Log for debugging
       console.log(`[SETUP_SUPABASE_MOCKS] Intercepted GET ${url}`);
       if (mockedUser) {
-        console.log(`[SETUP_SUPABASE_MOCKS] Returning mocked user from shared state: ${mockedUser.email}`);
+        console.log(
+          `[SETUP_SUPABASE_MOCKS] Returning mocked user from shared state: ${mockedUser.email}`
+        );
         // If a user is mocked, return it
         await route.fulfill({
           status: 200,
-          contentType: 'application/json',
+          contentType: "application/json",
           headers: {
-            'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*',
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*",
           },
-          body: JSON.stringify({ 
+          body: JSON.stringify({
             user: mockedUser,
-            error: null 
+            error: null,
           }),
         });
         return; // Stop here
       } else {
-        console.log(`[SETUP_SUPABASE_MOCKS] No mocked user in shared state, returning null (unauthenticated)`);
+        console.log(
+          `[SETUP_SUPABASE_MOCKS] No mocked user in shared state, returning null (unauthenticated)`
+        );
         // If no user is mocked, return null (unauthenticated)
         await route.fulfill({
           status: 200,
-          contentType: 'application/json',
+          contentType: "application/json",
           headers: {
-            'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*',
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*",
           },
-          body: JSON.stringify({ 
+          body: JSON.stringify({
             user: null,
-            error: null 
+            error: null,
           }),
         });
         return; // Stop here - don't continue to other routes
@@ -170,10 +181,13 @@ export async function setupSupabaseMocks(page: Page) {
   // CRITICAL: Use function matchers - they work better than string patterns for Supabase URLs
   // Function matchers are checked before string patterns in Playwright
   await page.route((url) => {
-    const href = typeof url === 'string' ? url : (url.href || (url as any).url || '');
-    return href.includes('/auth/v1/user') && !href.includes('/auth/v1/user?code=');
+    const href =
+      typeof url === "string" ? url : url.href || (url as any).url || "";
+    return (
+      href.includes("/auth/v1/user") && !href.includes("/auth/v1/user?code=")
+    );
   }, userRouteHandler);
-  
+
   // Also register string patterns as fallback (function matcher takes precedence)
   await page.route("**/auth/v1/user**", userRouteHandler);
   await page.route("**/*supabase*/auth/v1/user**", userRouteHandler);
@@ -182,7 +196,7 @@ export async function setupSupabaseMocks(page: Page) {
   await page.route("**/storage/v1/**", async (route) => {
     await route.fulfill({
       status: 200,
-      contentType: 'application/json',
+      contentType: "application/json",
       body: JSON.stringify({}),
     });
   });
@@ -190,9 +204,8 @@ export async function setupSupabaseMocks(page: Page) {
   await page.route("**/*supabase*/storage/v1/**", async (route) => {
     await route.fulfill({
       status: 200,
-      contentType: 'application/json',
+      contentType: "application/json",
       body: JSON.stringify({}),
     });
   });
 }
-

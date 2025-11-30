@@ -13,6 +13,7 @@ npx pnpm install
 ```
 
 This will:
+
 - Download and use pnpm automatically
 - Install all dependencies
 - Work without needing pnpm installed globally
@@ -24,11 +25,13 @@ npm install -g pnpm
 ```
 
 Then refresh your PowerShell PATH:
+
 ```powershell
 $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
 ```
 
 Or simply restart PowerShell, then:
+
 ```powershell
 pnpm install
 ```
@@ -45,6 +48,7 @@ pnpm install
 ### npm install fails with "Cannot read properties of null"
 
 **Solution**: Use pnpm instead:
+
 ```powershell
 npx pnpm install
 ```
@@ -52,6 +56,7 @@ npx pnpm install
 ### pnpm command not found after global install
 
 **Solution**: Refresh PATH or restart PowerShell:
+
 ```powershell
 $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
 ```
@@ -59,6 +64,7 @@ $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";"
 ### Build scripts fail with environment variable errors
 
 **Solution**: Ensure `cross-env` is installed (it should be after running `pnpm install`):
+
 ```powershell
 npx pnpm list cross-env
 ```
@@ -87,14 +93,17 @@ npx pnpm test
 After installation, verify everything works:
 
 1. **Check cross-env is installed**:
+
    ```powershell
    npx pnpm list cross-env
    ```
 
 2. **Test dev server**:
+
    ```powershell
    npx pnpm dev
    ```
+
    Should start without Capacitor or Sentry errors.
 
 3. **Run preflight check**:
@@ -105,4 +114,3 @@ After installation, verify everything works:
 ---
 
 **Status**: ✅ Dependencies installed successfully using pnpm.
-

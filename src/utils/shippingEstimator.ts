@@ -1,18 +1,18 @@
 /**
  * Shipping Estimator Utility
- * 
+ *
  * Main calculation functions for comparing courier vs SpareCarry prices
  * Includes hybrid platform fee baked into prices (invisible to user)
  */
 
-import { calculateCourierPrice } from './courierRates';
-import { calculateCustomsCost } from './customsRates';
-import { 
-  calculatePlatformFee, 
-  calculateStripeFee, 
+import { calculateCourierPrice } from "./courierRates";
+import { calculateCustomsCost } from "./customsRates";
+import {
+  calculatePlatformFee,
+  calculateStripeFee,
   calculateNetRevenue,
-  validatePlatformFeeCoversStripe 
-} from '../constants/shippingFees';
+  validatePlatformFeeCoversStripe,
+} from "../constants/shippingFees";
 
 export interface ShippingEstimateInput {
   originCountry: string;
@@ -75,7 +75,10 @@ export function calculateSpareCarryBoatBasePrice(weight: number): number {
  * Formula: base_price + platform_fee
  * Platform fee: $3 flat + 8% of base price (reduced for premium users)
  */
-export function calculateSpareCarryPlanePrice(weight: number, isPremium: boolean = false): number {
+export function calculateSpareCarryPlanePrice(
+  weight: number,
+  isPremium: boolean = false
+): number {
   const basePrice = calculateSpareCarryPlaneBasePrice(weight);
   const platformFee = calculatePlatformFee(basePrice, isPremium);
   const totalPrice = basePrice + platformFee;
@@ -87,7 +90,10 @@ export function calculateSpareCarryPlanePrice(weight: number, isPremium: boolean
  * Formula: base_price + platform_fee
  * Platform fee: $3 flat + 8% of base price (reduced for premium users)
  */
-export function calculateSpareCarryBoatPrice(weight: number, isPremium: boolean = false): number {
+export function calculateSpareCarryBoatPrice(
+  weight: number,
+  isPremium: boolean = false
+): number {
   const basePrice = calculateSpareCarryBoatBasePrice(weight);
   const platformFee = calculatePlatformFee(basePrice, isPremium);
   const totalPrice = basePrice + platformFee;
@@ -98,7 +104,9 @@ export function calculateSpareCarryBoatPrice(weight: number, isPremium: boolean 
  * Calculate complete shipping estimate
  * Includes hybrid platform fee baked into SpareCarry prices
  */
-export function calculateShippingEstimate(input: ShippingEstimateInput): ShippingEstimateResult | null {
+export function calculateShippingEstimate(
+  input: ShippingEstimateInput
+): ShippingEstimateResult | null {
   const isInternational = input.originCountry !== input.destinationCountry;
   const isPremium = input.isPremium ?? false;
 
@@ -119,7 +127,10 @@ export function calculateShippingEstimate(input: ShippingEstimateInput): Shippin
   // Calculate customs cost (only for international)
   let customsCost = 0;
   if (isInternational && input.declaredValue > 0) {
-    const customs = calculateCustomsCost(input.destinationCountry, input.declaredValue);
+    const customs = calculateCustomsCost(
+      input.destinationCountry,
+      input.declaredValue
+    );
     customsCost = customs ? customs.total : 0;
   }
 
@@ -142,26 +153,38 @@ export function calculateShippingEstimate(input: ShippingEstimateInput): Shippin
   const stripeFeeBoat = calculateStripeFee(spareCarryBoatPrice);
 
   // Calculate net revenue (platform fee - Stripe fee)
-  const netRevenuePlane = calculateNetRevenue(platformFeePlane, spareCarryPlanePrice);
-  const netRevenueBoat = calculateNetRevenue(platformFeeBoat, spareCarryBoatPrice);
+  const netRevenuePlane = calculateNetRevenue(
+    platformFeePlane,
+    spareCarryPlanePrice
+  );
+  const netRevenueBoat = calculateNetRevenue(
+    platformFeeBoat,
+    spareCarryBoatPrice
+  );
 
   // Validate that platform fee covers Stripe fee (warn if not, but don't block)
-  const planeFeeValid = validatePlatformFeeCoversStripe(platformFeePlane, spareCarryPlanePrice);
-  const boatFeeValid = validatePlatformFeeCoversStripe(platformFeeBoat, spareCarryBoatPrice);
-  
+  const planeFeeValid = validatePlatformFeeCoversStripe(
+    platformFeePlane,
+    spareCarryPlanePrice
+  );
+  const boatFeeValid = validatePlatformFeeCoversStripe(
+    platformFeeBoat,
+    spareCarryBoatPrice
+  );
+
   if (!planeFeeValid || !boatFeeValid) {
-    console.warn('Platform fee may not fully cover Stripe fees:', {
-      plane: { 
-        platformFee: platformFeePlane, 
-        stripeFee: stripeFeePlane, 
+    console.warn("Platform fee may not fully cover Stripe fees:", {
+      plane: {
+        platformFee: platformFeePlane,
+        stripeFee: stripeFeePlane,
         netRevenue: netRevenuePlane,
-        valid: planeFeeValid 
+        valid: planeFeeValid,
       },
-      boat: { 
-        platformFee: platformFeeBoat, 
-        stripeFee: stripeFeeBoat, 
+      boat: {
+        platformFee: platformFeeBoat,
+        stripeFee: stripeFeeBoat,
         netRevenue: netRevenueBoat,
-        valid: boatFeeValid 
+        valid: boatFeeValid,
       },
     });
   }
@@ -169,12 +192,10 @@ export function calculateShippingEstimate(input: ShippingEstimateInput): Shippin
   // Calculate savings
   const savingsPlane = courierTotal - spareCarryPlanePrice;
   const savingsBoat = courierTotal - spareCarryBoatPrice;
-  const savingsPercentagePlane = courierTotal > 0 
-    ? Math.round((savingsPlane / courierTotal) * 100) 
-    : 0;
-  const savingsPercentageBoat = courierTotal > 0 
-    ? Math.round((savingsBoat / courierTotal) * 100) 
-    : 0;
+  const savingsPercentagePlane =
+    courierTotal > 0 ? Math.round((savingsPlane / courierTotal) * 100) : 0;
+  const savingsPercentageBoat =
+    courierTotal > 0 ? Math.round((savingsBoat / courierTotal) * 100) : 0;
 
   // Calculate premium prices (for non-premium users to see what they'd pay as premium)
   let premiumPlanePrice: number | undefined;
@@ -192,12 +213,14 @@ export function calculateShippingEstimate(input: ShippingEstimateInput): Shippin
     premiumBoatPrice = boatBasePrice + premiumFeeBoat;
     premiumSavingsPlane = courierTotal - premiumPlanePrice;
     premiumSavingsBoat = courierTotal - premiumBoatPrice;
-    premiumSavingsPercentagePlane = courierTotal > 0 
-      ? Math.round((premiumSavingsPlane / courierTotal) * 100) 
-      : 0;
-    premiumSavingsPercentageBoat = courierTotal > 0 
-      ? Math.round((premiumSavingsBoat / courierTotal) * 100) 
-      : 0;
+    premiumSavingsPercentagePlane =
+      courierTotal > 0
+        ? Math.round((premiumSavingsPlane / courierTotal) * 100)
+        : 0;
+    premiumSavingsPercentageBoat =
+      courierTotal > 0
+        ? Math.round((premiumSavingsBoat / courierTotal) * 100)
+        : 0;
   }
 
   return {
@@ -216,12 +239,19 @@ export function calculateShippingEstimate(input: ShippingEstimateInput): Shippin
     stripeFeeBoat, // Internal Stripe fee (not shown to user)
     netRevenuePlane, // Internal net revenue (not shown to user)
     netRevenueBoat, // Internal net revenue (not shown to user)
-    premiumPlanePrice: premiumPlanePrice ? Math.round(premiumPlanePrice * 100) / 100 : undefined,
-    premiumBoatPrice: premiumBoatPrice ? Math.round(premiumBoatPrice * 100) / 100 : undefined,
-    premiumSavingsPlane: premiumSavingsPlane ? Math.round(premiumSavingsPlane * 100) / 100 : undefined,
-    premiumSavingsBoat: premiumSavingsBoat ? Math.round(premiumSavingsBoat * 100) / 100 : undefined,
+    premiumPlanePrice: premiumPlanePrice
+      ? Math.round(premiumPlanePrice * 100) / 100
+      : undefined,
+    premiumBoatPrice: premiumBoatPrice
+      ? Math.round(premiumBoatPrice * 100) / 100
+      : undefined,
+    premiumSavingsPlane: premiumSavingsPlane
+      ? Math.round(premiumSavingsPlane * 100) / 100
+      : undefined,
+    premiumSavingsBoat: premiumSavingsBoat
+      ? Math.round(premiumSavingsBoat * 100) / 100
+      : undefined,
     premiumSavingsPercentagePlane,
     premiumSavingsPercentageBoat,
   };
 }
-

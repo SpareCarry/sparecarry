@@ -42,6 +42,7 @@ The Fastlane configuration is in `ios/fastlane/`:
 ### 3. Set Environment Variables
 
 For staging builds, set:
+
 ```bash
 export NEXT_PUBLIC_APP_ENV=staging
 export APPLE_ID=your-apple-id@example.com
@@ -55,6 +56,7 @@ export IOS_PROVISIONING_PROFILE_NAME="SpareCarry Staging"
 ### 4. Configure GitHub Secrets
 
 Add these secrets to GitHub repository:
+
 - `STAGING_APPLE_ID`
 - `STAGING_APPLE_TEAM_ID`
 - `STAGING_APP_STORE_CONNECT_KEY_ID`
@@ -93,6 +95,7 @@ fastlane ios beta_staging
 ### `beta_staging`
 
 Builds and uploads staging build to TestFlight:
+
 - Increments build number
 - Builds app with staging environment
 - Uploads to TestFlight
@@ -101,11 +104,13 @@ Builds and uploads staging build to TestFlight:
 ### `beta`
 
 Builds and uploads production build to TestFlight:
+
 - Same as `beta_staging` but uses production environment
 
 ### `release`
 
 Builds and uploads to App Store:
+
 - Increments version and build number
 - Uploads to App Store Connect
 - Does not submit for review (manual step)
@@ -113,6 +118,7 @@ Builds and uploads to App Store:
 ## Build Number Management
 
 Build numbers are auto-incremented using:
+
 ```ruby
 increment_build_number(
   build_number: number_of_commits
@@ -140,6 +146,7 @@ This uses the number of git commits as the build number.
 ## Changelog
 
 Add changelog when deploying:
+
 ```bash
 export CHANGELOG="Staging build - Fixed match creation bug"
 fastlane ios beta_staging
@@ -218,4 +225,3 @@ Or in GitHub Actions, it's auto-generated with date.
 - [ ] Create beta testing guidelines
 - [ ] Set up feedback collection system
 - [ ] Monitor TestFlight analytics
-

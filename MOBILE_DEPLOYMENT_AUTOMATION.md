@@ -48,12 +48,14 @@ scripts/release/
 ### iOS Fastfile
 
 **Lanes:**
+
 - `beta` - Build and upload to TestFlight
 - `release` - Build and upload to App Store
 - `build_only` - Build without uploading
 - `clean` - Clean build artifacts
 
 **Usage:**
+
 ```bash
 cd ios
 fastlane ios beta      # Upload to TestFlight
@@ -64,12 +66,14 @@ fastlane ios build_only # Build only
 ### Android Fastfile
 
 **Lanes:**
+
 - `beta` - Build and upload to Internal Testing
 - `release` - Build and upload to Production
 - `build_only` - Build without uploading
 - `clean` - Clean build artifacts
 
 **Usage:**
+
 ```bash
 cd android
 fastlane android beta      # Upload to Internal Testing
@@ -198,6 +202,7 @@ Add these secrets in GitHub repository settings (Settings → Secrets and variab
 ### Encoding Secrets
 
 **Base64 Encode Files:**
+
 ```bash
 # iOS .p8 file
 base64 -i AuthKey_KEYID.p8 | pbcopy
@@ -232,6 +237,7 @@ base64 -i google-play-service-account.json | pbcopy
 ### Workflow Steps
 
 **Android:**
+
 1. Checkout code
 2. Setup Node.js and install dependencies
 3. Build Next.js app
@@ -245,6 +251,7 @@ base64 -i google-play-service-account.json | pbcopy
 11. Upload artifacts
 
 **iOS:**
+
 1. Checkout code
 2. Setup Node.js and install dependencies
 3. Build Next.js app
@@ -260,6 +267,7 @@ base64 -i google-play-service-account.json | pbcopy
 ### Manual Approval
 
 Production releases require manual approval:
+
 - Workflow pauses and creates an issue
 - Approvers (from `RELEASE_APPROVERS` secret) must approve
 - Workflow continues after approval
@@ -271,6 +279,7 @@ Production releases require manual approval:
 ### Android Release
 
 **Beta:**
+
 ```bash
 chmod +x scripts/release/android-release.sh
 export GOOGLE_PLAY_JSON_KEY_FILE=/path/to/key.json
@@ -278,6 +287,7 @@ export GOOGLE_PLAY_JSON_KEY_FILE=/path/to/key.json
 ```
 
 **Release:**
+
 ```bash
 ./scripts/release/android-release.sh release
 ```
@@ -285,6 +295,7 @@ export GOOGLE_PLAY_JSON_KEY_FILE=/path/to/key.json
 ### iOS Release
 
 **Beta:**
+
 ```bash
 chmod +x scripts/release/ios-release.sh
 export APPLE_ID=your-apple-id@example.com
@@ -293,6 +304,7 @@ export APPLE_TEAM_ID=your-team-id
 ```
 
 **Release:**
+
 ```bash
 ./scripts/release/ios-release.sh release
 ```
@@ -304,20 +316,24 @@ export APPLE_TEAM_ID=your-team-id
 ### Android
 
 **Location:**
+
 - AAB: `android/app/build/outputs/bundle/release/app-release.aab`
 - APK: `android/app/build/outputs/apk/release/app-release.apk`
 
 **Upload:**
+
 - Automatically uploaded to Play Console via Fastlane
 - Also available as GitHub Actions artifact
 
 ### iOS
 
 **Location:**
+
 - IPA: `ios/App/App/Build/App.ipa`
 - dSYM: `ios/App/App/Build/App.app.dSYM.zip`
 
 **Upload:**
+
 - Automatically uploaded to TestFlight/App Store via Fastlane
 - Also available as GitHub Actions artifact
 
@@ -360,16 +376,19 @@ export APPLE_TEAM_ID=your-team-id
 ### iOS Issues
 
 **Error: Provisioning profile not found**
+
 - Solution: Configure signing in Xcode
 - Ensure team is selected
 - Check Bundle Identifier matches
 
 **Error: App Store Connect authentication failed**
+
 - Solution: Verify API key file exists
 - Check Key ID and Issuer ID
 - Ensure API key has correct permissions
 
 **Error: Build failed**
+
 - Solution: Check Xcode version compatibility
 - Verify workspace file exists
 - Check for code signing errors
@@ -377,16 +396,19 @@ export APPLE_TEAM_ID=your-team-id
 ### Android Issues
 
 **Error: Keystore not found**
+
 - Solution: Ensure keystore file exists
 - Check `keystore.properties` configuration
 - Verify keystore path
 
 **Error: Google Play authentication failed**
+
 - Solution: Verify JSON key file path
 - Check service account permissions
 - Ensure API is enabled
 
 **Error: Build failed**
+
 - Solution: Check Gradle version
 - Verify Android SDK is installed
 - Check for signing configuration errors
@@ -440,7 +462,7 @@ Add to `.github/workflows/mobile-deploy.yml`:
 on:
   push:
     tags:
-      - 'v*'
+      - "v*"
 ```
 
 ### Branch-Based Deployment
@@ -491,4 +513,3 @@ on:
 ---
 
 **Last Updated**: November 20, 2025
-

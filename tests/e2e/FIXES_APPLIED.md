@@ -3,9 +3,11 @@
 ## ✅ Completed Fixes
 
 ### 1. Edge Cases - Emergency Multiplier Test ✅
+
 **File:** `tests/e2e/flows/edge-cases.spec.ts`
 **Issue:** Hardcoded assertion values didn't match actual mock data
-**Fix:** 
+**Fix:**
+
 - Imported `calculateEmergencyPricing()` function
 - Extract actual values from displayed emergency text
 - Derive base reward from displayed total and extra amounts
@@ -13,18 +15,22 @@
 - **Result:** Test now dynamically validates based on actual form state
 
 ### 2. Jobs Spec - Prohibited Items Tests ✅
+
 **File:** `tests/e2e/flows/jobs.spec.ts`
 **Issue:** Test text didn't match actual form text
 **Fix:**
+
 - Updated checkbox text from "I confirm this shipment does not contain prohibited items" to "I confirm I am not transporting prohibited items"
 - Updated error message from "You must confirm that your shipment does not contain prohibited items" to "You must confirm that you are not carrying prohibited items"
 - Added proper waits for plane selection and form rendering
 - **Result:** Both tests now properly detect checkbox and validation
 
 ### 3. Shipping Estimator - Create Job Navigation ✅
+
 **File:** `tests/e2e/shipping-estimator.spec.ts`
 **Issue:** Button click wasn't triggering navigation
 **Fix:**
+
 - Wait for estimate to be calculated before clicking button
 - Ensure button is visible and enabled
 - Use Promise.all with waitForURL for reliable navigation detection
@@ -32,9 +38,11 @@
 - **Result:** Navigation now works correctly
 
 ### 4. Profile Spec - Page Loading ✅
+
 **File:** `tests/e2e/flows/profile.spec.ts`
 **Issue:** Tests couldn't find profile heading
 **Fix:**
+
 - Updated selector to use `h1:has-text("Profile")` instead of role-based selector
 - Added proper wait times for React Query to load data
 - Improved subscription card visibility checks
@@ -42,9 +50,11 @@
 - **Result:** All 4 profile tests now properly detect page elements
 
 ### 5. Subscription Flow - Pricing Display ✅
+
 **File:** `tests/e2e/subscription-flow.spec.ts`
 **Issue:** Test expected $100 lifetime option but it might not always be visible
 **Fix:**
+
 - Made lifetime option check conditional (only if available)
 - Added additional wait time for pricing cards to render
 - Kept monthly ($5) and yearly ($30) as required checks
@@ -53,13 +63,16 @@
 ## 📋 Remaining Issues
 
 ### Timeout Failures (Infrastructure)
+
 Many tests are failing with timeout errors during navigation/page load. These appear to be infrastructure-related and may need:
+
 - Longer timeout values
 - Better server resource management
 - Sequential test execution instead of parallel
 - Environment optimization
 
 **Affected tests:**
+
 - Multiple landing page navigation tests
 - Several lifetime subscription tests
 - Some negative test cases
@@ -75,6 +88,7 @@ Many tests are failing with timeout errors during navigation/page load. These ap
 ## 🎯 Next Steps
 
 1. Run individual test suites to verify fixes:
+
    ```bash
    pnpm test:e2e tests/e2e/flows/edge-cases.spec.ts
    pnpm test:e2e tests/e2e/flows/jobs.spec.ts
@@ -85,4 +99,3 @@ Many tests are failing with timeout errors during navigation/page load. These ap
 
 2. If individual tests pass, investigate timeout issues with full suite run
 3. Consider test infrastructure improvements for better reliability
-

@@ -9,6 +9,7 @@ This directory contains GitHub Actions workflows for the SpareCarry project.
 Runs on every push and pull request to `main` and `develop` branches.
 
 **Jobs**:
+
 1. **Test** - Unit and integration tests (Vitest)
    - Matrix: Node 18/20 × Ubuntu/macOS
    - Runs: Tests, type checks, linting, Next.js build
@@ -35,6 +36,7 @@ Runs on every push and pull request to `main` and `develop` branches.
 ## Environment Variables
 
 All workflows use test/mock environment variables:
+
 - `NEXT_PUBLIC_SUPABASE_URL=https://test.supabase.co`
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY=test-anon-key`
 - `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_123`
@@ -45,21 +47,25 @@ All workflows use test/mock environment variables:
 ## Running Locally
 
 ### Run Tests
+
 ```bash
 pnpm test
 ```
 
 ### Run E2E Tests
+
 ```bash
 pnpm test:e2e
 ```
 
 ### Run in Docker
+
 ```bash
 pnpm test:e2e:docker
 ```
 
 ### Type Checks
+
 ```bash
 pnpm typecheck:all
 ```
@@ -67,7 +73,7 @@ pnpm typecheck:all
 ## Workflow Status Badge
 
 Add to your README:
+
 ```markdown
 ![CI](https://github.com/your-org/sparecarry/workflows/CI/badge.svg)
 ```
-

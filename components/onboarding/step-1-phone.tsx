@@ -12,8 +12,7 @@ interface OnboardingStep1Props {
   onComplete: () => void;
 }
 
-const phoneAuthEnabled =
-  process.env.NEXT_PUBLIC_ENABLE_PHONE_AUTH !== "false";
+const phoneAuthEnabled = process.env.NEXT_PUBLIC_ENABLE_PHONE_AUTH !== "false";
 const supportEmail =
   process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "support@sparecarry.com";
 
@@ -108,7 +107,7 @@ export function OnboardingStep1({ onComplete }: OnboardingStep1Props) {
     }
 
     try {
-    const {
+      const {
         data: { user },
       } = await supabase.auth.getUser();
 
@@ -153,9 +152,9 @@ export function OnboardingStep1({ onComplete }: OnboardingStep1Props) {
 
   if (step === "phone") {
     return (
-    <form onSubmit={handleSendCode} className="space-y-4">
+      <form onSubmit={handleSendCode} className="space-y-4">
         <div className="space-y-2">
-        <Label htmlFor="phone">Phone Number</Label>
+          <Label htmlFor="phone">Phone Number</Label>
           <Input
             id="phone"
             type="tel"
@@ -163,38 +162,39 @@ export function OnboardingStep1({ onComplete }: OnboardingStep1Props) {
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
             required
-          disabled={loading || !phoneAuthEnabled}
+            disabled={loading || !phoneAuthEnabled}
             className="bg-white"
           />
           <p className="text-sm text-slate-500">
-          Enter your number in international format. Standard carrier rates apply.
+            Enter your number in international format. Standard carrier rates
+            apply.
           </p>
-        {!phoneAuthEnabled && (
-          <p className="text-sm text-amber-600">
-            Phone verification is currently disabled. Please email{" "}
-            <a className="underline" href={`mailto:${supportEmail}`}>
-              {supportEmail}
-            </a>{" "}
-            if you need access.
-          </p>
-        )}
+          {!phoneAuthEnabled && (
+            <p className="text-sm text-amber-600">
+              Phone verification is currently disabled. Please email{" "}
+              <a className="underline" href={`mailto:${supportEmail}`}>
+                {supportEmail}
+              </a>{" "}
+              if you need access.
+            </p>
+          )}
         </div>
 
         {error && (
-          <div className="p-3 rounded-md bg-red-50 text-red-800 border border-red-200 text-sm">
+          <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-800">
             {error}
           </div>
         )}
-      {statusMessage && !error && (
-        <div className="p-3 rounded-md bg-teal-50 text-teal-800 border border-teal-200 text-sm">
-          {statusMessage}
-        </div>
-      )}
+        {statusMessage && !error && (
+          <div className="rounded-md border border-teal-200 bg-teal-50 p-3 text-sm text-teal-800">
+            {statusMessage}
+          </div>
+        )}
 
         <Button
           type="submit"
           className="w-full bg-teal-600 hover:bg-teal-700"
-        disabled={loading || !phoneAuthEnabled || cooldown > 0}
+          disabled={loading || !phoneAuthEnabled || cooldown > 0}
         >
           {loading ? (
             <>
@@ -202,14 +202,14 @@ export function OnboardingStep1({ onComplete }: OnboardingStep1Props) {
               Sending...
             </>
           ) : (
-          <>
-            Send Verification Code
-            {cooldown > 0 && (
-              <span className="ml-2 text-xs font-semibold">
-                ({cooldown}s)
-              </span>
-            )}
-          </>
+            <>
+              Send Verification Code
+              {cooldown > 0 && (
+                <span className="ml-2 text-xs font-semibold">
+                  ({cooldown}s)
+                </span>
+              )}
+            </>
           )}
         </Button>
       </form>
@@ -225,19 +225,19 @@ export function OnboardingStep1({ onComplete }: OnboardingStep1Props) {
           type="text"
           placeholder="Enter 6-digit code"
           value={code}
-          onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+          onChange={(e) =>
+            setCode(e.target.value.replace(/\D/g, "").slice(0, 6))
+          }
           required
           disabled={loading}
           className="bg-white text-center text-2xl tracking-widest"
           maxLength={6}
         />
-        <p className="text-sm text-slate-500">
-          Enter the code sent to {phone}
-        </p>
+        <p className="text-sm text-slate-500">Enter the code sent to {phone}</p>
       </div>
 
       {error && (
-        <div className="p-3 rounded-md bg-red-50 text-red-800 border border-red-200 text-sm">
+        <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-800">
           {error}
         </div>
       )}
@@ -270,4 +270,3 @@ export function OnboardingStep1({ onComplete }: OnboardingStep1Props) {
     </form>
   );
 }
-

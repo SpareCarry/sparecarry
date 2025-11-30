@@ -1,10 +1,10 @@
 /**
  * CountrySelect Component
- * 
+ *
  * A searchable, debounced dropdown for selecting countries.
  * Supports both controlled (value + onChange) and uncontrolled (onSelect) APIs.
  * Optimized for performance with 250+ countries.
- * 
+ *
  * Features:
  * - Searchable input with debounced filter (default 250ms)
  * - Fast list rendering
@@ -16,12 +16,22 @@
 
 "use client";
 
-import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { Input } from './ui/input';
-import { Label } from './ui/label';
-import { Search, ChevronDown, Check } from 'lucide-react';
-import { COUNTRIES, Country, getCountryByIso2 } from '../src/constants/countries';
-import { cn } from '../lib/utils';
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+  useMemo,
+} from "react";
+import { Input } from "./ui/input";
+import { Label } from "./ui/label";
+import { Search, ChevronDown, Check } from "lucide-react";
+import {
+  COUNTRIES,
+  Country,
+  getCountryByIso2,
+} from "../src/constants/countries";
+import { cn } from "../lib/utils";
 
 export interface CountrySelectProps {
   /** Label for the select */
@@ -64,8 +74,9 @@ export function CountrySelect({
   className = "",
   id,
 }: CountrySelectProps) {
-  const [query, setQuery] = useState('');
-  const [filteredCountries, setFilteredCountries] = useState<Country[]>(COUNTRIES);
+  const [query, setQuery] = useState("");
+  const [filteredCountries, setFilteredCountries] =
+    useState<Country[]>(COUNTRIES);
   const [isOpen, setIsOpen] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const [isSearching, setIsSearching] = useState(false);
@@ -85,7 +96,7 @@ export function CountrySelect({
     if (selectedCountry && !isOpen) {
       setQuery(selectedCountry.name);
     } else if (!selectedCountry && !isOpen) {
-      setQuery('');
+      setQuery("");
     }
   }, [selectedCountry, isOpen]);
 
@@ -131,53 +142,56 @@ export function CountrySelect({
     setQuery(newQuery);
     setIsOpen(true);
     setSelectedIndex(-1);
-    
+
     // If query is cleared, clear selection
     if (!newQuery.trim() && value) {
-      onChange?.('');
+      onChange?.("");
       onSelect?.(undefined as any);
     }
   };
 
   // Handle country selection
-  const handleSelect = useCallback((country: Country) => {
-    setQuery(country.name);
-    setIsOpen(false);
-    setSelectedIndex(-1);
-    
-    // Call both handlers if provided
-    onChange?.(country.iso2);
-    onSelect?.(country);
-  }, [onChange, onSelect]);
+  const handleSelect = useCallback(
+    (country: Country) => {
+      setQuery(country.name);
+      setIsOpen(false);
+      setSelectedIndex(-1);
+
+      // Call both handlers if provided
+      onChange?.(country.iso2);
+      onSelect?.(country);
+    },
+    [onChange, onSelect]
+  );
 
   // Handle keyboard navigation
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (disabled) return;
 
     switch (e.key) {
-      case 'ArrowDown':
+      case "ArrowDown":
         e.preventDefault();
         setIsOpen(true);
         setSelectedIndex((prev) =>
           prev < filteredCountries.length - 1 ? prev + 1 : prev
         );
         break;
-      case 'ArrowUp':
+      case "ArrowUp":
         e.preventDefault();
         setSelectedIndex((prev) => (prev > 0 ? prev - 1 : -1));
         break;
-      case 'Enter':
+      case "Enter":
         e.preventDefault();
         if (selectedIndex >= 0 && filteredCountries[selectedIndex]) {
           handleSelect(filteredCountries[selectedIndex]);
         }
         break;
-      case 'Escape':
+      case "Escape":
         setIsOpen(false);
         setSelectedIndex(-1);
         inputRef.current?.blur();
         break;
-      case 'Tab':
+      case "Tab":
         setIsOpen(false);
         break;
     }
@@ -206,9 +220,9 @@ export function CountrySelect({
     };
 
     if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener("mousedown", handleClickOutside);
       return () => {
-        document.removeEventListener('mousedown', handleClickOutside);
+        document.removeEventListener("mousedown", handleClickOutside);
       };
     }
   }, [isOpen]);
@@ -216,9 +230,14 @@ export function CountrySelect({
   // Scroll selected item into view
   useEffect(() => {
     if (selectedIndex >= 0 && dropdownRef.current) {
-      const selectedElement = dropdownRef.current.children[selectedIndex] as HTMLElement;
+      const selectedElement = dropdownRef.current.children[
+        selectedIndex
+      ] as HTMLElement;
       if (selectedElement) {
-        selectedElement.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+        selectedElement.scrollIntoView({
+          block: "nearest",
+          behavior: "smooth",
+        });
       }
     }
   }, [selectedIndex]);
@@ -234,13 +253,13 @@ export function CountrySelect({
       {label && (
         <Label htmlFor={id}>
           {label}
-          {required && <span className="text-red-500 ml-1">*</span>}
+          {required && <span className="ml-1 text-red-500">*</span>}
         </Label>
       )}
-      
+
       <div className="relative">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform text-slate-400" />
           <Input
             ref={inputRef}
             id={id}
@@ -262,7 +281,7 @@ export function CountrySelect({
           />
           <ChevronDown
             className={cn(
-              "absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none transition-transform",
+              "pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 transform text-slate-400 transition-transform",
               isOpen && "rotate-180"
             )}
           />
@@ -272,13 +291,17 @@ export function CountrySelect({
         {isOpen && !disabled && (
           <div
             ref={dropdownRef}
-            className="absolute z-[60] w-full mt-1 bg-white border border-slate-200 rounded-md shadow-lg max-h-60 overflow-y-auto"
+            className="absolute z-[60] mt-1 max-h-60 w-full overflow-y-auto rounded-md border border-slate-200 bg-white shadow-lg"
             role="listbox"
           >
             {isSearching ? (
-              <div className="px-4 py-2 text-sm text-slate-500">Searching...</div>
+              <div className="px-4 py-2 text-sm text-slate-500">
+                Searching...
+              </div>
             ) : filteredCountries.length === 0 ? (
-              <div className="px-4 py-2 text-sm text-slate-500">No countries found</div>
+              <div className="px-4 py-2 text-sm text-slate-500">
+                No countries found
+              </div>
             ) : (
               filteredCountries.map((country, index) => (
                 <button
@@ -287,14 +310,15 @@ export function CountrySelect({
                   role="option"
                   aria-selected={selectedCountry?.iso2 === country.iso2}
                   className={cn(
-                    "w-full text-left px-4 py-2 hover:bg-slate-50 focus:bg-slate-50 focus:outline-none transition-colors",
-                    selectedCountry?.iso2 === country.iso2 && "bg-teal-50 hover:bg-teal-100",
+                    "w-full px-4 py-2 text-left transition-colors hover:bg-slate-50 focus:bg-slate-50 focus:outline-none",
+                    selectedCountry?.iso2 === country.iso2 &&
+                      "bg-teal-50 hover:bg-teal-100",
                     selectedIndex === index && "bg-slate-100"
                   )}
                   onClick={() => handleSelect(country)}
                   onMouseEnter={() => setSelectedIndex(index)}
                 >
-                  <div className="flex items-center justify-between relative">
+                  <div className="relative flex items-center justify-between">
                     <span className="text-sm font-medium text-slate-900">
                       {country.name}
                     </span>
@@ -316,10 +340,7 @@ export function CountrySelect({
         )}
       </div>
 
-      {error && (
-        <p className="text-sm text-red-600">{error}</p>
-      )}
+      {error && <p className="text-sm text-red-600">{error}</p>}
     </div>
   );
 }
-

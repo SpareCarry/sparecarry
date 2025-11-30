@@ -1,6 +1,6 @@
 /**
  * Integration tests for subscription API routes
- * 
+ *
  * Tests the subscription checkout flow, including:
  * - Monthly/yearly subscription checkout
  * - Lifetime Pro checkout with limit checking
@@ -38,9 +38,11 @@ vi.mock("stripe", () => {
         },
       },
       webhooks: {
-        constructEvent: vi.fn().mockImplementation((body, signature, secret) => {
-          return JSON.parse(body);
-        }),
+        constructEvent: vi
+          .fn()
+          .mockImplementation((body, signature, secret) => {
+            return JSON.parse(body);
+          }),
       },
     })),
   };
@@ -58,11 +60,14 @@ process.env.SUPABASE_SERVICE_ROLE_KEY = "test_service_key";
 describe("Subscription API Routes", () => {
   describe("POST /api/subscriptions/create-checkout", () => {
     it("should validate priceId parameter", async () => {
-      const response = await fetch("http://localhost:3000/api/subscriptions/create-checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ priceId: "invalid" }),
-      });
+      const response = await fetch(
+        "http://localhost:3000/api/subscriptions/create-checkout",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ priceId: "invalid" }),
+        }
+      );
 
       expect(response.status).toBe(400);
       const data = await response.json();
@@ -87,7 +92,12 @@ describe("Subscription API Routes", () => {
           select: vi.fn().mockReturnThis(),
           eq: vi.fn().mockReturnThis(),
           single: vi.fn().mockResolvedValue({
-            data: { subscription_status: null, supporter_status: null, lifetime_pro: false, stripe_customer_id: null },
+            data: {
+              subscription_status: null,
+              supporter_status: null,
+              lifetime_pro: false,
+              stripe_customer_id: null,
+            },
           }),
           update: vi.fn().mockReturnThis(),
           count: vi.fn().mockResolvedValue({ count: 999 }), // One slot left
@@ -95,7 +105,9 @@ describe("Subscription API Routes", () => {
       };
 
       // Test would verify that lifetime count is checked
-      expect(mockSupabase.from("users").count()).resolves.toEqual({ count: 999 });
+      expect(mockSupabase.from("users").count()).resolves.toEqual({
+        count: 999,
+      });
     });
   });
 
@@ -165,4 +177,3 @@ describe("Subscription API Routes", () => {
     });
   });
 });
-

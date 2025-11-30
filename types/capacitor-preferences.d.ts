@@ -1,4 +1,4 @@
-declare module '@capacitor/preferences' {
+declare module "@capacitor/preferences" {
   export interface PreferencesGetOptions {
     key: string;
   }
@@ -15,4 +15,3 @@ declare module '@capacitor/preferences' {
 
   export const Preferences: PreferencesPlugin;
 }
-

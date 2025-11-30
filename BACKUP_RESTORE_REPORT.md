@@ -18,6 +18,7 @@ Backup and recovery system is implemented with automated database and storage ba
 ### Script: `scripts/backup/backup_db.sh`
 
 **Features**:
+
 - ✅ Uses `pg_dump` or Supabase CLI
 - ✅ Creates compressed dumps
 - ✅ Exports to `backups/db/YYYY-MM-DD-HHMM.sql.gz`
@@ -25,6 +26,7 @@ Backup and recovery system is implemented with automated database and storage ba
 - ✅ Timestamped backups
 
 **Usage**:
+
 ```bash
 bash scripts/backup/backup_db.sh
 ```
@@ -38,12 +40,14 @@ bash scripts/backup/backup_db.sh
 ### Script: `scripts/backup/restore_db.sh`
 
 **Features**:
+
 - ✅ Restores selected dump to target DB
 - ✅ Safety prompts
 - ✅ Lists available backups
 - ✅ Validates dump integrity
 
 **Usage**:
+
 ```bash
 bash scripts/backup/restore_db.sh
 ```
@@ -57,12 +61,14 @@ bash scripts/backup/restore_db.sh
 ### Script: `scripts/backup/backup_storage.sh`
 
 **Features**:
+
 - ✅ Uses `rsync` or `rclone`
 - ✅ Backs up Supabase storage to S3 or backup bucket
 - ✅ Preserves metadata
 - ✅ Incremental backups
 
 **Usage**:
+
 ```bash
 bash scripts/backup/backup_storage.sh
 ```
@@ -76,11 +82,13 @@ bash scripts/backup/backup_storage.sh
 ### Script: `scripts/backup/restore_storage.sh`
 
 **Features**:
+
 - ✅ Restores objects to Supabase bucket from archive
 - ✅ Preserves metadata
 - ✅ Validates checksums
 
 **Usage**:
+
 ```bash
 bash scripts/backup/restore_storage.sh
 ```
@@ -94,11 +102,13 @@ bash scripts/backup/restore_storage.sh
 ### Script: `scripts/backup/rotate_backups.sh`
 
 **Features**:
+
 - ✅ Deletes backups older than N days (configurable)
 - ✅ Preserves recent backups
 - ✅ Configurable retention policy
 
 **Usage**:
+
 ```bash
 bash scripts/backup/rotate_backups.sh
 ```
@@ -112,12 +122,14 @@ bash scripts/backup/rotate_backups.sh
 ### Script: `scripts/backup/verify_backup.sh`
 
 **Features**:
+
 - ✅ Verifies SQL dump integrity
 - ✅ Validates sample file checksums
 - ✅ Optionally runs `pg_restore --list`
 - ✅ Reports backup health
 
 **Usage**:
+
 ```bash
 bash scripts/backup/verify_backup.sh
 ```
@@ -133,6 +145,7 @@ bash scripts/backup/verify_backup.sh
 **Location**: `.github/workflows/nightly-backup.yml`
 
 **Features**:
+
 - ✅ Runs `backup_db.sh` and `backup_storage.sh` nightly
 - ✅ Stores artifacts encrypted via GH secrets
 - ✅ Uploads to secure S3 (optional)
@@ -147,6 +160,7 @@ bash scripts/backup/verify_backup.sh
 ### Documentation: `BACKUP_RECOVERY_PLAYBOOK.md`
 
 **Sections**:
+
 - ✅ Full DB restore procedure
 - ✅ Storage restore procedure
 - ✅ RTO and RPO expectations
@@ -243,4 +257,3 @@ Backup and recovery system is implemented with automated database and storage ba
 
 **Last Updated**: 2024-12-19  
 **Report Version**: 1.0.0
-

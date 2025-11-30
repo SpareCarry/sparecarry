@@ -5,6 +5,7 @@
 **Multiple React Instances Due to Resolution Path Mismatch**
 
 React was resolving from root `node_modules` (`C:\SpareCarry\node_modules\.pnpm\react@18.3.1\...`) instead of the mobile app's `node_modules` (`C:\SpareCarry\apps\mobile\node_modules\react`). This caused:
+
 - Different parts of the app loading React from different locations
 - Multiple React instances = multiple hook registries
 - React's internal state becoming inconsistent
@@ -17,6 +18,7 @@ React was resolving from root `node_modules` (`C:\SpareCarry\node_modules\.pnpm\
 **Changed**: `extraNodeModules` from Proxy to explicit object mapping
 
 **Before**:
+
 ```javascript
 extraNodeModules: new Proxy({}, {
   get: (_, name) => path.join(projectRoot, 'node_modules', name)
@@ -24,6 +26,7 @@ extraNodeModules: new Proxy({}, {
 ```
 
 **After**:
+
 ```javascript
 extraNodeModules: {
   // Explicitly map React packages to mobile app's node_modules
@@ -40,6 +43,7 @@ extraNodeModules: {
 **Added**: Global React version overrides
 
 **Before**:
+
 ```json
 "overrides": {
   "@sparecarry/mobile>react": "18.3.1",
@@ -49,6 +53,7 @@ extraNodeModules: {
 ```
 
 **After**:
+
 ```json
 "overrides": {
   "react": "18.3.1",
@@ -80,19 +85,23 @@ extraNodeModules: {
 ## Verification Steps
 
 1. **Reinstall dependencies**:
+
    ```bash
    cd C:\SpareCarry
    pnpm install
    ```
 
 2. **Verify React resolution**:
+
    ```bash
    cd apps/mobile
    node -e "console.log('React from:', require.resolve('react'))"
    ```
+
    Should show: `C:\SpareCarry\apps\mobile\node_modules\react\...`
 
 3. **Start Metro bundler**:
+
    ```bash
    cd apps/mobile
    npx expo start -c
@@ -122,4 +131,3 @@ extraNodeModules: {
 - ✅ Only configuration changes (Metro, pnpm)
 - ✅ Preserves all existing fixes (aliases, entry shim, React 18.3.1)
 - ✅ Minimal changes, maximum impact
-

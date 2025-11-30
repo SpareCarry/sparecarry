@@ -1,16 +1,16 @@
 /**
  * Mobile Performance Profiler
- * 
+ *
  * Lightweight performance instrumentation for Capacitor mobile app
  * Tracks cold start, warm start, bundle load, and bridge latency
  */
 
-import { isNativePlatform, getPlatform } from '@/lib/utils/capacitor-safe';
+import { isNativePlatform, getPlatform } from "@/lib/utils/capacitor-safe";
 
 interface MobilePerformanceMetric {
   name: string;
   value: number;
-  unit: 'ms' | 'bytes';
+  unit: "ms" | "bytes";
   timestamp: number;
   metadata?: Record<string, unknown>;
 }
@@ -23,11 +23,12 @@ class MobilePerformanceProfiler {
 
   constructor() {
     this.appStartTime = Date.now();
-    this.enabled = isNativePlatform() && 
-                   (process.env.NODE_ENV !== 'production' || 
-                    process.env.NEXT_PUBLIC_ENABLE_PERF === 'true');
+    this.enabled =
+      isNativePlatform() &&
+      (process.env.NODE_ENV !== "production" ||
+        process.env.NEXT_PUBLIC_ENABLE_PERF === "true");
 
-    if (this.enabled && typeof window !== 'undefined') {
+    if (this.enabled && typeof window !== "undefined") {
       this.initializeMobileProfiling();
     }
   }
@@ -37,16 +38,16 @@ class MobilePerformanceProfiler {
    */
   private initializeMobileProfiling(): void {
     // Track bundle load time
-    if (document.readyState === 'complete') {
+    if (document.readyState === "complete") {
       this.recordBundleLoad();
     } else {
-      window.addEventListener('load', () => {
+      window.addEventListener("load", () => {
         this.recordBundleLoad();
       });
     }
 
     // Track app visibility changes (warm start detection)
-    document.addEventListener('visibilitychange', () => {
+    document.addEventListener("visibilitychange", () => {
       if (!document.hidden) {
         this.recordWarmStart();
       }
@@ -61,9 +62,9 @@ class MobilePerformanceProfiler {
 
     const coldStartTime = Date.now() - this.appStartTime;
     this.recordMetric({
-      name: 'cold-start',
+      name: "cold-start",
       value: coldStartTime,
-      unit: 'ms',
+      unit: "ms",
       timestamp: Date.now(),
       metadata: {
         platform: getPlatform(),
@@ -79,9 +80,9 @@ class MobilePerformanceProfiler {
 
     const warmStartTime = performance.now();
     this.recordMetric({
-      name: 'warm-start',
+      name: "warm-start",
       value: warmStartTime,
-      unit: 'ms',
+      unit: "ms",
       timestamp: Date.now(),
       metadata: {
         platform: getPlatform(),
@@ -95,20 +96,23 @@ class MobilePerformanceProfiler {
   recordBundleLoad(): void {
     if (!this.enabled || this.bundleLoadTime !== undefined) return;
 
-    if (typeof window !== 'undefined' && window.performance) {
-      const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
+    if (typeof window !== "undefined" && window.performance) {
+      const navigation = performance.getEntriesByType(
+        "navigation"
+      )[0] as PerformanceNavigationTiming;
       if (navigation) {
         const loadTime = navigation.loadEventEnd - navigation.fetchStart;
         this.bundleLoadTime = loadTime;
 
         this.recordMetric({
-          name: 'bundle-load',
+          name: "bundle-load",
           value: loadTime,
-          unit: 'ms',
+          unit: "ms",
           timestamp: Date.now(),
           metadata: {
             platform: getPlatform(),
-            domContentLoaded: navigation.domContentLoadedEventEnd - navigation.fetchStart,
+            domContentLoaded:
+              navigation.domContentLoadedEventEnd - navigation.fetchStart,
             firstPaint: this.getFirstPaint(),
           },
         });
@@ -120,10 +124,12 @@ class MobilePerformanceProfiler {
    * Get first paint time
    */
   private getFirstPaint(): number | undefined {
-    if (typeof window === 'undefined' || !window.performance) return undefined;
+    if (typeof window === "undefined" || !window.performance) return undefined;
 
-    const paintEntries = performance.getEntriesByType('paint');
-    const firstPaint = paintEntries.find((entry) => entry.name === 'first-paint');
+    const paintEntries = performance.getEntriesByType("paint");
+    const firstPaint = paintEntries.find(
+      (entry) => entry.name === "first-paint"
+    );
     return firstPaint ? firstPaint.startTime : undefined;
   }
 
@@ -144,9 +150,9 @@ class MobilePerformanceProfiler {
       const latency = performance.now() - startTime;
 
       this.recordMetric({
-        name: 'bridge-latency',
+        name: "bridge-latency",
         value: latency,
-        unit: 'ms',
+        unit: "ms",
         timestamp: Date.now(),
         metadata: {
           command,
@@ -165,14 +171,14 @@ class MobilePerformanceProfiler {
     } catch (error) {
       const latency = performance.now() - startTime;
       this.recordMetric({
-        name: 'bridge-latency',
+        name: "bridge-latency",
         value: latency,
-        unit: 'ms',
+        unit: "ms",
         timestamp: Date.now(),
         metadata: {
           command,
           platform: getPlatform(),
-          error: error instanceof Error ? error.message : 'Unknown error',
+          error: error instanceof Error ? error.message : "Unknown error",
         },
       });
       throw error;
@@ -191,9 +197,9 @@ class MobilePerformanceProfiler {
 
     const latency = sentAt ? receivedAt - sentAt : 0;
     this.recordMetric({
-      name: 'push-notification-latency',
+      name: "push-notification-latency",
       value: latency,
-      unit: 'ms',
+      unit: "ms",
       timestamp: Date.now(),
       metadata: {
         notificationId,
@@ -232,7 +238,7 @@ class MobilePerformanceProfiler {
    * Get average latency for bridge commands
    */
   getAverageBridgeLatency(): number | null {
-    const metrics = this.getMetricsByName('bridge-latency');
+    const metrics = this.getMetricsByName("bridge-latency");
     if (metrics.length === 0) return null;
 
     const sum = metrics.reduce((acc, m) => acc + m.value, 0);
@@ -249,9 +255,9 @@ class MobilePerformanceProfiler {
     averageBridgeLatency?: number;
     totalMetrics: number;
   } {
-    const coldStart = this.getMetricsByName('cold-start')[0];
-    const warmStart = this.getMetricsByName('warm-start')[0];
-    const bundleLoad = this.getMetricsByName('bundle-load')[0];
+    const coldStart = this.getMetricsByName("cold-start")[0];
+    const warmStart = this.getMetricsByName("warm-start")[0];
+    const bundleLoad = this.getMetricsByName("bundle-load")[0];
     const avgBridgeLatency = this.getAverageBridgeLatency();
 
     return {
@@ -283,4 +289,3 @@ export async function perfBridge<T>(
 ): Promise<T> {
   return mobileProfiler.recordBridgeLatency(command, fn);
 }
-

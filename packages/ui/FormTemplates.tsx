@@ -3,7 +3,7 @@
  * Provides quick presets for common request/trip types
  */
 
-import React from 'react';
+import React from "react";
 import {
   View,
   Text,
@@ -11,8 +11,8 @@ import {
   StyleSheet,
   Modal,
   ScrollView,
-} from 'react-native';
-import { MaterialIcons } from '@expo/vector-icons';
+} from "react-native";
+import { MaterialIcons } from "@expo/vector-icons";
 
 export interface RequestTemplate {
   id: string;
@@ -26,7 +26,7 @@ export interface RequestTemplate {
     width?: string;
     height?: string;
     weight?: string;
-    preferredMethod?: 'plane' | 'boat' | 'any';
+    preferredMethod?: "plane" | "boat" | "any";
     restrictedItems?: boolean;
   };
 }
@@ -37,7 +37,7 @@ export interface TripTemplate {
   description: string;
   icon: string;
   values: {
-    tripType?: 'plane' | 'boat';
+    tripType?: "plane" | "boat";
     spareKg?: string;
     spareVolume?: string;
     maxLength?: string;
@@ -48,72 +48,72 @@ export interface TripTemplate {
 
 export const REQUEST_TEMPLATES: RequestTemplate[] = [
   {
-    id: 'small-package',
-    name: 'Small Package',
-    description: '10×10×10cm, ~1kg',
-    icon: 'inbox',
+    id: "small-package",
+    name: "Small Package",
+    description: "10×10×10cm, ~1kg",
+    icon: "inbox",
     values: {
-      length: '10',
-      width: '10',
-      height: '10',
-      weight: '1',
-      preferredMethod: 'any',
+      length: "10",
+      width: "10",
+      height: "10",
+      weight: "1",
+      preferredMethod: "any",
     },
   },
   {
-    id: 'medium-box',
-    name: 'Medium Box',
-    description: '30×20×15cm, ~5kg',
-    icon: 'package',
+    id: "medium-box",
+    name: "Medium Box",
+    description: "30×20×15cm, ~5kg",
+    icon: "package",
     values: {
-      length: '30',
-      width: '20',
-      height: '15',
-      weight: '5',
-      preferredMethod: 'any',
+      length: "30",
+      width: "20",
+      height: "15",
+      weight: "5",
+      preferredMethod: "any",
     },
   },
   {
-    id: 'large-item',
-    name: 'Large Item',
-    description: '50×40×30cm, ~15kg',
-    icon: 'archive',
+    id: "large-item",
+    name: "Large Item",
+    description: "50×40×30cm, ~15kg",
+    icon: "archive",
     values: {
-      length: '50',
-      width: '40',
-      height: '30',
-      weight: '15',
-      preferredMethod: 'boat',
+      length: "50",
+      width: "40",
+      height: "30",
+      weight: "15",
+      preferredMethod: "boat",
     },
   },
   {
-    id: 'boat-parts',
-    name: 'Boat Parts',
-    description: 'Common marine equipment',
-    icon: 'build',
+    id: "boat-parts",
+    name: "Boat Parts",
+    description: "Common marine equipment",
+    icon: "build",
     values: {
-      title: 'Boat parts',
-      description: 'Marine equipment and boat parts',
-      length: '40',
-      width: '30',
-      height: '25',
-      weight: '10',
-      preferredMethod: 'boat',
+      title: "Boat parts",
+      description: "Marine equipment and boat parts",
+      length: "40",
+      width: "30",
+      height: "25",
+      weight: "10",
+      preferredMethod: "boat",
       restrictedItems: true,
     },
   },
   {
-    id: 'electronics',
-    name: 'Electronics',
-    description: 'Small electronics, batteries',
-    icon: 'devices',
+    id: "electronics",
+    name: "Electronics",
+    description: "Small electronics, batteries",
+    icon: "devices",
     values: {
-      title: 'Electronics',
-      length: '25',
-      width: '20',
-      height: '15',
-      weight: '3',
-      preferredMethod: 'plane',
+      title: "Electronics",
+      length: "25",
+      width: "20",
+      height: "15",
+      weight: "3",
+      preferredMethod: "plane",
       restrictedItems: false,
     },
   },
@@ -121,59 +121,59 @@ export const REQUEST_TEMPLATES: RequestTemplate[] = [
 
 export const TRIP_TEMPLATES: TripTemplate[] = [
   {
-    id: 'plane-carry-on',
-    name: 'Plane Carry-On',
-    description: 'Standard carry-on capacity',
-    icon: 'flight',
+    id: "plane-carry-on",
+    name: "Plane Carry-On",
+    description: "Standard carry-on capacity",
+    icon: "flight",
     values: {
-      tripType: 'plane',
-      spareKg: '10',
-      spareVolume: '30',
-      maxLength: '55',
-      maxWidth: '40',
-      maxHeight: '23',
+      tripType: "plane",
+      spareKg: "10",
+      spareVolume: "30",
+      maxLength: "55",
+      maxWidth: "40",
+      maxHeight: "23",
     },
   },
   {
-    id: 'plane-checked',
-    name: 'Plane Checked Bag',
-    description: 'Checked luggage capacity',
-    icon: 'luggage',
+    id: "plane-checked",
+    name: "Plane Checked Bag",
+    description: "Checked luggage capacity",
+    icon: "luggage",
     values: {
-      tripType: 'plane',
-      spareKg: '23',
-      spareVolume: '70',
-      maxLength: '62',
-      maxWidth: '50',
-      maxHeight: '30',
+      tripType: "plane",
+      spareKg: "23",
+      spareVolume: "70",
+      maxLength: "62",
+      maxWidth: "50",
+      maxHeight: "30",
     },
   },
   {
-    id: 'boat-small',
-    name: 'Boat - Small Items',
-    description: 'Small items on boat trip',
-    icon: 'directions-boat',
+    id: "boat-small",
+    name: "Boat - Small Items",
+    description: "Small items on boat trip",
+    icon: "directions-boat",
     values: {
-      tripType: 'boat',
-      spareKg: '20',
-      spareVolume: '100',
-      maxLength: '100',
-      maxWidth: '80',
-      maxHeight: '60',
+      tripType: "boat",
+      spareKg: "20",
+      spareVolume: "100",
+      maxLength: "100",
+      maxWidth: "80",
+      maxHeight: "60",
     },
   },
   {
-    id: 'boat-large',
-    name: 'Boat - Large Items',
-    description: 'Oversized items, outboards, spars',
-    icon: 'sailing',
+    id: "boat-large",
+    name: "Boat - Large Items",
+    description: "Oversized items, outboards, spars",
+    icon: "sailing",
     values: {
-      tripType: 'boat',
-      spareKg: '50',
-      spareVolume: '200',
-      maxLength: '300',
-      maxWidth: '150',
-      maxHeight: '100',
+      tripType: "boat",
+      spareKg: "50",
+      spareVolume: "200",
+      maxLength: "300",
+      maxWidth: "150",
+      maxHeight: "100",
     },
   },
 ];
@@ -182,7 +182,7 @@ interface FormTemplatesProps {
   visible: boolean;
   onClose: () => void;
   onSelectTemplate: (template: RequestTemplate | TripTemplate) => void;
-  type: 'request' | 'trip';
+  type: "request" | "trip";
 }
 
 export function FormTemplates({
@@ -191,7 +191,7 @@ export function FormTemplates({
   onSelectTemplate,
   type,
 }: FormTemplatesProps) {
-  const templates = type === 'request' ? REQUEST_TEMPLATES : TRIP_TEMPLATES;
+  const templates = type === "request" ? REQUEST_TEMPLATES : TRIP_TEMPLATES;
 
   return (
     <Modal
@@ -220,11 +220,17 @@ export function FormTemplates({
                 }}
               >
                 <View style={styles.templateIcon}>
-                  <MaterialIcons name={template.icon as any} size={32} color="#14b8a6" />
+                  <MaterialIcons
+                    name={template.icon as any}
+                    size={32}
+                    color="#14b8a6"
+                  />
                 </View>
                 <View style={styles.templateInfo}>
                   <Text style={styles.templateName}>{template.name}</Text>
-                  <Text style={styles.templateDescription}>{template.description}</Text>
+                  <Text style={styles.templateDescription}>
+                    {template.description}
+                  </Text>
                 </View>
                 <MaterialIcons name="chevron-right" size={24} color="#999" />
               </TouchableOpacity>
@@ -239,28 +245,28 @@ export function FormTemplates({
 const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'flex-end',
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "flex-end",
   },
   modalContent: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    maxHeight: '80%',
+    maxHeight: "80%",
     paddingBottom: 20,
   },
   modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     padding: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
+    borderBottomColor: "#e5e7eb",
   },
   modalTitle: {
     fontSize: 20,
-    fontWeight: 'bold',
-    color: '#333',
+    fontWeight: "bold",
+    color: "#333",
   },
   closeButton: {
     padding: 4,
@@ -269,22 +275,22 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   templateCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#f9fafb',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#f9fafb",
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: '#e5e7eb',
+    borderColor: "#e5e7eb",
   },
   templateIcon: {
     width: 50,
     height: 50,
     borderRadius: 25,
-    backgroundColor: '#e0f7fa',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "#e0f7fa",
+    alignItems: "center",
+    justifyContent: "center",
     marginRight: 12,
   },
   templateInfo: {
@@ -292,13 +298,12 @@ const styles = StyleSheet.create({
   },
   templateName: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
+    fontWeight: "600",
+    color: "#333",
     marginBottom: 4,
   },
   templateDescription: {
     fontSize: 14,
-    color: '#666',
+    color: "#666",
   },
 });
-

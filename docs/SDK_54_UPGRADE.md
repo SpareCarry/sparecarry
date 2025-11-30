@@ -28,6 +28,7 @@
 ## Peer Dependency Warnings
 
 You may see warnings about React 18 vs React 19. These are **expected and safe to ignore**:
+
 - Many packages haven't updated their peer dependencies to React 19 yet
 - React 18.3.1 is fully compatible with Expo SDK 54
 - The app will work correctly despite these warnings
@@ -35,6 +36,7 @@ You may see warnings about React 18 vs React 19. These are **expected and safe t
 ## Next Steps
 
 1. **Start the app:**
+
    ```bash
    cd apps/mobile
    pnpm start
@@ -57,4 +59,3 @@ Expo SDK 54 may have breaking changes. If you encounter issues:
 1. Check the [Expo SDK 54 changelog](https://expo.dev/changelog/)
 2. Run `npx expo-doctor` to check for issues
 3. Review any TypeScript errors and update code accordingly
-

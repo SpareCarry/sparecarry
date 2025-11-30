@@ -1,16 +1,21 @@
 /**
  * Mock Supabase Client
- * 
+ *
  * Complete mock implementation of Supabase client for testing.
  * Provides in-memory database, auth, storage, and realtime functionality.
  */
 
-import type { MockSupabaseClient as MockClient } from './types';
-import { createMockAuth } from './mockAuth';
-import { createMockQueryBuilder } from './mockQueryBuilder';
-import { createMockStorage } from './mockStorage';
-import { createMockRealtime } from './mockRealtime';
-import { mockDataStore, resetMockDataStore, seedMockData, addMockData } from './mockDataStore';
+import type { MockSupabaseClient as MockClient } from "./types";
+import { createMockAuth } from "./mockAuth";
+import { createMockQueryBuilder } from "./mockQueryBuilder";
+import { createMockStorage } from "./mockStorage";
+import { createMockRealtime } from "./mockRealtime";
+import {
+  mockDataStore,
+  resetMockDataStore,
+  seedMockData,
+  addMockData,
+} from "./mockDataStore";
 
 /**
  * Create a mock Supabase client instance
@@ -37,10 +42,9 @@ export const supabase = createMockSupabaseClient();
  * Re-export helper functions
  */
 export { resetMockDataStore, seedMockData, mockDataStore, addMockData };
-export { mockUserLogin } from './helpers';
+export { mockUserLogin } from "./helpers";
 
 /**
  * Type export for use in tests
  */
-export type { MockSupabaseClient } from './types';
-
+export type { MockSupabaseClient } from "./types";

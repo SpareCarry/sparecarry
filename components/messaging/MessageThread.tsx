@@ -1,24 +1,35 @@
 /**
  * MessageThread Component
- * 
+ *
  * Displays a scrollable list of messages for a post/job thread
  * Optimized with React.memo and useMemo for performance
  */
 
 "use client";
 
-import React, { useEffect, useRef, useMemo, useCallback, useState } from 'react';
-import { MessageBubble } from '../chat/message-bubble';
-import { usePostMessages, PostMessage } from '../../lib/hooks/usePostMessages';
-import { Loader2, Languages } from 'lucide-react';
-import { translateText, getUserLanguage, isAutoTranslateEnabled } from '../../lib/translation/auto-translate';
-import { createClient } from '../../lib/supabase/client';
-import type { SupabaseClient } from '@supabase/supabase-js';
-import { Button } from '../ui/button';
+import React, {
+  useEffect,
+  useRef,
+  useMemo,
+  useCallback,
+  useState,
+} from "react";
+import { MessageBubble } from "../chat/message-bubble";
+import { usePostMessages, PostMessage } from "../../lib/hooks/usePostMessages";
+import { Loader2, Languages } from "lucide-react";
+import {
+  translateText,
+  getUserLanguage,
+  isAutoTranslateEnabled,
+} from "../../lib/translation/auto-translate";
+import { createClient } from "../../lib/supabase/client";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import { Button } from "../ui/button";
+import { format, isToday, isYesterday } from "date-fns";
 
 interface MessageThreadProps {
   postId: string;
-  postType: 'trip' | 'request';
+  postType: "trip" | "request";
   currentUserId: string;
   otherUserId: string;
   onMarkAsRead?: () => void;
@@ -72,19 +83,20 @@ function MessageThreadComponent({
               newTranslations[message.id] = result.translatedText;
             }
           } catch (error) {
-            console.error('Translation error:', error);
+            console.error("Translation error:", error);
           }
         }
       }
 
       if (Object.keys(newTranslations).length > 0) {
-        setTranslations(prev => ({ ...prev, ...newTranslations }));
+        setTranslations((prev) => ({ ...prev, ...newTranslations }));
       }
       setIsTranslating(false);
     }
 
     translateMessages();
-  }, [autoTranslate, messages, currentUserId, translations]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoTranslate, messages, currentUserId]); // Removed translations from deps to avoid infinite loop
 
   // Memoize message list to prevent unnecessary re-renders
   const messageList = useMemo(() => {
@@ -99,7 +111,7 @@ function MessageThreadComponent({
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages.length]); // Only depend on length, not full array
 
   // Mark thread as read when component mounts or messages change
@@ -129,55 +141,87 @@ function MessageThreadComponent({
     // Update user preference
     try {
       const { error } = await supabase
-        .from('profiles')
+        .from("profiles")
         .update({ auto_translate_messages: newValue })
-        .eq('user_id', currentUserId);
+        .eq("user_id", currentUserId);
 
       if (error) throw error;
     } catch (error) {
-      console.error('Error updating auto-translate preference:', error);
+      console.error("Error updating auto-translate preference:", error);
     }
   };
 
   return (
-    <div className="flex-1 flex flex-col">
+    <div className="flex flex-1 flex-col">
       {/* Auto-translate toggle */}
-      <div className="px-4 py-2 border-b border-slate-200 flex items-center justify-between">
+      <div className="flex items-center justify-between border-b border-slate-200 px-4 py-2">
         <span className="text-sm text-slate-600">Auto-translate messages</span>
         <Button
-          variant={autoTranslate ? 'default' : 'outline'}
+          variant={autoTranslate ? "default" : "outline"}
           size="sm"
           onClick={toggleAutoTranslate}
           disabled={isTranslating}
         >
-          <Languages className="h-4 w-4 mr-1" />
-          {autoTranslate ? 'On' : 'Off'}
+          <Languages className="mr-1 h-4 w-4" />
+          {autoTranslate ? "On" : "Off"}
         </Button>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
+      <div className="flex-1 space-y-4 overflow-y-auto px-4 py-4">
         {messageList.length === 0 ? (
-          <div className="flex items-center justify-center py-8 text-slate-500 text-sm">
+          <div className="flex items-center justify-center py-8 text-sm text-slate-500">
             No messages yet. Start the conversation!
           </div>
         ) : (
-          messageList.map((message) => {
+          messageList.map((message, idx) => {
             const translatedContent = translations[message.id];
-            const showTranslation = autoTranslate && translatedContent && !message.isOwn;
+            const showTranslation =
+              autoTranslate && translatedContent && !message.isOwn;
+
+            // Group messages by date
+            const currentDate = new Date(message.created_at);
+            const previousMessage = idx > 0 ? messageList[idx - 1] : null;
+            const prevDate = previousMessage
+              ? new Date(previousMessage.created_at)
+              : null;
+            const showDateSeparator =
+              !prevDate ||
+              currentDate.toDateString() !== prevDate.toDateString();
+
+            // Find original message to get read_status
+            const originalMessage = messages.find((m) => m.id === message.id);
 
             return (
-              <div key={message.id}>
+              <div key={message.id} data-message-id={message.id}>
+                {showDateSeparator && (
+                  <div className="my-4 flex items-center justify-center">
+                    <div className="rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-600">
+                      {isToday(currentDate)
+                        ? "Today"
+                        : isYesterday(currentDate)
+                          ? "Yesterday"
+                          : format(currentDate, "MMMM d, yyyy")}
+                    </div>
+                  </div>
+                )}
                 <MessageBubble
                   message={{
                     id: message.id,
                     content: message.content,
                     sender_id: message.sender_id,
                     created_at: message.created_at,
+                    read_status: originalMessage?.read_status,
+                    image_urls: originalMessage?.image_urls,
+                    audio_url: originalMessage?.audio_url,
+                    edited_at: originalMessage?.edited_at,
+                    deleted_at: originalMessage?.deleted_at,
                   }}
                   isOwn={message.isOwn}
+                  messageType="post"
+                  currentUserId={currentUserId}
                 />
                 {showTranslation && (
-                  <div className="mt-1 ml-12 text-sm text-slate-500 italic border-l-2 border-teal-200 pl-2">
+                  <div className="ml-12 mt-1 border-l-2 border-teal-200 pl-2 text-sm italic text-slate-500">
                     {translatedContent}
                   </div>
                 )}
@@ -192,13 +236,15 @@ function MessageThreadComponent({
 }
 
 // Optimized with React.memo to prevent unnecessary re-renders
-export const MessageThread = React.memo(MessageThreadComponent, (prevProps, nextProps) => {
-  return (
-    prevProps.postId === nextProps.postId &&
-    prevProps.postType === nextProps.postType &&
-    prevProps.currentUserId === nextProps.currentUserId &&
-    prevProps.otherUserId === nextProps.otherUserId &&
-    prevProps.onMarkAsRead === nextProps.onMarkAsRead
-  );
-});
-
+export const MessageThread = React.memo(
+  MessageThreadComponent,
+  (prevProps, nextProps) => {
+    return (
+      prevProps.postId === nextProps.postId &&
+      prevProps.postType === nextProps.postType &&
+      prevProps.currentUserId === nextProps.currentUserId &&
+      prevProps.otherUserId === nextProps.otherUserId &&
+      prevProps.onMarkAsRead === nextProps.onMarkAsRead
+    );
+  }
+);

@@ -43,6 +43,7 @@ grep -r "sk_live\|pk_live\|SUPABASE_SERVICE_ROLE" --exclude-dir=node_modules --e
 ```
 
 **Checklist:**
+
 - [ ] No critical security vulnerabilities
 - [ ] No secrets committed to repository
 - [ ] All API routes have rate limiting
@@ -78,6 +79,7 @@ required.forEach(v => {
 ```
 
 **Checklist:**
+
 - [ ] `.env.staging` file exists and is complete
 - [ ] All `NEXT_PUBLIC_*` variables set
 - [ ] Supabase staging project configured
@@ -100,6 +102,7 @@ fastlane android build_staging --dry_run || echo "Fastlane configured"
 ```
 
 **Checklist:**
+
 - [ ] iOS provisioning profiles valid
 - [ ] Android keystore created and secured
 - [ ] App Store Connect app created
@@ -116,6 +119,7 @@ pnpm preflight:beta
 ```
 
 **Expected Output:**
+
 - ✅ All required files exist
 - ✅ Build scripts configured
 - ✅ Fastlane lanes configured
@@ -146,6 +150,7 @@ cp .env.local.example .env.staging
 Go to: **Repository Settings > Secrets and variables > Actions**
 
 **Required Secrets (Staging):**
+
 ```bash
 # Supabase
 STAGING_SUPABASE_URL
@@ -217,6 +222,7 @@ grep -r "withApiErrorHandler\|rateLimit\|assertAuthenticated\|validateRequestBod
 ```
 
 **Manual Verification:**
+
 - [ ] All routes use `withApiErrorHandler`
 - [ ] All routes have `rateLimit`
 - [ ] Authenticated routes have `assertAuthenticated`
@@ -232,6 +238,7 @@ grep -c "Schema" lib/zod/api-schemas.ts
 ```
 
 **Checklist:**
+
 - [ ] All API routes have Zod schemas
 - [ ] Request bodies validated
 - [ ] Query parameters validated
@@ -246,6 +253,7 @@ grep -r "error.stack\|console.error" app/api --include="*.ts" | grep -v "logger.
 ```
 
 **Checklist:**
+
 - [ ] No raw error stacks returned
 - [ ] All errors sanitized
 - [ ] PII redacted in logs
@@ -260,6 +268,7 @@ grep -r "sk_live\|pk_live\|SUPABASE_SERVICE_ROLE" --exclude-dir=node_modules --e
 ```
 
 **Checklist:**
+
 - [ ] No hardcoded secrets
 - [ ] All secrets in environment variables
 - [ ] GitHub Secrets configured
@@ -289,6 +298,7 @@ pnpm typecheck:coverage
 ```
 
 **Checklist:**
+
 - [ ] All tests pass
 - [ ] No TypeScript errors
 - [ ] No linting errors
@@ -308,6 +318,7 @@ ls -la out/ | head -20
 ```
 
 **Checklist:**
+
 - [ ] Build completes without errors
 - [ ] Static export validates
 - [ ] `out/` directory created
@@ -325,6 +336,7 @@ cd android && fastlane android build_staging
 ```
 
 **Checklist:**
+
 - [ ] iOS build succeeds
 - [ ] Android build succeeds
 - [ ] Environment variables injected
@@ -372,6 +384,7 @@ vercel --prod --env staging
 ```
 
 **Verification:**
+
 ```bash
 # Check staging URL
 curl -I https://staging.sparecarry.com
@@ -380,6 +393,7 @@ curl -I https://staging.sparecarry.com
 ```
 
 **Checklist:**
+
 - [ ] Web deployed to staging
 - [ ] Staging URL accessible
 - [ ] No console errors
@@ -410,6 +424,7 @@ fastlane android deploy_staging
 ```
 
 **Checklist:**
+
 - [ ] iOS build completes
 - [ ] Android build completes
 - [ ] Build artifacts generated
@@ -431,6 +446,7 @@ plutil -p ios/App/App/Info.plist | grep -E "CFBundleVersion|CFBundleShortVersion
 ```
 
 **Checklist:**
+
 - [ ] IPA file generated
 - [ ] Build number incremented
 - [ ] Version number correct
@@ -448,6 +464,7 @@ grep -A 2 "versionCode\|versionName" android/app/build.gradle
 ```
 
 **Checklist:**
+
 - [ ] AAB file generated
 - [ ] Version code incremented
 - [ ] Version name correct
@@ -464,6 +481,7 @@ grep -A 10 "Environment" capacitor.config.ts
 ```
 
 **Checklist:**
+
 - [ ] Environment variables injected
 - [ ] `NEXT_PUBLIC_APP_ENV=staging` set
 - [ ] API URLs point to staging
@@ -477,11 +495,13 @@ grep -A 10 "Environment" capacitor.config.ts
 ### 1. Sentry Verification
 
 **Setup:**
+
 1. Go to Sentry dashboard
 2. Select staging project
 3. Check configuration
 
 **Verification:**
+
 ```bash
 # Check Sentry config
 grep "NEXT_PUBLIC_SENTRY_DSN" .env.staging
@@ -491,6 +511,7 @@ curl -X GET "https://staging.sparecarry.com/api/health/error-test?type=sentry"
 ```
 
 **Checklist:**
+
 - [ ] Sentry DSN configured
 - [ ] Environment set to "staging"
 - [ ] Release tracking enabled
@@ -500,6 +521,7 @@ curl -X GET "https://staging.sparecarry.com/api/health/error-test?type=sentry"
 - [ ] PII redaction working
 
 **Verify in Sentry Dashboard:**
+
 - [ ] Errors appear in Issues
 - [ ] Performance data in Performance
 - [ ] Releases tracked
@@ -508,11 +530,13 @@ curl -X GET "https://staging.sparecarry.com/api/health/error-test?type=sentry"
 ### 2. Feature Flags Verification
 
 **Setup:**
+
 1. Go to Unleash dashboard
 2. Select staging environment
 3. Create/verify flags
 
 **Verification:**
+
 ```bash
 # Check feature flag config
 grep "NEXT_PUBLIC_UNLEASH" .env.staging
@@ -522,6 +546,7 @@ grep "NEXT_PUBLIC_UNLEASH" .env.staging
 ```
 
 **Checklist:**
+
 - [ ] Unleash URL configured
 - [ ] Client key configured
 - [ ] Flags load in app
@@ -530,10 +555,11 @@ grep "NEXT_PUBLIC_UNLEASH" .env.staging
 - [ ] Fallback to safe defaults works
 
 **Test Flags:**
+
 ```typescript
 // In browser console on staging
 // Check if flags are loaded
-localStorage.getItem('sparecarry_feature_flags')
+localStorage.getItem("sparecarry_feature_flags");
 
 // Should return JSON with flags
 ```
@@ -541,12 +567,14 @@ localStorage.getItem('sparecarry_feature_flags')
 ### 3. Stripe Webhooks Verification
 
 **Setup:**
+
 1. Go to Stripe Dashboard > Webhooks
 2. Add endpoint: `https://staging.sparecarry.com/api/webhooks/stripe`
 3. Select events to listen to
 4. Copy webhook signing secret
 
 **Verification:**
+
 ```bash
 # Check webhook secret
 grep "STRIPE_WEBHOOK_SECRET" .env.staging
@@ -557,6 +585,7 @@ stripe trigger payment_intent.succeeded
 ```
 
 **Checklist:**
+
 - [ ] Webhook endpoint configured
 - [ ] Webhook secret set
 - [ ] Signature verification working
@@ -565,6 +594,7 @@ stripe trigger payment_intent.succeeded
 - [ ] Error handling for invalid events
 
 **Verify in Stripe Dashboard:**
+
 - [ ] Webhook events received
 - [ ] Events processed successfully
 - [ ] No failed deliveries
@@ -572,11 +602,13 @@ stripe trigger payment_intent.succeeded
 ### 4. Supabase Verification
 
 **Setup:**
+
 1. Go to Supabase Dashboard
 2. Select staging project
 3. Verify configuration
 
 **Verification:**
+
 ```bash
 # Check Supabase config
 grep "NEXT_PUBLIC_SUPABASE" .env.staging
@@ -586,6 +618,7 @@ grep "NEXT_PUBLIC_SUPABASE" .env.staging
 ```
 
 **Checklist:**
+
 - [ ] Supabase URL configured
 - [ ] Anon key configured
 - [ ] Service role key configured (server-only)
@@ -595,6 +628,7 @@ grep "NEXT_PUBLIC_SUPABASE" .env.staging
 - [ ] Realtime working
 
 **Verify in Supabase Dashboard:**
+
 - [ ] Database tables exist
 - [ ] RLS policies configured
 - [ ] Storage buckets configured
@@ -660,10 +694,12 @@ fastlane ios deploy_staging
 ### 5. TestFlight Links
 
 **Internal Testing:**
+
 - Testers receive email invitation
 - Or use TestFlight app with Apple ID
 
 **External Testing:**
+
 - Public TestFlight link (after Beta App Review approval)
 - Share link with beta testers
 
@@ -724,6 +760,7 @@ fastlane android deploy_staging
 ### 5. Play Store Links
 
 **Internal Testing:**
+
 - Testers receive email invitation
 - Or use opt-in URL: `https://play.google.com/apps/internaltest/[test-id]`
 
@@ -736,6 +773,7 @@ fastlane android deploy_staging
 **URL**: `https://staging.sparecarry.com`
 
 **Checklist:**
+
 - [ ] Homepage loads
 - [ ] No console errors
 - [ ] API endpoints respond
@@ -745,6 +783,7 @@ fastlane android deploy_staging
 - [ ] Analytics tracking
 
 **Test Critical Flows:**
+
 ```bash
 # Sign up
 curl -X POST https://staging.sparecarry.com/api/auth/signup \
@@ -765,11 +804,13 @@ curl -X POST https://staging.sparecarry.com/api/auth/signup \
 ### 2. iOS TestFlight Verification
 
 **Installation:**
+
 1. Install TestFlight app
 2. Accept invitation
 3. Install SpareCarry beta
 
 **Checklist:**
+
 - [ ] App installs successfully
 - [ ] App launches without crashes
 - [ ] Splash screen displays
@@ -779,6 +820,7 @@ curl -X POST https://staging.sparecarry.com/api/auth/signup \
 - [ ] Feature flags work
 
 **Test Critical Flows:**
+
 - [ ] Sign up
 - [ ] Login
 - [ ] Create trip
@@ -791,10 +833,12 @@ curl -X POST https://staging.sparecarry.com/api/auth/signup \
 ### 3. Android Play Store Verification
 
 **Installation:**
+
 1. Accept invitation
 2. Install from Play Store
 
 **Checklist:**
+
 - [ ] App installs successfully
 - [ ] App launches without crashes
 - [ ] Splash screen displays
@@ -804,6 +848,7 @@ curl -X POST https://staging.sparecarry.com/api/auth/signup \
 - [ ] Feature flags work
 
 **Test Critical Flows:**
+
 - [ ] Sign up
 - [ ] Login
 - [ ] Create trip
@@ -816,6 +861,7 @@ curl -X POST https://staging.sparecarry.com/api/auth/signup \
 ### 4. Monitoring Verification
 
 **Sentry:**
+
 - [ ] Errors appear in Issues
 - [ ] Performance data tracked
 - [ ] Releases tracked
@@ -823,11 +869,13 @@ curl -X POST https://staging.sparecarry.com/api/auth/signup \
 - [ ] User context set
 
 **Analytics:**
+
 - [ ] Events tracked in Google Analytics
 - [ ] Events tracked in Meta Pixel
 - [ ] Custom events firing
 
 **Telemetry:**
+
 - [ ] User events tracked
 - [ ] Performance metrics tracked
 - [ ] API latency tracked
@@ -841,12 +889,14 @@ Provide this script to beta testers for systematic testing.
 ### Functional Testing
 
 #### 1. Onboarding
+
 - [ ] Sign up with email
 - [ ] Verify email (if required)
 - [ ] Complete profile
 - [ ] Onboarding flow completes
 
 #### 2. Authentication
+
 - [ ] Login with email/password
 - [ ] Login with Google (if available)
 - [ ] Login with Apple (iOS only)
@@ -854,6 +904,7 @@ Provide this script to beta testers for systematic testing.
 - [ ] Session persists after app close
 
 #### 3. Trip Creation (Travelers)
+
 - [ ] Create plane trip
 - [ ] Create boat trip
 - [ ] Add route (from/to)
@@ -863,6 +914,7 @@ Provide this script to beta testers for systematic testing.
 - [ ] Trip appears in list
 
 #### 4. Request Creation (Requesters)
+
 - [ ] Create delivery request
 - [ ] Add item details
 - [ ] Add route (from/to)
@@ -873,6 +925,7 @@ Provide this script to beta testers for systematic testing.
 - [ ] Request appears in list
 
 #### 5. Matching
+
 - [ ] View available trips/requests
 - [ ] Match appears when criteria met
 - [ ] Accept match
@@ -880,6 +933,7 @@ Provide this script to beta testers for systematic testing.
 - [ ] Notification received (if enabled)
 
 #### 6. Payment (Test Mode)
+
 - [ ] Initiate payment
 - [ ] Enter test card: `4242 4242 4242 4242`
 - [ ] Complete payment
@@ -887,12 +941,14 @@ Provide this script to beta testers for systematic testing.
 - [ ] Escrow created
 
 #### 7. Chat
+
 - [ ] Send message
 - [ ] Receive message
 - [ ] Message appears in chat
 - [ ] Notifications work (if enabled)
 
 #### 8. Profile
+
 - [ ] View profile
 - [ ] Edit profile
 - [ ] Update settings
@@ -901,45 +957,53 @@ Provide this script to beta testers for systematic testing.
 ### Performance Testing
 
 #### 1. App Launch
+
 - [ ] Cold start < 3 seconds
 - [ ] Warm start < 1 second
 - [ ] No crashes on launch
 
 #### 2. Navigation
+
 - [ ] Page transitions smooth
 - [ ] No lag when scrolling
 - [ ] Images load quickly
 - [ ] No memory leaks
 
 #### 3. API Response
+
 - [ ] API calls complete < 2 seconds
 - [ ] No timeout errors
 - [ ] Error handling works
 
 #### 4. Battery Usage
+
 - [ ] Battery drain reasonable
 - [ ] No excessive background activity
 
 ### UX Testing
 
 #### 1. Design
+
 - [ ] UI matches design
 - [ ] Colors correct
 - [ ] Fonts readable
 - [ ] Icons display correctly
 
 #### 2. Responsiveness
+
 - [ ] Works on different screen sizes
 - [ ] Landscape mode works (if supported)
 - [ ] Keyboard doesn't cover inputs
 
 #### 3. Accessibility
+
 - [ ] Text readable
 - [ ] Buttons tappable
 - [ ] Error messages clear
 - [ ] Loading states visible
 
 #### 4. Edge Cases
+
 - [ ] Offline handling
 - [ ] Poor network handling
 - [ ] Invalid input handling
@@ -948,12 +1012,14 @@ Provide this script to beta testers for systematic testing.
 ### Device-Specific Testing
 
 #### iOS
+
 - [ ] Works on iPhone (various models)
 - [ ] Works on iPad (if supported)
 - [ ] Push notifications work
 - [ ] App Store guidelines compliance
 
 #### Android
+
 - [ ] Works on various Android versions
 - [ ] Works on different screen sizes
 - [ ] Push notifications work
@@ -962,11 +1028,13 @@ Provide this script to beta testers for systematic testing.
 ### Feedback Collection
 
 **Report Issues:**
+
 - [ ] Use TestFlight/Play Store feedback
 - [ ] Or email: [support email]
 - [ ] Include: device, OS version, steps to reproduce
 
 **Report Bugs:**
+
 - [ ] Screenshot/video if possible
 - [ ] Error message (if any)
 - [ ] Steps to reproduce
@@ -979,6 +1047,7 @@ Provide this script to beta testers for systematic testing.
 ### Immediate Rollback (Critical Issues)
 
 #### Web Rollback
+
 ```bash
 # Option 1: Revert Vercel deployment
 vercel rollback
@@ -990,18 +1059,20 @@ vercel --prod
 ```
 
 #### Mobile Rollback
+
 1. **Stop distributing current build**
    - TestFlight: Remove from testing groups
    - Play Store: Unpublish from Internal Testing
 
 2. **Push hotfix (if possible)**
+
    ```bash
    # Fix issue
    git checkout -b hotfix/critical-issue
    # Make fix
    git commit -m "fix: critical issue"
    git push origin hotfix/critical-issue
-   
+
    # Deploy
    cd ios && fastlane ios deploy_staging
    cd android && fastlane android deploy_staging
@@ -1014,6 +1085,7 @@ vercel --prod
 ### Gradual Rollback
 
 #### Feature Flag Rollback
+
 ```bash
 # Disable feature flag in Unleash
 # Go to Unleash dashboard
@@ -1021,6 +1093,7 @@ vercel --prod
 ```
 
 #### Partial Rollback
+
 - Reduce rollout percentage
 - Monitor metrics
 - Fix issues
@@ -1089,6 +1162,7 @@ vercel --prod
 ## Quick Reference Commands
 
 ### Pre-Deployment
+
 ```bash
 pnpm preflight:beta
 pnpm test
@@ -1097,6 +1171,7 @@ pnpm validate:export
 ```
 
 ### Deployment
+
 ```bash
 # Web
 git push origin staging
@@ -1109,6 +1184,7 @@ cd android && fastlane android deploy_staging
 ```
 
 ### Verification
+
 ```bash
 # Check staging URL
 curl -I https://staging.sparecarry.com
@@ -1121,6 +1197,7 @@ pnpm version:bump --dry-run
 ```
 
 ### Rollback
+
 ```bash
 # Web
 vercel rollback

@@ -23,27 +23,35 @@ export default async function createNextConfig(phase) {
     webpack(config, { isServer, webpack }) {
       // Exclude Capacitor modules from web build (mobile-only)
       // These are only used in mobile apps, not in web builds
-      
-      const stubsBasePath = join(__dirname, 'lib/stubs/@capacitor');
-      
+
+      const stubsBasePath = join(__dirname, "lib/stubs/@capacitor");
+
       // Set up aliases to point to stub modules
       // The source code uses dynamic imports, but webpack may still try to resolve them
       config.resolve.alias = {
         ...(config.resolve.alias || {}),
-        '@capacitor/core': join(stubsBasePath, 'core.ts'),
-        '@capacitor/push-notifications': join(stubsBasePath, 'push-notifications.ts'),
-        '@capacitor/local-notifications': join(stubsBasePath, 'local-notifications.ts'),
-        '@capacitor/haptics': join(stubsBasePath, 'haptics.ts'),
-        '@capacitor/app': join(stubsBasePath, 'app.ts'),
+        "@capacitor/core": join(stubsBasePath, "core.ts"),
+        "@capacitor/push-notifications": join(
+          stubsBasePath,
+          "push-notifications.ts"
+        ),
+        "@capacitor/local-notifications": join(
+          stubsBasePath,
+          "local-notifications.ts"
+        ),
+        "@capacitor/haptics": join(stubsBasePath, "haptics.ts"),
+        "@capacitor/app": join(stubsBasePath, "app.ts"),
       };
-      
+
       return config;
     },
   };
 
   if (!enableSentryWebpackPlugin) {
     if (phase === PHASE_PRODUCTION_BUILD) {
-      console.warn("[Sentry] NEXT_PUBLIC_SENTRY_DSN is not set. Skipping Sentry webpack plugins.");
+      console.warn(
+        "[Sentry] NEXT_PUBLIC_SENTRY_DSN is not set. Skipping Sentry webpack plugins."
+      );
     }
     return nextConfig;
   }

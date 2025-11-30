@@ -28,22 +28,23 @@ If you prefer to add variables manually:
 
 These are required for the app to build and run:
 
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `NEXT_PUBLIC_APP_URL` | Your app's URL | `https://sparecarry.vercel.app` |
-| `NEXT_PUBLIC_APP_ENV` | Environment name | `production` or `staging` |
-| `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL | `https://xxxxx.supabase.co` |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anon key | `eyJhbGc...` |
-| `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role key | `eyJhbGc...` |
-| `RESEND_API_KEY` | Resend API key | `re_xxxxx` or `3dnauYJh_...` |
-| `NOTIFICATIONS_EMAIL_FROM` | Email sender | `SpareCarry <notifications@sparecarry.com>` |
-| `EXPO_ACCESS_TOKEN` | Expo push notification token | `WPGnB7vBBa...` |
+| Variable                        | Description                  | Example                                     |
+| ------------------------------- | ---------------------------- | ------------------------------------------- |
+| `NEXT_PUBLIC_APP_URL`           | Your app's URL               | `https://sparecarry.vercel.app`             |
+| `NEXT_PUBLIC_APP_ENV`           | Environment name             | `production` or `staging`                   |
+| `NEXT_PUBLIC_SUPABASE_URL`      | Supabase project URL         | `https://xxxxx.supabase.co`                 |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anon key            | `eyJhbGc...`                                |
+| `SUPABASE_SERVICE_ROLE_KEY`     | Supabase service role key    | `eyJhbGc...`                                |
+| `RESEND_API_KEY`                | Resend API key               | `re_xxxxx` or `3dnauYJh_...`                |
+| `NOTIFICATIONS_EMAIL_FROM`      | Email sender                 | `SpareCarry <notifications@sparecarry.com>` |
+| `EXPO_ACCESS_TOKEN`             | Expo push notification token | `WPGnB7vBBa...`                             |
 
 ## Optional Variables (Recommended)
 
 These enable additional features but won't block deployment:
 
 ### Stripe (Payment Processing)
+
 - `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` - Starts with `pk_test_` or `pk_live_`
 - `STRIPE_SECRET_KEY` - Starts with `sk_test_` or `sk_live_`
 - `STRIPE_WEBHOOK_SECRET` - Starts with `whsec_`
@@ -52,14 +53,17 @@ These enable additional features but won't block deployment:
 - `STRIPE_YEARLY_PRICE_ID` - Starts with `price_`
 
 ### Analytics
+
 - `NEXT_PUBLIC_GA_MEASUREMENT_ID` - Google Analytics ID (format: `G-XXXXXXXXXX`)
 - `NEXT_PUBLIC_META_PIXEL_ID` - Meta Pixel ID (numeric)
 
 ### Feature Flags
+
 - `NEXT_PUBLIC_UNLEASH_URL` - Unleash API URL
 - `NEXT_PUBLIC_UNLEASH_CLIENT_KEY` - Unleash client key
 
 ### Other
+
 - `CRON_SECRET` - Secret for cron job authentication (min 16 chars)
 - `NEXT_PUBLIC_SENTRY_DSN` - Sentry DSN for error tracking
 - `SENTRY_AUTH_TOKEN` - Sentry auth token
@@ -69,6 +73,7 @@ These enable additional features but won't block deployment:
 ## Getting Your Values
 
 ### Supabase
+
 1. Go to https://supabase.com/dashboard
 2. Select your project
 3. Go to **Settings → API**
@@ -78,6 +83,7 @@ These enable additional features but won't block deployment:
    - **service_role** key → `SUPABASE_SERVICE_ROLE_KEY`
 
 ### Stripe
+
 1. Go to https://dashboard.stripe.com
 2. Copy from your `.env.local` file or:
    - **API Keys** → Publishable key → `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`
@@ -86,10 +92,12 @@ These enable additional features but won't block deployment:
    - **Products** → Price IDs → `STRIPE_*_PRICE_ID`
 
 ### Resend
+
 1. Go to https://resend.com/api-keys
 2. Copy your API key → `RESEND_API_KEY`
 
 ### Expo
+
 1. Go to https://expo.dev/accounts/[account]/settings/access-tokens
 2. Copy your access token → `EXPO_ACCESS_TOKEN`
 
@@ -105,4 +113,3 @@ These enable additional features but won't block deployment:
 - ✅ Use different keys for production vs staging
 - ✅ Rotate secrets regularly
 - ✅ Use Vercel's environment-specific variables when possible
-

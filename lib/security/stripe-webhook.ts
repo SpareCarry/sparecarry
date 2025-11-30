@@ -1,12 +1,12 @@
 /**
  * Secure Stripe Webhook Validation
- * 
+ *
  * Validates Stripe webhook signatures and handles events securely
  */
 
-import { NextRequest } from 'next/server';
-import Stripe from 'stripe';
-import { safeLog } from './auth-guards';
+import { NextRequest } from "next/server";
+import Stripe from "stripe";
+import { safeLog } from "./auth-guards";
 
 /**
  * Validate Stripe webhook signature
@@ -18,20 +18,24 @@ export function validateStripeWebhook(
   webhookSecret: string
 ): { valid: boolean; event?: Stripe.Event; error?: string } {
   if (!signature) {
-    safeLog('warn', 'Stripe webhook: Missing signature header');
+    safeLog("warn", "Stripe webhook: Missing signature header");
     return {
       valid: false,
-      error: 'Missing signature',
+      error: "Missing signature",
     };
   }
 
   try {
-    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
-      apiVersion: '2023-10-16',
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", {
+      apiVersion: "2023-10-16",
     });
 
     // Verify webhook signature
-    const event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
+    const event = stripe.webhooks.constructEvent(
+      body,
+      signature,
+      webhookSecret
+    );
 
     return {
       valid: true,
@@ -39,7 +43,7 @@ export function validateStripeWebhook(
     };
   } catch (error) {
     // Log invalid webhook attempts (but don't expose details)
-    safeLog('error', 'Stripe webhook: Invalid signature', {
+    safeLog("error", "Stripe webhook: Invalid signature", {
       signatureLength: signature.length,
       bodyLength: body.length,
     });
@@ -53,7 +57,7 @@ export function validateStripeWebhook(
 
     return {
       valid: false,
-      error: 'Invalid signature',
+      error: "Invalid signature",
     };
   }
 }
@@ -68,10 +72,15 @@ function logInvalidWebhookAttempt(
   error: unknown
 ): void {
   const timestamp = new Date().toISOString();
-  const ip = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown';
+  const ip =
+    request.headers.get("x-forwarded-for") ||
+    request.headers.get("x-real-ip") ||
+    "unknown";
 
   // Log to console (in production, use proper logging service)
-  console.error(`[STRIPE_WEBHOOK_SECURITY] ${timestamp} - Invalid webhook attempt from ${ip}`);
+  console.error(
+    `[STRIPE_WEBHOOK_SECURITY] ${timestamp} - Invalid webhook attempt from ${ip}`
+  );
 
   // TODO: In production, implement:
   // - Log to file system (with rotation)
@@ -97,16 +106,16 @@ export function validateWebhookEventType(
 export function extractPriceFromEvent(event: Stripe.Event): number | null {
   // Extract price from different event types
   switch (event.type) {
-    case 'checkout.session.completed': {
+    case "checkout.session.completed": {
       const session = event.data.object as Stripe.Checkout.Session;
       // Get amount from session (server-side value)
       return session.amount_total || null;
     }
-    case 'payment_intent.succeeded': {
+    case "payment_intent.succeeded": {
       const paymentIntent = event.data.object as Stripe.PaymentIntent;
       return paymentIntent.amount || null;
     }
-    case 'charge.succeeded': {
+    case "charge.succeeded": {
       const charge = event.data.object as Stripe.Charge;
       return charge.amount || null;
     }
@@ -121,8 +130,7 @@ export function extractPriceFromEvent(event: Stripe.Event): number | null {
 export function getWebhookSecret(): string {
   const secret = process.env.STRIPE_WEBHOOK_SECRET;
   if (!secret) {
-    throw new Error('STRIPE_WEBHOOK_SECRET is not configured');
+    throw new Error("STRIPE_WEBHOOK_SECRET is not configured");
   }
   return secret;
 }
-

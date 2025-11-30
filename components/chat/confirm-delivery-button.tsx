@@ -33,7 +33,7 @@ export function ConfirmDeliveryButton({ matchId }: ConfirmDeliveryButtonProps) {
 
       // Invalidate queries to refresh match status
       queryClient.invalidateQueries({ queryKey: ["match", matchId] });
-      
+
       // Refresh to show rating modal
       router.refresh();
     } catch (error) {
@@ -47,7 +47,7 @@ export function ConfirmDeliveryButton({ matchId }: ConfirmDeliveryButtonProps) {
   };
 
   return (
-    <div className="bg-white border-t border-slate-200 p-4">
+    <div className="border-t border-slate-200 bg-white p-4">
       <Button
         onClick={handleConfirm}
         disabled={loading}
@@ -68,4 +68,3 @@ export function ConfirmDeliveryButton({ matchId }: ConfirmDeliveryButtonProps) {
     </div>
   );
 }
-

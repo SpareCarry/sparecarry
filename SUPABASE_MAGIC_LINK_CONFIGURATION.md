@@ -7,16 +7,20 @@
 **Go to**: [Supabase Dashboard](https://app.supabase.com) → Your Project → Authentication → URL Configuration
 
 **Required Redirect URLs** (add ALL of these):
+
 ```
 http://localhost:3000/auth/callback
 https://your-production-domain.com/auth/callback
 ```
 
 **Site URL** (set to your production domain):
+
 ```
 https://your-production-domain.com
 ```
+
 OR for local development:
+
 ```
 http://localhost:3000
 ```
@@ -24,12 +28,14 @@ http://localhost:3000
 ### 2. Verify Environment Variables
 
 **Check your `.env.local` file has:**
+
 ```env
 NEXT_PUBLIC_SUPABASE_URL=https://your-project-ref.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key-here
 ```
 
 **Verify these are correct:**
+
 1. Go to Supabase Dashboard → Settings → API
 2. Copy `Project URL` → should match `NEXT_PUBLIC_SUPABASE_URL`
 3. Copy `anon/public` key → should match `NEXT_PUBLIC_SUPABASE_ANON_KEY`
@@ -47,12 +53,14 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key-here
 **Issue: Redirects to signup page instead of logging in**
 
 **Possible Causes:**
+
 1. ✅ **FIXED**: Session cookies not persisting → Enhanced cookie persistence logic
 2. Callback URL not in Supabase redirect URLs → Add to Supabase Dashboard
 3. Site URL mismatch → Verify in Supabase Dashboard
 4. Environment variables incorrect → Check `.env.local`
 
 **Fix Steps:**
+
 1. ✅ Code fix applied - session cookies now properly persist
 2. Add callback URL to Supabase → Authentication → URL Configuration
 3. Verify Site URL matches your domain
@@ -61,13 +69,15 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key-here
 **Issue: "No session created"**
 
 **Possible Causes:**
+
 1. Code exchange failing → Check server logs for errors
 2. PKCE code verifier missing → Should be auto-included in email link
 3. Cookie options incorrect → ✅ FIXED with proper cookie options
 
 **Fix Steps:**
+
 1. Check terminal/console logs when clicking magic link
-2. Look for: "Successfully exchanged code for session:" 
+2. Look for: "Successfully exchanged code for session:"
 3. If error, check error message in logs
 4. Verify Supabase project settings → Authentication → Providers → Email
 
@@ -88,6 +98,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key-here
 ### 6. Debugging
 
 **Check Server Logs** (terminal where `pnpm dev` is running):
+
 ```
 Auth callback received: { code: "present", redirectTo: "/home", ... }
 Successfully exchanged code for session: user@example.com
@@ -97,11 +108,13 @@ Session cookies set: ["sb-xxx-auth-token", ...]
 ```
 
 **Check Browser DevTools**:
+
 1. Network tab → Find `/auth/callback` request
 2. Response headers → Should see `Set-Cookie` headers
 3. Application → Cookies → Should see Supabase session cookies
 
 **If redirects to signup:**
+
 - Session wasn't created → Check server logs for errors
 - Cookies not persisting → Check browser cookies are set
 - Callback URL mismatch → Verify in Supabase Dashboard

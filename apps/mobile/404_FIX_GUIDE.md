@@ -1,9 +1,11 @@
 # Fixing 404 Development Server Error on Mobile
 
 ## Problem
+
 Getting "development server returned response error code: 404" when trying to launch the app on Android mobile device.
 
 ## Root Causes
+
 1. **Offline Mode**: The `--offline` flag prevents network connections
 2. **Network Connectivity**: Device can't reach the development server
 3. **Firewall**: Windows Firewall blocking connections
@@ -12,19 +14,24 @@ Getting "development server returned response error code: 404" when trying to la
 ## Solutions
 
 ### Solution 1: Use Online Mode (Recommended)
+
 The default `start` script now uses online mode. Run:
+
 ```bash
 cd apps/mobile
 pnpm start
 ```
 
 Or with cache cleared:
+
 ```bash
 pnpm start:clear
 ```
 
 ### Solution 2: Use Tunnel Mode (For Remote Testing)
+
 If you're testing outside your local network or having LAN issues:
+
 ```bash
 pnpm start:tunnel
 ```
@@ -32,7 +39,9 @@ pnpm start:tunnel
 This creates a secure tunnel through Expo's servers. Wait for the tunnel URL and scan the QR code.
 
 ### Solution 3: Use LAN Mode (For Same Network)
+
 If you're on the same WiFi network:
+
 ```bash
 pnpm start:lan
 ```
@@ -61,9 +70,11 @@ This explicitly uses your LAN IP address.
 If automatic connection fails:
 
 1. **Get Your LAN IP**:
+
    ```bash
    pnpm get-lan-ip
    ```
+
    This will output something like: `192.168.1.238`
 
 2. **In Expo Go App**:
@@ -74,12 +85,14 @@ If automatic connection fails:
 ### Solution 6: Check Environment Variables
 
 Ensure your `.env.local` file exists and has correct values:
+
 ```bash
 cd apps/mobile
 cat .env.local
 ```
 
 Should contain:
+
 ```
 EXPO_PUBLIC_SUPABASE_URL=your_url
 EXPO_PUBLIC_SUPABASE_ANON_KEY=your_key
@@ -88,6 +101,7 @@ EXPO_PUBLIC_SUPABASE_ANON_KEY=your_key
 ## Testing Steps
 
 1. **Start Metro Bundler**:
+
    ```bash
    cd apps/mobile
    pnpm start:clear
@@ -112,37 +126,43 @@ EXPO_PUBLIC_SUPABASE_ANON_KEY=your_key
 ## Common Issues
 
 ### Issue: "Network request failed"
+
 **Solution**: Use tunnel mode or check firewall
 
 ### Issue: "Unable to resolve host"
+
 **Solution**: Use tunnel mode or verify network connection
 
 ### Issue: "Connection refused"
-**Solution**: 
+
+**Solution**:
+
 - Check Metro bundler is running
 - Verify port 8081 is not blocked
 - Try different port: `expo start --port 8082`
 
 ### Issue: QR code not working
-**Solution**: 
+
+**Solution**:
+
 - Manually enter URL from terminal
 - Use tunnel mode for remote access
 
 ## Quick Reference
 
-| Command | Use Case |
-|---------|----------|
-| `pnpm start` | Normal development (online) |
-| `pnpm start:clear` | Clear cache and start |
-| `pnpm start:tunnel` | Remote testing or LAN issues |
-| `pnpm start:lan` | Explicit LAN mode |
+| Command              | Use Case                                  |
+| -------------------- | ----------------------------------------- |
+| `pnpm start`         | Normal development (online)               |
+| `pnpm start:clear`   | Clear cache and start                     |
+| `pnpm start:tunnel`  | Remote testing or LAN issues              |
+| `pnpm start:lan`     | Explicit LAN mode                         |
 | `pnpm start:offline` | Offline mode (not recommended for mobile) |
 
 ## Still Having Issues?
 
 1. **Check Metro Logs**: Look for error messages in terminal
 2. **Try Tunnel Mode**: Most reliable for remote testing
-3. **Restart Everything**: 
+3. **Restart Everything**:
    - Close Expo Go app
    - Stop Metro bundler (Ctrl+C)
    - Clear cache: `pnpm start:clear`
@@ -150,4 +170,3 @@ EXPO_PUBLIC_SUPABASE_ANON_KEY=your_key
    - Reopen Expo Go and connect
 
 4. **Check Expo Go Version**: Ensure you have the latest Expo Go app installed
-

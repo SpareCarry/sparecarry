@@ -8,6 +8,7 @@
 ## Summary
 
 After running the 4 migration files from `supabase/migrations/`, you have:
+
 - ✅ All 7 core tables created
 - ✅ RLS policies enabled
 - ✅ Test data seeded
@@ -22,6 +23,7 @@ After running the 4 migration files from `supabase/migrations/`, you have:
 ### 1. `storage-setup.sql` ⭐ **RECOMMENDED**
 
 **What it does**:
+
 - Creates 3 storage buckets for file uploads:
   - `boat-documents` - For boat verification documents
   - `item-photos` - For item photos in requests
@@ -39,6 +41,7 @@ After running the 4 migration files from `supabase/migrations/`, you have:
 ### 2. `seed-meetup-locations.sql` ⚠️ **REQUIRES TABLE FIRST**
 
 **What it does**:
+
 - Seeds 200 popular meetup locations (marinas, airports, fuel docks)
 - Used for location selection in delivery confirmation
 
@@ -47,6 +50,7 @@ After running the 4 migration files from `supabase/migrations/`, you have:
 **Problem**: The migrations in `supabase/migrations/` don't create a `meetup_locations` table!
 
 **Options**:
+
 1. **Skip it** - The app has a hardcoded list in `lib/data/meetup-locations.ts`
 2. **Run `schema.sql` first** - This creates the `meetup_locations` table, then seed it
 3. **Create table manually** - Create just the table, then seed
@@ -58,6 +62,7 @@ After running the 4 migration files from `supabase/migrations/`, you have:
 ### 3. `realtime-setup.sql` ⭐ **RECOMMENDED**
 
 **What it does**:
+
 - Enables Realtime subscriptions for the `requests` table
 - Creates a trigger for emergency request notifications
 - Allows real-time updates when new requests are created
@@ -75,6 +80,7 @@ After running the 4 migration files from `supabase/migrations/`, you have:
 ### 4. `schema.sql` ⚠️ **CONFLICTS WITH MIGRATIONS**
 
 **What it does**:
+
 - Creates a COMPLETE schema with:
   - `users` table (different structure than migrations)
   - `profiles` table (NOT in migrations)
@@ -91,6 +97,7 @@ After running the 4 migration files from `supabase/migrations/`, you have:
 **Should you run it?**: ❌ **NO** - This is an OLDER/ALTERNATIVE schema
 
 **Why not?**:
+
 - It will try to recreate tables that already exist
 - It has a different structure than your migrations
 - It's designed for a different version of the app
@@ -124,6 +131,7 @@ After running the 4 migration files from `supabase/migrations/`, you have:
 4. ✅ **Run `seed-meetup-locations.sql`** - After table is created
 
 **How to extract `meetup_locations` table**:
+
 - Open `supabase/schema.sql`
 - Find the `CREATE TABLE IF NOT EXISTS public.meetup_locations` section (around line 197)
 - Copy just that table creation (and its indexes)
@@ -200,17 +208,19 @@ Do you need profiles, conversations, deliveries tables?
 ## My Recommendation
 
 **For now, run these 2 files:**
+
 1. ✅ `storage-setup.sql` - Essential for file uploads
 2. ✅ `realtime-setup.sql` - If your requests table supports it
 
 **Skip these for now:**
+
 - ❌ `schema.sql` - Conflicts with existing tables
 - ❌ `seed-meetup-locations.sql` - Requires table that doesn't exist
 
 **Later, if needed:**
+
 - Add `meetup_locations` table manually, then seed it
 
 ---
 
 **Last Updated**: 2024-12-19
-

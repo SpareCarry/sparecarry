@@ -108,6 +108,7 @@ pnpm start
 ```
 
 Then:
+
 - **iOS**: Scan QR code with Camera app (opens in Expo Go)
 - **Android**: Scan QR code with Expo Go app
 
@@ -141,9 +142,9 @@ See `apps/mobile/eas.json` for configuration.
 Shared utilities and Supabase client.
 
 ```typescript
-import { createClient } from '@sparecarry/lib/supabase';
-import { RealtimeManager } from '@sparecarry/lib/realtime';
-import { isWeb, isMobile, isAndroid, isIOS } from '@sparecarry/lib/platform';
+import { createClient } from "@sparecarry/lib/supabase";
+import { RealtimeManager } from "@sparecarry/lib/realtime";
+import { isWeb, isMobile, isAndroid, isIOS } from "@sparecarry/lib/platform";
 ```
 
 ### `@sparecarry/hooks`
@@ -151,7 +152,7 @@ import { isWeb, isMobile, isAndroid, isIOS } from '@sparecarry/lib/platform';
 Universal React hooks.
 
 ```typescript
-import { useRealtime, useLocation, useCamera } from '@sparecarry/hooks';
+import { useRealtime, useLocation, useCamera } from "@sparecarry/hooks";
 ```
 
 ### `@sparecarry/ui`
@@ -159,7 +160,7 @@ import { useRealtime, useLocation, useCamera } from '@sparecarry/hooks';
 Universal UI components with platform variants.
 
 ```typescript
-import { CameraButton, MapView } from '@sparecarry/ui';
+import { CameraButton, MapView } from "@sparecarry/ui";
 ```
 
 ## 🔧 RealtimeManager (Supabase Realtime)
@@ -169,8 +170,8 @@ import { CameraButton, MapView } from '@sparecarry/ui';
 ### Initialization
 
 ```typescript
-import { createClient } from '@sparecarry/lib/supabase';
-import { RealtimeManager } from '@sparecarry/lib/realtime';
+import { createClient } from "@sparecarry/lib/supabase";
+import { RealtimeManager } from "@sparecarry/lib/realtime";
 
 // Initialize in your app root (once)
 const supabase = createClient();
@@ -180,13 +181,13 @@ RealtimeManager.setSupabaseClient(supabase);
 ### Usage
 
 ```typescript
-import { useRealtime } from '@sparecarry/hooks';
+import { useRealtime } from "@sparecarry/hooks";
 
 function MyComponent() {
   useRealtime({
-    table: 'messages',
+    table: "messages",
     callback: (payload) => {
-      console.log('New message:', payload);
+      console.log("New message:", payload);
     },
   });
 }
@@ -195,13 +196,13 @@ function MyComponent() {
 ### Direct Usage (Advanced)
 
 ```typescript
-import { RealtimeManager } from '@sparecarry/lib/realtime';
+import { RealtimeManager } from "@sparecarry/lib/realtime";
 
 // Listen
 const channelName = RealtimeManager.listen(
-  { table: 'messages', event: 'INSERT' },
+  { table: "messages", event: "INSERT" },
   (payload) => {
-    console.log('New message:', payload);
+    console.log("New message:", payload);
   }
 );
 
@@ -212,7 +213,7 @@ RealtimeManager.remove(channelName, callback);
 ## 📍 Location (GPS)
 
 ```typescript
-import { useLocation, getCurrentLocation } from '@sparecarry/hooks';
+import { useLocation, getCurrentLocation } from "@sparecarry/hooks";
 
 function MyComponent() {
   const { location, loading, error } = useLocation({
@@ -229,13 +230,14 @@ function MyComponent() {
 ```
 
 **Platforms**:
+
 - **Web**: Uses `navigator.geolocation`
 - **Mobile**: Uses `expo-location` with permission handling
 
 ## 📷 Camera
 
 ```typescript
-import { useCamera } from '@sparecarry/hooks';
+import { useCamera } from "@sparecarry/hooks";
 
 function MyComponent() {
   const { takePicture, pickImage, loading } = useCamera();
@@ -243,13 +245,14 @@ function MyComponent() {
   const handleCapture = async () => {
     const result = await takePicture();
     if (result) {
-      console.log('Photo:', result.uri);
+      console.log("Photo:", result.uri);
     }
   };
 }
 ```
 
 **Platforms**:
+
 - **Web**: Uses `<input type="file">`
 - **Mobile**: Uses `expo-image-picker` with permission handling
 
@@ -264,6 +267,7 @@ CameraButton.native.tsx   # iOS/Android implementation
 ```
 
 **Usage**:
+
 ```typescript
 import { CameraButton } from '@sparecarry/ui';
 
@@ -282,7 +286,7 @@ Uses existing Next.js auth flow with Supabase SSR.
 Uses Expo SecureStore for token persistence.
 
 ```typescript
-import { createClient } from '@sparecarry/lib/supabase';
+import { createClient } from "@sparecarry/lib/supabase";
 
 const supabase = createClient();
 
@@ -298,6 +302,7 @@ await supabase.auth.signOut();
 ### Setup
 
 1. Configure in `apps/mobile/app.json`:
+
 ```json
 {
   "plugins": [
@@ -313,17 +318,19 @@ await supabase.auth.signOut();
 ```
 
 2. Register for push tokens:
+
 ```typescript
-import * as Notifications from 'expo-notifications';
+import * as Notifications from "expo-notifications";
 
 const token = await Notifications.getExpoPushTokenAsync();
 // Send token to your backend
 ```
 
 3. Handle notifications:
+
 ```typescript
-Notifications.addNotificationReceivedListener(notification => {
-  console.log('Notification:', notification);
+Notifications.addNotificationReceivedListener((notification) => {
+  console.log("Notification:", notification);
 });
 ```
 
@@ -369,6 +376,7 @@ pnpm start --clear
 ### RealtimeManager errors
 
 Make sure to initialize RealtimeManager with Supabase client:
+
 ```typescript
 RealtimeManager.setSupabaseClient(createClient());
 ```
@@ -386,4 +394,3 @@ pnpm store prune
 ## 📝 License
 
 Private - SpareCarry
-

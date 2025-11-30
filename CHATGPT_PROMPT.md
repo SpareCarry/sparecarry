@@ -1,9 +1,11 @@
 # Expo React Native Error - PlatformConstants TurboModuleRegistry Issue
 
 ## Problem Summary
+
 I have an Expo React Native app (SDK 54) in a pnpm monorepo that's failing with a `PlatformConstants` TurboModuleRegistry error when running in Expo Go. The error persists despite multiple attempts to fix version mismatches.
 
 ## Error Message
+
 ```
 Invariant Violation: TurboModuleRegistry.getEnforcing(...): 'PlatformConstants' could not be found. Verify that a module by this name is registered in the native binary.
 ```
@@ -11,10 +13,11 @@ Invariant Violation: TurboModuleRegistry.getEnforcing(...): 'PlatformConstants' 
 The error occurs when the app tries to load, specifically when importing React Native modules that depend on PlatformConstants.
 
 ## Project Structure
+
 - **Monorepo**: pnpm workspace
 - **Root**: `C:\SpareCarry`
 - **Mobile App**: `apps/mobile`
-- **Shared Packages**: 
+- **Shared Packages**:
   - `packages/ui` (contains React Native components)
   - `packages/hooks` (React hooks)
   - `packages/lib` (shared utilities)
@@ -22,6 +25,7 @@ The error occurs when the app tries to load, specifically when importing React N
 ## Current Versions
 
 ### apps/mobile/package.json
+
 ```json
 {
   "name": "@sparecarry/mobile",
@@ -44,6 +48,7 @@ The error occurs when the app tries to load, specifically when importing React N
 ```
 
 ### packages/ui/package.json
+
 ```json
 {
   "name": "@sparecarry/ui",
@@ -56,23 +61,22 @@ The error occurs when the app tries to load, specifically when importing React N
 ```
 
 ## Metro Config (apps/mobile/metro.config.js)
+
 ```javascript
-const { getDefaultConfig } = require('expo/metro-config');
-const path = require('path');
+const { getDefaultConfig } = require("expo/metro-config");
+const path = require("path");
 
 const config = getDefaultConfig(__dirname);
 
 config.projectRoot = __dirname;
 
-config.watchFolders = [
-  __dirname,
-  path.resolve(__dirname, '../..'),
-];
+config.watchFolders = [__dirname, path.resolve(__dirname, "../..")];
 
 module.exports = config;
 ```
 
 ## App Config (apps/mobile/app.config.ts)
+
 - Uses Expo SDK 54
 - Has expo-router, expo-camera, expo-location, expo-notifications plugins
 - jsEngine: 'jsc'
@@ -96,7 +100,9 @@ module.exports = config;
 - The error happens when importing from `@sparecarry/ui` which uses React Native's StyleSheet
 
 ## Stack Trace Pattern
+
 The error originates from:
+
 - `react-native/Libraries/Utilities/NativePlatformConstantsAndroid.js`
 - Called via `react-native/Libraries/Utilities/Platform.android.js`
 - Triggered when importing `react-native` StyleSheet in `packages/ui/LocationInput.tsx`
@@ -118,6 +124,7 @@ The error originates from:
 6. Could the `overrides` in package.json be causing issues?
 
 ## Environment
+
 - **OS**: Windows 10
 - **Package Manager**: pnpm 10.24.0
 - **Node**: (not specified, but assume 18+)
@@ -125,5 +132,5 @@ The error originates from:
 - **Running in**: Expo Go (not development build)
 
 ## Request
-Please provide a comprehensive solution that addresses the root cause. We've been going in circles with version alignment fixes that don't resolve the issue. The error suggests a fundamental mismatch between what the JavaScript code expects and what's available in the native binary (Expo Go).
 
+Please provide a comprehensive solution that addresses the root cause. We've been going in circles with version alignment fixes that don't resolve the issue. The error suggests a fundamental mismatch between what the JavaScript code expects and what's available in the native binary (Expo Go).

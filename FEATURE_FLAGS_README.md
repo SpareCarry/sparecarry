@@ -36,6 +36,7 @@ SpareCarry uses **Unleash** (open-source) for feature flag management, with opti
 #### Using Docker Compose
 
 1. **Start Unleash Server:**
+
    ```bash
    docker-compose -f docker-compose.unleash.yml up -d
    ```
@@ -60,11 +61,13 @@ SpareCarry uses **Unleash** (open-source) for feature flag management, with opti
 #### Manual Setup
 
 1. **Install Unleash:**
+
    ```bash
    npm install -g unleash-server
    ```
 
 2. **Start Unleash:**
+
    ```bash
    unleash-server
    ```
@@ -98,7 +101,7 @@ SpareCarry uses **Unleash** (open-source) for feature flag management, with opti
    ```
 6. **Update provider** to use LaunchDarkly:
    ```typescript
-   import { initializeLaunchDarkly } from '@/lib/flags/launchdarklyClient';
+   import { initializeLaunchDarkly } from "@/lib/flags/launchdarklyClient";
    ```
 
 ---
@@ -110,15 +113,15 @@ SpareCarry uses **Unleash** (open-source) for feature flag management, with opti
 #### Basic Usage
 
 ```tsx
-import { useFlag } from '@/app/providers/FeatureFlagProvider';
+import { useFlag } from "@/app/providers/FeatureFlagProvider";
 
 function MyComponent() {
-  const pushEnabled = useFlag('enable_push_notifications');
-  
+  const pushEnabled = useFlag("enable_push_notifications");
+
   if (!pushEnabled) {
     return <div>Push notifications are disabled</div>;
   }
-  
+
   return <PushNotificationSettings />;
 }
 ```
@@ -126,21 +129,21 @@ function MyComponent() {
 #### With Default Value
 
 ```tsx
-const emailEnabled = useFlag('email_notifications', false);
+const emailEnabled = useFlag("email_notifications", false);
 ```
 
 #### Get Full Flag Object
 
 ```tsx
-import { useFeatureFlag } from '@/app/providers/FeatureFlagProvider';
+import { useFeatureFlag } from "@/app/providers/FeatureFlagProvider";
 
 function MyComponent() {
-  const flag = useFeatureFlag('dispute_refund_flow');
-  
+  const flag = useFeatureFlag("dispute_refund_flow");
+
   if (flag?.enabled) {
     return <DisputeFlow variant={flag.variant} />;
   }
-  
+
   return null;
 }
 ```
@@ -148,16 +151,16 @@ function MyComponent() {
 #### Access All Flags
 
 ```tsx
-import { useFeatureFlags } from '@/app/providers/FeatureFlagProvider';
+import { useFeatureFlags } from "@/app/providers/FeatureFlagProvider";
 
 function AdminPanel() {
   const { flags, isLoading, refresh } = useFeatureFlags();
-  
+
   return (
     <div>
       {Array.from(flags.entries()).map(([key, flag]) => (
         <div key={key}>
-          {key}: {flag.enabled ? 'Enabled' : 'Disabled'}
+          {key}: {flag.enabled ? "Enabled" : "Disabled"}
         </div>
       ))}
     </div>
@@ -168,16 +171,20 @@ function AdminPanel() {
 ### In Server-Side Code
 
 ```typescript
-import { isFeatureEnabled } from '@/lib/flags/unleashClient';
+import { isFeatureEnabled } from "@/lib/flags/unleashClient";
 
 // Initialize first (in API route or middleware)
-await initializeUnleash({
-  url: process.env.UNLEASH_URL!,
-  clientKey: process.env.UNLEASH_CLIENT_KEY!,
-}, userId, { email: userEmail });
+await initializeUnleash(
+  {
+    url: process.env.UNLEASH_URL!,
+    clientKey: process.env.UNLEASH_CLIENT_KEY!,
+  },
+  userId,
+  { email: userEmail }
+);
 
 // Check flag
-if (isFeatureEnabled('email_notifications')) {
+if (isFeatureEnabled("email_notifications")) {
   await sendEmail();
 }
 ```
@@ -185,18 +192,18 @@ if (isFeatureEnabled('email_notifications')) {
 ### In API Routes
 
 ```typescript
-import { NextRequest, NextResponse } from 'next/server';
-import { isFeatureEnabled } from '@/lib/flags/unleashClient';
+import { NextRequest, NextResponse } from "next/server";
+import { isFeatureEnabled } from "@/lib/flags/unleashClient";
 
 export async function POST(request: NextRequest) {
   // Check feature flag
-  if (!isFeatureEnabled('dispute_refund_flow')) {
+  if (!isFeatureEnabled("dispute_refund_flow")) {
     return NextResponse.json(
-      { error: 'Dispute flow is not enabled' },
+      { error: "Dispute flow is not enabled" },
       { status: 403 }
     );
   }
-  
+
   // Process dispute...
 }
 ```
@@ -213,9 +220,9 @@ Add to `app/_admin/feature-flags/page.tsx`:
 const DEFAULT_FLAGS: FlagDefinition[] = [
   // ... existing flags
   {
-    key: 'new_feature',
-    name: 'New Feature',
-    description: 'Enable new feature',
+    key: "new_feature",
+    name: "New Feature",
+    description: "Enable new feature",
     defaultValue: false,
   },
 ];
@@ -234,7 +241,7 @@ const DEFAULT_FLAGS: FlagDefinition[] = [
 ### Step 3: Use Flag in Code
 
 ```tsx
-const newFeatureEnabled = useFlag('new_feature');
+const newFeatureEnabled = useFlag("new_feature");
 ```
 
 ---
@@ -266,7 +273,7 @@ const newFeatureEnabled = useFlag('new_feature');
 ### Emergency Toggle
 
 ```tsx
-const emergencyToggle = useFlag('emergency_toggle_push');
+const emergencyToggle = useFlag("emergency_toggle_push");
 
 if (emergencyToggle) {
   // Disable all push notifications
@@ -296,16 +303,16 @@ Navigate to: `/admin/feature-flags`
 
 ```typescript
 // app/_admin/feature-flags/page.tsx
-import { redirect } from 'next/navigation';
-import { getServerSession } from 'next-auth';
+import { redirect } from "next/navigation";
+import { getServerSession } from "next-auth";
 
 export default async function FeatureFlagsPage() {
   const session = await getServerSession();
-  
-  if (!session || session.user.role !== 'admin') {
-    redirect('/');
+
+  if (!session || session.user.role !== "admin") {
+    redirect("/");
   }
-  
+
   // ... rest of component
 }
 ```
@@ -370,11 +377,11 @@ if (Capacitor.isNativePlatform()) {
 ### Unit Tests
 
 ```typescript
-import { renderHook } from '@testing-library/react';
-import { useFlag } from '@/app/providers/FeatureFlagProvider';
+import { renderHook } from "@testing-library/react";
+import { useFlag } from "@/app/providers/FeatureFlagProvider";
 
-test('feature flag defaults to false', () => {
-  const { result } = renderHook(() => useFlag('test_flag'));
+test("feature flag defaults to false", () => {
+  const { result } = renderHook(() => useFlag("test_flag"));
   expect(result.current).toBe(false);
 });
 ```
@@ -383,7 +390,7 @@ test('feature flag defaults to false', () => {
 
 ```typescript
 // Mock Unleash client
-jest.mock('@/lib/flags/unleashClient', () => ({
+jest.mock("@/lib/flags/unleashClient", () => ({
   isFeatureEnabled: jest.fn(() => true),
 }));
 ```
@@ -392,7 +399,7 @@ jest.mock('@/lib/flags/unleashClient', () => ({
 
 ```typescript
 // Enable flag in test environment
-await enableFeatureFlag('test_flag');
+await enableFeatureFlag("test_flag");
 
 // Test feature
 await page.click('[data-testid="new-feature-button"]');
@@ -406,20 +413,20 @@ await page.click('[data-testid="new-feature-button"]');
 
 ```tsx
 // Good
-const enabled = useFlag('feature', false);
+const enabled = useFlag("feature", false);
 
 // Bad
-const enabled = useFlag('feature'); // May be undefined
+const enabled = useFlag("feature"); // May be undefined
 ```
 
 ### 2. Use Descriptive Flag Names
 
 ```tsx
 // Good
-useFlag('enable_push_notifications')
+useFlag("enable_push_notifications");
 
 // Bad
-useFlag('push')
+useFlag("push");
 ```
 
 ### 3. Document Flags
@@ -429,7 +436,7 @@ Add comments explaining flag purpose:
 ```tsx
 // Emergency toggle to disable all push notifications
 // Used during incidents to stop notification spam
-const emergencyToggle = useFlag('emergency_toggle_push');
+const emergencyToggle = useFlag("emergency_toggle_push");
 ```
 
 ### 4. Remove Dead Flags
@@ -457,7 +464,7 @@ After feature is fully rolled out:
 3. **Check browser console for errors**
 4. **Clear cache:**
    ```javascript
-   localStorage.removeItem('sparecarry_feature_flags');
+   localStorage.removeItem("sparecarry_feature_flags");
    ```
 
 ### Flags Always False
@@ -470,9 +477,10 @@ After feature is fully rolled out:
 ### Mobile Flags Not Working
 
 1. **Check Capacitor Preferences:**
+
    ```typescript
-   import { Preferences } from '@capacitor/preferences';
-   const flags = await Preferences.get({ key: 'sparecarry_feature_flags' });
+   import { Preferences } from "@capacitor/preferences";
+   const flags = await Preferences.get({ key: "sparecarry_feature_flags" });
    ```
 
 2. **Verify network connectivity**
@@ -513,13 +521,13 @@ await initializeUnleash(config, userId, {
 ### Before
 
 ```tsx
-const PUSH_ENABLED = process.env.NEXT_PUBLIC_ENABLE_PUSH === 'true';
+const PUSH_ENABLED = process.env.NEXT_PUBLIC_ENABLE_PUSH === "true";
 ```
 
 ### After
 
 ```tsx
-const pushEnabled = useFlag('enable_push_notifications');
+const pushEnabled = useFlag("enable_push_notifications");
 ```
 
 ### Benefits
@@ -548,4 +556,3 @@ const pushEnabled = useFlag('enable_push_notifications');
 ---
 
 **Last Updated**: November 20, 2025
-

@@ -1,4 +1,7 @@
-export type { Place, AutocompleteOptions } from '../../../lib/services/location';
+export type {
+  Place,
+  AutocompleteOptions,
+} from "../../../lib/services/location";
 export {
   autocomplete,
   reverseGeocode,
@@ -6,5 +9,4 @@ export {
   debouncedAutocomplete,
   clearLocationCache,
   clearDebouncer,
-} from '../../../lib/services/location';
-
+} from "../../../lib/services/location";

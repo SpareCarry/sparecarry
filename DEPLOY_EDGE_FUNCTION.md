@@ -3,13 +3,14 @@
 ## Prerequisites
 
 1. **Install Supabase CLI:**
+
    ```bash
    # Using npm (recommended)
    npm install -g supabase
-   
+
    # Or using Scoop (Windows)
    scoop install supabase
-   
+
    # Or download from: https://github.com/supabase/cli/releases
    ```
 
@@ -37,6 +38,7 @@ supabase link
 ```
 
 To find your project reference:
+
 1. Go to Supabase Dashboard
 2. Select your project
 3. Go to Settings → General
@@ -50,6 +52,7 @@ supabase functions deploy notify-route-matches
 ```
 
 This will:
+
 - Upload the function code from `supabase/functions/notify-route-matches/`
 - Deploy it to your Supabase project
 - Show deployment status
@@ -75,6 +78,7 @@ supabase secrets set SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
    - `SUPABASE_SERVICE_ROLE_KEY`: Your service role key
 
 To find your service role key:
+
 1. Go to **Settings** → **API**
 2. Copy the **service_role** key (secret) - ⚠️ Keep this secure!
 
@@ -112,18 +116,22 @@ You can test the function using the Supabase Dashboard:
 ## Troubleshooting
 
 ### "Function not found" error
+
 - Verify the function exists in `supabase/functions/notify-route-matches/`
 - Check the function name matches exactly
 
 ### "Authentication failed" error
+
 - Run `supabase login` again
 - Verify you're linked to the correct project
 
 ### "Environment variable not set" error
+
 - Verify secrets are set: `supabase secrets list`
 - Check dashboard settings match CLI secrets
 
 ### Function deployment fails
+
 - Check function code for syntax errors
 - Verify Deno imports are correct
 - Check Supabase logs for detailed errors
@@ -142,8 +150,8 @@ If CLI doesn't work, you can deploy via the Supabase Dashboard:
 ## Next Steps
 
 After deployment:
+
 1. Test with a real request creation
 2. Monitor logs for any errors
 3. Verify push notifications are received
 4. Check that matching users receive notifications
-

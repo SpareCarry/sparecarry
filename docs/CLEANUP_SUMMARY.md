@@ -3,6 +3,7 @@
 ## Removed Directories and Files
 
 ### ✅ Deleted (Old Capacitor - Replaced by Expo)
+
 - `android/` - Old Capacitor Android project (replaced by `apps/mobile/android/`)
 - `ios/` - Old Capacitor iOS project (replaced by Expo)
 - `capacitor.config.ts` - Old Capacitor configuration (replaced by Expo `app.config.ts`)
@@ -10,6 +11,7 @@
 ## Updated Dependencies
 
 ### ✅ Removed Capacitor Packages
+
 - `@capacitor/android`
 - `@capacitor/app`
 - `@capacitor/core`
@@ -22,9 +24,11 @@
 - `@capacitor/status-bar`
 
 ### ✅ Updated Packages
+
 - `next-intl`: `^2.0.0` → `^3.0.0`
 
 ### ✅ Added Overrides for Deprecated Dependencies
+
 - `glob`: `^11.0.0` (replaces multiple old versions)
 - `rimraf`: `^5.0.0` (replaces multiple old versions)
 - `inflight`: Replaced with `once@^1.4.0`
@@ -34,6 +38,7 @@
 ## Updated Scripts
 
 ### ✅ Replaced Capacitor Scripts
+
 - `mobile:sync` → Now points to Expo
 - `mobile:build` → Now uses `eas build`
 - `mobile:ios` → Now uses `eas build --platform ios`
@@ -67,6 +72,7 @@ SpareCarry/
 ## Remaining Deprecated Warnings
 
 Some deprecated dependencies may still appear as warnings because they're transitive dependencies. These are safe to ignore:
+
 - They're used by other packages internally
 - The overrides will force newer versions when possible
 - They don't affect functionality
@@ -77,4 +83,3 @@ Some deprecated dependencies may still appear as warnings because they're transi
 2. ✅ Capacitor dependencies removed
 3. ✅ Scripts updated to use Expo
 4. ⚠️ Some deprecated transitive dependencies may still show warnings (safe to ignore)
-

@@ -3,10 +3,9 @@
  * This handles the initial "/" route
  */
 
-import { Redirect } from 'expo-router';
+import { Redirect } from "expo-router";
 
 export default function Index() {
   // Use Redirect component for immediate, reliable redirect
   return <Redirect href="/(tabs)" />;
 }
-

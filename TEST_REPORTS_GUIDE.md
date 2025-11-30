@@ -5,11 +5,13 @@ All test scripts have been enhanced to generate detailed reports that you can sh
 ## Quick Start
 
 ### Run All Tests with Reports (Recommended)
+
 ```powershell
 .\run-all-tests.ps1
 ```
 
 Or using npm/pnpm:
+
 ```bash
 pnpm test:all:with-reports
 ```
@@ -17,62 +19,82 @@ pnpm test:all:with-reports
 ### Individual Test Commands
 
 #### 1. Comprehensive Tests
+
 ```powershell
 pnpm test:comprehensive > test-results-comprehensive.txt 2>&1
 ```
+
 **Reports Generated:**
+
 - `test-results-comprehensive.txt` - Raw output
 - `test-results-comprehensive-detailed.txt` - Detailed formatted report
 - `test-results-comprehensive.json` - JSON report for programmatic access
 
 #### 2. All Features Tests
+
 ```powershell
 pnpm test:features > test-results-all-features.txt 2>&1
 ```
+
 **Reports Generated:**
+
 - `test-results-all-features.txt` - Raw output
 - `test-results-all-features-detailed.txt` - Detailed formatted report
 - `test-results-all-features.json` - JSON report
 
 #### 3. Unit Tests (Vitest)
+
 ```powershell
 pnpm test:with-report
 ```
+
 **Reports Generated:**
+
 - `test-results-vitest.txt` - Raw output
 - `test-results-vitest-detailed.txt` - Detailed formatted report
 - `test-results-vitest.json` - JSON report
 
 #### 4. E2E Tests (Playwright)
+
 ```powershell
 pnpm test:e2e:with-report
 ```
+
 **Reports Generated:**
+
 - `test-results-playwright.txt` - Raw output
 - `test-results-playwright-detailed.txt` - Detailed formatted report
 - `test-results-playwright.json` - JSON report
 - `playwright-report/index.html` - HTML report (if available)
 
 #### 5. Beta Readiness Verification
+
 ```powershell
 pnpm test:verify-readiness
 ```
+
 **Reports Generated:**
+
 - `test-results/beta-readiness-verification-*.json` - JSON report
 - `test-results/test-results-beta-readiness-detailed.txt` - Detailed report
 
 #### 6. Beta Tests
+
 ```powershell
 pnpm test:beta
 ```
+
 **Reports Generated:**
+
 - `test-results/beta-test-results-*.json` - JSON report
 - `test-results/test-results-beta-detailed.txt` - Detailed report
 
 ## Report Formats
 
 ### Detailed Text Report
+
 Contains:
+
 - Test metadata (timestamp, Node version, working directory)
 - Summary (total, passed, failed, success rate)
 - Detailed results for each test
@@ -80,7 +102,9 @@ Contains:
 - Duration information
 
 ### JSON Report
+
 Contains:
+
 - Structured data for programmatic access
 - All test results with status
 - Environment information
@@ -89,6 +113,7 @@ Contains:
 ## Master Test Runner
 
 The master test runner (`run-all-tests-with-reports.js` or `run-all-tests.ps1`) runs all test suites and generates:
+
 - Individual reports for each test suite
 - A master summary report: `test-results-ALL-TESTS-detailed.txt`
 - A master JSON report: `test-results-ALL-TESTS.json`
@@ -96,6 +121,7 @@ The master test runner (`run-all-tests-with-reports.js` or `run-all-tests.ps1`) 
 ## Viewing Reports
 
 ### PowerShell
+
 ```powershell
 # View detailed report
 Get-Content test-results-comprehensive-detailed.txt
@@ -108,6 +134,7 @@ Get-Content test-results-ALL-TESTS-detailed.txt
 ```
 
 ### Command Line
+
 ```bash
 # View detailed report
 cat test-results-comprehensive-detailed.txt
@@ -121,6 +148,7 @@ cat test-results-*-detailed.txt
 To share test results for debugging:
 
 1. **Run the tests:**
+
    ```powershell
    .\run-all-tests.ps1
    ```
@@ -131,10 +159,11 @@ To share test results for debugging:
    - `test-results-*.json` - JSON reports (if needed)
 
 3. **Or share specific test results:**
+
    ```powershell
    # For comprehensive tests
    Get-Content test-results-comprehensive-detailed.txt
-   
+
    # For a specific failing test
    Get-Content test-results-playwright-detailed.txt
    ```
@@ -142,6 +171,7 @@ To share test results for debugging:
 ## New NPM Scripts
 
 Added to `package.json`:
+
 - `test:with-report` - Run unit tests with detailed report
 - `test:e2e:with-report` - Run E2E tests with detailed report
 - `test:all:with-reports` - Run all tests with detailed reports
@@ -178,16 +208,19 @@ Each detailed report includes:
 ## Troubleshooting
 
 ### If reports are not generated:
+
 1. Check that the script completed (didn't crash early)
 2. Verify write permissions in the project directory
 3. Check console output for error messages
 
 ### If output is empty:
+
 1. Ensure the test command is correct
 2. Check that dependencies are installed (`pnpm install`)
 3. Verify environment variables are set (`.env.local`)
 
 ### If tests fail:
+
 1. Review the detailed report for specific errors
 2. Check the JSON report for structured error data
 3. Look at the raw output file for full error messages
@@ -195,6 +228,7 @@ Each detailed report includes:
 ## Best Practices
 
 1. **Run tests before committing:**
+
    ```powershell
    .\run-all-tests.ps1
    ```
@@ -234,4 +268,3 @@ Get-Content test-results-playwright-detailed.txt
 
 **Last Updated:** 2025-11-24  
 **All test scripts now generate detailed reports for easy debugging and sharing.**
-

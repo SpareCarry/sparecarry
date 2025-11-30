@@ -40,7 +40,10 @@ if (typeof window !== "undefined") {
             }),
           ],
           beforeSend(event) {
-            if (ENVIRONMENT === "production" && event.environment !== "production") {
+            if (
+              ENVIRONMENT === "production" &&
+              event.environment !== "production"
+            ) {
               return null;
             }
             return event;

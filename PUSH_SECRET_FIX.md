@@ -13,6 +13,7 @@ git push origin --force main
 ```
 
 **Note**: Using `--force` is safe here because:
+
 - You're replacing a commit that contained secrets
 - The new commit has the same changes but without secrets
 - You have a backup (`backup-*.bundle`)
@@ -64,5 +65,3 @@ git push origin --force main
 ---
 
 **Status**: ✅ Commit amended, ready to push
-
-

@@ -18,4 +18,3 @@ export interface UserBadge {
   awarded_at: string;
   badge?: Badge; // Joined badge data
 }
-

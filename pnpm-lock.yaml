@@ -24,7 +24,7 @@ overrides:
   '@humanwhocodes/config-array': npm:@eslint/config-array@^0.18.0
   '@humanwhocodes/object-schema': npm:@eslint/object-schema@^2.1.0
 
-pnpmfileChecksum: sha256-b77Y0PtlPbnwvicEz/lhGLhsLPdcqkDIQxyyslleRW4=
+pnpmfileChecksum: sha256-vddSAm7Tqq8ug4OXEZnJL1j3tai51sS42cR0T+F06Iw=
 
 importers:
 
@@ -331,6 +331,9 @@ importers:
       expo-linking:
         specifier: ~8.0.9
         version: 8.0.9(expo@54.0.25)(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0)
+      expo-localization:
+        specifier: ~17.0.7
+        version: 17.0.7(expo@54.0.25)(react@19.1.0)
       expo-location:
         specifier: ~19.0.7
         version: 19.0.7(expo@54.0.25)
@@ -4206,6 +4209,12 @@ packages:
       react: 19.1.0
       react-native: 0.81.5
 
+  expo-localization@17.0.7:
+    resolution: {integrity: sha512-ACg1B0tJLNa+f8mZfAaNrMyNzrrzHAARVH1sHHvh+LolKdQpgSKX69Uroz1Llv4C71furpwBklVStbNcEwVVVA==}
+    peerDependencies:
+      expo: '*'
+      react: 19.1.0
+
   expo-location@19.0.7:
     resolution: {integrity: sha512-YNkh4r9E6ECbPkBCAMG5A5yHDgS0pw+Rzyd0l2ZQlCtjkhlODB55nMCKr5CZnUI0mXTkaSm8CwfoCO8n2MpYfg==}
     peerDependencies:
@@ -6597,6 +6606,9 @@ packages:
 
   rrweb-cssom@0.8.0:
     resolution: {integrity: sha512-guoltQEx+9aMf2gDZ0s62EcV8lsXR+0w8915TC3ITdn2YueuNjdAYh/levpU9nFaoChh9RUS5ZdQMrKfVEN9tw==}
+
+  rtl-detect@1.1.2:
+    resolution: {integrity: sha512-PGMBq03+TTG/p/cRB7HCLKJ1MgDIi07+QU1faSjiYRfmY5UsAttV9Hs08jDAHVwcOwmVLcSJkpwyfXszVjWfIQ==}
 
   run-parallel@1.2.0:
     resolution: {integrity: sha512-5l4VyZR86LZ/lDxZTR6jqL8AFE2S0IFLMP26AbjsLVADxHdhB/c0GUsH+y39UfCi3dzz8OlQuPmnaJOMoDHQBA==}
@@ -12538,6 +12550,12 @@ snapshots:
       - expo
       - supports-color
 
+  expo-localization@17.0.7(expo@54.0.25)(react@19.1.0):
+    dependencies:
+      expo: 54.0.25(@babel/core@7.28.5)(@expo/metro-runtime@6.1.2)(expo-router@6.0.15)(graphql@16.8.1)(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0)
+      react: 19.1.0
+      rtl-detect: 1.1.2
+
   expo-location@19.0.7(expo@54.0.25):
     dependencies:
       expo: 54.0.25(@babel/core@7.28.5)(@expo/metro-runtime@6.1.2)(expo-router@6.0.15)(graphql@16.8.1)(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0)
@@ -15237,6 +15255,8 @@ snapshots:
   rrweb-cssom@0.6.0: {}
 
   rrweb-cssom@0.8.0: {}
+
+  rtl-detect@1.1.2: {}
 
   run-parallel@1.2.0:
     dependencies:

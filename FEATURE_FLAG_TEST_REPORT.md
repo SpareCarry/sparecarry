@@ -18,6 +18,7 @@ Feature flag system is implemented using Unleash (or LaunchDarkly). Client-side 
 ### Provider: `app/providers/FeatureFlagProvider.tsx`
 
 **Features**:
+
 - ✅ React context provider
 - ✅ `useFlag('flagKey')` hook
 - ✅ Fallback to safe-off values
@@ -33,6 +34,7 @@ Feature flag system is implemented using Unleash (or LaunchDarkly). Client-side 
 **Location**: `lib/flags/unleashClient.ts`
 
 **Features**:
+
 - ✅ Web: `unleash-proxy-client` or official SDK
 - ✅ Mobile: REST-backed feature fetch + local cache
 - ✅ Fallback logic if service unreachable
@@ -71,11 +73,11 @@ Feature flag system is implemented using Unleash (or LaunchDarkly). Client-side 
 ### Hook Usage
 
 ```typescript
-import { useFlag } from '@/app/providers/FeatureFlagProvider';
+import { useFlag } from "@/app/providers/FeatureFlagProvider";
 
 function MyComponent() {
-  const pushEnabled = useFlag('enable_push_notifications');
-  
+  const pushEnabled = useFlag("enable_push_notifications");
+
   if (pushEnabled) {
     // Push notifications enabled
   }
@@ -91,6 +93,7 @@ function MyComponent() {
 ### Safe Defaults
 
 **Behavior**:
+
 - ✅ If feature flag service unreachable → default to `off`
 - ✅ If flag not found → default to `off`
 - ✅ Local storage cache for mobile (offline support)
@@ -106,6 +109,7 @@ function MyComponent() {
 **Location**: `app/_admin/feature-flags/`
 
 **Features**:
+
 - ✅ Lists all flags
 - ✅ Toggles flags (calls server)
 - ✅ Shows current state
@@ -143,6 +147,7 @@ function MyComponent() {
 ### Environment Variables
 
 **Required**:
+
 - ✅ `NEXT_PUBLIC_UNLEASH_URL` - Unleash server URL (optional)
 - ✅ `NEXT_PUBLIC_UNLEASH_CLIENT_KEY` - Client key (optional)
 
@@ -199,4 +204,3 @@ Feature flag system is implemented and ready for use. Client-side integration is
 
 **Last Updated**: 2024-12-19  
 **Report Version**: 1.0.0
-

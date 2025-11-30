@@ -40,9 +40,7 @@ The error boundary is automatically wrapped around the root layout:
 ```tsx
 // app/layout.tsx
 <ErrorBoundary>
-  <Providers>
-    {children}
-  </Providers>
+  <Providers>{children}</Providers>
 </ErrorBoundary>
 ```
 
@@ -51,7 +49,7 @@ The error boundary is automatically wrapped around the root layout:
 Wrap specific components:
 
 ```tsx
-import { ErrorBoundary } from '@/app/_components/ErrorBoundary';
+import { ErrorBoundary } from "@/app/_components/ErrorBoundary";
 
 <ErrorBoundary
   fallback={<CustomErrorUI />}
@@ -60,13 +58,13 @@ import { ErrorBoundary } from '@/app/_components/ErrorBoundary';
   }}
 >
   <YourComponent />
-</ErrorBoundary>
+</ErrorBoundary>;
 ```
 
 ### HOC Pattern
 
 ```tsx
-import { withErrorBoundary } from '@/app/_components/ErrorBoundary';
+import { withErrorBoundary } from "@/app/_components/ErrorBoundary";
 
 const SafeComponent = withErrorBoundary(MyComponent, <CustomFallback />);
 ```
@@ -85,23 +83,23 @@ const SafeComponent = withErrorBoundary(MyComponent, <CustomFallback />);
 ### Usage
 
 ```typescript
-import { logger, logInfo, logWarn, logError, logDebug } from '@/lib/logger';
+import { logger, logInfo, logWarn, logError, logDebug } from "@/lib/logger";
 
 // Info logging
-logger.info('User logged in', { userId: '123' });
-logInfo('User logged in', { userId: '123' });
+logger.info("User logged in", { userId: "123" });
+logInfo("User logged in", { userId: "123" });
 
 // Warning logging
-logger.warn('Rate limit approaching', { remaining: 10 });
-logWarn('Rate limit approaching', { remaining: 10 });
+logger.warn("Rate limit approaching", { remaining: 10 });
+logWarn("Rate limit approaching", { remaining: 10 });
 
 // Error logging
-logger.error('Failed to fetch data', error, { url: '/api/data' });
-logError('Failed to fetch data', error, { url: '/api/data' });
+logger.error("Failed to fetch data", error, { url: "/api/data" });
+logError("Failed to fetch data", error, { url: "/api/data" });
 
 // Debug logging (only in development)
-logger.debug('Cache hit', { key: 'user:123' });
-logDebug('Cache hit', { key: 'user:123' });
+logger.debug("Cache hit", { key: "user:123" });
+logDebug("Cache hit", { key: "user:123" });
 ```
 
 ### Sensitive Data Sanitization
@@ -112,9 +110,9 @@ The logger automatically redacts sensitive data:
 // These fields are automatically redacted:
 // password, token, jwt, secret, key, authorization, cookie, session, access_token, refresh_token
 
-logger.info('Request', {
-  password: 'secret123',  // Will be logged as '[REDACTED]'
-  email: 'user@example.com',  // Will be logged as-is
+logger.info("Request", {
+  password: "secret123", // Will be logged as '[REDACTED]'
+  email: "user@example.com", // Will be logged as-is
 });
 ```
 
@@ -124,7 +122,7 @@ When `NEXT_PUBLIC_SENTRY_DSN` is set, errors are automatically sent to Sentry:
 
 ```typescript
 // Automatically captures to Sentry
-logger.error('API error', error, { endpoint: '/api/data' });
+logger.error("API error", error, { endpoint: "/api/data" });
 ```
 
 ### User Context
@@ -132,12 +130,12 @@ logger.error('API error', error, { endpoint: '/api/data' });
 Set user context for Sentry:
 
 ```typescript
-import { logger } from '@/lib/logger';
+import { logger } from "@/lib/logger";
 
 await logger.setUser({
-  id: 'user-123',
-  email: 'user@example.com',
-  username: 'johndoe',
+  id: "user-123",
+  email: "user@example.com",
+  username: "johndoe",
 });
 
 // Clear user context
@@ -149,11 +147,11 @@ await logger.setUser(null);
 Add breadcrumbs for better error context:
 
 ```typescript
-import { logger } from '@/lib/logger';
+import { logger } from "@/lib/logger";
 
-await logger.addBreadcrumb('User clicked button', 'ui', 'info', {
-  buttonId: 'submit',
-  page: '/checkout',
+await logger.addBreadcrumb("User clicked button", "ui", "info", {
+  buttonId: "submit",
+  page: "/checkout",
 });
 ```
 
@@ -171,17 +169,25 @@ await logger.addBreadcrumb('User clicked button', 'ui', 'info', {
 ### Usage
 
 ```typescript
-import { withApiErrorHandler, createApiError, ErrorCodes } from '@/lib/api/error-handler';
+import {
+  withApiErrorHandler,
+  createApiError,
+  ErrorCodes,
+} from "@/lib/api/error-handler";
 
 // Wrap API route handler
-export const POST = withApiErrorHandler(async function POST(request: NextRequest) {
+export const POST = withApiErrorHandler(async function POST(
+  request: NextRequest
+) {
   // Your handler code
   return NextResponse.json({ ok: true, data: result });
-}, 'Failed to process request');
+}, "Failed to process request");
 
 // Throw API errors
-throw createApiError('NOT_FOUND', 'User not found', 404);
-throw createApiError('VALIDATION_ERROR', 'Invalid input', 400, { field: 'email' });
+throw createApiError("NOT_FOUND", "User not found", 404);
+throw createApiError("VALIDATION_ERROR", "Invalid input", 400, {
+  field: "email",
+});
 ```
 
 ### Error Response Format
@@ -204,55 +210,61 @@ All API errors follow this format:
 ```typescript
 ErrorCodes = {
   // Authentication
-  UNAUTHORIZED: 'UNAUTHORIZED',
-  FORBIDDEN: 'FORBIDDEN',
-  INVALID_TOKEN: 'INVALID_TOKEN',
+  UNAUTHORIZED: "UNAUTHORIZED",
+  FORBIDDEN: "FORBIDDEN",
+  INVALID_TOKEN: "INVALID_TOKEN",
 
   // Validation
-  VALIDATION_ERROR: 'VALIDATION_ERROR',
-  INVALID_INPUT: 'INVALID_INPUT',
+  VALIDATION_ERROR: "VALIDATION_ERROR",
+  INVALID_INPUT: "INVALID_INPUT",
 
   // Not Found
-  NOT_FOUND: 'NOT_FOUND',
-  RESOURCE_NOT_FOUND: 'RESOURCE_NOT_FOUND',
+  NOT_FOUND: "NOT_FOUND",
+  RESOURCE_NOT_FOUND: "RESOURCE_NOT_FOUND",
 
   // Rate Limiting
-  RATE_LIMIT_EXCEEDED: 'RATE_LIMIT_EXCEEDED',
+  RATE_LIMIT_EXCEEDED: "RATE_LIMIT_EXCEEDED",
 
   // Server Errors
-  INTERNAL_ERROR: 'INTERNAL_ERROR',
-  DATABASE_ERROR: 'DATABASE_ERROR',
-  EXTERNAL_SERVICE_ERROR: 'EXTERNAL_SERVICE_ERROR',
+  INTERNAL_ERROR: "INTERNAL_ERROR",
+  DATABASE_ERROR: "DATABASE_ERROR",
+  EXTERNAL_SERVICE_ERROR: "EXTERNAL_SERVICE_ERROR",
 
   // Business Logic
-  INSUFFICIENT_PERMISSIONS: 'INSUFFICIENT_PERMISSIONS',
-  INVALID_STATE: 'INVALID_STATE',
-  CONFLICT: 'CONFLICT',
-}
+  INSUFFICIENT_PERMISSIONS: "INSUFFICIENT_PERMISSIONS",
+  INVALID_STATE: "INVALID_STATE",
+  CONFLICT: "CONFLICT",
+};
 ```
 
 ### Example API Route
 
 ```typescript
-import { withApiErrorHandler, createApiError, ErrorCodes } from '@/lib/api/error-handler';
-import { NextRequest, NextResponse } from 'next/server';
+import {
+  withApiErrorHandler,
+  createApiError,
+  ErrorCodes,
+} from "@/lib/api/error-handler";
+import { NextRequest, NextResponse } from "next/server";
 
-export const GET = withApiErrorHandler(async function GET(request: NextRequest) {
+export const GET = withApiErrorHandler(async function GET(
+  request: NextRequest
+) {
   const { searchParams } = new URL(request.url);
-  const id = searchParams.get('id');
+  const id = searchParams.get("id");
 
   if (!id) {
-    throw createApiError('VALIDATION_ERROR', 'ID is required', 400);
+    throw createApiError("VALIDATION_ERROR", "ID is required", 400);
   }
 
   const data = await fetchData(id);
 
   if (!data) {
-    throw createApiError('NOT_FOUND', 'Resource not found', 404);
+    throw createApiError("NOT_FOUND", "Resource not found", 404);
   }
 
   return NextResponse.json({ ok: true, data });
-}, 'Failed to fetch resource');
+}, "Failed to fetch resource");
 ```
 
 ---
@@ -293,15 +305,15 @@ Sentry automatically captures:
 ### Manual Capture
 
 ```typescript
-import { logger } from '@/lib/logger';
+import { logger } from "@/lib/logger";
 
 // Errors are automatically sent to Sentry via logger
-logger.error('Manual error', error, { context: 'data' });
+logger.error("Manual error", error, { context: "data" });
 
 // Or use Sentry directly
-import * as Sentry from '@sentry/nextjs';
+import * as Sentry from "@sentry/nextjs";
 Sentry.captureException(error);
-Sentry.captureMessage('Something went wrong', 'error');
+Sentry.captureMessage("Something went wrong", "error");
 ```
 
 ### Performance Tracing
@@ -315,11 +327,11 @@ Sentry automatically traces:
 ### User Context
 
 ```typescript
-import { logger } from '@/lib/logger';
+import { logger } from "@/lib/logger";
 
 await logger.setUser({
-  id: 'user-123',
-  email: 'user@example.com',
+  id: "user-123",
+  email: "user@example.com",
 });
 ```
 
@@ -349,10 +361,10 @@ Mobile logging is automatically enabled on Capacitor platforms:
 ### Manual Logging
 
 ```typescript
-import { mobileLogger } from '@/lib/logger/mobile';
+import { mobileLogger } from "@/lib/logger/mobile";
 
 // Log network failure
-mobileLogger.logNetworkFailure('/api/data', error);
+mobileLogger.logNetworkFailure("/api/data", error);
 
 // Log device info
 mobileLogger.logDeviceInfo();
@@ -375,16 +387,16 @@ Wrap components that might fail:
 ### 2. Use Typed Errors
 
 ```typescript
-throw createApiError('NOT_FOUND', 'User not found', 404);
+throw createApiError("NOT_FOUND", "User not found", 404);
 ```
 
 ### 3. Provide Context
 
 ```typescript
-logger.error('Failed to process payment', error, {
+logger.error("Failed to process payment", error, {
   userId: user.id,
   amount: 100,
-  paymentMethod: 'card',
+  paymentMethod: "card",
 });
 ```
 
@@ -400,10 +412,10 @@ Stack traces are automatically filtered in production:
 ### 5. Use Appropriate Log Levels
 
 ```typescript
-logger.info('User action', { action: 'click' });
-logger.warn('Rate limit warning', { remaining: 5 });
-logger.error('Critical error', error, { context: 'payment' });
-logger.debug('Debug info', { cache: 'hit' });
+logger.info("User action", { action: "click" });
+logger.warn("Rate limit warning", { remaining: 5 });
+logger.error("Critical error", error, { context: "payment" });
+logger.debug("Debug info", { cache: "hit" });
 ```
 
 ---
@@ -413,33 +425,31 @@ logger.debug('Debug info', { cache: 'hit' });
 ### React Component
 
 ```tsx
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { logger } from '@/lib/logger';
-import { ErrorBoundary } from '@/app/_components/ErrorBoundary';
+import { useState } from "react";
+import { logger } from "@/lib/logger";
+import { ErrorBoundary } from "@/app/_components/ErrorBoundary";
 
 function MyComponent() {
   const [data, setData] = useState(null);
 
   const fetchData = async () => {
     try {
-      logger.info('Fetching data');
-      const response = await fetch('/api/data');
-      if (!response.ok) throw new Error('Failed to fetch');
+      logger.info("Fetching data");
+      const response = await fetch("/api/data");
+      if (!response.ok) throw new Error("Failed to fetch");
       const result = await response.json();
       setData(result);
     } catch (error) {
-      logger.error('Failed to fetch data', error, { endpoint: '/api/data' });
+      logger.error("Failed to fetch data", error, { endpoint: "/api/data" });
       throw error; // Let error boundary handle it
     }
   };
 
   return (
     <ErrorBoundary>
-      <div>
-        {/* Component content */}
-      </div>
+      <div>{/* Component content */}</div>
     </ErrorBoundary>
   );
 }
@@ -448,36 +458,38 @@ function MyComponent() {
 ### API Route
 
 ```typescript
-import { withApiErrorHandler, createApiError } from '@/lib/api/error-handler';
-import { NextRequest, NextResponse } from 'next/server';
-import { assertAuthenticated } from '@/lib/security/auth-guards';
+import { withApiErrorHandler, createApiError } from "@/lib/api/error-handler";
+import { NextRequest, NextResponse } from "next/server";
+import { assertAuthenticated } from "@/lib/security/auth-guards";
 
-export const GET = withApiErrorHandler(async function GET(request: NextRequest) {
+export const GET = withApiErrorHandler(async function GET(
+  request: NextRequest
+) {
   const user = await assertAuthenticated(request);
-  
+
   const data = await fetchUserData(user.id);
-  
+
   if (!data) {
-    throw createApiError('NOT_FOUND', 'User data not found', 404);
+    throw createApiError("NOT_FOUND", "User data not found", 404);
   }
 
   return NextResponse.json({ ok: true, data });
-}, 'Failed to fetch user data');
+}, "Failed to fetch user data");
 ```
 
 ### Manual Error Capture
 
 ```typescript
-import { logger } from '@/lib/logger';
+import { logger } from "@/lib/logger";
 
 try {
   await riskyOperation();
 } catch (error) {
-  logger.error('Risky operation failed', error, {
-    operation: 'riskyOperation',
+  logger.error("Risky operation failed", error, {
+    operation: "riskyOperation",
     userId: user.id,
   });
-  
+
   // Re-throw if needed
   throw error;
 }
@@ -500,6 +512,7 @@ NODE_ENV=development
 ### Logger Configuration
 
 The logger automatically:
+
 - Enables debug mode in development
 - Initializes Sentry if DSN is provided
 - Sanitizes sensitive data
@@ -546,4 +559,3 @@ The logger automatically:
 ---
 
 **Last Updated**: November 20, 2025
-

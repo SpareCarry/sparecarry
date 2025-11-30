@@ -2,7 +2,6 @@
  * Photo Upload Module
  */
 
-export * from './types';
-export * from './usePhotoVerification';
-export * from './PhotoUploader';
-
+export * from "./types";
+export * from "./usePhotoVerification";
+export * from "./PhotoUploader";

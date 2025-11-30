@@ -58,4 +58,3 @@ If CLI doesn't work:
 4. Paste and click **Deploy**
 5. Go to **Settings** → **Environment Variables**
 6. Add `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY`
-

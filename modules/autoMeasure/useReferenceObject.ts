@@ -1,12 +1,12 @@
 /**
  * useReferenceObject - Hook for detecting and calibrating reference objects
- * 
+ *
  * Detects standard reference objects (credit card, coin, paper) in frame
  * Uses known sizes to calculate pixel-to-cm ratio for accurate measurements
  */
 
-import { useState, useCallback } from 'react';
-import { ReferenceObject, BoundingBox } from './types';
+import { useState, useCallback } from "react";
+import { ReferenceObject, BoundingBox } from "./types";
 
 // Known sizes of reference objects (in cm)
 const REFERENCE_SIZES = {
@@ -27,12 +27,12 @@ const REFERENCE_SIZES = {
 
 /**
  * Detect reference object in frame
- * 
+ *
  * This is a simplified detection - in production you might use:
  * - Edge detection to find rectangular objects
  * - Color detection for credit cards (blue/red)
  * - Size estimation based on typical placement
- * 
+ *
  * For now, we'll use a heuristic approach:
  * - Credit card: Small rectangular object near edges
  * - Coin: Small circular object
@@ -71,21 +71,21 @@ export function detectReferenceObject(
   if (isSquare && coverage < 0.08) {
     // Small square-ish object - likely a coin
     return {
-      type: 'coin',
+      type: "coin",
       detectedSizePixels: Math.max(smallestBox.width, smallestBox.height),
       knownSizeCm: REFERENCE_SIZES.coin.diameter,
     };
   } else if (isWide && coverage < 0.12) {
     // Small wide object - likely a credit card
     return {
-      type: 'credit_card',
+      type: "credit_card",
       detectedSizePixels: smallestBox.width,
       knownSizeCm: REFERENCE_SIZES.credit_card.width,
     };
   } else if (coverage > 0.1 && !isSquare) {
     // Large rectangular object - likely paper
     return {
-      type: 'paper',
+      type: "paper",
       detectedSizePixels: smallestBox.width,
       knownSizeCm: REFERENCE_SIZES.paper.width,
     };
@@ -97,7 +97,9 @@ export function detectReferenceObject(
 /**
  * Calculate pixel-to-cm ratio from reference object
  */
-export function calculatePixelToCmRatio(reference: ReferenceObject): number | null {
+export function calculatePixelToCmRatio(
+  reference: ReferenceObject
+): number | null {
   if (!reference.detectedSizePixels || reference.detectedSizePixels === 0) {
     return null;
   }
@@ -128,11 +130,16 @@ export function applyReferenceCalibration(
 }
 
 export function useReferenceObject() {
-  const [referenceObject, setReferenceObject] = useState<ReferenceObject | null>(null);
+  const [referenceObject, setReferenceObject] =
+    useState<ReferenceObject | null>(null);
 
   const detectReference = useCallback(
     (boundingBoxes: BoundingBox[], frameWidth: number, frameHeight: number) => {
-      const detected = detectReferenceObject(boundingBoxes, frameWidth, frameHeight);
+      const detected = detectReferenceObject(
+        boundingBoxes,
+        frameWidth,
+        frameHeight
+      );
       setReferenceObject(detected);
       return detected;
     },
@@ -158,7 +165,6 @@ export function useReferenceObject() {
     detectReference,
     clearReference,
     applyCalibration,
-    hasReference: referenceObject !== null && referenceObject.type !== 'none',
+    hasReference: referenceObject !== null && referenceObject.type !== "none",
   };
 }
-

@@ -1,11 +1,11 @@
 /**
  * LaunchDarkly Feature Flag Client (Alternative)
- * 
+ *
  * Optional alternative to Unleash
  * Use this if you prefer LaunchDarkly over Unleash
  */
 
-import { isNativePlatform } from '@/lib/utils/capacitor-safe';
+import { isNativePlatform } from "@/lib/utils/capacitor-safe";
 
 export interface FeatureFlag {
   name: string;
@@ -32,7 +32,7 @@ class LaunchDarklyClient {
   private config: LaunchDarklyConfig;
   private flags: Map<string, FeatureFlag> = new Map();
   private isInitialized = false;
-  private cacheKey = 'sparecarry_ld_flags';
+  private cacheKey = "sparecarry_ld_flags";
   private ldClient: any = null;
 
   constructor(config: LaunchDarklyConfig) {
@@ -49,20 +49,24 @@ class LaunchDarklyClient {
 
     try {
       // Dynamic import to avoid bundling if not used
-      const { initialize } = await import('launchdarkly-js-client-sdk');
+      const { initialize } = await import("launchdarkly-js-client-sdk");
 
       const user = this.config.user || {
-        key: 'anonymous',
+        key: "anonymous",
         anonymous: true,
       };
 
-      this.ldClient = initialize(this.config.clientSideId, user, this.config.options);
+      this.ldClient = initialize(
+        this.config.clientSideId,
+        user,
+        this.config.options
+      );
 
       // Wait for client to be ready
       await this.ldClient.waitForInitialization();
 
       // Set up flag change listener
-      this.ldClient.on('change', (settings: any) => {
+      this.ldClient.on("change", (settings: any) => {
         this.updateFlags(settings);
       });
 
@@ -74,7 +78,7 @@ class LaunchDarklyClient {
 
       this.isInitialized = true;
     } catch (error) {
-      console.warn('[FeatureFlags] Failed to initialize LaunchDarkly:', error);
+      console.warn("[FeatureFlags] Failed to initialize LaunchDarkly:", error);
       // Fall back to cached flags
       this.loadCachedFlags();
     }
@@ -87,12 +91,12 @@ class LaunchDarklyClient {
     this.flags.clear();
 
     Object.entries(flags).forEach(([key, value]) => {
-      if (typeof value === 'boolean') {
+      if (typeof value === "boolean") {
         this.flags.set(key, {
           name: key,
           enabled: value,
         });
-      } else if (typeof value === 'object' && value !== null) {
+      } else if (typeof value === "object" && value !== null) {
         const flagValue = value as { value?: boolean; variation?: number };
         this.flags.set(key, {
           name: key,
@@ -136,7 +140,7 @@ class LaunchDarklyClient {
   private loadCachedFlags(): void {
     try {
       if (isNativePlatform()) {
-        import('@capacitor/preferences').then(({ Preferences }) => {
+        import("@capacitor/preferences").then(({ Preferences }) => {
           Preferences.get({ key: this.cacheKey }).then((result) => {
             if (result.value) {
               const cached = JSON.parse(result.value);
@@ -164,7 +168,7 @@ class LaunchDarklyClient {
         }
       }
     } catch (error) {
-      console.warn('[FeatureFlags] Failed to load cached flags:', error);
+      console.warn("[FeatureFlags] Failed to load cached flags:", error);
     }
   }
 
@@ -180,7 +184,7 @@ class LaunchDarklyClient {
       };
 
       if (isNativePlatform()) {
-        import('@capacitor/preferences').then(({ Preferences }) => {
+        import("@capacitor/preferences").then(({ Preferences }) => {
           Preferences.set({
             key: this.cacheKey,
             value: JSON.stringify(cacheData),
@@ -190,7 +194,7 @@ class LaunchDarklyClient {
         localStorage.setItem(this.cacheKey, JSON.stringify(cacheData));
       }
     } catch (error) {
-      console.warn('[FeatureFlags] Failed to save cached flags:', error);
+      console.warn("[FeatureFlags] Failed to save cached flags:", error);
     }
   }
 
@@ -220,7 +224,9 @@ let clientInstance: LaunchDarklyClient | null = null;
 /**
  * Initialize LaunchDarkly client
  */
-export function initializeLaunchDarkly(config: LaunchDarklyConfig): Promise<void> {
+export function initializeLaunchDarkly(
+  config: LaunchDarklyConfig
+): Promise<void> {
   if (!clientInstance) {
     clientInstance = new LaunchDarklyClient(config);
   }
@@ -230,11 +236,17 @@ export function initializeLaunchDarkly(config: LaunchDarklyConfig): Promise<void
 /**
  * Get feature flag value
  */
-export function isFeatureEnabled(flagKey: string, defaultValue?: boolean): boolean {
+export function isFeatureEnabled(
+  flagKey: string,
+  defaultValue?: boolean
+): boolean {
   if (!clientInstance) {
     return DEFAULT_FLAGS[flagKey] ?? defaultValue ?? false;
   }
-  return clientInstance.isEnabled(flagKey, DEFAULT_FLAGS[flagKey] ?? defaultValue ?? false);
+  return clientInstance.isEnabled(
+    flagKey,
+    DEFAULT_FLAGS[flagKey] ?? defaultValue ?? false
+  );
 }
 
 /**
@@ -266,4 +278,3 @@ export function destroyLaunchDarkly(): void {
     clientInstance = null;
   }
 }
-

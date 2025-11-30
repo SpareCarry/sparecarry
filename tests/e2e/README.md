@@ -10,7 +10,7 @@ Comprehensive end-to-end testing for SpareCarry with fast and full auth modes.
 ✅ **Comprehensive Mocks**: All Supabase endpoints and Stripe payments mocked  
 ✅ **Subscription Testing**: Monthly, yearly, and lifetime subscription flows  
 ✅ **Role-Based Testing**: Requester, traveler, sailor, and admin roles  
-✅ **Feature Coverage**: Home, profile, jobs, messaging, payments, subscriptions  
+✅ **Feature Coverage**: Home, profile, jobs, messaging, payments, subscriptions
 
 ## Quick Start
 
@@ -90,6 +90,7 @@ tests/e2e/
 ### Example Tests
 
 See `examples/fast-mode-example.spec.ts` for examples of:
+
 - Fast mode testing
 - Multi-user interactions
 - Subscription testing
@@ -114,17 +115,17 @@ See `setup/testUserFactory.ts` for creating custom users.
 ### Fast Mode Example
 
 ```typescript
-import { test, expect } from '@playwright/test';
-import { beforeEachSetup } from '../setup/testSetup';
-import { startFromHome } from '../setup/authSession';
-import { USER_A } from '../setup/testUsers';
+import { test, expect } from "@playwright/test";
+import { beforeEachSetup } from "../setup/testSetup";
+import { startFromHome } from "../setup/authSession";
+import { USER_A } from "../setup/testUsers";
 
-test.describe('My Feature', () => {
+test.describe("My Feature", () => {
   test.beforeEach(async ({ page, context }) => {
     await beforeEachSetup(page, context);
   });
 
-  test('should test feature', async ({ page }) => {
+  test("should test feature", async ({ page }) => {
     await startFromHome(page, USER_A);
     // Your test code
   });
@@ -134,16 +135,16 @@ test.describe('My Feature', () => {
 ### Full Auth Mode Example
 
 ```typescript
-import { test, expect } from '@playwright/test';
-import { beforeEachSetup } from '../setup/testSetup';
+import { test, expect } from "@playwright/test";
+import { beforeEachSetup } from "../setup/testSetup";
 
-test.describe('Auth Flow', () => {
+test.describe("Auth Flow", () => {
   test.beforeEach(async ({ page, context }) => {
-    await beforeEachSetup(page, context, { mode: 'full' });
+    await beforeEachSetup(page, context, { mode: "full" });
   });
 
-  test('should login', async ({ page }) => {
-    await page.goto('/login');
+  test("should login", async ({ page }) => {
+    await page.goto("/login");
     // Test login flow
   });
 });
@@ -173,7 +174,7 @@ See `playwright.config.ts` for full configuration.
 ✅ Multi-user interactions  
 ✅ Role-based access  
 ✅ Referral program  
-✅ Lifetime subscription limits  
+✅ Lifetime subscription limits
 
 ## Troubleshooting
 
@@ -206,4 +207,3 @@ When adding new tests:
 - [E2E Test Guide](./E2E_TEST_GUIDE.md) - Comprehensive testing guide
 - [Playwright Documentation](https://playwright.dev)
 - [Example Tests](./examples/fast-mode-example.spec.ts)
-

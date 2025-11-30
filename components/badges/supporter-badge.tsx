@@ -29,7 +29,7 @@ export function SupporterBadge({
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-blue-600 to-teal-600 text-white font-semibold shadow-sm",
+        "inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-blue-600 to-teal-600 font-semibold text-white shadow-sm",
         sizeClasses[size],
         className
       )}
@@ -40,4 +40,3 @@ export function SupporterBadge({
     </span>
   );
 }
-

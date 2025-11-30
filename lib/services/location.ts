@@ -1,11 +1,11 @@
 /**
  * Unified Location Service
- * 
+ *
  * Consolidated location provider with Geoapify integration, caching, and debouncing.
  * Replaces: lib/locationProvider.ts + lib/geoapify.ts
  */
 
-import { LOCATION_CONFIG } from '../../config/location.config';
+import { LOCATION_CONFIG } from "../../config/location.config";
 
 // ============================================================================
 // Types
@@ -24,7 +24,7 @@ export interface Place {
 
 export interface AutocompleteOptions {
   limit?: number;
-  filter?: 'marina' | 'port' | 'any';
+  filter?: "marina" | "port" | "any";
   bbox?: [minLon: number, minLat: number, maxLon: number, maxLat: number];
   allowFallback?: boolean;
 }
@@ -33,8 +33,11 @@ export interface AutocompleteOptions {
 // Configuration
 // ============================================================================
 
-const GEOAPIFY_BASE_URL = 'https://api.geoapify.com/v1';
-const API_KEY = process.env.NEXT_PUBLIC_GEOAPIFY_KEY || process.env.EXPO_PUBLIC_GEOAPIFY_KEY || 'd6dec9413f4f495295e42d4158a3803d';
+const GEOAPIFY_BASE_URL = "https://api.geoapify.com/v1";
+const API_KEY =
+  process.env.NEXT_PUBLIC_GEOAPIFY_KEY ||
+  process.env.EXPO_PUBLIC_GEOAPIFY_KEY ||
+  "d6dec9413f4f495295e42d4158a3803d";
 
 // ============================================================================
 // Caching
@@ -53,12 +56,12 @@ class LocationCache {
   get<T>(key: string): T | null {
     const entry = this.cache.get(key);
     if (!entry) return null;
-    
+
     if (Date.now() - entry.timestamp > entry.ttl) {
       this.cache.delete(key);
       return null;
     }
-    
+
     return entry.data as T;
   }
 
@@ -93,12 +96,12 @@ class Debouncer {
       if (this.timers.has(key)) {
         clearTimeout(this.timers.get(key)!);
       }
-      
+
       const timer = setTimeout(() => {
         fn(...args);
         this.timers.delete(key);
       }, delay);
-      
+
       this.timers.set(key, timer);
     }) as T;
   }
@@ -112,7 +115,7 @@ class Debouncer {
   }
 
   clear(): void {
-    this.timers.forEach(timer => clearTimeout(timer));
+    this.timers.forEach((timer) => clearTimeout(timer));
     this.timers.clear();
   }
 }
@@ -128,28 +131,35 @@ const debouncer = new Debouncer();
  */
 function isMarinaOrPort(feature: any): boolean {
   const props = feature.properties || {};
-  const placeName = (props.name || props.formatted || props.place_name || '').toLowerCase();
-  const category = (props.category || props.type || '').toLowerCase();
-  const poiCategory = props.poi?.category?.toLowerCase() || '';
-  
+  const placeName = (
+    props.name ||
+    props.formatted ||
+    props.place_name ||
+    ""
+  ).toLowerCase();
+  const category = (props.category || props.type || "").toLowerCase();
+  const poiCategory = props.poi?.category?.toLowerCase() || "";
+
   // Check category fields
-  const categoryMatch = category.includes('marina') || 
-                       category.includes('harbor') || 
-                       category.includes('harbour') ||
-                       category.includes('port') ||
-                       poiCategory.includes('marina') ||
-                       poiCategory.includes('harbor');
+  const categoryMatch =
+    category.includes("marina") ||
+    category.includes("harbor") ||
+    category.includes("harbour") ||
+    category.includes("port") ||
+    poiCategory.includes("marina") ||
+    poiCategory.includes("harbor");
 
   // Check place name for keywords
-  const keywordMatch = LOCATION_CONFIG.MARINA_KEYWORDS.some(keyword => 
+  const keywordMatch = LOCATION_CONFIG.MARINA_KEYWORDS.some((keyword) =>
     placeName.includes(keyword.toLowerCase())
   );
 
   // Check OSM tags if available
   const osmTags = props.osm_tags || {};
-  const osmMatch = osmTags.amenity === 'marina' ||
-                  osmTags.leisure === 'marina' ||
-                  osmTags.harbour === 'yes';
+  const osmMatch =
+    osmTags.amenity === "marina" ||
+    osmTags.leisure === "marina" ||
+    osmTags.harbour === "yes";
 
   return categoryMatch || keywordMatch || osmMatch;
 }
@@ -160,10 +170,10 @@ function isMarinaOrPort(feature: any): boolean {
 function normalizeFeature(feature: any): Place {
   const props = feature.properties || {};
   const coords = feature.geometry?.coordinates || [];
-  
+
   let category: string | undefined;
   if (isMarinaOrPort(feature)) {
-    category = 'marina';
+    category = "marina";
   } else if (props.category) {
     category = props.category;
   } else if (props.type) {
@@ -173,16 +183,18 @@ function normalizeFeature(feature: any): Place {
   // Extract country code from Geoapify response
   // Geoapify returns country_code in ISO2 format in properties
   // Also check raw feature properties for country information
-  const countryCode = props.country_code || 
-                      props.country || 
-                      props.country_iso2 || 
-                      feature.properties?.country_code ||
-                      feature.properties?.country ||
-                      undefined;
+  const countryCode =
+    props.country_code ||
+    props.country ||
+    props.country_iso2 ||
+    feature.properties?.country_code ||
+    feature.properties?.country ||
+    undefined;
 
   return {
     id: feature.properties?.place_id || feature.id || undefined,
-    name: props.name || props.formatted || props.place_name || 'Unknown location',
+    name:
+      props.name || props.formatted || props.place_name || "Unknown location",
     lat: coords[1] || props.lat || 0,
     lon: coords[0] || props.lon || 0,
     category,
@@ -203,26 +215,30 @@ export async function autocomplete(
   opts?: AutocompleteOptions
 ): Promise<Place[]> {
   if (!query || query.trim().length < 2) {
-    console.log('[Geoapify] Query too short:', query);
+    console.log("[Geoapify] Query too short:", query);
     return [];
   }
 
   const limit = opts?.limit || LOCATION_CONFIG.DEFAULT_AUTOCOMPLETE_LIMIT;
-  const filter = opts?.filter || 'any';
+  const filter = opts?.filter || "any";
   const allowFallback = opts?.allowFallback !== false;
 
   // Check cache
   const cacheKey = `autocomplete:${query}:${limit}:${filter}:${JSON.stringify(opts?.bbox)}`;
   const cached = cache.get<Place[]>(cacheKey);
   if (cached) {
-    console.log('[Geoapify] Returning cached results:', cached.length, 'places');
+    console.log(
+      "[Geoapify] Returning cached results:",
+      cached.length,
+      "places"
+    );
     return cached;
   }
 
   // Log API key status (without exposing the full key)
   const apiKeyPresent = !!API_KEY;
-  const apiKeyPreview = API_KEY ? `${API_KEY.substring(0, 8)}...` : 'MISSING';
-  console.log('[Geoapify] Starting autocomplete:', {
+  const apiKeyPreview = API_KEY ? `${API_KEY.substring(0, 8)}...` : "MISSING";
+  console.log("[Geoapify] Starting autocomplete:", {
     query: query.trim(),
     limit,
     filter,
@@ -239,32 +255,42 @@ export async function autocomplete(
       text: query.trim(),
       limit: (limit * 2).toString(), // Request more to account for filtering
       apiKey: API_KEY,
-      lang: 'en',
+      lang: "en",
       // Removed 'type' parameter - let Geoapify return all location types
       // We'll filter client-side if needed
     });
 
     if (opts?.bbox) {
       const [minLon, minLat, maxLon, maxLat] = opts.bbox;
-      params.append('bias', `proximity:${(minLon + maxLon) / 2},${(minLat + maxLat) / 2}`);
-      params.append('bbox', `${minLon},${minLat},${maxLon},${maxLat}`);
+      params.append(
+        "bias",
+        `proximity:${(minLon + maxLon) / 2},${(minLat + maxLat) / 2}`
+      );
+      params.append("bbox", `${minLon},${minLat},${maxLon},${maxLat}`);
     }
 
     const url = `${GEOAPIFY_BASE_URL}/geocode/autocomplete?${params.toString()}`;
-    console.log('[Geoapify] Request URL:', url.replace(API_KEY, 'API_KEY_HIDDEN'));
-    
+    console.log(
+      "[Geoapify] Request URL:",
+      url.replace(API_KEY, "API_KEY_HIDDEN")
+    );
+
     const response = await fetch(url, {
-      method: 'GET',
+      method: "GET",
       headers: {
-        'Accept': 'application/json',
+        Accept: "application/json",
       },
     });
 
-    console.log('[Geoapify] Response status:', response.status, response.statusText);
+    console.log(
+      "[Geoapify] Response status:",
+      response.status,
+      response.statusText
+    );
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('[Geoapify] API error response:', {
+      console.error("[Geoapify] API error response:", {
         status: response.status,
         statusText: response.statusText,
         body: errorText.substring(0, 500), // Limit error text length
@@ -273,7 +299,7 @@ export async function autocomplete(
     }
 
     const data = await response.json();
-    console.log('[Geoapify] Response data:', {
+    console.log("[Geoapify] Response data:", {
       hasFeatures: !!data.features,
       featureCount: data.features?.length || 0,
       rawDataKeys: Object.keys(data),
@@ -283,18 +309,18 @@ export async function autocomplete(
 
     // Apply client-side marina/port filter if needed
     let results: any[] = features;
-    if (filter === 'marina' || filter === 'port') {
+    if (filter === "marina" || filter === "port") {
       const beforeFilter = results.length;
       results = features.filter(isMarinaOrPort);
-      console.log('[Geoapify] Marina filter:', {
+      console.log("[Geoapify] Marina filter:", {
         before: beforeFilter,
         after: results.length,
         filterMode: filter,
       });
-      
+
       // Fallback: if no marinas found and fallback allowed, return all results
       if (results.length === 0 && allowFallback) {
-        console.log('[Geoapify] No marinas found, falling back to all results');
+        console.log("[Geoapify] No marinas found, falling back to all results");
         results = features;
       }
     }
@@ -303,11 +329,11 @@ export async function autocomplete(
     const places = results
       .slice(0, limit)
       .map(normalizeFeature)
-      .filter(place => place.lat !== 0 && place.lon !== 0);
+      .filter((place) => place.lat !== 0 && place.lon !== 0);
 
-    console.log('[Geoapify] Final results:', {
+    console.log("[Geoapify] Final results:", {
       totalPlaces: places.length,
-      places: places.map(p => ({ name: p.name, lat: p.lat, lon: p.lon })),
+      places: places.map((p) => ({ name: p.name, lat: p.lat, lon: p.lon })),
     });
 
     // Cache results
@@ -315,7 +341,7 @@ export async function autocomplete(
 
     return places;
   } catch (error) {
-    console.error('[Geoapify] Exception during autocomplete:', {
+    console.error("[Geoapify] Exception during autocomplete:", {
       error: error instanceof Error ? error.message : String(error),
       stack: error instanceof Error ? error.stack : undefined,
       query: query.trim(),
@@ -347,15 +373,15 @@ export async function reverseGeocode(
       lat: lat.toString(),
       lon: lon.toString(),
       apiKey: API_KEY,
-      lang: 'en',
+      lang: "en",
     });
 
     const url = `${GEOAPIFY_BASE_URL}/geocode/reverse?${params.toString()}`;
-    
+
     const response = await fetch(url, {
-      method: 'GET',
+      method: "GET",
       headers: {
-        'Accept': 'application/json',
+        Accept: "application/json",
       },
     });
 
@@ -371,7 +397,7 @@ export async function reverseGeocode(
     }
 
     const place = normalizeFeature(features[0]);
-    
+
     // Cache result
     cache.set(cacheKey, place, 10 * 60 * 1000); // 10 minutes for reverse geocode
 
@@ -399,17 +425,17 @@ export async function forwardGeocode(name: string): Promise<Place | null> {
   try {
     const params = new URLSearchParams({
       text: name.trim(),
-      limit: '1',
+      limit: "1",
       apiKey: API_KEY,
-      lang: 'en',
+      lang: "en",
     });
 
     const url = `${GEOAPIFY_BASE_URL}/geocode/search?${params.toString()}`;
-    
+
     const response = await fetch(url, {
-      method: 'GET',
+      method: "GET",
       headers: {
-        'Accept': 'application/json',
+        Accept: "application/json",
       },
     });
 
@@ -425,7 +451,7 @@ export async function forwardGeocode(name: string): Promise<Place | null> {
     }
 
     const place = normalizeFeature(features[0]);
-    
+
     // Cache result
     cache.set(cacheKey, place);
 
@@ -445,11 +471,15 @@ export function debouncedAutocomplete(
 ): Promise<Place[]> {
   return new Promise((resolve) => {
     const key = `autocomplete:${query}`;
-    const debounced = debouncer.debounce(key, async () => {
-      const results = await autocomplete(query, opts);
-      resolve(results);
-    }, delay);
-    
+    const debounced = debouncer.debounce(
+      key,
+      async () => {
+        const results = await autocomplete(query, opts);
+        resolve(results);
+      },
+      delay
+    );
+
     debounced();
   });
 }
@@ -470,4 +500,3 @@ export function clearDebouncer(): void {
 
 // Re-export types for backward compatibility
 export type { Place as PlaceType };
-

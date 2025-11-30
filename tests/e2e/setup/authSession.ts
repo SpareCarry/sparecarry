@@ -1,14 +1,14 @@
 /**
  * Pre-Authenticated Session Helpers
- * 
+ *
  * Provides utilities for setting up pre-authenticated sessions
  * in fast testing mode
  */
 
-import { Page } from '@playwright/test';
-import type { TestUser } from './testUsers';
-import { setupUserMocks } from './supabaseHelpers';
-import { isFastMode } from '../config/test-config';
+import { Page } from "@playwright/test";
+import type { TestUser } from "./testUsers";
+import { setupUserMocks } from "./supabaseHelpers";
+import { isFastMode } from "../config/test-config";
 
 /**
  * Set up a pre-authenticated session for a user
@@ -20,8 +20,8 @@ export async function setupAuthenticatedSession(
 ): Promise<void> {
   if (!isFastMode()) {
     throw new Error(
-      'setupAuthenticatedSession only works in fast mode. ' +
-      'Set PLAYWRIGHT_TEST_MODE=fast or use real auth flows.'
+      "setupAuthenticatedSession only works in fast mode. " +
+        "Set PLAYWRIGHT_TEST_MODE=fast or use real auth flows."
     );
   }
 
@@ -39,8 +39,8 @@ export async function setupAuthenticatedSession(
 export async function switchToUser(page: Page, user: TestUser): Promise<void> {
   if (!isFastMode()) {
     throw new Error(
-      'switchToUser only works in fast mode. ' +
-      'Set PLAYWRIGHT_TEST_MODE=fast or use real auth flows.'
+      "switchToUser only works in fast mode. " +
+        "Set PLAYWRIGHT_TEST_MODE=fast or use real auth flows."
     );
   }
 
@@ -48,8 +48,10 @@ export async function switchToUser(page: Page, user: TestUser): Promise<void> {
   await setupUserMocks(page, user);
 
   // Reload page to pick up new user context
-  await page.reload({ waitUntil: 'domcontentloaded' });
-  await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
+  await page.reload({ waitUntil: "domcontentloaded" });
+  await page
+    .waitForLoadState("networkidle", { timeout: 10000 })
+    .catch(() => {});
 }
 
 /**
@@ -59,12 +61,12 @@ export async function switchToUser(page: Page, user: TestUser): Promise<void> {
 export async function startFromHome(
   page: Page,
   user: TestUser,
-  baseUrl: string = 'http://localhost:3000'
+  baseUrl: string = "http://localhost:3000"
 ): Promise<void> {
   if (!isFastMode()) {
     throw new Error(
-      'startFromHome only works in fast mode. ' +
-      'Set PLAYWRIGHT_TEST_MODE=fast or use real auth flows.'
+      "startFromHome only works in fast mode. " +
+        "Set PLAYWRIGHT_TEST_MODE=fast or use real auth flows."
     );
   }
 
@@ -73,17 +75,22 @@ export async function startFromHome(
 
   // Navigate directly to home (skipping login)
   await page.goto(`${baseUrl}/home`, {
-    waitUntil: 'domcontentloaded',
+    waitUntil: "domcontentloaded",
   });
 
   // Wait for page to be ready
-  await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
-  
+  await page
+    .waitForLoadState("networkidle", { timeout: 10000 })
+    .catch(() => {});
+
   // Wait for authentication to be processed
   await page.waitForTimeout(2000); // Allow time for React Query to check auth
-  
+
   // Verify we're authenticated (not showing login prompt)
-  const hasLoginPrompt = await page.locator('text=Please log in').isVisible().catch(() => false);
+  const hasLoginPrompt = await page
+    .locator("text=Please log in")
+    .isVisible()
+    .catch(() => false);
   if (hasLoginPrompt) {
     // Wait a bit more for auth to settle
     await page.waitForTimeout(2000);
@@ -96,20 +103,22 @@ export async function startFromHome(
 export async function startFromProfile(
   page: Page,
   user: TestUser,
-  baseUrl: string = 'http://localhost:3000'
+  baseUrl: string = "http://localhost:3000"
 ): Promise<void> {
   if (!isFastMode()) {
     throw new Error(
-      'startFromProfile only works in fast mode. ' +
-      'Set PLAYWRIGHT_TEST_MODE=fast or use real auth flows.'
+      "startFromProfile only works in fast mode. " +
+        "Set PLAYWRIGHT_TEST_MODE=fast or use real auth flows."
     );
   }
 
   await setupAuthenticatedSession(page, user);
   await page.goto(`${baseUrl}/home/profile`, {
-    waitUntil: 'domcontentloaded',
+    waitUntil: "domcontentloaded",
   });
-  await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
+  await page
+    .waitForLoadState("networkidle", { timeout: 10000 })
+    .catch(() => {});
   await page.waitForTimeout(1000);
 }
 
@@ -123,11 +132,10 @@ export async function isUserAuthenticated(page: Page): Promise<boolean> {
     // Check for profile menu or authenticated-only elements
     const profileLink = document.querySelector('a[href*="/profile"]');
     const signOutButton = document.querySelector('button:has-text("Sign Out")');
-    const loginPrompt = document.querySelector('text=Please log in');
-    
+    const loginPrompt = document.querySelector("text=Please log in");
+
     return !loginPrompt && (!!profileLink || !!signOutButton);
   });
 
   return hasAuthIndicators;
 }
-

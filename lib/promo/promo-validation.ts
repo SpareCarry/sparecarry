@@ -1,10 +1,10 @@
 /**
  * Promo Validation with Zod
- * 
+ *
  * Validates all promo-related data for security
  */
 
-import { z } from 'zod';
+import { z } from "zod";
 
 // Promo status schema
 export const PromoStatusSchema = z.object({
@@ -36,4 +36,3 @@ export function validatePromoStatus(data: unknown): PromoStatus {
 export function validatePromoDismissal(data: unknown): PromoDismissal {
   return PromoDismissalSchema.parse(data);
 }
-

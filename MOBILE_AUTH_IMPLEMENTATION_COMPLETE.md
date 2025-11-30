@@ -7,6 +7,7 @@ The Supabase authentication flow has been fully implemented for both **web** and
 ## What Was Implemented
 
 ### 1. Mobile-Specific Supabase Client
+
 - **File**: `lib/supabase/mobile.ts`
 - Uses `@capacitor/preferences` for AsyncStorage-equivalent storage
 - Detects Capacitor environment automatically
@@ -14,6 +15,7 @@ The Supabase authentication flow has been fully implemented for both **web** and
 - Uses PKCE flow for mobile (same as web for security)
 
 ### 2. Unified Supabase Client
+
 - **File**: `lib/supabase/client.ts`
 - Automatically detects mobile vs web environment
 - Returns appropriate client based on platform
@@ -21,6 +23,7 @@ The Supabase authentication flow has been fully implemented for both **web** and
 - Mobile: Uses `@supabase/supabase-js` with Capacitor Preferences and PKCE
 
 ### 3. Deep Linking Handler
+
 - **File**: `lib/mobile/deep-linking.ts`
 - Listens for `appUrlOpen` events from Capacitor App plugin
 - Handles authentication callbacks from magic links
@@ -28,18 +31,21 @@ The Supabase authentication flow has been fully implemented for both **web** and
 - Redirects users to intended pages after authentication
 
 ### 4. Mobile Initialization
+
 - **File**: `app/_mobile-init.tsx`
 - Initializes deep linking when app starts
 - Only runs in mobile (Capacitor) environment
 - Integrated into root layout
 
 ### 5. Updated Auth Pages
+
 - **Files**: `app/auth/login/page.tsx`, `app/auth/signup/page.tsx`
 - Use `getAuthCallbackUrl()` to get appropriate callback URL (web or mobile)
 - Include `shouldCreateUser: true` in magic link options
 - Automatically detect platform and use correct redirect URLs
 
 ### 6. Auth Callback Route
+
 - **File**: `app/auth/callback/route.ts`
 - Updated `validateRedirectPath()` to allow mobile deep links (`carryspace://`)
 - Handles both web redirects and mobile deep link responses
@@ -47,6 +53,7 @@ The Supabase authentication flow has been fully implemented for both **web** and
 - Maintains cookie persistence for web sessions
 
 ### 7. Capacitor Configuration
+
 - **File**: `capacitor.config.ts`
 - Deep link scheme: `carryspace` (for both iOS and Android)
 - Allows navigation to app scheme
@@ -55,11 +62,13 @@ The Supabase authentication flow has been fully implemented for both **web** and
 ### 8. Native Platform Configuration
 
 #### Android
+
 - **File**: `android/app/src/main/AndroidManifest.xml`
 - Added intent filter for deep linking
 - Handles `carryspace://` scheme URLs
 
 #### iOS
+
 - **File**: `ios/App/App/Info.plist`
 - Already configured with `carryspace` URL scheme
 
@@ -70,18 +79,21 @@ The Supabase authentication flow has been fully implemented for both **web** and
 Go to **Supabase Dashboard → Authentication → URL Configuration** and add:
 
 **Redirect URLs:**
+
 - `https://sparecarry.com/auth/callback`
 - `http://localhost:3000/auth/callback` (development)
 - `carryspace://callback`
 - `carryspace://callback?*`
 
 **Site URL:**
+
 - Production: `https://sparecarry.com`
 - Development: `http://localhost:3000`
 
 ## How It Works
 
 ### Web Flow
+
 1. User requests magic link on `/auth/login` or `/auth/signup`
 2. `getAuthCallbackUrl()` returns: `https://sparecarry.com/auth/callback?redirect=/home`
 3. Supabase sends email with magic link
@@ -90,6 +102,7 @@ Go to **Supabase Dashboard → Authentication → URL Configuration** and add:
 6. User redirected to `/home` with session cookies
 
 ### Mobile Flow
+
 1. User requests magic link in mobile app
 2. `getAuthCallbackUrl()` detects mobile and returns: `carryspace://callback?redirect=/home`
 3. Supabase sends email with deep link URL
@@ -103,6 +116,7 @@ Go to **Supabase Dashboard → Authentication → URL Configuration** and add:
 ## Testing
 
 ### Test Web
+
 ```bash
 pnpm dev
 # Navigate to http://localhost:3000/auth/login
@@ -111,6 +125,7 @@ pnpm dev
 ```
 
 ### Test Mobile
+
 ```bash
 pnpm mobile:build
 # Install on device/emulator
@@ -122,6 +137,7 @@ pnpm mobile:build
 ## Files Created/Modified
 
 ### New Files
+
 - `lib/supabase/mobile.ts` - Mobile Supabase client
 - `lib/mobile/deep-linking.ts` - Deep link handler
 - `app/_mobile-init.tsx` - Mobile initialization component
@@ -130,6 +146,7 @@ pnpm mobile:build
 - `MOBILE_AUTH_IMPLEMENTATION_COMPLETE.md` - This file
 
 ### Modified Files
+
 - `lib/supabase/client.ts` - Unified client with mobile detection
 - `app/auth/login/page.tsx` - Uses `getAuthCallbackUrl()`
 - `app/auth/signup/page.tsx` - Uses `getAuthCallbackUrl()`
@@ -149,17 +166,19 @@ pnpm mobile:build
 ## Troubleshooting
 
 ### Magic link doesn't open app (mobile)
+
 - Verify `carryspace://callback` is in Supabase redirect URLs
 - Check that deep link scheme is registered in `Info.plist` (iOS) and `AndroidManifest.xml` (Android)
 - Ensure Capacitor App plugin is properly initialized
 
 ### Session not persisting (mobile)
+
 - Check that `@capacitor/preferences` is installed
 - Verify Capacitor Preferences API is accessible
 - Check mobile client is using Capacitor storage (not localStorage)
 
 ### Redirects to web instead of app (mobile)
+
 - Verify `isMobile()` detects Capacitor correctly
 - Check that `getAuthCallbackUrl()` returns deep link URL for mobile
 - Ensure Capacitor is properly initialized in app
-

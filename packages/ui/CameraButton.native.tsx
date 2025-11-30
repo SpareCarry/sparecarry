@@ -3,12 +3,16 @@
  * Uses expo-camera for native platforms
  */
 
-import React from 'react';
-import { View, TouchableOpacity, Text, ActivityIndicator } from 'react-native';
-import { useCamera } from '@sparecarry/hooks';
-import type { CameraButtonProps } from './CameraButton.types';
+import React from "react";
+import { View, TouchableOpacity, Text, ActivityIndicator } from "react-native";
+import { useCamera } from "@sparecarry/hooks";
+import type { CameraButtonProps } from "./CameraButton.types";
 
-export function CameraButton({ onCapture, children, style }: CameraButtonProps) {
+export function CameraButton({
+  onCapture,
+  children,
+  style,
+}: CameraButtonProps) {
   const { takePicture, pickImage, loading } = useCamera();
 
   const handleTakePicture = async () => {
@@ -28,7 +32,11 @@ export function CameraButton({ onCapture, children, style }: CameraButtonProps) 
   return (
     <View style={style}>
       <TouchableOpacity onPress={handleTakePicture} disabled={loading}>
-        {loading ? <ActivityIndicator /> : <Text>{children || 'Take Photo'}</Text>}
+        {loading ? (
+          <ActivityIndicator />
+        ) : (
+          <Text>{children || "Take Photo"}</Text>
+        )}
       </TouchableOpacity>
       <TouchableOpacity onPress={handlePickImage} disabled={loading}>
         <Text>Pick from Gallery</Text>
@@ -36,4 +44,3 @@ export function CameraButton({ onCapture, children, style }: CameraButtonProps) 
     </View>
   );
 }
-

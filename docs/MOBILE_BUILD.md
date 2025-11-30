@@ -5,11 +5,13 @@ This guide will help you build native iOS and Android apps from the SpareCarry N
 ## Prerequisites
 
 ### For iOS (Mac only)
+
 - macOS with Xcode 14+ installed
 - Apple Developer account (free for development, $99/year for App Store)
 - CocoaPods: `sudo gem install cocoapods`
 
 ### For Android
+
 - Android Studio installed
 - Java Development Kit (JDK) 17+
 - Android SDK (installed via Android Studio)
@@ -25,6 +27,7 @@ npm install
 ### 2. Generate Icons and Splash Screens
 
 First, create your source images:
+
 - `public/icon-source.png` - 1024x1024px PNG with teal anchor logo
 - `public/splash-source.png` - 2732x2732px PNG with teal anchor logo centered
 
@@ -66,6 +69,7 @@ npm run capacitor:ios
 ```
 
 Or manually:
+
 ```bash
 npx cap open ios
 ```
@@ -89,12 +93,14 @@ npx cap open ios
 ### 4. Add Notification Sounds
 
 Copy sound files to `ios/App/App/`:
+
 - `boat_horn.wav`
 - `airplane_ding.wav`
 - `foghorn.wav`
 - `cash_register.wav`
 
 Then add them to Xcode:
+
 1. Right-click "App" folder → "Add Files to App"
 2. Select all sound files
 3. Check "Copy items if needed"
@@ -120,6 +126,7 @@ npm run capacitor:android
 ```
 
 Or manually:
+
 ```bash
 npx cap open android
 ```
@@ -131,7 +138,7 @@ Edit `android/app/build.gradle`:
 ```gradle
 android {
     compileSdkVersion 34
-    
+
     defaultConfig {
         applicationId "com.sparecarry.app"
         minSdkVersion 22
@@ -139,7 +146,7 @@ android {
         versionCode 1
         versionName "1.0.0"
     }
-    
+
     buildTypes {
         release {
             minifyEnabled false
@@ -152,6 +159,7 @@ android {
 ### 3. Add Notification Sounds
 
 Copy sound files to `android/app/src/main/res/raw/`:
+
 - `boat_horn.wav`
 - `airplane_ding.wav`
 - `foghorn.wav`
@@ -186,6 +194,7 @@ dependencies {
 ### 5. Build APK
 
 **Debug APK:**
+
 ```bash
 cd android
 ./gradlew assembleDebug
@@ -194,12 +203,15 @@ cd android
 APK will be at: `android/app/build/outputs/apk/debug/app-debug.apk`
 
 **Release APK:**
+
 1. Generate keystore:
+
 ```bash
 keytool -genkey -v -keystore sparecarry-release.keystore -alias sparecarry -keyalg RSA -keysize 2048 -validity 10000
 ```
 
 2. Create `android/keystore.properties`:
+
 ```properties
 storeFile=sparecarry-release.keystore
 storePassword=YOUR_STORE_PASSWORD
@@ -208,6 +220,7 @@ keyPassword=YOUR_KEY_PASSWORD
 ```
 
 3. Update `android/app/build.gradle`:
+
 ```gradle
 def keystorePropertiesFile = rootProject.file("keystore.properties")
 def keystoreProperties = new Properties()
@@ -233,6 +246,7 @@ android {
 ```
 
 4. Build:
+
 ```bash
 ./gradlew assembleRelease
 ```
@@ -275,22 +289,26 @@ NEXT_PUBLIC_EXPO_PROJECT_ID=your_expo_project_id
 ## Common Issues
 
 ### iOS: "No such module 'Capacitor'"
+
 ```bash
 cd ios/App
 pod install
 ```
 
 ### Android: Build fails
+
 - Ensure Java 17+ is installed
 - Check `android/gradle.properties` for correct SDK versions
 - Clean build: `./gradlew clean`
 
 ### Push Notifications not working
+
 - Verify permissions in `Info.plist` (iOS) and `AndroidManifest.xml` (Android)
 - Check that sound files are included in the build
 - Verify Firebase/APNs configuration
 
 ### Icons/Splash screens not showing
+
 - Run `npm run capacitor:sync` after generating
 - Check file paths match Capacitor config
 - Verify images are included in Xcode/Android Studio projects
@@ -306,12 +324,14 @@ pod install
 ## Testing on Devices
 
 ### iOS
+
 1. Connect iPhone via USB
 2. Trust computer on iPhone
 3. Select device in Xcode
 4. Click Run
 
 ### Android
+
 1. Enable Developer Options on Android device
 2. Enable USB Debugging
 3. Connect via USB
@@ -321,11 +341,13 @@ pod install
 ## Publishing
 
 ### App Store (iOS)
+
 1. Archive in Xcode
 2. Upload via App Store Connect
 3. Submit for review
 
 ### Play Store (Android)
+
 1. Create app in Play Console
 2. Upload AAB file
 3. Fill out store listing
@@ -336,4 +358,3 @@ pod install
 - [Capacitor Documentation](https://capacitorjs.com/docs)
 - [iOS App Store Guidelines](https://developer.apple.com/app-store/review/guidelines/)
 - [Android Play Store Policies](https://play.google.com/about/developer-content-policy/)
-

@@ -25,6 +25,7 @@ For production, you need to configure a real email provider:
 ### Using Supabase's Built-in Email (Limited)
 
 Supabase provides a basic email service, but it has limits:
+
 - **Rate limits**: ~4 emails/hour per project (free tier)
 - **May go to spam**: Emails from `noreply@mail.app.supabase.io`
 - **Not recommended for production**
@@ -52,16 +53,19 @@ Supabase provides a basic email service, but it has limits:
 ### Example: Using Resend (Free Tier) - Step by Step
 
 **Prerequisites:**
+
 - Resend account at [resend.com](https://resend.com)
 - Resend API key (starts with `re_`)
 
 **Step 1: Get Your Resend API Key**
+
 1. Go to [Resend Dashboard](https://resend.com/api-keys)
 2. Click **"Create API Key"**
 3. Name it (e.g., "Supabase SMTP")
 4. Copy the API key (starts with `re_`) - **You can only see it once!**
 
 **Step 2: Set Up Domain (Optional for Testing)**
+
 - For testing, you can use Resend's test domain: `onboarding@resend.dev`
 - For production, add your domain in Resend Dashboard → Domains
 
@@ -86,11 +90,13 @@ Supabase provides a basic email service, but it has limits:
 5. Click **"Save"** at the bottom
 
 **Step 4: Test It**
+
 1. Try signing up with a password
 2. Check your email (including spam folder)
 3. You should receive the confirmation email from Resend
 
 **Important Notes:**
+
 - **Port 465** = SSL (more secure, recommended)
 - **Port 587** = TLS (alternative)
 - For testing: Use `onboarding@resend.dev` as sender email
@@ -100,6 +106,7 @@ Supabase provides a basic email service, but it has limits:
 ## Option 3: Check Spam Folder
 
 Sometimes emails go to spam:
+
 - Check your spam/junk folder
 - Add `noreply@mail.app.supabase.io` to your contacts
 - Check email filters
@@ -109,6 +116,7 @@ Sometimes emails go to spam:
 ### Step 1: Verify SMTP Configuration
 
 Double-check your Supabase SMTP settings:
+
 1. Go to **Supabase Dashboard** → **Authentication** → **Emails**
 2. Verify **"Enable Custom SMTP"** is **ON** (toggle enabled)
 3. Check all fields are filled correctly:
@@ -147,19 +155,23 @@ Double-check your Supabase SMTP settings:
 ### Step 5: Check Common Issues
 
 **Issue: Wrong SMTP Username**
+
 - ❌ Wrong: `Resend`, `RESEND`, `your-email@resend.com`
 - ✅ Correct: `resend` (lowercase, exactly this)
 
 **Issue: Wrong Port**
+
 - Try both: `465` (SSL) or `587` (TLS)
 - Some networks block port 465, try 587
 
 **Issue: API Key Format**
+
 - ❌ Wrong: `re_abc123` (missing characters)
 - ✅ Correct: `re_...` (full key, usually 40+ characters)
 - Make sure you copied the **entire** API key
 
 **Issue: Email in Spam**
+
 - Check spam/junk folder
 - Add `onboarding@resend.dev` to contacts
 - Check email filters
@@ -218,11 +230,13 @@ You can re-enable email confirmation later once SMTP is working properly.
 ## Recommendation
 
 **For Development:**
+
 - Disable email confirmation (Option 1)
 - Faster testing, no email setup needed
 - Fix SMTP later when you have time
 
 **For Production:**
+
 - Enable email confirmation
 - Set up custom SMTP (Option 2)
 - Better security and user verification
@@ -234,9 +248,9 @@ You can customize email templates in:
 **Supabase Dashboard** → **Authentication** → **Email Templates**
 
 Templates available:
+
 - Confirm signup
 - Magic Link
 - Change Email Address
 - Reset Password
 - Invite user
-

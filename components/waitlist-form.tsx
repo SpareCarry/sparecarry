@@ -39,9 +39,15 @@ interface WaitlistFormProps {
   travelType?: "plane" | "boat";
 }
 
-export function WaitlistForm({ open, onOpenChange, travelType }: WaitlistFormProps) {
+export function WaitlistForm({
+  open,
+  onOpenChange,
+  travelType,
+}: WaitlistFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitStatus, setSubmitStatus] = useState<"success" | "error" | null>(null);
+  const [submitStatus, setSubmitStatus] = useState<"success" | "error" | null>(
+    null
+  );
 
   const {
     register,
@@ -53,7 +59,12 @@ export function WaitlistForm({ open, onOpenChange, travelType }: WaitlistFormPro
   } = useForm<WaitlistFormData>({
     resolver: zodResolver(waitlistSchema),
     defaultValues: {
-      userType: travelType === "plane" ? "Plane traveler" : travelType === "boat" ? "Sailor" : "",
+      userType:
+        travelType === "plane"
+          ? "Plane traveler"
+          : travelType === "boat"
+            ? "Sailor"
+            : "",
     },
   });
 
@@ -102,7 +113,8 @@ export function WaitlistForm({ open, onOpenChange, travelType }: WaitlistFormPro
         <DialogHeader>
           <DialogTitle>Join the Waitlist</DialogTitle>
           <DialogDescription>
-            Be among the first to experience CarrySpace. We&apos;ll notify you when we launch!
+            Be among the first to experience CarrySpace. We&apos;ll notify you
+            when we launch!
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -131,12 +143,18 @@ export function WaitlistForm({ open, onOpenChange, travelType }: WaitlistFormPro
               <SelectContent>
                 <SelectItem value="Plane traveler">Plane traveler</SelectItem>
                 <SelectItem value="Sailor">Sailor</SelectItem>
-                <SelectItem value="Need stuff delivered">Need stuff delivered</SelectItem>
-                <SelectItem value="All of the above">All of the above</SelectItem>
+                <SelectItem value="Need stuff delivered">
+                  Need stuff delivered
+                </SelectItem>
+                <SelectItem value="All of the above">
+                  All of the above
+                </SelectItem>
               </SelectContent>
             </Select>
             {errors.userType && (
-              <p className="text-sm text-destructive">{errors.userType.message}</p>
+              <p className="text-sm text-destructive">
+                {errors.userType.message}
+              </p>
             )}
           </div>
 
@@ -178,10 +196,14 @@ export function WaitlistForm({ open, onOpenChange, travelType }: WaitlistFormPro
           </div>
 
           {submitStatus === "success" && (
-            <p className="text-sm text-green-600">Success! Check your email for confirmation.</p>
+            <p className="text-sm text-green-600">
+              Success! Check your email for confirmation.
+            </p>
           )}
           {submitStatus === "error" && (
-            <p className="text-sm text-destructive">Something went wrong. Please try again.</p>
+            <p className="text-sm text-destructive">
+              Something went wrong. Please try again.
+            </p>
           )}
 
           <Button type="submit" className="w-full" disabled={isSubmitting}>
@@ -192,4 +214,3 @@ export function WaitlistForm({ open, onOpenChange, travelType }: WaitlistFormPro
     </Dialog>
   );
 }
-

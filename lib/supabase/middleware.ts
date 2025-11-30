@@ -1,11 +1,13 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { isDevMode } from "@/config/devMode";
+import { applySecurityHeaders } from "@/lib/security/headers";
 
 export async function updateSession(request: NextRequest) {
   // Dev mode: Skip authentication checks
   if (isDevMode()) {
-    return NextResponse.next({ request });
+    const response = NextResponse.next({ request });
+    return applySecurityHeaders(response, request);
   }
   let supabaseResponse = NextResponse.next({
     request,
@@ -19,7 +21,9 @@ export async function updateSession(request: NextRequest) {
         getAll() {
           return request.cookies.getAll();
         },
-        setAll(cookiesToSet: Array<{ name: string; value: string; options?: any }>) {
+        setAll(
+          cookiesToSet: Array<{ name: string; value: string; options?: any }>
+        ) {
           cookiesToSet.forEach(({ name, value, options }) =>
             request.cookies.set(name, value)
           );
@@ -44,7 +48,15 @@ export async function updateSession(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   // Allow public access to marketing pages, auth pages, onboarding, and API routes
-  const publicPaths = ["/", "/privacy", "/terms", "/login", "/auth", "/onboarding", "/api"];
+  const publicPaths = [
+    "/",
+    "/privacy",
+    "/terms",
+    "/login",
+    "/auth",
+    "/onboarding",
+    "/api",
+  ];
   const isPublicPath = publicPaths.some((path) =>
     request.nextUrl.pathname.startsWith(path)
   );
@@ -72,6 +84,6 @@ export async function updateSession(request: NextRequest) {
   // If this is not done, you may be causing the browser and server to get out
   // of sync and terminate the user's session prematurely.
 
-  return supabaseResponse;
+  // Apply security headers before returning
+  return applySecurityHeaders(supabaseResponse, request);
 }
-

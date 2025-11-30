@@ -80,6 +80,7 @@
 ### Option 2: Run Verification Script
 
 In your terminal, run:
+
 ```bash
 node scripts/verify-tables.js
 ```
@@ -91,21 +92,25 @@ This will check if all tables exist and show row counts.
 ## Troubleshooting
 
 ### "relation already exists" Error
+
 - **Meaning**: Some tables already exist
 - **Action**: This is OK! The migrations use `CREATE TABLE IF NOT EXISTS`
 - **Solution**: Continue with the next migration
 
 ### "permission denied" Error
+
 - **Meaning**: You don't have admin access
 - **Action**: Make sure you're logged in as the project owner
 - **Solution**: Check your Supabase account permissions
 
 ### "syntax error" Error
+
 - **Meaning**: SQL file may be corrupted or incomplete
 - **Action**: Make sure you copied the ENTIRE file
 - **Solution**: Try copying again, check file size
 
 ### Can't See Tables in Table Editor
+
 - **Possible causes**:
   1. Migrations haven't been applied yet → Apply them now
   2. Wrong project selected → Check project ID in URL
@@ -130,6 +135,7 @@ All files are in: `supabase/migrations/`
 Once all 4 migrations are applied successfully:
 
 1. **Verify setup**:
+
    ```bash
    node scripts/verify-tables.js
    ```
@@ -148,9 +154,10 @@ Once all 4 migrations are applied successfully:
 
 **Supabase Dashboard**: https://supabase.com/dashboard/project/gujyzwqcwecbeznlablx  
 **SQL Editor**: Dashboard → SQL Editor → New query  
-**Table Editor**: Dashboard → Table Editor  
+**Table Editor**: Dashboard → Table Editor
 
 **Migration Order**:
+
 1. 001_initial_schema.sql
 2. 002_rls_policies.sql
 3. 003_seed_data.sql
@@ -159,4 +166,3 @@ Once all 4 migrations are applied successfully:
 ---
 
 **Need Help?** If you encounter any errors, check the error message in Supabase SQL Editor and refer to the Troubleshooting section above.
-

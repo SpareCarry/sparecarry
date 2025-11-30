@@ -1,10 +1,10 @@
 /**
  * Customs Rates Utility
- * 
+ *
  * Loads and provides customs duty data from JSON file
  */
 
-const customsRatesData = require('../../assets/data/countryCustoms.json');
+const customsRatesData = require("../../assets/data/countryCustoms.json");
 
 export interface CustomsRates {
   [countryCode: string]: {
@@ -22,7 +22,9 @@ export interface CustomsCost {
 /**
  * Get customs rates for a country
  */
-export function getCustomsRates(countryCode: string): { duty_rate: number; processing_fee: number } | null {
+export function getCustomsRates(
+  countryCode: string
+): { duty_rate: number; processing_fee: number } | null {
   const rates = (customsRatesData as CustomsRates)[countryCode.toUpperCase()];
   if (!rates) return null;
 
@@ -57,4 +59,3 @@ export function calculateCustomsCost(
 export function getAvailableCountries(): string[] {
   return Object.keys(customsRatesData);
 }
-

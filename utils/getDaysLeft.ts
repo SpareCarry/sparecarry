@@ -1,6 +1,6 @@
 /**
  * Get Days Left Utility
- * 
+ *
  * Calculates days remaining until promo end date
  * Shared helper for all countdown logic
  */
@@ -10,4 +10,3 @@ export const getDaysLeft = (): number => {
   const now = new Date();
   return Math.max(0, Math.ceil((end.getTime() - now.getTime()) / 86400000));
 };
-

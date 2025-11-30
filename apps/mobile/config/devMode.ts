@@ -1,23 +1,18 @@
 /**
  * Development Mode Configuration
- * 
- * Set DEV_MODE=true to skip authentication and go straight to home screen
- * 
- * ⚠️ IMPORTANT: Always set DEV_MODE=false before production builds!
+ *
+ * Set EXPO_PUBLIC_DEV_MODE=true to explicitly enable dev shortcuts.
+ * By default this is false so authentication is NOT skipped.
  */
 
-export const DEV_MODE = process.env.EXPO_PUBLIC_DEV_MODE === 'true' || __DEV__;
+export const DEV_MODE = process.env.EXPO_PUBLIC_DEV_MODE === "true";
 
 /**
- * Check if dev mode is enabled
- * In production, this will always return false
+ * Check if dev mode is enabled.
+ * In practice this now only returns true if you explicitly set
+ * EXPO_PUBLIC_DEV_MODE=true in the environment.
  */
 export function isDevMode(): boolean {
-  // In production builds, __DEV__ is false
-  // Only allow dev mode if explicitly set via env var or in development
-  if (process.env.NODE_ENV === 'production') {
-    return false;
-  }
   return DEV_MODE;
 }
 
@@ -27,11 +22,10 @@ export function isDevMode(): boolean {
  */
 export function getDevModeUser() {
   return {
-    id: 'dev-user-id',
-    email: 'dev@sparecarry.com',
+    id: "dev-user-id",
+    email: "dev@sparecarry.com",
     user_metadata: {
-      name: 'Dev User',
+      name: "Dev User",
     },
   };
 }
-

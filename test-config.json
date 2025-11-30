@@ -1,0 +1,39 @@
+{
+  "maxIterations": 10,
+  "testTimeout": 300000,
+  "retryFailedTests": true,
+  "retryCount": 2,
+  "parallel": true,
+  "workers": 4,
+  "skipE2E": false,
+  "skipPerformance": false,
+  "skipSecurity": false,
+  "useMocks": true,
+  "avoidExternalCalls": true,
+  "forceMockMode": true,
+  "throttleDelay": 200,
+  "maxConcurrentRequests": 5,
+  "cacheResults": true,
+  "testCategories": {
+    "unit": true,
+    "integration": true,
+    "e2e": true,
+    "staticAnalysis": true,
+    "configuration": true,
+    "security": true,
+    "performance": true
+  },
+  "autoFix": {
+    "enabled": true,
+    "fixLinting": true,
+    "fixFormatting": true,
+    "fixImports": true,
+    "fixTypeAssertions": true
+  },
+  "output": {
+    "json": true,
+    "markdown": true,
+    "console": true,
+    "saveHistory": true
+  }
+}

@@ -14,6 +14,7 @@ Complete guide for deploying CarrySpace as production-ready iOS and Android apps
 ## 1. Capacitor Configuration
 
 The project is already configured with:
+
 - **App Name**: CarrySpace
 - **App ID**: com.carryspace.app
 - **Web Directory**: `out/` (Next.js static export)
@@ -22,6 +23,7 @@ The project is already configured with:
 ### Verify Configuration
 
 Check `capacitor.config.ts`:
+
 ```typescript
 {
   appId: "com.carryspace.app",
@@ -37,12 +39,14 @@ Check `capacitor.config.ts`:
 ### iOS Setup
 
 1. **Sync Capacitor**:
+
    ```bash
    npm run build
    npx cap sync ios
    ```
 
 2. **Open in Xcode**:
+
    ```bash
    npx cap open ios
    ```
@@ -67,12 +71,14 @@ Check `capacitor.config.ts`:
 ### Android Setup
 
 1. **Sync Capacitor**:
+
    ```bash
    npm run build
    npx cap sync android
    ```
 
 2. **Open in Android Studio**:
+
    ```bash
    npx cap open android
    ```
@@ -130,30 +136,34 @@ Expo's push notification service works as a backend service and doesn't require 
    - Get your Access Token from https://expo.dev/accounts/[account]/settings/access-tokens
 
 2. **Install Expo Server SDK** (in your backend):
+
    ```bash
    npm install expo-server-sdk
    ```
 
 3. **Backend Example** (`app/api/notifications/send-push/route.ts`):
+
    ```typescript
-   import { Expo } from 'expo-server-sdk';
-   
+   import { Expo } from "expo-server-sdk";
+
    const expo = new Expo({ accessToken: process.env.EXPO_ACCESS_TOKEN });
-   
+
    export async function POST(request: Request) {
      const { token, title, body, data } = await request.json();
-     
-     const messages = [{
-       to: token,
-       sound: 'default',
-       title,
-       body,
-       data,
-     }];
-     
+
+     const messages = [
+       {
+         to: token,
+         sound: "default",
+         title,
+         body,
+         data,
+       },
+     ];
+
      const chunks = expo.chunkPushNotifications(messages);
      const tickets = [];
-     
+
      for (const chunk of chunks) {
        try {
          const ticketChunk = await expo.sendPushNotificationsAsync(chunk);
@@ -162,7 +172,7 @@ Expo's push notification service works as a backend service and doesn't require 
          console.error(error);
        }
      }
-     
+
      return Response.json({ success: true });
    }
    ```
@@ -170,12 +180,17 @@ Expo's push notification service works as a backend service and doesn't require 
 #### Client Setup
 
 The client-side code is already set up in:
+
 - `lib/notifications/capacitor-notifications.ts` - Capacitor push notification handling
 - `lib/notifications/expo-push-service.ts` - Expo service integration
 
 **Register for Push Notifications** (in your app):
+
 ```typescript
-import { registerForExpoPushNotifications, setupExpoPushNotificationListeners } from '@/lib/notifications/expo-push-service';
+import {
+  registerForExpoPushNotifications,
+  setupExpoPushNotificationListeners,
+} from "@/lib/notifications/expo-push-service";
 
 // On app start
 setupExpoPushNotificationListeners();
@@ -184,8 +199,8 @@ setupExpoPushNotificationListeners();
 const token = await registerForExpoPushNotifications();
 if (token) {
   // Send token to your backend
-  await fetch('/api/notifications/register-token', {
-    method: 'POST',
+  await fetch("/api/notifications/register-token", {
+    method: "POST",
     body: JSON.stringify({ token }),
   });
 }
@@ -204,26 +219,31 @@ If you prefer not to use Expo's service:
 ### Generate Icons
 
 Icons should be placed in:
+
 - **iOS**: `ios/App/App/Assets.xcassets/AppIcon.appiconset/`
 - **Android**: `android/app/src/main/res/` (mipmap folders)
 
 **Required Sizes**:
+
 - iOS: 1024x1024 (App Store), 180x180 (iPhone), 167x167 (iPad)
 - Android: 512x512 (Play Store), various mipmap sizes
 
 **Generate using scripts**:
+
 ```bash
 npm run generate:icons
 npm run generate:splash
 ```
 
 Or use online tools:
+
 - https://www.appicon.co/
 - https://icon.kitchen/
 
 ### Splash Screen
 
 Splash screen configuration is in `capacitor.config.ts`:
+
 ```typescript
 SplashScreen: {
   launchShowDuration: 2000,
@@ -234,6 +254,7 @@ SplashScreen: {
 ```
 
 Place splash images:
+
 - **iOS**: `ios/App/App/Assets.xcassets/Splash.imageset/`
 - **Android**: `android/app/src/main/res/drawable/splash.png`
 
@@ -242,6 +263,7 @@ Place splash images:
 ### iOS Build
 
 1. **Open in Xcode**:
+
    ```bash
    npx cap open ios
    ```
@@ -266,6 +288,7 @@ Place splash images:
 ### Android Build
 
 1. **Open in Android Studio**:
+
    ```bash
    npx cap open android
    ```
@@ -290,6 +313,7 @@ Place splash images:
 ### Local Testing
 
 1. **iOS Simulator**:
+
    ```bash
    npm run build
    npx cap sync ios
@@ -313,10 +337,11 @@ Place splash images:
    - Check console for push token
 
 2. **Send test notification**:
+
    ```bash
    # Using Expo CLI (if using Expo service)
    npx expo send-notification --to YOUR_EXPO_PUSH_TOKEN --title "Test" --body "Hello World"
-   
+
    # Or use your backend API
    curl -X POST http://localhost:3000/api/notifications/send-push \
      -H "Content-Type: application/json" \
@@ -336,6 +361,7 @@ Place splash images:
 ### Required for Production
 
 Create `.env.production`:
+
 ```env
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_key
@@ -350,23 +376,27 @@ EXPO_ACCESS_TOKEN=your_expo_access_token  # For push notifications
 ### Build Issues
 
 **"out folder not found"**:
+
 ```bash
 npm run build
 npx cap sync
 ```
 
 **"Module not found"**:
+
 - Ensure all dependencies are installed: `npm install`
 - Check that `out/` folder contains all static files
 
 ### Push Notification Issues
 
-**iOS**: 
+**iOS**:
+
 - Ensure Push Notifications capability is enabled
 - Check that APNs certificate is valid
 - Verify device token is being received
 
 **Android**:
+
 - Ensure `google-services.json` is in `android/app/`
 - Check Firebase project configuration
 - Verify FCM token is being received
@@ -433,7 +463,7 @@ To update the app:
 ## Support
 
 For issues or questions:
+
 - Capacitor Docs: https://capacitorjs.com/docs
 - Expo Push Notifications: https://docs.expo.dev/push-notifications/overview/
 - Next.js Static Export: https://nextjs.org/docs/app/building-your-application/deploying/static-exports
-

@@ -22,12 +22,14 @@ Complete Supabase Edge Functions (serverless API routes) have been created for a
 **Query Parameters**: `id` (optional, defaults to authenticated user)
 
 **Features**:
+
 - ✅ Returns user profile
 - ✅ Users can only access their own profile
 - ✅ Admins can access any profile
 - ✅ RLS enforced
 
 **Example**:
+
 ```bash
 curl -X GET "https://gujyzwqcwecbeznlablx.supabase.co/functions/v1/get-user?id=USER_ID" \
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
@@ -42,12 +44,14 @@ curl -X GET "https://gujyzwqcwecbeznlablx.supabase.co/functions/v1/get-user?id=U
 **Body**: `{ trip_id?, title, description?, item_category?, reward_amount }`
 
 **Features**:
+
 - ✅ Creates new delivery request
 - ✅ Validates required fields
 - ✅ Sets status to 'open'
 - ✅ Returns created request
 
 **Example**:
+
 ```bash
 curl -X POST "https://gujyzwqcwecbeznlablx.supabase.co/functions/v1/create-request" \
   -H "Authorization: Bearer YOUR_JWT_TOKEN" \
@@ -64,12 +68,14 @@ curl -X POST "https://gujyzwqcwecbeznlablx.supabase.co/functions/v1/create-reque
 **Query Parameters**: `status?`, `category?`
 
 **Features**:
+
 - ✅ Lists all requests (filtered by status/category)
 - ✅ Non-authenticated users see only 'open' requests
 - ✅ Authenticated users see all accessible requests
 - ✅ Ordered by creation date (newest first)
 
 **Example**:
+
 ```bash
 curl -X GET "https://gujyzwqcwecbeznlablx.supabase.co/functions/v1/list-requests?status=open" \
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
@@ -84,6 +90,7 @@ curl -X GET "https://gujyzwqcwecbeznlablx.supabase.co/functions/v1/list-requests
 **Body**: `{ request_id }`
 
 **Features**:
+
 - ✅ Creates match between traveler and request
 - ✅ Verifies request is 'open'
 - ✅ Prevents duplicate matches
@@ -91,6 +98,7 @@ curl -X GET "https://gujyzwqcwecbeznlablx.supabase.co/functions/v1/list-requests
 - ✅ Returns created match
 
 **Example**:
+
 ```bash
 curl -X POST "https://gujyzwqcwecbeznlablx.supabase.co/functions/v1/create-match" \
   -H "Authorization: Bearer YOUR_JWT_TOKEN" \
@@ -107,12 +115,14 @@ curl -X POST "https://gujyzwqcwecbeznlablx.supabase.co/functions/v1/create-match
 **Query Parameters**: `id` (required)
 
 **Features**:
+
 - ✅ Returns match details
 - ✅ Includes all messages for the match
 - ✅ Verifies user has access to match
 - ✅ Messages ordered by creation date
 
 **Example**:
+
 ```bash
 curl -X GET "https://gujyzwqcwecbeznlablx.supabase.co/functions/v1/get-match?id=MATCH_ID" \
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
@@ -127,12 +137,14 @@ curl -X GET "https://gujyzwqcwecbeznlablx.supabase.co/functions/v1/get-match?id=
 **Body**: `{ match_id, body }`
 
 **Features**:
+
 - ✅ Creates message in match conversation
 - ✅ Verifies user is part of match
 - ✅ Returns created message
 - ✅ RLS enforced
 
 **Example**:
+
 ```bash
 curl -X POST "https://gujyzwqcwecbeznlablx.supabase.co/functions/v1/send-message" \
   -H "Authorization: Bearer YOUR_JWT_TOKEN" \
@@ -149,6 +161,7 @@ curl -X POST "https://gujyzwqcwecbeznlablx.supabase.co/functions/v1/send-message
 **Body**: `{ match_id, stripe_payment_intent, amount }`
 
 **Features**:
+
 - ✅ Creates payment record
 - ✅ Links to Stripe payment intent
 - ✅ Verifies user has access to match
@@ -156,6 +169,7 @@ curl -X POST "https://gujyzwqcwecbeznlablx.supabase.co/functions/v1/send-message
 - ✅ Returns created payment
 
 **Example**:
+
 ```bash
 curl -X POST "https://gujyzwqcwecbeznlablx.supabase.co/functions/v1/create-payment" \
   -H "Authorization: Bearer YOUR_JWT_TOKEN" \
@@ -172,11 +186,13 @@ curl -X POST "https://gujyzwqcwecbeznlablx.supabase.co/functions/v1/create-payme
 **Query Parameters**: `id` (required)
 
 **Features**:
+
 - ✅ Returns payment details
 - ✅ Verifies user has access to payment
 - ✅ Returns payment status
 
 **Example**:
+
 ```bash
 curl -X GET "https://gujyzwqcwecbeznlablx.supabase.co/functions/v1/get-payment?id=PAYMENT_ID" \
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
@@ -191,6 +207,7 @@ curl -X GET "https://gujyzwqcwecbeznlablx.supabase.co/functions/v1/get-payment?i
 **Body**: `{ match_id, reason }`
 
 **Features**:
+
 - ✅ Creates dispute record
 - ✅ Verifies user is part of match
 - ✅ Prevents duplicate open disputes
@@ -198,6 +215,7 @@ curl -X GET "https://gujyzwqcwecbeznlablx.supabase.co/functions/v1/get-payment?i
 - ✅ Returns created dispute
 
 **Example**:
+
 ```bash
 curl -X POST "https://gujyzwqcwecbeznlablx.supabase.co/functions/v1/create-dispute" \
   -H "Authorization: Bearer YOUR_JWT_TOKEN" \
@@ -214,6 +232,7 @@ curl -X POST "https://gujyzwqcwecbeznlablx.supabase.co/functions/v1/create-dispu
 **Query Parameters**: `status?`
 
 **Features**:
+
 - ✅ Lists disputes
 - ✅ Non-admins see only their own disputes
 - ✅ Admins see all disputes
@@ -221,6 +240,7 @@ curl -X POST "https://gujyzwqcwecbeznlablx.supabase.co/functions/v1/create-dispu
 - ✅ Ordered by creation date (newest first)
 
 **Example**:
+
 ```bash
 curl -X GET "https://gujyzwqcwecbeznlablx.supabase.co/functions/v1/list-disputes?status=open" \
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
@@ -270,9 +290,12 @@ Authorization: Bearer YOUR_JWT_TOKEN
 ```
 
 Get JWT token from Supabase Auth:
+
 ```javascript
-const { data: { session } } = await supabase.auth.getSession()
-const token = session?.access_token
+const {
+  data: { session },
+} = await supabase.auth.getSession();
+const token = session?.access_token;
 ```
 
 ---
@@ -288,6 +311,7 @@ All functions return standardized error responses:
 ```
 
 **Status Codes**:
+
 - `200` - Success
 - `201` - Created
 - `400` - Bad Request (missing/invalid fields)
@@ -302,6 +326,7 @@ All functions return standardized error responses:
 ## CORS
 
 All functions include CORS headers:
+
 - `Access-Control-Allow-Origin: *`
 - `Access-Control-Allow-Headers: authorization, x-client-info, apikey, content-type`
 
@@ -336,6 +361,7 @@ curl -X GET "http://localhost:54321/functions/v1/get-user" \
 ### Production Testing
 
 Use the production URLs:
+
 ```
 https://gujyzwqcwecbeznlablx.supabase.co/functions/v1/{function-name}
 ```
@@ -345,6 +371,7 @@ https://gujyzwqcwecbeznlablx.supabase.co/functions/v1/{function-name}
 ## Function Locations
 
 All functions are located in:
+
 ```
 supabase/functions/
 ├── get-user/
@@ -374,6 +401,7 @@ supabase/functions/
 ## Next Steps
 
 1. **Deploy Functions**:
+
    ```bash
    supabase functions deploy
    ```
@@ -402,4 +430,3 @@ All 10 Supabase Edge Functions have been created with full authentication, autho
 
 **Last Updated**: 2024-12-19  
 **Report Version**: 1.0.0
-

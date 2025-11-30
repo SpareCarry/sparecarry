@@ -4,7 +4,7 @@
 
 import { isNativePlatform } from "@/lib/utils/capacitor-safe";
 
-const isNative = typeof window !== 'undefined' ? isNativePlatform() : false;
+const isNative = typeof window !== "undefined" ? isNativePlatform() : false;
 
 export interface NotificationSound {
   match: "boat_horn" | "airplane_ding";
@@ -79,7 +79,11 @@ export async function sendLocalNotification(
 ) {
   try {
     // Web: Use browser Notification API
-    if (typeof window !== "undefined" && !isNative && "Notification" in window) {
+    if (
+      typeof window !== "undefined" &&
+      !isNative &&
+      "Notification" in window
+    ) {
       if (Notification.permission === "granted") {
         new Notification(title, {
           body,
@@ -107,7 +111,7 @@ export function playNotificationSound(sound: keyof typeof SOUNDS) {
         foghorn: "/sounds/foghorn.mp3",
         cash_register: "/sounds/cash-register.mp3",
       };
-      
+
       const audio = new Audio(soundMap[sound] || soundMap.boat_horn);
       audio.volume = 0.7;
       audio.play().catch(console.error);
@@ -130,7 +134,7 @@ export function setupNotificationHandlers() {
         if (sound) {
           playNotificationSound(sound);
         }
-        
+
         // Handle navigation
         if (data.notificationType === "match") {
           window.location.href = `/home/messages/${data.matchId}`;
@@ -150,4 +154,3 @@ export function setupNotificationHandlers() {
     // This would typically be handled by a service worker
   }
 }
-

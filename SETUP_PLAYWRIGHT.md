@@ -17,12 +17,15 @@ npm run playwright:install
 ## First Time Running Tests
 
 1. **Install Playwright browsers:**
+
    ```bash
    pnpm exec playwright install
    ```
+
    This downloads Chromium, Firefox, and WebKit browsers (~300MB).
 
 2. **Run E2E tests:**
+
    ```bash
    pnpm test:e2e
    ```
@@ -37,6 +40,7 @@ npm run playwright:install
 ### Browsers Not Found
 
 If you see "Executable doesn't exist", run:
+
 ```bash
 pnpm exec playwright install
 ```
@@ -52,4 +56,3 @@ pnpm exec playwright install chromium
 ```
 
 This installs only Chromium (~100MB instead of ~300MB).
-

@@ -1,2 +1,4 @@
-export { calculatePlatformFee, formatPlatformFee } from '../../../lib/pricing/platform-fee';
-
+export {
+  calculatePlatformFee,
+  formatPlatformFee,
+} from "../../../lib/pricing/platform-fee";

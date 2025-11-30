@@ -1,11 +1,11 @@
 /**
  * Push Notification Service
- * 
+ *
  * This service provides a unified interface for sending push notifications.
  * Currently supports:
  * - Capacitor push notifications (mobile apps)
  * - Expo push notifications (if using Expo)
- * 
+ *
  * TODO: Add support for web push notifications (FCM, OneSignal, etc.)
  * TODO: Add email notification support via Resend
  */
@@ -21,7 +21,12 @@ export interface PushNotificationPayload {
   title: string;
   body: string;
   data?: Record<string, any>;
-  sound?: "default" | "foghorn" | "boat_horn" | "airplane_ding" | "cash_register";
+  sound?:
+    | "default"
+    | "foghorn"
+    | "boat_horn"
+    | "airplane_ding"
+    | "cash_register";
   priority?: "default" | "normal" | "high";
   channelId?: string;
 }
@@ -35,7 +40,8 @@ export interface EmailNotificationPayload {
 
 const resendApiKey = process.env.RESEND_API_KEY;
 const resendFromAddress =
-  process.env.NOTIFICATIONS_EMAIL_FROM || "SpareCarry <notifications@sparecarry.com>";
+  process.env.NOTIFICATIONS_EMAIL_FROM ||
+  "SpareCarry <notifications@sparecarry.com>";
 
 /**
  * Send a push notification via Expo push service.
@@ -43,7 +49,9 @@ const resendFromAddress =
 export async function sendPushNotification(
   payload: PushNotificationPayload
 ): Promise<{ success: boolean; error?: string }> {
-  const tokens = Array.isArray(payload.to) ? payload.to.filter(Boolean) : [payload.to];
+  const tokens = Array.isArray(payload.to)
+    ? payload.to.filter(Boolean)
+    : [payload.to];
 
   if (tokens.length === 0) {
     return { success: false, error: "No valid push tokens provided" };
@@ -73,7 +81,10 @@ export async function sendPushNotification(
       tokens: tokens.length,
       title: payload.title,
     });
-    return { success: false, error: error?.message ?? "Failed to send push notification" };
+    return {
+      success: false,
+      error: error?.message ?? "Failed to send push notification",
+    };
   }
 }
 
@@ -84,7 +95,10 @@ export async function sendEmailNotification(
   payload: EmailNotificationPayload
 ): Promise<{ success: boolean; error?: string }> {
   if (!resendApiKey) {
-    logger.warn("resend_not_configured", { to: payload.to, subject: payload.subject });
+    logger.warn("resend_not_configured", {
+      to: payload.to,
+      subject: payload.subject,
+    });
     return { success: false, error: "Resend API key not configured" };
   }
 

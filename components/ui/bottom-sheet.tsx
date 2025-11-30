@@ -37,7 +37,7 @@ const BottomSheetContent = React.forwardRef<
     <DialogPrimitive.Content
       ref={ref}
       className={cn(
-        "fixed left-0 right-0 bottom-0 z-50 grid w-full gap-4 border-t bg-background p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom sm:rounded-t-2xl",
+        "fixed bottom-0 left-0 right-0 z-50 grid w-full gap-4 border-t bg-background p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom sm:rounded-t-2xl",
         className
       )}
       {...props}
@@ -119,4 +119,3 @@ export {
   BottomSheetTitle,
   BottomSheetDescription,
 };
-

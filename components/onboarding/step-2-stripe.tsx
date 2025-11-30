@@ -163,25 +163,31 @@ export function OnboardingStep2({ onComplete }: OnboardingStep2Props) {
 
   if (verified) {
     return (
-      <div className="text-center space-y-4">
-        <CheckCircle2 className="h-16 w-16 text-teal-600 mx-auto" />
-        <h3 className="text-xl font-semibold text-slate-900">Identity Verified!</h3>
-        <p className="text-slate-600">Your identity has been successfully verified.</p>
+      <div className="space-y-4 text-center">
+        <CheckCircle2 className="mx-auto h-16 w-16 text-teal-600" />
+        <h3 className="text-xl font-semibold text-slate-900">
+          Identity Verified!
+        </h3>
+        <p className="text-slate-600">
+          Your identity has been successfully verified.
+        </p>
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      <Card className="bg-teal-50 border-teal-200">
+      <Card className="border-teal-200 bg-teal-50">
         <CardContent className="pt-6">
           <div className="flex items-start gap-4">
-            <CreditCard className="h-8 w-8 text-teal-600 flex-shrink-0 mt-1" />
+            <CreditCard className="mt-1 h-8 w-8 flex-shrink-0 text-teal-600" />
             <div>
-              <h3 className="font-semibold text-slate-900 mb-1">Stripe Identity Verification</h3>
-              <p className="text-sm text-slate-600 mb-2">
-                We use Stripe Identity to verify your identity with a passport and selfie. This
-                helps keep CarrySpace safe for everyone.
+              <h3 className="mb-1 font-semibold text-slate-900">
+                Stripe Identity Verification
+              </h3>
+              <p className="mb-2 text-sm text-slate-600">
+                We use Stripe Identity to verify your identity with a passport
+                and selfie. This helps keep CarrySpace safe for everyone.
               </p>
               <div className="flex items-center gap-2 text-sm font-medium text-teal-700">
                 <span>Cost: $1.50</span>
@@ -189,7 +195,7 @@ export function OnboardingStep2({ onComplete }: OnboardingStep2Props) {
                 <span>Test Mode</span>
               </div>
               {!identityEnabled && (
-                <p className="text-sm text-amber-700 mt-3">
+                <p className="mt-3 text-sm text-amber-700">
                   Identity verification is temporarily unavailable. Please email{" "}
                   <a
                     className="underline"
@@ -206,12 +212,12 @@ export function OnboardingStep2({ onComplete }: OnboardingStep2Props) {
       </Card>
 
       {error && (
-        <div className="p-3 rounded-md bg-red-50 text-red-800 border border-red-200 text-sm">
+        <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-800">
           {error}
         </div>
       )}
       {sessionStatus && (
-        <div className="p-3 rounded-md bg-slate-50 border border-slate-200 text-sm">
+        <div className="rounded-md border border-slate-200 bg-slate-50 p-3 text-sm">
           Current status: <strong className="uppercase">{sessionStatus}</strong>
         </div>
       )}
@@ -227,18 +233,19 @@ export function OnboardingStep2({ onComplete }: OnboardingStep2Props) {
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               Starting Verification...
             </>
+          ) : identityEnabled ? (
+            "Start Identity Verification"
           ) : (
-            identityEnabled
-              ? "Start Identity Verification"
-              : "Identity Verification Unavailable"
+            "Identity Verification Unavailable"
           )}
         </Button>
       ) : (
         <div className="space-y-4">
-          <div className="p-4 bg-blue-50 border border-blue-200 rounded-md">
+          <div className="rounded-md border border-blue-200 bg-blue-50 p-4">
             <p className="text-sm text-blue-800">
-              <strong>Verification window opened.</strong> Please complete the verification process
-              in the popup window, then click the button below to check your status.
+              <strong>Verification window opened.</strong> Please complete the
+              verification process in the popup window, then click the button
+              below to check your status.
             </p>
           </div>
           <Button
@@ -260,4 +267,3 @@ export function OnboardingStep2({ onComplete }: OnboardingStep2Props) {
     </div>
   );
 }
-

@@ -42,7 +42,8 @@ NEXT_PUBLIC_SUPPORT_EMAIL=support@sparecarry.com
 CRON_SECRET=your_generated_64_char_hex_string_here
 ```
 
-**Important**: 
+**Important**:
+
 - Set for **ALL environments** (Production, Preview, Development)
 - Use the same CRON_SECRET value you generated above
 - Redeploy after adding variables
@@ -54,6 +55,7 @@ The Sentry token was exposed in an old commit in git history. I've removed it fr
 **You have two options:**
 
 #### Option A: Rotate the Token (Recommended)
+
 1. Go to Sentry Dashboard → Settings → Auth Tokens
 2. Delete the old exposed token
 3. Create a new token
@@ -61,7 +63,8 @@ The Sentry token was exposed in an old commit in git history. I've removed it fr
 5. The old token will stop working, so no security risk
 
 #### Option B: Allow Once via GitHub
-- Use this URL to allow the secret once: 
+
+- Use this URL to allow the secret once:
   https://github.com/SpareCarry/sparecarry/security/secret-scanning/unblock-secret/35oJjvqS0QoAJNb5BleX3uh8Rvm
 - **But this is less secure** - the token is still in git history
 
@@ -102,4 +105,3 @@ After adding variables to Vercel and redeploying:
 ## ✅ All Code Changes Complete!
 
 Everything is ready. Just complete the steps above and you're good to go! 🚀
-

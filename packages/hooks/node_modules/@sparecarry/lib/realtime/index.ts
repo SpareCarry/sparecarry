@@ -1,3 +1,2 @@
-export { RealtimeManager } from './RealtimeManager';
-export type { RealtimePostgresChangesPayload } from '@supabase/supabase-js';
-
+export { RealtimeManager } from "./RealtimeManager";
+export type { RealtimePostgresChangesPayload } from "@supabase/supabase-js";

@@ -6,4 +6,3 @@ export const LocalNotifications = {
   schedule: async () => {},
   addListener: () => ({ remove: () => {} }),
 };
-

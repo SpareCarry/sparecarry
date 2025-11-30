@@ -3,6 +3,7 @@
 ## Dynamic Platform Fee (12-18%)
 
 Platform fees are calculated dynamically based on:
+
 - **Method**: Plane (18% base) vs Boat (15% base)
 - **User History**: Volume discounts based on completed deliveries
   - 10+ deliveries: 1% discount
@@ -60,9 +61,9 @@ Platform fees are calculated dynamically based on:
 - All participants share the same trip, reducing costs
 
 ### Group Buy Flow:
+
 1. Traveler posts trip
 2. Organizer creates group buy for that trip
 3. Other requesters join with their items
 4. When full or closed, all matches are created
 5. Traveler delivers all items together
-

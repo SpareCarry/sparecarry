@@ -4,7 +4,10 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Button } from "../ui/button";
 import { Bell, X } from "lucide-react";
-import { requestNotificationPermission, registerForPushNotifications } from "../../lib/notifications/expo-notifications";
+import {
+  requestNotificationPermission,
+  registerForPushNotifications,
+} from "../../lib/notifications/expo-notifications";
 import { registerForExpoPushNotifications } from "../../lib/notifications/expo-push-service";
 import { isNativePlatform } from "../../lib/utils/capacitor-safe";
 import { createClient } from "../../lib/supabase/client";
@@ -35,12 +38,15 @@ export function NotificationPermissionRequest() {
           .select("push_notifications_enabled, expo_push_token")
           .eq("user_id", user.id)
           .single();
-        
+
         // If record doesn't exist, return null
-        if (error && (error.code === 'PGRST116' || error.message?.includes('No rows'))) {
+        if (
+          error &&
+          (error.code === "PGRST116" || error.message?.includes("No rows"))
+        ) {
           return null;
         }
-        
+
         if (error) {
           console.warn("Error fetching profile for notifications:", error);
           return null;
@@ -58,7 +64,12 @@ export function NotificationPermissionRequest() {
 
   useEffect(() => {
     // Show request if user hasn't enabled notifications
-    if (user && profile && !profile.push_notifications_enabled && !profile.expo_push_token) {
+    if (
+      user &&
+      profile &&
+      !profile.push_notifications_enabled &&
+      !profile.expo_push_token
+    ) {
       // Check if we've already asked (check localStorage)
       const hasAsked = localStorage.getItem("notification-permission-asked");
       if (!hasAsked) {
@@ -72,7 +83,7 @@ export function NotificationPermissionRequest() {
     try {
       const isNative = isNativePlatform();
       let token: string | null = null;
-      
+
       if (isNative) {
         // Use Expo push service for native platforms
         token = await registerForExpoPushNotifications();
@@ -83,7 +94,7 @@ export function NotificationPermissionRequest() {
           token = await registerForPushNotifications();
         }
       }
-      
+
       if (token && user) {
         // Register token with backend (which saves to database)
         const response = await fetch("/api/notifications/register-token", {
@@ -118,11 +129,11 @@ export function NotificationPermissionRequest() {
   if (!showRequest) return null;
 
   return (
-    <Card className="fixed bottom-4 right-4 z-50 max-w-sm shadow-lg border-teal-200 bg-gradient-to-r from-teal-50 to-blue-50">
+    <Card className="fixed bottom-4 right-4 z-50 max-w-sm border-teal-200 bg-gradient-to-r from-teal-50 to-blue-50 shadow-lg">
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-2">
-            <div className="flex-shrink-0 w-10 h-10 bg-teal-100 rounded-full flex items-center justify-center">
+            <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-teal-100">
               <Bell className="h-5 w-5 text-teal-600" />
             </div>
             <CardTitle className="text-lg">Stay in the Loop</CardTitle>
@@ -139,12 +150,13 @@ export function NotificationPermissionRequest() {
       </CardHeader>
       <CardContent className="space-y-3">
         <p className="text-sm text-slate-700">
-          <strong>SpareCarry wants to send you matches worth $300+</strong> – allow?
+          <strong>SpareCarry wants to send you matches worth $300+</strong> –
+          allow?
         </p>
         <p className="text-xs text-slate-600">
           Get instant notifications when:
         </p>
-        <ul className="text-xs text-slate-600 space-y-1 ml-4 list-disc">
+        <ul className="ml-4 list-disc space-y-1 text-xs text-slate-600">
           <li>New matches are found</li>
           <li>Someone messages you</li>
           <li>Your counter-offer is accepted</li>
@@ -157,11 +169,7 @@ export function NotificationPermissionRequest() {
           >
             {requesting ? "Enabling..." : "Allow Notifications"}
           </Button>
-          <Button
-            onClick={handleDismiss}
-            variant="outline"
-            className="flex-1"
-          >
+          <Button onClick={handleDismiss} variant="outline" className="flex-1">
             Not Now
           </Button>
         </div>
@@ -169,4 +177,3 @@ export function NotificationPermissionRequest() {
     </Card>
   );
 }
-

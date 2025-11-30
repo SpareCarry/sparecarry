@@ -68,16 +68,19 @@ SENTRY_PROJECT=javascript-nextjs
 Run one of these commands to generate a secure CRON_SECRET:
 
 **PowerShell:**
+
 ```powershell
 node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ```
 
 **Command Prompt:**
+
 ```cmd
 node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ```
 
 **Or use OpenSSL (if installed):**
+
 ```bash
 openssl rand -hex 32
 ```
@@ -108,4 +111,3 @@ Copy the output and use it as your `CRON_SECRET` value.
 - ✅ `vercel-env-variables.env` is already in `.gitignore`
 - ⚠️ Never commit secrets to git
 - ⚠️ Generate a unique `CRON_SECRET` for production
-

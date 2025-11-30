@@ -85,6 +85,7 @@ Results are saved to `qa-results/`:
 - `qa_summary_YYYYMMDD_HHMMSS.json` - JSON summary
 
 **View Results**:
+
 ```bash
 # View latest results
 cat qa-results/qa_results_*.txt | tail -50
@@ -116,12 +117,15 @@ If it's a test case, add to `QA_SIMULATION.md`:
 
 ```markdown
 #### TC-NEW-001: New Test Case
+
 **Steps**:
+
 1. Step one
 2. Step two
 3. Step three
 
 **Expected**:
+
 - ✅ Expected result 1
 - ✅ Expected result 2
 
@@ -133,11 +137,12 @@ If it's a test case, add to `QA_SIMULATION.md`:
 If it can be automated, add to test suite:
 
 **Unit Test** (`tests/unit/`):
-```typescript
-import { describe, it, expect } from 'vitest';
 
-describe('New Feature', () => {
-  it('should work correctly', () => {
+```typescript
+import { describe, it, expect } from "vitest";
+
+describe("New Feature", () => {
+  it("should work correctly", () => {
     // Test implementation
     expect(result).toBe(expected);
   });
@@ -145,13 +150,14 @@ describe('New Feature', () => {
 ```
 
 **E2E Test** (`tests/e2e/`):
-```typescript
-import { test, expect } from '@playwright/test';
 
-test('new feature e2e', async ({ page }) => {
-  await page.goto('/');
+```typescript
+import { test, expect } from "@playwright/test";
+
+test("new feature e2e", async ({ page }) => {
+  await page.goto("/");
   // Test steps
-  await expect(page.locator('selector')).toBeVisible();
+  await expect(page.locator("selector")).toBeVisible();
 });
 ```
 
@@ -181,24 +187,30 @@ Create issue in GitHub or document in `qa-results/issues/`:
 **Reporter**: [Name]
 
 ## Description
+
 Brief description of the issue
 
 ## Steps to Reproduce
+
 1. Step one
 2. Step two
 3. Step three
 
 ## Expected Behavior
+
 What should happen
 
 ## Actual Behavior
+
 What actually happens
 
 ## Screenshots/Videos
+
 - [Attach screenshots]
 - [Attach screen recording]
 
 ## Environment
+
 - OS: [OS version]
 - Browser: [Browser version] (for web)
 - Device: [Device model] (for mobile)
@@ -206,20 +218,24 @@ What actually happens
 - Build: [Build number]
 
 ## Logs
+
 [Paste relevant logs]
 
 ## Additional Context
+
 Any other relevant information
 ```
 
 ### Issue Tracking
 
 **GitHub Issues**:
+
 - Use labels: `bug`, `qa`, `critical`, `high`, `medium`, `low`
 - Assign to developer
 - Link to test case if applicable
 
 **Internal Tracking**:
+
 - Document in `qa-results/issues/`
 - Include timestamp
 - Link to test results
@@ -231,6 +247,7 @@ Any other relevant information
 ### Logs
 
 **Web**:
+
 ```bash
 # Browser console logs
 # Open DevTools → Console
@@ -242,6 +259,7 @@ Any other relevant information
 ```
 
 **Mobile**:
+
 ```bash
 # iOS (Xcode)
 # Window → Devices and Simulators
@@ -253,6 +271,7 @@ Any other relevant information
 ```
 
 **API**:
+
 ```bash
 # Server logs
 # Check Vercel logs or server logs
@@ -264,17 +283,20 @@ curl -v https://staging.sparecarry.com/api/endpoint > api_log.txt
 ### Screenshots
 
 **Web**:
+
 - Use browser DevTools screenshot
 - Or OS screenshot tool
 - Save to `qa-results/screenshots/`
 
 **Mobile**:
+
 - iOS: Use device screenshot (Power + Volume Up)
 - Android: Use device screenshot (Power + Volume Down)
 - Or use Xcode/Android Studio screenshot tools
 - Save to `qa-results/screenshots/`
 
 **Naming Convention**:
+
 ```
 screenshot_YYYYMMDD_HHMMSS_platform_feature.png
 Example: screenshot_20241219_143022_ios_login.png
@@ -283,17 +305,20 @@ Example: screenshot_20241219_143022_ios_login.png
 ### Screen Recordings
 
 **Web**:
+
 - Use browser DevTools recording
 - Or screen recording software (OBS, QuickTime)
 - Save to `qa-results/videos/`
 
 **Mobile**:
+
 - iOS: Use QuickTime (connect device)
 - Android: Use Android Studio screen recorder
 - Or use device screen recording
 - Save to `qa-results/videos/`
 
 **Naming Convention**:
+
 ```
 video_YYYYMMDD_HHMMSS_platform_feature.mp4
 Example: video_20241219_143022_android_payment.mp4
@@ -302,24 +327,26 @@ Example: video_20241219_143022_android_payment.mp4
 ### Automated Capture
 
 **Playwright** (E2E tests):
+
 ```typescript
 // Screenshot on failure
-test('feature', async ({ page }) => {
-  await page.goto('/');
-  await expect(page.locator('selector')).toBeVisible();
+test("feature", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.locator("selector")).toBeVisible();
 });
 
 // Auto-captures screenshot on failure
 ```
 
 **Vitest** (Unit tests):
+
 ```typescript
 // Screenshot in test
-import { screenshot } from 'vitest';
+import { screenshot } from "vitest";
 
-test('feature', async () => {
+test("feature", async () => {
   // Test code
-  await screenshot('test-screenshot.png');
+  await screenshot("test-screenshot.png");
 });
 ```
 
@@ -332,37 +359,41 @@ test('feature', async () => {
 The CI pipeline (`/.github/workflows/ci.yml`) includes:
 
 1. **Environment Validation**
+
    ```yaml
    - name: Validate Environment
      run: pnpm validate:env staging
    ```
 
 2. **Code Quality**
+
    ```yaml
    - name: Type Check
      run: pnpm typecheck
-   
+
    - name: Lint
      run: pnpm lint
-   
+
    - name: Format Check
      run: pnpm format:check
    ```
 
 3. **Tests**
+
    ```yaml
    - name: Unit Tests
      run: pnpm test
-   
+
    - name: E2E Tests
      run: pnpm test:e2e
    ```
 
 4. **Build Verification**
+
    ```yaml
    - name: Build
      run: pnpm build:staging
-   
+
    - name: Validate Export
      run: pnpm validate:export
    ```
@@ -383,7 +414,7 @@ Edit `.github/workflows/ci.yml`:
   run: |
     # Your command here
     pnpm your-command
-  continue-on-error: false  # or true if optional
+  continue-on-error: false # or true if optional
 ```
 
 ### CI Artifacts
@@ -396,6 +427,7 @@ CI saves artifacts:
 - Videos: `qa-results/videos/`
 
 **Download Artifacts**:
+
 1. Go to GitHub Actions
 2. Select workflow run
 3. Scroll to "Artifacts"
@@ -429,6 +461,7 @@ configurations: {
 ```
 
 **Test on Device**:
+
 ```bash
 # List available simulators
 xcrun simctl list devices
@@ -459,6 +492,7 @@ configurations: {
 ```
 
 **Test on Device**:
+
 ```bash
 # List available emulators
 emulator -list-avds
@@ -474,29 +508,30 @@ pnpm e2e:android --device "Pixel_6_API_33"
 ```typescript
 projects: [
   {
-    name: 'chrome',
-    use: { ...devices['Desktop Chrome'] },
+    name: "chrome",
+    use: { ...devices["Desktop Chrome"] },
   },
   {
-    name: 'firefox',
-    use: { ...devices['Desktop Firefox'] },
+    name: "firefox",
+    use: { ...devices["Desktop Firefox"] },
   },
   {
-    name: 'safari',
-    use: { ...devices['Desktop Safari'] },
+    name: "safari",
+    use: { ...devices["Desktop Safari"] },
   },
   {
-    name: 'mobile-chrome',
-    use: { ...devices['Pixel 5'] },
+    name: "mobile-chrome",
+    use: { ...devices["Pixel 5"] },
   },
   {
-    name: 'mobile-safari',
-    use: { ...devices['iPhone 12'] },
+    name: "mobile-safari",
+    use: { ...devices["iPhone 12"] },
   },
-]
+];
 ```
 
 **Run on Specific Browser**:
+
 ```bash
 # Run on Chrome only
 pnpm test:e2e --project=chrome
@@ -544,6 +579,7 @@ pnpm test:e2e --project=mobile-chrome
 ### Tests Fail Intermittently
 
 **Solution**:
+
 - Add retry logic
 - Increase timeouts
 - Check for race conditions
@@ -552,6 +588,7 @@ pnpm test:e2e --project=mobile-chrome
 ### CI Tests Fail Locally Pass
 
 **Solution**:
+
 - Check environment differences
 - Verify environment variables
 - Check CI logs
@@ -560,6 +597,7 @@ pnpm test:e2e --project=mobile-chrome
 ### Mobile Tests Fail
 
 **Solution**:
+
 - Verify emulator/simulator running
 - Check device logs
 - Verify app installed
@@ -580,4 +618,3 @@ pnpm test:e2e --project=mobile-chrome
 
 **Last Updated**: 2024-12-19  
 **Version**: 1.0.0
-

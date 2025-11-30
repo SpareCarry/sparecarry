@@ -41,5 +41,3 @@ This is the single source of truth for removing leaked secrets and preventing ne
 - Update this playbook if new edge cases were encountered.
 
 > **Note:** Any legacy instructions that referenced specific files (e.g., `STRIPE_WEBHOOK_SETUP.md`) now point here. Always keep this document updated so we do not fragment guidance across multiple markdown files.
-
-

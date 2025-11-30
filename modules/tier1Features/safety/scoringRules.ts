@@ -1,11 +1,11 @@
 /**
  * Safety Scoring Rules
- * 
+ *
  * Computes a safety score (0-100) based on listing details and photos.
  * Higher scores indicate safer items to transport.
  */
 
-import { ListingDetails, SafetyScoreResult } from './types';
+import { ListingDetails, SafetyScoreResult } from "./types";
 
 /**
  * Compute safety score based on listing details
@@ -24,43 +24,47 @@ export function computeSafetyScore(details: ListingDetails): SafetyScoreResult {
   // Rule 2: Batteries (lithium batteries reduce score)
   if (details.hasBatteries) {
     score -= 20;
-    reasons.push('Contains batteries - requires special handling');
+    reasons.push("Contains batteries - requires special handling");
   }
 
   // Rule 3: Liquids
   if (details.hasLiquids) {
     score -= 15;
-    reasons.push('Contains liquids - check volume limits');
+    reasons.push("Contains liquids - check volume limits");
   }
 
   // Rule 3.5: Restricted items (lithium batteries, flammable items, etc.)
   if (details.restrictedItems) {
     score -= 25;
-    reasons.push('Contains restricted items - requires boat transport only and special handling');
+    reasons.push(
+      "Contains restricted items - requires boat transport only and special handling"
+    );
   }
 
   // Rule 4: High declared value (insurance risk)
   if (details.declaredValue && details.declaredValue > 1000) {
     score -= 10;
-    reasons.push('High declared value - increased insurance risk');
+    reasons.push("High declared value - increased insurance risk");
   }
   if (details.declaredValue && details.declaredValue > 5000) {
     score -= 10; // Additional penalty for very high value
-    reasons.push('Very high declared value - consider special insurance');
+    reasons.push("Very high declared value - consider special insurance");
   }
 
   // Rule 5: Weight/size thresholds
   if (details.weight && details.weight > 20) {
     score -= 5;
-    reasons.push('Heavy item - verify traveler capacity');
+    reasons.push("Heavy item - verify traveler capacity");
   }
   if (details.dimensions) {
-    const volume = (details.dimensions.length || 0) * 
-                   (details.dimensions.width || 0) * 
-                   (details.dimensions.height || 0);
-    if (volume > 50000) { // ~50L
+    const volume =
+      (details.dimensions.length || 0) *
+      (details.dimensions.width || 0) *
+      (details.dimensions.height || 0);
+    if (volume > 50000) {
+      // ~50L
       score -= 5;
-      reasons.push('Large item - check space availability');
+      reasons.push("Large item - check space availability");
     }
   }
 
@@ -68,22 +72,22 @@ export function computeSafetyScore(details: ListingDetails): SafetyScoreResult {
   const photoCount = details.photoCount || 0;
   if (photoCount === 0) {
     score -= 30;
-    reasons.push('No photos provided - verification impossible');
+    reasons.push("No photos provided - verification impossible");
   } else if (photoCount < 3) {
     score -= 15;
-    reasons.push('Insufficient photos - minimum 3 recommended');
+    reasons.push("Insufficient photos - minimum 3 recommended");
   } else if (photoCount >= 3) {
     score += 5; // Bonus for meeting minimum
     if (photoCount >= 5) {
       score += 5; // Additional bonus for comprehensive photos
-      reasons.push('Comprehensive photo documentation');
+      reasons.push("Comprehensive photo documentation");
     }
   }
 
   // Rule 7: Description quality
   if (!details.description || details.description.length < 20) {
     score -= 10;
-    reasons.push('Description too brief - more detail needed');
+    reasons.push("Description too brief - more detail needed");
   }
 
   // Ensure score stays within 0-100 range
@@ -91,11 +95,11 @@ export function computeSafetyScore(details: ListingDetails): SafetyScoreResult {
 
   // Add positive reasons for good scores
   if (score >= 80) {
-    reasons.push('Item appears safe for transport');
+    reasons.push("Item appears safe for transport");
   } else if (score >= 60) {
-    reasons.push('Item acceptable with precautions');
+    reasons.push("Item acceptable with precautions");
   } else if (score < 30) {
-    reasons.push('⚠️ Low safety score - review carefully before accepting');
+    reasons.push("⚠️ Low safety score - review carefully before accepting");
   }
 
   return { score, reasons };
@@ -109,26 +113,31 @@ function getCategoryRisk(category?: string): number {
   if (!category) return 0;
 
   const categoryLower = category.toLowerCase();
-  
+
   // High risk categories
-  if (categoryLower.includes('battery') || categoryLower.includes('electronics')) {
+  if (
+    categoryLower.includes("battery") ||
+    categoryLower.includes("electronics")
+  ) {
     return -5;
   }
-  if (categoryLower.includes('cosmetic') || categoryLower.includes('liquid')) {
+  if (categoryLower.includes("cosmetic") || categoryLower.includes("liquid")) {
     return -5;
   }
-  if (categoryLower.includes('food')) {
+  if (categoryLower.includes("food")) {
     return -10; // Food has customs/expiry risks
   }
-  if (categoryLower.includes('medicine') || categoryLower.includes('pharmaceutical')) {
+  if (
+    categoryLower.includes("medicine") ||
+    categoryLower.includes("pharmaceutical")
+  ) {
     return -15; // Medicines require special handling
   }
-  
+
   // Low risk categories
-  if (categoryLower.includes('book') || categoryLower.includes('clothing')) {
+  if (categoryLower.includes("book") || categoryLower.includes("clothing")) {
     return 5; // Books and clothing are generally safe
   }
 
   return 0; // Neutral
 }
-

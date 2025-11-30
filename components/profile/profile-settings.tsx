@@ -2,7 +2,13 @@
 
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "../ui/card";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
@@ -19,6 +25,11 @@ import {
   SelectValue,
 } from "../ui/select";
 import { CURRENCIES } from "../../lib/utils/currency";
+import {
+  COUNTRIES,
+  COUNTRY_TO_CURRENCY,
+  getCurrencyForCountry,
+} from "../../lib/utils/countries";
 import type { ProfileUpdate } from "../../types/supabase";
 
 export function ProfileSettings() {
@@ -35,7 +46,10 @@ export function ProfileSettings() {
     confirm: false,
     current: false,
   });
-  const [passwordMessage, setPasswordMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [passwordMessage, setPasswordMessage] = useState<{
+    type: "success" | "error";
+    text: string;
+  } | null>(null);
   const [passwordLoading, setPasswordLoading] = useState(false);
 
   type ProfileSettingsData = {
@@ -44,6 +58,7 @@ export function ProfileSettings() {
     prefer_imperial_units?: boolean;
     notify_route_matches?: boolean;
     preferred_currency?: string;
+    country_of_residence?: string | null;
     phone?: string | null;
   };
 
@@ -53,11 +68,13 @@ export function ProfileSettings() {
       if (!user) return null;
       const { data, error } = await supabase
         .from("profiles")
-        .select("is_boater, boat_name, prefer_imperial_units, notify_route_matches, preferred_currency, phone")
+        .select(
+          "is_boater, boat_name, prefer_imperial_units, notify_route_matches, preferred_currency, country_of_residence, phone"
+        )
         .eq("user_id", user.id)
         .single();
-      
-      if (error && error.code !== 'PGRST116') {
+
+      if (error && error.code !== "PGRST116") {
         console.warn("Error fetching profile settings:", error);
         return null;
       }
@@ -66,17 +83,21 @@ export function ProfileSettings() {
     enabled: !!user,
   });
 
-  const { data: userData } = useQuery<{ completed_deliveries_count?: number } | null>({
+  const { data: userData } = useQuery<{
+    completed_deliveries_count?: number;
+  } | null>({
     queryKey: ["user-completed-deliveries", user?.id],
-    queryFn: async (): Promise<{ completed_deliveries_count?: number } | null> => {
+    queryFn: async (): Promise<{
+      completed_deliveries_count?: number;
+    } | null> => {
       if (!user) return null;
       const { data, error } = await supabase
         .from("users")
         .select("completed_deliveries_count")
         .eq("id", user.id)
         .single();
-      
-      if (error && error.code !== 'PGRST116') {
+
+      if (error && error.code !== "PGRST116") {
         console.warn("Error fetching user data:", error);
         return null;
       }
@@ -91,6 +112,7 @@ export function ProfileSettings() {
     prefer_imperial_units?: boolean;
     notify_route_matches?: boolean;
     preferred_currency?: string;
+    country_of_residence?: string | null;
   };
 
   const updateProfileMutation = useMutation<void, Error, ProfileUpdateLocal>({
@@ -105,9 +127,10 @@ export function ProfileSettings() {
           prefer_imperial_units: updates.prefer_imperial_units ?? undefined,
           notify_route_matches: updates.notify_route_matches ?? undefined,
           preferred_currency: updates.preferred_currency ?? undefined,
+          country_of_residence: updates.country_of_residence ?? undefined,
         })
         .eq("user_id", user.id);
-      
+
       if (error) throw error;
     },
     onSuccess: () => {
@@ -212,7 +235,8 @@ export function ProfileSettings() {
                 I live on a boat or I&apos;m a digital nomad
               </Label>
               <p className="text-sm text-slate-500">
-                Show your boat name and get the golden anchor badge after 5+ deliveries
+                Show your boat name and get the golden anchor badge after 5+
+                deliveries
               </p>
             </div>
             <Switch
@@ -223,7 +247,7 @@ export function ProfileSettings() {
               }}
             />
           </div>
-          
+
           {profile?.is_boater && (
             <div className="space-y-2">
               <Label htmlFor="boat_name">Boat Name (Optional)</Label>
@@ -231,7 +255,9 @@ export function ProfileSettings() {
                 id="boat_name"
                 value={profile?.boat_name || ""}
                 onChange={(e) => {
-                  updateProfileMutation.mutate({ boat_name: e.target.value || null });
+                  updateProfileMutation.mutate({
+                    boat_name: e.target.value || null,
+                  });
                 }}
                 placeholder="e.g., Sea Breeze"
               />
@@ -239,17 +265,18 @@ export function ProfileSettings() {
           )}
 
           {hasGoldenAnchor && (
-            <div className="flex items-center gap-2 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <div className="flex items-center gap-2 rounded-lg border border-yellow-200 bg-yellow-50 p-3">
               <Anchor className="h-5 w-5 text-yellow-600" />
               <span className="text-sm text-yellow-800">
-                🏆 Golden Anchor Badge: You&apos;ve completed {completedDeliveries} deliveries!
+                🏆 Golden Anchor Badge: You&apos;ve completed{" "}
+                {completedDeliveries} deliveries!
               </span>
             </div>
           )}
         </div>
 
         {/* Imperial Units Preference */}
-        <div className="flex items-center justify-between pt-4 border-t">
+        <div className="flex items-center justify-between border-t pt-4">
           <div className="space-y-0.5">
             <Label htmlFor="prefer_imperial" className="text-base">
               Prefer Imperial Units
@@ -268,7 +295,7 @@ export function ProfileSettings() {
         </div>
 
         {/* Route Match Notifications */}
-        <div className="flex items-center justify-between pt-4 border-t">
+        <div className="flex items-center justify-between border-t pt-4">
           <div className="space-y-0.5">
             <Label htmlFor="notify_route_matches" className="text-base">
               Notify me when someone needs something on routes I travel
@@ -286,9 +313,45 @@ export function ProfileSettings() {
           />
         </div>
 
+        {/* Country of Residence */}
+        <div className="space-y-2 border-t pt-4">
+          <Label htmlFor="country_of_residence">Country of Residence</Label>
+          <Select
+            value={profile?.country_of_residence || ""}
+            onValueChange={(value) => {
+              const currency = getCurrencyForCountry(value);
+              updateProfileMutation.mutate({
+                country_of_residence: value,
+                // Auto-update currency if country has a default currency
+                ...(currency ? { preferred_currency: currency } : {}),
+              });
+            }}
+          >
+            <SelectTrigger id="country_of_residence">
+              <SelectValue placeholder="Select your country" />
+            </SelectTrigger>
+            <SelectContent>
+              {COUNTRIES.map((country) => (
+                <SelectItem key={country.code} value={country.code}>
+                  {country.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <p className="text-xs text-slate-500">
+            Your country of residence helps us provide better service and may
+            auto-set your currency preference.
+          </p>
+        </div>
+
         {/* Preferred Currency */}
-        <div className="space-y-2 pt-4 border-t">
-          <Label htmlFor="preferred_currency">Preferred Currency</Label>
+        <div className="space-y-2 border-t pt-4">
+          <div className="flex items-center justify-between">
+            <Label htmlFor="preferred_currency">Preferred Currency</Label>
+            <span className="text-xs text-slate-500">
+              Stays the same worldwide
+            </span>
+          </div>
           <Select
             value={profile?.preferred_currency || "USD"}
             onValueChange={(value) => {
@@ -306,18 +369,23 @@ export function ProfileSettings() {
               ))}
             </SelectContent>
           </Select>
+          <p className="text-xs text-slate-500">
+            Your preferred currency will be used for all prices, regardless of
+            your current location. Set this to your home currency (e.g., AUD if
+            you&apos;re from Australia) to keep prices consistent.
+          </p>
         </div>
 
         {/* Password Management */}
-        <div className="space-y-4 pt-4 border-t">
+        <div className="space-y-4 border-t pt-4">
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label className="text-base flex items-center gap-2">
+              <Label className="flex items-center gap-2 text-base">
                 <Lock className="h-4 w-4" />
                 Password Login
               </Label>
               <p className="text-sm text-slate-500">
-                {passwordSectionOpen 
+                {passwordSectionOpen
                   ? "Set a password to enable password login (in addition to magic link and Google OAuth)"
                   : "Set a password to enable password login. You can still use magic link or Google OAuth."}
               </p>
@@ -338,7 +406,10 @@ export function ProfileSettings() {
           </div>
 
           {passwordSectionOpen && (
-            <form onSubmit={handleSetPassword} className="space-y-4 p-4 bg-slate-50 rounded-lg border">
+            <form
+              onSubmit={handleSetPassword}
+              className="space-y-4 rounded-lg border bg-slate-50 p-4"
+            >
               <div className="space-y-2">
                 <Label htmlFor="newPassword">New Password</Label>
                 <div className="relative">
@@ -355,7 +426,12 @@ export function ProfileSettings() {
                   />
                   <button
                     type="button"
-                    onClick={() => setShowPasswords({ ...showPasswords, new: !showPasswords.new })}
+                    onClick={() =>
+                      setShowPasswords({
+                        ...showPasswords,
+                        new: !showPasswords.new,
+                      })
+                    }
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700"
                   >
                     {showPasswords.new ? (
@@ -383,7 +459,12 @@ export function ProfileSettings() {
                   />
                   <button
                     type="button"
-                    onClick={() => setShowPasswords({ ...showPasswords, confirm: !showPasswords.confirm })}
+                    onClick={() =>
+                      setShowPasswords({
+                        ...showPasswords,
+                        confirm: !showPasswords.confirm,
+                      })
+                    }
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700"
                   >
                     {showPasswords.confirm ? (
@@ -397,10 +478,10 @@ export function ProfileSettings() {
 
               {passwordMessage && (
                 <div
-                  className={`p-3 rounded-md text-sm ${
+                  className={`rounded-md p-3 text-sm ${
                     passwordMessage.type === "success"
-                      ? "bg-green-50 text-green-800 border border-green-200"
-                      : "bg-red-50 text-red-800 border border-red-200"
+                      ? "border border-green-200 bg-green-50 text-green-800"
+                      : "border border-red-200 bg-red-50 text-red-800"
                   }`}
                 >
                   {passwordMessage.text}
@@ -431,8 +512,7 @@ export function ProfileSettings() {
                 • Password login
                 <br />
                 • Magic link (passwordless)
-                <br />
-                • Google OAuth
+                <br />• Google OAuth
               </p>
             </form>
           )}
@@ -441,4 +521,3 @@ export function ProfileSettings() {
     </Card>
   );
 }
-

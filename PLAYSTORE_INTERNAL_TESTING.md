@@ -83,6 +83,7 @@ The Fastlane configuration is in `android/fastlane/`:
 ### 5. Set Environment Variables
 
 For staging builds, set:
+
 ```bash
 export NEXT_PUBLIC_APP_ENV=staging
 export GOOGLE_PLAY_JSON_KEY_FILE=/path/to/service-account.json
@@ -94,6 +95,7 @@ export KEY_ALIAS=staging
 ### 6. Configure GitHub Secrets
 
 Add these secrets to GitHub repository:
+
 - `STAGING_GOOGLE_PLAY_JSON` (base64-encoded service account JSON)
 - `STAGING_ANDROID_KEYSTORE` (base64-encoded keystore file)
 - `STAGING_KEYSTORE_PASSWORD`
@@ -131,6 +133,7 @@ fastlane android beta_staging
 ### `beta_staging`
 
 Builds and uploads staging build to Internal Testing:
+
 - Cleans previous builds
 - Builds staging release AAB
 - Uploads to Internal Testing track
@@ -139,11 +142,13 @@ Builds and uploads staging build to Internal Testing:
 ### `beta`
 
 Builds and uploads production build to Internal Testing:
+
 - Same as `beta_staging` but uses production environment
 
 ### `release`
 
 Builds and uploads to Production:
+
 - Builds release AAB
 - Uploads to Production track
 - Sets release status to "draft" (manual review required)
@@ -151,6 +156,7 @@ Builds and uploads to Production:
 ## Build Variants
 
 The Android project uses build variants:
+
 - `debug` - Development builds
 - `stagingRelease` - Staging builds
 - `release` - Production builds
@@ -160,6 +166,7 @@ Staging builds use the `stagingRelease` variant configured in `android/app/build
 ## Version Management
 
 Version is managed in `android/app/build.gradle`:
+
 ```gradle
 android {
     defaultConfig {
@@ -185,6 +192,7 @@ Increment `versionCode` for each upload. Update `versionName` for major releases
 ## Changelog
 
 Add changelog when deploying:
+
 ```bash
 export CHANGELOG="Staging build - Fixed match creation bug"
 fastlane android beta_staging
@@ -270,4 +278,3 @@ Or in GitHub Actions, it's auto-generated with date.
 - [ ] Create beta testing guidelines
 - [ ] Set up feedback collection system
 - [ ] Monitor Play Console analytics
-

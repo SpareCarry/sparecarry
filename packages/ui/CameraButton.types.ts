@@ -1,4 +1,4 @@
-import type React from 'react';
+import type React from "react";
 
 export interface CameraCaptureResult {
   uri: string;
@@ -13,4 +13,3 @@ export interface CameraButtonProps {
   className?: string;
   style?: any;
 }
-

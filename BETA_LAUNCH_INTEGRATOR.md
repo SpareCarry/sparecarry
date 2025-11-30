@@ -69,7 +69,8 @@ git pull origin main
 git checkout main
 ```
 
-**Verification**: 
+**Verification**:
+
 - [ ] Repository is up to date
 - [ ] On correct branch (usually `main` or `staging`)
 
@@ -86,6 +87,7 @@ pnpm list --depth=0
 ```
 
 **Verification**:
+
 - [ ] No installation errors
 - [ ] All dependencies listed in `package.json` are installed
 
@@ -103,6 +105,7 @@ cp .env.local.example .env.staging
 ```
 
 **Required Variables** (see `GITHUB_SECRETS_MAPPING.md` for full list):
+
 - `NEXT_PUBLIC_APP_ENV=staging`
 - `NEXT_PUBLIC_APP_URL=https://staging.sparecarry.com`
 - `NEXT_PUBLIC_SUPABASE_URL=https://xxxxx.supabase.co`
@@ -115,6 +118,7 @@ cp .env.local.example .env.staging
 - `NEXT_PUBLIC_UNLEASH_CLIENT_KEY=your-key`
 
 **Verification**:
+
 - [ ] `.env.staging` file exists
 - [ ] All required variables are set
 - [ ] No secrets committed to git
@@ -131,6 +135,7 @@ pnpm preflight:beta
 ```
 
 **What it checks**:
+
 - Environment files exist
 - Required scripts exist
 - Fastlane configuration
@@ -139,6 +144,7 @@ pnpm preflight:beta
 - Environment variables validated
 
 **Verification**:
+
 - [ ] All checks pass (green ✅)
 - [ ] No critical failures (red ❌)
 - [ ] Warnings reviewed (yellow ⚠️)
@@ -153,6 +159,7 @@ pnpm validate:env staging
 ```
 
 **What it validates**:
+
 - Core application variables
 - Supabase configuration
 - Stripe keys (test mode for staging)
@@ -162,6 +169,7 @@ pnpm validate:env staging
 - OAuth credentials
 
 **Verification**:
+
 - [ ] All required variables pass
 - [ ] Optional variables noted
 - [ ] Format validation passes
@@ -185,6 +193,7 @@ pnpm test:e2e
 ```
 
 **Verification**:
+
 - [ ] TypeScript compiles without errors
 - [ ] Linting passes
 - [ ] Unit tests pass
@@ -209,6 +218,7 @@ pnpm test:e2e
    - Service Role Key: From Settings → API
 
 **Verification**:
+
 - [ ] Project created successfully
 - [ ] Credentials saved to `.env.staging`
 - [ ] Can access Supabase Dashboard
@@ -223,6 +233,7 @@ pnpm db:migrate:staging
 ```
 
 **What it does**:
+
 - Applies main schema (`supabase/schema.sql`)
 - Sets up storage buckets
 - Configures realtime
@@ -230,6 +241,7 @@ pnpm db:migrate:staging
 - Seeds meetup locations
 
 **Verification**:
+
 - [ ] All migrations applied successfully
 - [ ] Tables created in Supabase Dashboard
 - [ ] RLS policies enabled
@@ -248,6 +260,7 @@ pnpm db:seed:staging --reset
 ```
 
 **What it creates**:
+
 - 5 test users (travelers, requesters, sailor)
 - 3 test trips
 - 5 test requests
@@ -256,11 +269,13 @@ pnpm db:seed:staging --reset
 - 1 test delivery with dispute
 
 **Verification**:
+
 - [ ] Test data created successfully
 - [ ] Can log in with test credentials
 - [ ] Data visible in Supabase Dashboard
 
 **Test Credentials**:
+
 ```
 Traveler 1: test-traveler1@sparecarry.test / Test123!@#
 Requester 1: test-requester1@sparecarry.test / Test123!@#
@@ -281,6 +296,7 @@ pnpm validate:export
 ```
 
 **Verification**:
+
 - [ ] Build completes without errors
 - [ ] `out/` folder created
 - [ ] Static export validation passes
@@ -296,12 +312,14 @@ pnpm mobile:build:staging
 ```
 
 **What it does**:
+
 - Builds Next.js app for staging
 - Validates export
 - Injects environment variables into Capacitor
 - Syncs with native projects
 
 **Verification**:
+
 - [ ] Build completes successfully
 - [ ] `out/` folder exists
 - [ ] Capacitor sync successful
@@ -320,12 +338,14 @@ pnpm verify:mobile android path/to/app.aab
 ```
 
 **What it verifies**:
+
 - Bundle ID / Package name (staging suffix)
 - Version numbers
 - Code signing / Certificates
 - Environment variables (if jadx available)
 
 **Verification**:
+
 - [ ] All checks pass
 - [ ] Staging identifiers correct
 - [ ] Signing valid
@@ -354,6 +374,7 @@ vercel --prod --env-file=.env.staging
 ```
 
 **Verification**:
+
 - [ ] Deployment successful
 - [ ] Staging URL accessible
 - [ ] Environment variables loaded
@@ -389,6 +410,7 @@ pnpm mobile:android
 ```
 
 **Verification**:
+
 - [ ] Builds complete successfully
 - [ ] Artifacts generated (IPA/AAB)
 - [ ] Version numbers correct
@@ -409,6 +431,7 @@ open https://staging.sparecarry.com/api/health
 ```
 
 **Expected Response**:
+
 ```json
 {
   "status": "ok",
@@ -425,6 +448,7 @@ open https://staging.sparecarry.com/api/health
 ```
 
 **Verification**:
+
 - [ ] Health check returns `200 OK`
 - [ ] All services show `"status": "ok"`
 - [ ] No degraded services
@@ -442,6 +466,7 @@ open https://staging.sparecarry.com/api/health
    - Environment is `staging`
 
 **Verification**:
+
 - [ ] Sentry dashboard accessible
 - [ ] Test error captured (use `/api/health/error-test`)
 - [ ] Performance traces visible
@@ -459,6 +484,7 @@ open https://staging.sparecarry.com/api/health
    - `FF_STAGING_ONLY` (on for staging)
 
 **Verification**:
+
 - [ ] Feature flag service accessible
 - [ ] Flags configured correctly
 - [ ] Client can fetch flags
@@ -476,6 +502,7 @@ open https://staging.sparecarry.com/api/health
    - Signature verification working
 
 **Verification**:
+
 - [ ] Webhook endpoint configured
 - [ ] Test events received
 - [ ] Signature verification passes
@@ -497,6 +524,7 @@ k6 run scenarios/steady.js --env STAGING_URL=https://staging.sparecarry.com
 ```
 
 **What it tests**:
+
 - Browse scenarios
 - Post request flow
 - Match flow
@@ -504,6 +532,7 @@ k6 run scenarios/steady.js --env STAGING_URL=https://staging.sparecarry.com
 - Payment flow (mocked)
 
 **Verification**:
+
 - [ ] Load tests complete
 - [ ] Thresholds met (p95 < 500ms, error rate < 0.5%)
 - [ ] No critical failures
@@ -533,6 +562,7 @@ fastlane ios beta_staging
 7. Add to TestFlight group
 
 **Verification**:
+
 - [ ] Build uploaded successfully
 - [ ] Processing complete
 - [ ] Available in TestFlight
@@ -559,6 +589,7 @@ fastlane android beta_staging
 6. Review and publish
 
 **Verification**:
+
 - [ ] AAB uploaded successfully
 - [ ] Release created
 - [ ] Available to testers
@@ -577,6 +608,7 @@ curl https://staging.sparecarry.com/api/auth/signup -X POST -d '{"email":"test@e
 ```
 
 **Checklist**:
+
 - [ ] Homepage loads
 - [ ] Authentication works
 - [ ] API endpoints respond
@@ -588,6 +620,7 @@ curl https://staging.sparecarry.com/api/auth/signup -X POST -d '{"email":"test@e
 #### Step 9.2: Verify Mobile Apps
 
 **iOS (TestFlight)**:
+
 - [ ] App installs successfully
 - [ ] App launches without crashes
 - [ ] Login works
@@ -595,6 +628,7 @@ curl https://staging.sparecarry.com/api/auth/signup -X POST -d '{"email":"test@e
 - [ ] Push notifications work (if enabled)
 
 **Android (Play Store)**:
+
 - [ ] App installs successfully
 - [ ] App launches without crashes
 - [ ] Login works
@@ -613,6 +647,7 @@ curl https://staging.sparecarry.com/api/auth/signup -X POST -d '{"email":"test@e
    - No PII leakage
 
 **Verification**:
+
 - [ ] Error rate acceptable
 - [ ] No critical issues
 - [ ] Performance normal
@@ -625,6 +660,7 @@ curl https://staging.sparecarry.com/api/auth/signup -X POST -d '{"email":"test@e
 #### Step 10.1: Determine if Rollback Needed
 
 **Rollback triggers**:
+
 - Critical bugs affecting > 10% of users
 - Security vulnerabilities
 - Data corruption
@@ -635,22 +671,26 @@ curl https://staging.sparecarry.com/api/auth/signup -X POST -d '{"email":"test@e
 #### Step 10.2: Execute Rollback
 
 **Web (Vercel)**:
+
 ```bash
 # Promote previous deployment
 # Or via Vercel Dashboard → Deployments → Promote
 ```
 
 **Database**:
+
 ```bash
 # Rollback last migration
 pnpm db:rollback:staging
 ```
 
 **Mobile**:
+
 - **iOS**: Remove build from TestFlight, notify testers
 - **Android**: Deactivate release in Play Console, activate previous
 
 **Verification**:
+
 - [ ] Rollback completed
 - [ ] Services restored
 - [ ] Users notified
@@ -661,6 +701,7 @@ pnpm db:rollback:staging
 ## 📊 Verification Checklist
 
 ### Pre-Launch
+
 - [ ] Preflight check passes
 - [ ] Environment variables validated
 - [ ] Database migrations applied
@@ -673,6 +714,7 @@ pnpm db:rollback:staging
 - [ ] Stripe webhooks configured
 
 ### Post-Launch
+
 - [ ] Web staging accessible
 - [ ] Mobile apps installable
 - [ ] Health check returns OK
@@ -721,18 +763,23 @@ pnpm loadtest
 ### Common Issues
 
 **Issue**: Preflight check fails
+
 - **Solution**: Check error messages, fix missing files/variables
 
 **Issue**: Database migration fails
+
 - **Solution**: Check Supabase credentials, verify SQL syntax
 
 **Issue**: Mobile build fails
+
 - **Solution**: Check Capacitor sync, verify native project configs
 
 **Issue**: Health check fails
+
 - **Solution**: Check service credentials, verify network connectivity
 
 **Issue**: Sentry not capturing errors
+
 - **Solution**: Verify DSN, check source maps, verify initialization
 
 ---
@@ -764,4 +811,3 @@ After completing all steps:
 
 **Last Updated**: 2024-12-19  
 **Version**: 1.0.0
-

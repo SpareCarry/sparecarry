@@ -1,7 +1,12 @@
 import { z } from "zod";
 
 // User schemas
-export const userRoleSchema = z.enum(["requester", "traveler", "sailor", "admin"]);
+export const userRoleSchema = z.enum([
+  "requester",
+  "traveler",
+  "sailor",
+  "admin",
+]);
 
 export const profileSchema = z.object({
   phone: z.string().optional(),
@@ -36,7 +41,13 @@ export const tripSchema = z.object({
 });
 
 // Request schemas
-export const preferredMethodSchema = z.enum(["plane", "boat", "any", "quickest", "best_fit"]);
+export const preferredMethodSchema = z.enum([
+  "plane",
+  "boat",
+  "any",
+  "quickest",
+  "best_fit",
+]);
 
 export const requestSchema = z.object({
   title: z.string().min(1).max(200),
@@ -90,7 +101,11 @@ export const deliverySchema = z.object({
 });
 
 // Meetup location schemas
-export const meetupLocationTypeSchema = z.enum(["airport", "marina", "fuel_dock"]);
+export const meetupLocationTypeSchema = z.enum([
+  "airport",
+  "marina",
+  "fuel_dock",
+]);
 
 export const meetupLocationSchema = z.object({
   name: z.string().min(1),
@@ -104,4 +119,3 @@ export const meetupLocationSchema = z.object({
   website: z.string().url().optional(),
   notes: z.string().optional(),
 });
-

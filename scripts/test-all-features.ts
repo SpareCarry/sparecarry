@@ -1,6 +1,6 @@
 /**
  * Comprehensive Automated Test Suite for SpareCarry
- * 
+ *
  * This script automatically tests all critical features:
  * - Authentication
  * - Posting trips/requests
@@ -11,11 +11,11 @@
  * - Auto-release cron
  */
 
-import { createClient } from '../lib/supabase/server';
-import { stripe } from '../lib/stripe/server';
+import { createClient } from "../lib/supabase/server";
+import { stripe } from "../lib/stripe/server";
 
-const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-const CRON_SECRET = process.env.CRON_SECRET || '';
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+const CRON_SECRET = process.env.CRON_SECRET || "";
 
 interface TestResult {
   feature: string;
@@ -26,7 +26,10 @@ interface TestResult {
 
 const results: TestResult[] = [];
 
-async function testFeature(name: string, fn: () => Promise<any>): Promise<void> {
+async function testFeature(
+  name: string,
+  fn: () => Promise<any>
+): Promise<void> {
   try {
     console.log(`\n🧪 Testing: ${name}...`);
     const details = await fn();
@@ -41,19 +44,19 @@ async function testFeature(name: string, fn: () => Promise<any>): Promise<void> 
 // Test 1: API Endpoints are accessible
 async function testAPIEndpoints() {
   const endpoints = [
-    '/api/matches/auto-match',
-    '/api/payments/create-intent',
-    '/api/payments/confirm-delivery',
-    '/api/payments/auto-release',
-    '/api/notifications/register-token',
-    '/api/notifications/send-message',
+    "/api/matches/auto-match",
+    "/api/payments/create-intent",
+    "/api/payments/confirm-delivery",
+    "/api/payments/auto-release",
+    "/api/notifications/register-token",
+    "/api/notifications/send-message",
   ];
 
   for (const endpoint of endpoints) {
     try {
       const response = await fetch(`${BASE_URL}${endpoint}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ test: true }),
       });
       // 404 or 401 is OK - means endpoint exists, just needs auth
@@ -70,7 +73,7 @@ async function testAPIEndpoints() {
 // Test 2: Database connectivity
 async function testDatabase() {
   const supabase = await createClient();
-  const { data, error } = await supabase.from('users').select('count').limit(1);
+  const { data, error } = await supabase.from("users").select("count").limit(1);
   if (error) throw error;
   return { connected: true, canQuery: true };
 }
@@ -88,14 +91,14 @@ async function testStripe() {
 // Test 4: Environment variables
 async function testEnvironmentVariables() {
   const required = [
-    'NEXT_PUBLIC_SUPABASE_URL',
-    'NEXT_PUBLIC_SUPABASE_ANON_KEY',
-    'SUPABASE_SERVICE_ROLE_KEY',
-    'STRIPE_SECRET_KEY',
-    'STRIPE_WEBHOOK_SECRET',
-    'RESEND_API_KEY',
-    'NOTIFICATIONS_EMAIL_FROM',
-    'CRON_SECRET',
+    "NEXT_PUBLIC_SUPABASE_URL",
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+    "SUPABASE_SERVICE_ROLE_KEY",
+    "STRIPE_SECRET_KEY",
+    "STRIPE_WEBHOOK_SECRET",
+    "RESEND_API_KEY",
+    "NOTIFICATIONS_EMAIL_FROM",
+    "CRON_SECRET",
   ];
 
   const missing: string[] = [];
@@ -106,7 +109,7 @@ async function testEnvironmentVariables() {
   }
 
   if (missing.length > 0) {
-    throw new Error(`Missing environment variables: ${missing.join(', ')}`);
+    throw new Error(`Missing environment variables: ${missing.join(", ")}`);
   }
 
   return { allPresent: true };
@@ -115,15 +118,15 @@ async function testEnvironmentVariables() {
 // Test 5: Auto-release cron endpoint
 async function testAutoReleaseCron() {
   const response = await fetch(`${BASE_URL}/api/payments/auto-release`, {
-    method: 'POST',
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${CRON_SECRET}`,
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${CRON_SECRET}`,
     },
   });
 
   if (response.status === 401 && !CRON_SECRET) {
-    throw new Error('CRON_SECRET not set');
+    throw new Error("CRON_SECRET not set");
   }
 
   // 200 means it ran (even if no deliveries to process)
@@ -138,12 +141,9 @@ async function testAutoReleaseCron() {
 // Test 6: Create test trip
 async function testCreateTrip() {
   const supabase = await createClient();
-  
+
   // This would require a test user - just verify the table exists
-  const { error } = await supabase
-    .from('trips')
-    .select('id')
-    .limit(1);
+  const { error } = await supabase.from("trips").select("id").limit(1);
 
   if (error) throw error;
   return { tableExists: true, canQuery: true };
@@ -152,11 +152,8 @@ async function testCreateTrip() {
 // Test 7: Create test request
 async function testCreateRequest() {
   const supabase = await createClient();
-  
-  const { error } = await supabase
-    .from('requests')
-    .select('id')
-    .limit(1);
+
+  const { error } = await supabase.from("requests").select("id").limit(1);
 
   if (error) throw error;
   return { tableExists: true, canQuery: true };
@@ -165,13 +162,13 @@ async function testCreateRequest() {
 // Test 8: Matching algorithm
 async function testMatchingAlgorithm() {
   // Import and test the matching function
-  const { calculateMatchScore } = await import('../lib/matching/match-score');
-  
+  const { calculateMatchScore } = await import("../lib/matching/match-score");
+
   const testResult = calculateMatchScore({
-    requestFrom: 'Miami',
-    requestTo: 'St Martin',
-    tripFrom: 'Miami',
-    tripTo: 'St Martin',
+    requestFrom: "Miami",
+    requestTo: "St Martin",
+    tripFrom: "Miami",
+    tripTo: "St Martin",
     requestEarliest: new Date().toISOString(),
     requestLatest: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
     tripDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
@@ -183,12 +180,12 @@ async function testMatchingAlgorithm() {
     travelerVerifiedSailor: false,
     travelerCompletedDeliveries: 5,
     travelerSubscribed: true,
-    requestPreferredMethod: 'plane',
-    tripType: 'plane',
+    requestPreferredMethod: "plane",
+    tripType: "plane",
   });
 
-  if (!testResult || typeof testResult.totalScore !== 'number') {
-    throw new Error('Matching algorithm returned invalid result');
+  if (!testResult || typeof testResult.totalScore !== "number") {
+    throw new Error("Matching algorithm returned invalid result");
   }
 
   return { algorithmWorks: true, sampleScore: testResult.totalScore };
@@ -197,16 +194,16 @@ async function testMatchingAlgorithm() {
 // Test 9: Payment intent creation
 async function testPaymentIntentCreation() {
   if (!process.env.STRIPE_SECRET_KEY) {
-    throw new Error('Stripe secret key not configured');
+    throw new Error("Stripe secret key not configured");
   }
 
   try {
     // Just verify we can create a payment intent (we'll cancel it)
     const intent = await stripe.paymentIntents.create({
       amount: 5000, // $50
-      currency: 'usd',
-      metadata: { test: 'true' },
-      description: 'Test payment intent',
+      currency: "usd",
+      metadata: { test: "true" },
+      description: "Test payment intent",
     });
 
     // Cancel it immediately
@@ -233,7 +230,7 @@ async function testNotificationServices() {
   }
 
   if (Object.keys(checks).length === 0) {
-    throw new Error('No notification services configured');
+    throw new Error("No notification services configured");
   }
 
   return checks;
@@ -241,29 +238,29 @@ async function testNotificationServices() {
 
 // Run all tests
 async function runAllTests() {
-  console.log('🚀 Starting Comprehensive Feature Tests...\n');
-  console.log('=' .repeat(60));
+  console.log("🚀 Starting Comprehensive Feature Tests...\n");
+  console.log("=".repeat(60));
 
-  await testFeature('Environment Variables', testEnvironmentVariables);
-  await testFeature('Database Connectivity', testDatabase);
-  await testFeature('Stripe Connectivity', testStripe);
-  await testFeature('API Endpoints', testAPIEndpoints);
-  await testFeature('Auto-Release Cron', testAutoReleaseCron);
-  await testFeature('Trips Table', testCreateTrip);
-  await testFeature('Requests Table', testCreateRequest);
-  await testFeature('Matching Algorithm', testMatchingAlgorithm);
-  await testFeature('Payment Intent Creation', testPaymentIntentCreation);
-  await testFeature('Notification Services', testNotificationServices);
+  await testFeature("Environment Variables", testEnvironmentVariables);
+  await testFeature("Database Connectivity", testDatabase);
+  await testFeature("Stripe Connectivity", testStripe);
+  await testFeature("API Endpoints", testAPIEndpoints);
+  await testFeature("Auto-Release Cron", testAutoReleaseCron);
+  await testFeature("Trips Table", testCreateTrip);
+  await testFeature("Requests Table", testCreateRequest);
+  await testFeature("Matching Algorithm", testMatchingAlgorithm);
+  await testFeature("Payment Intent Creation", testPaymentIntentCreation);
+  await testFeature("Notification Services", testNotificationServices);
 
   // Print summary
-  console.log('\n' + '='.repeat(60));
-  console.log('\n📊 TEST SUMMARY\n');
+  console.log("\n" + "=".repeat(60));
+  console.log("\n📊 TEST SUMMARY\n");
 
-  const passed = results.filter(r => r.passed).length;
-  const failed = results.filter(r => !r.passed).length;
+  const passed = results.filter((r) => r.passed).length;
+  const failed = results.filter((r) => !r.passed).length;
 
-  results.forEach(result => {
-    const icon = result.passed ? '✅' : '❌';
+  results.forEach((result) => {
+    const icon = result.passed ? "✅" : "❌";
     console.log(`${icon} ${result.feature}`);
     if (!result.passed && result.error) {
       console.log(`   Error: ${result.error}`);
@@ -275,18 +272,18 @@ async function runAllTests() {
   console.log(`📈 Total: ${results.length}`);
 
   if (failed > 0) {
-    console.log('\n⚠️  Some tests failed. Please review the errors above.');
+    console.log("\n⚠️  Some tests failed. Please review the errors above.");
     process.exit(1);
   } else {
-    console.log('\n🎉 All tests passed! Your app is ready for production.');
+    console.log("\n🎉 All tests passed! Your app is ready for production.");
     process.exit(0);
   }
 }
 
 // Run if called directly (Node.js)
-if (typeof require !== 'undefined' && require.main === module) {
-  runAllTests().catch(error => {
-    console.error('Fatal error:', error);
+if (typeof require !== "undefined" && require.main === module) {
+  runAllTests().catch((error) => {
+    console.error("Fatal error:", error);
     process.exit(1);
   });
 }
@@ -295,4 +292,3 @@ if (typeof require !== 'undefined' && require.main === module) {
 export default runAllTests;
 
 export { runAllTests, testFeature };
-

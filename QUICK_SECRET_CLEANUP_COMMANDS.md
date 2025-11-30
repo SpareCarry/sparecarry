@@ -241,6 +241,7 @@ Get-Content .gitignore | Select-String -Pattern "\.env"
 ```
 
 Should show:
+
 - `.env*.local`
 - `.env`
 - `.env.production`
@@ -268,5 +269,3 @@ Should show:
 ---
 
 **See `GIT_SECRET_CLEANUP_GUIDE.md` for detailed explanations.**
-
-

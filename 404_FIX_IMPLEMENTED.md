@@ -3,15 +3,18 @@
 ## Changes Applied
 
 ### 1. ✅ Created Entry Point Shim
+
 - **File**: `apps/mobile/index.js`
 - **Content**: `import 'expo-router/entry';`
 - **Why**: Explicit local entry file makes Metro serve a known path that Expo Go expects
 
 ### 2. ✅ Updated package.json Main
+
 - **Changed**: `"main": "expo-router/entry"` → `"main": "./index.js"`
 - **Why**: Points to the local entry file instead of trying to resolve expo-router/entry directly
 
 ### 3. ✅ Replaced Metro Config
+
 - **File**: `apps/mobile/metro.config.js`
 - **Changes**:
   - Added `extraNodeModules` proxy to force resolution from app node_modules first
@@ -20,11 +23,13 @@
   - Ensures single copy of React is resolved
 
 ### 4. ✅ Updated Workspace Packages to Use peerDependencies
+
 - **packages/ui/package.json**: Moved react/react-native to peerDependencies
 - **packages/hooks/package.json**: Moved react to peerDependencies
 - **Why**: Prevents duplicate copies of React in the dependency tree
 
 ### 5. ✅ Verified Root Route Exists
+
 - **File**: `apps/mobile/app/index.tsx` already exists ✅
 - **Content**: Redirects to `/(tabs)` route
 
@@ -59,6 +64,7 @@ npx expo start -c
 ## Expected Result
 
 After running the cleanup and reinstall:
+
 - ✅ Metro serves `/index.bundle` correctly
 - ✅ Expo Go can load the app without 404 error
 - ✅ No duplicate React instances
@@ -67,8 +73,8 @@ After running the cleanup and reinstall:
 ## If Still Getting 404
 
 If the error persists after cleanup, check:
+
 1. Metro logs for the exact bundle path being requested
 2. Browser test: `http://<your-ip>:8081/index.bundle?platform=android&dev=true`
 3. Verify `apps/mobile/index.js` exists and is correct
 4. Check Metro terminal for any 404 request logs
-

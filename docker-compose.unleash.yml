@@ -1,5 +1,5 @@
 # Docker Compose for Unleash Feature Flag Server
-# 
+#
 # Usage:
 #   docker-compose -f docker-compose.unleash.yml up -d
 #
@@ -11,7 +11,7 @@
 #   - Username: admin
 #   - Password: unleash4all (change immediately!)
 
-version: '3.8'
+version: "3.8"
 
 services:
   postgres:
@@ -24,7 +24,7 @@ services:
     volumes:
       - unleash-postgres-data:/var/lib/postgresql/data
     ports:
-      - "5433:5432"  # Use 5433 to avoid conflict with local Postgres
+      - "5433:5432" # Use 5433 to avoid conflict with local Postgres
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U unleash_user"]
       interval: 10s
@@ -52,7 +52,15 @@ services:
     volumes:
       - unleash-data:/app/data
     healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:4242/api/health"]
+      test:
+        [
+          "CMD",
+          "wget",
+          "--quiet",
+          "--tries=1",
+          "--spider",
+          "http://localhost:4242/api/health",
+        ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -60,4 +68,3 @@ services:
 volumes:
   unleash-postgres-data:
   unleash-data:
-

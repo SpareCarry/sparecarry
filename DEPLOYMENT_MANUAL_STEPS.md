@@ -26,10 +26,12 @@ supabase secrets set EDGE_SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 ```
 
 **To find your project reference:**
+
 - Go to Supabase Dashboard → Settings → General
 - Copy the "Reference ID"
 
 **To find your service role key:**
+
 - Go to Supabase Dashboard → Settings → API
 - Copy the **service_role** key (secret) - ⚠️ Keep this secure!
 
@@ -88,6 +90,7 @@ The database trigger `update_user_delivery_stats()` only fires when match status
 ### Status Summary:
 
 ✅ **All completion points verified:**
+
 - Auto-release escrow: Updates to `'completed'` ✅
 - Delivery confirmation: Updates to `'completed'` ✅ (FIXED)
 - Payment button: Sets `'escrow_paid'`, then `'completed'` on delivery ✅
@@ -122,8 +125,8 @@ The database trigger `update_user_delivery_stats()` fires when match status chan
 - **No notifications received:**
   - Check `profiles.notify_route_matches` is `true` for test users
     ```sql
-    SELECT user_id, notify_route_matches, expo_push_token 
-    FROM profiles 
+    SELECT user_id, notify_route_matches, expo_push_token
+    FROM profiles
     WHERE notify_route_matches = true;
     ```
   - Verify `profiles.expo_push_token` is set (not NULL)
@@ -202,8 +205,8 @@ curl http://localhost:3000/api/referrals/leaderboard
 ---
 
 **Next Steps After Manual Setup:**
+
 - Monitor edge function logs for the first few requests
 - Test push notifications on multiple devices
 - Verify referral credits are awarded correctly
 - Check that `completed_deliveries` increments properly
-

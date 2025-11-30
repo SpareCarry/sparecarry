@@ -1,11 +1,11 @@
 /**
  * Geoapify API Helpers
- * 
+ *
  * Direct integration with Geoapify API endpoints.
  * This file contains API-specific logic. Switch providers by editing this file only.
  */
 
-import { LOCATION_CONFIG } from '../config/location.config';
+import { LOCATION_CONFIG } from "../config/location.config";
 
 export interface GeoapifyPlace {
   id?: string;
@@ -16,36 +16,46 @@ export interface GeoapifyPlace {
   raw?: any;
 }
 
-const GEOAPIFY_BASE_URL = 'https://api.geoapify.com/v1';
-const API_KEY = process.env.NEXT_PUBLIC_GEOAPIFY_KEY || process.env.EXPO_PUBLIC_GEOAPIFY_KEY || 'd6dec9413f4f495295e42d4158a3803d';
+const GEOAPIFY_BASE_URL = "https://api.geoapify.com/v1";
+const API_KEY =
+  process.env.NEXT_PUBLIC_GEOAPIFY_KEY ||
+  process.env.EXPO_PUBLIC_GEOAPIFY_KEY ||
+  "d6dec9413f4f495295e42d4158a3803d";
 
 /**
  * Client-side filter to detect marinas/ports from Geoapify feature properties
  */
 function isMarinaOrPort(feature: any): boolean {
   const props = feature.properties || {};
-  const placeName = (props.name || props.formatted || props.place_name || '').toLowerCase();
-  const category = (props.category || props.type || '').toLowerCase();
-  const poiCategory = props.poi?.category?.toLowerCase() || '';
-  
+  const placeName = (
+    props.name ||
+    props.formatted ||
+    props.place_name ||
+    ""
+  ).toLowerCase();
+  const category = (props.category || props.type || "").toLowerCase();
+  const poiCategory = props.poi?.category?.toLowerCase() || "";
+
   // Check category fields
-  const categoryMatch = category.includes('marina') || 
-                       category.includes('harbor') || 
-                       category.includes('harbour') ||
-                       category.includes('port') ||
-                       poiCategory.includes('marina') ||
-                       poiCategory.includes('harbor');
+  const categoryMatch =
+    category.includes("marina") ||
+    category.includes("harbor") ||
+    category.includes("harbour") ||
+    category.includes("port") ||
+    poiCategory.includes("marina") ||
+    poiCategory.includes("harbor");
 
   // Check place name for keywords
-  const keywordMatch = LOCATION_CONFIG.MARINA_KEYWORDS.some(keyword => 
+  const keywordMatch = LOCATION_CONFIG.MARINA_KEYWORDS.some((keyword) =>
     placeName.includes(keyword.toLowerCase())
   );
 
   // Check OSM tags if available
   const osmTags = props.osm_tags || {};
-  const osmMatch = osmTags.amenity === 'marina' ||
-                  osmTags.leisure === 'marina' ||
-                  osmTags.harbour === 'yes';
+  const osmMatch =
+    osmTags.amenity === "marina" ||
+    osmTags.leisure === "marina" ||
+    osmTags.harbour === "yes";
 
   return categoryMatch || keywordMatch || osmMatch;
 }
@@ -56,10 +66,10 @@ function isMarinaOrPort(feature: any): boolean {
 function normalizeFeature(feature: any): GeoapifyPlace {
   const props = feature.properties || {};
   const coords = feature.geometry?.coordinates || [];
-  
+
   let category: string | undefined;
   if (isMarinaOrPort(feature)) {
-    category = 'marina';
+    category = "marina";
   } else if (props.category) {
     category = props.category;
   } else if (props.type) {
@@ -68,7 +78,8 @@ function normalizeFeature(feature: any): GeoapifyPlace {
 
   return {
     id: feature.properties?.place_id || feature.id || undefined,
-    name: props.name || props.formatted || props.place_name || 'Unknown location',
+    name:
+      props.name || props.formatted || props.place_name || "Unknown location",
     lat: coords[1] || props.lat || 0,
     lon: coords[0] || props.lon || 0,
     category,
@@ -83,7 +94,7 @@ export async function geoapifyAutocomplete(
   query: string,
   opts?: {
     limit?: number;
-    filter?: 'marina' | 'port' | 'any';
+    filter?: "marina" | "port" | "any";
     bbox?: [minLon: number, minLat: number, maxLon: number, maxLat: number];
     allowFallback?: boolean;
   }
@@ -93,7 +104,7 @@ export async function geoapifyAutocomplete(
   }
 
   const limit = opts?.limit || LOCATION_CONFIG.DEFAULT_AUTOCOMPLETE_LIMIT;
-  const filter = opts?.filter || 'any';
+  const filter = opts?.filter || "any";
   const allowFallback = opts?.allowFallback !== false;
 
   try {
@@ -104,24 +115,27 @@ export async function geoapifyAutocomplete(
       text: query.trim(),
       limit: (limit * 2).toString(), // Request more to account for filtering
       apiKey: API_KEY,
-      lang: 'en',
+      lang: "en",
       // Removed 'type' parameter - let Geoapify return all location types
       // We'll filter client-side if needed
     });
 
     if (opts?.bbox) {
       const [minLon, minLat, maxLon, maxLat] = opts.bbox;
-      params.append('bias', `proximity:${(minLon + maxLon) / 2},${(minLat + maxLat) / 2}`);
+      params.append(
+        "bias",
+        `proximity:${(minLon + maxLon) / 2},${(minLat + maxLat) / 2}`
+      );
       // Geoapify supports bbox parameter
-      params.append('bbox', `${minLon},${minLat},${maxLon},${maxLat}`);
+      params.append("bbox", `${minLon},${minLat},${maxLon},${maxLat}`);
     }
 
     const url = `${GEOAPIFY_BASE_URL}/geocode/autocomplete?${params.toString()}`;
-    
+
     const response = await fetch(url, {
-      method: 'GET',
+      method: "GET",
       headers: {
-        'Accept': 'application/json',
+        Accept: "application/json",
       },
     });
 
@@ -135,12 +149,12 @@ export async function geoapifyAutocomplete(
 
     // Apply client-side marina/port filter if needed
     let results: any[] = features;
-    if (filter === 'marina' || filter === 'port') {
+    if (filter === "marina" || filter === "port") {
       results = features.filter(isMarinaOrPort);
-      
+
       // Fallback: if no marinas found and fallback allowed, return all results
       if (results.length === 0 && allowFallback) {
-        console.log('No marinas found, returning all results as fallback');
+        console.log("No marinas found, returning all results as fallback");
         results = features;
       }
     }
@@ -149,9 +163,9 @@ export async function geoapifyAutocomplete(
     return results
       .slice(0, limit)
       .map(normalizeFeature)
-      .filter(place => place.lat !== 0 && place.lon !== 0);
+      .filter((place) => place.lat !== 0 && place.lon !== 0);
   } catch (error) {
-    console.error('Geoapify autocomplete error:', error);
+    console.error("Geoapify autocomplete error:", error);
     return [];
   }
 }
@@ -172,15 +186,15 @@ export async function geoapifyReverse(
       lat: lat.toString(),
       lon: lon.toString(),
       apiKey: API_KEY,
-      lang: 'en',
+      lang: "en",
     });
 
     const url = `${GEOAPIFY_BASE_URL}/geocode/reverse?${params.toString()}`;
-    
+
     const response = await fetch(url, {
-      method: 'GET',
+      method: "GET",
       headers: {
-        'Accept': 'application/json',
+        Accept: "application/json",
       },
     });
 
@@ -198,7 +212,7 @@ export async function geoapifyReverse(
 
     return normalizeFeature(features[0]);
   } catch (error) {
-    console.error('Geoapify reverse geocode error:', error);
+    console.error("Geoapify reverse geocode error:", error);
     return null;
   }
 }
@@ -206,7 +220,9 @@ export async function geoapifyReverse(
 /**
  * Forward geocode: convert place name to lat/lon
  */
-export async function geoapifyForward(name: string): Promise<GeoapifyPlace | null> {
+export async function geoapifyForward(
+  name: string
+): Promise<GeoapifyPlace | null> {
   if (!name || name.trim().length < 2) {
     return null;
   }
@@ -214,17 +230,17 @@ export async function geoapifyForward(name: string): Promise<GeoapifyPlace | nul
   try {
     const params = new URLSearchParams({
       text: name.trim(),
-      limit: '1',
+      limit: "1",
       apiKey: API_KEY,
-      lang: 'en',
+      lang: "en",
     });
 
     const url = `${GEOAPIFY_BASE_URL}/geocode/search?${params.toString()}`;
-    
+
     const response = await fetch(url, {
-      method: 'GET',
+      method: "GET",
       headers: {
-        'Accept': 'application/json',
+        Accept: "application/json",
       },
     });
 
@@ -242,8 +258,7 @@ export async function geoapifyForward(name: string): Promise<GeoapifyPlace | nul
 
     return normalizeFeature(features[0]);
   } catch (error) {
-    console.error('Geoapify forward geocode error:', error);
+    console.error("Geoapify forward geocode error:", error);
     return null;
   }
 }
-

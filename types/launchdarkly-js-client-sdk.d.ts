@@ -1,4 +1,4 @@
-declare module 'launchdarkly-js-client-sdk' {
+declare module "launchdarkly-js-client-sdk" {
   export interface LDUser {
     key: string;
     email?: string;
@@ -30,4 +30,3 @@ declare module 'launchdarkly-js-client-sdk' {
 
   export { LDClient };
 }
-

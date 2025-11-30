@@ -15,7 +15,13 @@ import {
 } from "../ui/table";
 import { Badge } from "../ui/badge";
 import { Input } from "../ui/input";
-import { Search, Loader2, MessageSquare, CheckCircle2, XCircle } from "lucide-react";
+import {
+  Search,
+  Loader2,
+  MessageSquare,
+  CheckCircle2,
+  XCircle,
+} from "lucide-react";
 import { format } from "date-fns";
 
 export function DisputesTable() {
@@ -121,8 +127,8 @@ export function DisputesTable() {
     <div className="space-y-4">
       {/* Search */}
       <div className="flex items-center gap-2">
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
+        <div className="relative max-w-md flex-1">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform text-slate-400" />
           <Input
             placeholder="Search disputes..."
             value={searchQuery}
@@ -133,7 +139,7 @@ export function DisputesTable() {
       </div>
 
       {/* Table */}
-      <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
+      <div className="overflow-hidden rounded-lg border border-slate-200 bg-white">
         <Table>
           <TableHeader>
             <TableRow>
@@ -149,15 +155,22 @@ export function DisputesTable() {
             {disputes?.map((dispute) => {
               const trip = dispute.trips;
               const request = dispute.requests;
-              const delivery = Array.isArray(dispute.deliveries) ? dispute.deliveries[0] : dispute.deliveries;
+              const delivery = Array.isArray(dispute.deliveries)
+                ? dispute.deliveries[0]
+                : dispute.deliveries;
 
               return (
                 <TableRow key={dispute.id}>
                   <TableCell>
                     <div>
-                      <div className="font-medium">{request?.title || "Trip Match"}</div>
-                      <Badge variant="outline" className="mt-1 text-red-600 border-red-600">
-                        <MessageSquare className="h-3 w-3 mr-1" />
+                      <div className="font-medium">
+                        {request?.title || "Trip Match"}
+                      </div>
+                      <Badge
+                        variant="outline"
+                        className="mt-1 border-red-600 text-red-600"
+                      >
+                        <MessageSquare className="mr-1 h-3 w-3" />
                         Disputed
                       </Badge>
                     </div>
@@ -173,13 +186,18 @@ export function DisputesTable() {
                   </TableCell>
                   <TableCell className="text-sm text-slate-600">
                     {delivery?.dispute_opened_at
-                      ? format(new Date(delivery.dispute_opened_at), "MMM d, yyyy HH:mm")
+                      ? format(
+                          new Date(delivery.dispute_opened_at),
+                          "MMM d, yyyy HH:mm"
+                        )
                       : "—"}
                   </TableCell>
                   <TableCell>
                     <div className="text-sm">
                       <div>{trip?.users?.email}</div>
-                      <div className="text-slate-500">{request?.users?.email}</div>
+                      <div className="text-slate-500">
+                        {request?.users?.email}
+                      </div>
                     </div>
                   </TableCell>
                   <TableCell>
@@ -195,7 +213,7 @@ export function DisputesTable() {
                         }
                         disabled={resolveDisputeMutation.isPending}
                       >
-                        <CheckCircle2 className="h-4 w-4 mr-1" />
+                        <CheckCircle2 className="mr-1 h-4 w-4" />
                         Favor Requester
                       </Button>
                       <Button
@@ -209,7 +227,7 @@ export function DisputesTable() {
                         }
                         disabled={resolveDisputeMutation.isPending}
                       >
-                        <CheckCircle2 className="h-4 w-4 mr-1" />
+                        <CheckCircle2 className="mr-1 h-4 w-4" />
                         Favor Traveler
                       </Button>
                       <Button
@@ -223,7 +241,7 @@ export function DisputesTable() {
                         }
                         disabled={resolveDisputeMutation.isPending}
                       >
-                        <XCircle className="h-4 w-4 mr-1" />
+                        <XCircle className="mr-1 h-4 w-4" />
                         Refund
                       </Button>
                     </div>
@@ -236,9 +254,10 @@ export function DisputesTable() {
       </div>
 
       {disputes?.length === 0 && (
-        <div className="text-center py-12 text-slate-500">No disputes found</div>
+        <div className="py-12 text-center text-slate-500">
+          No disputes found
+        </div>
       )}
     </div>
   );
 }
-

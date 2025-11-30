@@ -3,6 +3,7 @@
 ## 🚀 Complete End-to-End Test Commands
 
 ### Option 1: Full Test Suite (Recommended)
+
 **Tests everything: Unit tests + E2E tests + API/DB checks**
 
 ```powershell
@@ -14,11 +15,13 @@ pnpm test:all > test-results-full.txt 2>&1
 ```
 
 This runs:
+
 - ✅ Unit/Integration tests (Vitest)
 - ✅ E2E tests (Playwright)
 - ✅ All test files
 
 ### Option 2: Comprehensive Automated Tests
+
 **Tests infrastructure: Environment, DB, Stripe, APIs**
 
 ```powershell
@@ -27,6 +30,7 @@ pnpm test:comprehensive > test-results-comprehensive.txt 2>&1
 ```
 
 This tests:
+
 - ✅ Environment variables
 - ✅ Database connectivity
 - ✅ Stripe connectivity
@@ -37,6 +41,7 @@ This tests:
 - ✅ Database tables
 
 ### Option 3: E2E Tests Only (Playwright)
+
 **Tests user flows in browser**
 
 ```powershell
@@ -48,6 +53,7 @@ pnpm test:e2e > test-results-e2e.txt 2>&1
 ```
 
 ### Option 4: E2E Tests with Visual UI (Best for Debugging)
+
 **See tests run in real-time with browser**
 
 ```powershell
@@ -59,12 +65,14 @@ pnpm test:e2e:ui
 ```
 
 This opens Playwright UI where you can:
+
 - Watch tests run in real-time
 - See browser interactions
 - Debug failures visually
 - Re-run individual tests
 
 ### Option 5: All Tests + Coverage Report
+
 **Complete test suite with coverage**
 
 ```powershell
@@ -75,6 +83,7 @@ pnpm coverage > test-coverage.txt 2>&1
 ## 📋 How to Share Results with Me
 
 ### Method 1: Save to File (Recommended)
+
 ```powershell
 # Run tests and save output
 pnpm test:all > test-results.txt 2>&1
@@ -83,6 +92,7 @@ pnpm test:all > test-results.txt 2>&1
 ```
 
 ### Method 2: Include Both Output and Errors
+
 ```powershell
 # Capture both stdout and stderr
 pnpm test:all *> test-results-complete.txt
@@ -92,6 +102,7 @@ pnpm test:all | Out-File -FilePath test-results.txt -Encoding utf8
 ```
 
 ### Method 3: Include Playwright HTML Report
+
 ```powershell
 # Run E2E tests
 pnpm test:e2e
@@ -103,6 +114,7 @@ pnpm test:e2e
 ```
 
 ### Method 4: Share Specific Test Output
+
 ```powershell
 # Run specific test file
 pnpm test:e2e tests/e2e/auth-flow.spec.ts > auth-test-results.txt 2>&1
@@ -116,6 +128,7 @@ pnpm test:e2e --reporter=list,html > test-results.txt 2>&1
 When sharing test results, please include:
 
 1. **The command you ran**
+
    ```
    pnpm test:all
    ```
@@ -127,6 +140,7 @@ When sharing test results, please include:
    - Warnings
 
 3. **Environment info** (if relevant)
+
    ```powershell
    node --version
    pnpm --version
@@ -194,8 +208,9 @@ pnpm test:comprehensive >> complete-test-results.txt 2>&1
 ```
 
 This gives you:
+
 - ✅ All unit tests
-- ✅ All E2E tests  
+- ✅ All E2E tests
 - ✅ All infrastructure checks
 - ✅ Complete output in one file
 
@@ -209,19 +224,21 @@ This gives you:
 ## 🚨 Common Issues & Solutions
 
 ### "Server not running" warnings
+
 **Solution:** Start server with `pnpm dev` first, then run tests
 
 ### "Playwright browsers not installed"
+
 **Solution:** Run `pnpm playwright:install`
 
 ### "Environment variables missing"
+
 **Solution:** Check `.env.local` file exists and has required vars
 
 ### "Tests timeout"
+
 **Solution:** Increase timeout in `playwright.config.ts` or specific test
 
 ---
 
 **Ready to test?** Run `pnpm test:all` and share the results! 🚀
-
-

@@ -105,19 +105,23 @@ function createCapacitorStorage() {
 
 /**
  * Get the app scheme for deep linking
- * Returns "carryspace://" for mobile, undefined for web
+ * Returns "sparecarry://" for mobile, undefined for web
+ * Must match the scheme in apps/mobile/app.config.ts
  */
 export function getAppScheme(): string | undefined {
   if (typeof window === "undefined") {
     return undefined;
   }
 
-  // Check if we're in Capacitor
-  const isCapacitor = (window as any).Capacitor;
-  
-  if (isCapacitor) {
-    // Return the app scheme - matches Capacitor config
-    return "carryspace://";
+  // Check if we're in Expo/React Native environment
+  const isExpo = !!(window as any).__expo || !!(window as any).Expo;
+  const isReactNative =
+    typeof (window as any).navigator !== "undefined" &&
+    (window as any).navigator.product === "ReactNative";
+
+  if (isExpo || isReactNative) {
+    // Return the app scheme - matches app.config.ts
+    return "sparecarry://";
   }
 
   return undefined;
@@ -130,15 +134,79 @@ export function getAppScheme(): string | undefined {
  * This is because email links open in browsers first, which can't handle custom schemes directly
  */
 export function getAuthCallbackUrl(redirectPath: string = "/home"): string {
+  // Priority 1: Use EXPO_PUBLIC_APP_URL if set (for mobile development/production)
+  const expoAppUrl = process.env.EXPO_PUBLIC_APP_URL;
+  if (expoAppUrl) {
+    return `${expoAppUrl}/auth/callback?redirect=${encodeURIComponent(redirectPath)}`;
+  }
+
+  // Priority 2: Use NEXT_PUBLIC_APP_URL if set
+  const nextAppUrl = process.env.NEXT_PUBLIC_APP_URL;
+  if (nextAppUrl && !nextAppUrl.includes("localhost")) {
+    return `${nextAppUrl}/auth/callback?redirect=${encodeURIComponent(redirectPath)}`;
+  }
+
+  // Server-side: return web URL (use NEXT_PUBLIC_APP_URL or localhost)
   if (typeof window === "undefined") {
-    // Server-side: return web URL
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const baseUrl = nextAppUrl || "http://localhost:3000";
     return `${baseUrl}/auth/callback?redirect=${encodeURIComponent(redirectPath)}`;
   }
 
-  // Always return web URL - the callback route will handle mobile redirect
-  // This is necessary because email links open in browsers first
-  return `${window.location.origin}/auth/callback?redirect=${encodeURIComponent(redirectPath)}`;
+  // Client-side: Check if we're on mobile
+  const isMobile =
+    typeof window !== "undefined" &&
+    (!!(window as any).__expo ||
+      !!(window as any).Expo ||
+      (typeof (window as any).navigator !== "undefined" &&
+        (window as any).navigator.product === "ReactNative"));
+
+  if (isMobile) {
+    // On mobile, localhost won't work - need network IP or production URL
+    // Try to get from window.location if available (webview)
+    const origin = (window as any).location?.origin;
+    if (
+      origin &&
+      !origin.includes("localhost") &&
+      !origin.includes("127.0.0.1")
+    ) {
+      return `${origin}/auth/callback?redirect=${encodeURIComponent(redirectPath)}`;
+    }
+
+    // If we're on mobile and no proper URL is set, warn and use production URL
+    if (process.env.NODE_ENV === "production" || nextAppUrl) {
+      const fallbackUrl = nextAppUrl || "https://sparecarry.com";
+      console.warn(
+        "[getAuthCallbackUrl] Using fallback URL for mobile:",
+        fallbackUrl
+      );
+      return `${fallbackUrl}/auth/callback?redirect=${encodeURIComponent(redirectPath)}`;
+    }
+
+    // Development: Try to use Expo dev server URL
+    // Expo dev server typically runs on the network IP
+    // User should set EXPO_PUBLIC_APP_URL to their network IP (e.g., http://192.168.1.100:3000)
+    console.warn(
+      "[getAuthCallbackUrl] ⚠️ Mobile app needs EXPO_PUBLIC_APP_URL set to your network IP.\n" +
+        "📝 Add this to your .env.local file:\n" +
+        "   EXPO_PUBLIC_APP_URL=http://YOUR_IP:3000\n" +
+        '🔍 Find your IP: Run "node apps/mobile/scripts/get-network-ip.js"\n' +
+        "💡 Using localhost fallback (won't work on mobile - OAuth will fail)"
+    );
+
+    // Last resort: return localhost (won't work but prevents crash)
+    // This will cause OAuth to fail, but at least the app won't crash
+    return `http://localhost:3000/auth/callback?redirect=${encodeURIComponent(redirectPath)}`;
+  }
+
+  // Web: Use window.location or fallback
+  const origin =
+    (typeof window !== "undefined" &&
+      (window as any).location &&
+      (window as any).location.origin) ||
+    nextAppUrl ||
+    "http://localhost:3000";
+
+  return `${origin}/auth/callback?redirect=${encodeURIComponent(redirectPath)}`;
 }
 
 /**
@@ -147,12 +215,16 @@ export function getAuthCallbackUrl(redirectPath: string = "/home"): string {
  * Disables PKCE for native apps (not needed in mobile)
  */
 export function createMobileClient(): SupabaseClient {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const supabaseUrl =
+    process.env.EXPO_PUBLIC_SUPABASE_URL ||
+    process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey =
+    process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ||
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   if (!supabaseUrl || !supabaseAnonKey) {
     throw new Error(
-      "Missing Supabase environment variables. Please set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY"
+      "Missing Supabase environment variables. Please set EXPO_PUBLIC_SUPABASE_URL / EXPO_PUBLIC_SUPABASE_ANON_KEY (or NEXT_PUBLIC_* equivalents)."
     );
   }
 
@@ -180,4 +252,3 @@ export function isMobile(): boolean {
   }
   return !!(window as any).Capacitor;
 }
-

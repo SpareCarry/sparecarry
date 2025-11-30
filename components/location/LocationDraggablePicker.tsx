@@ -1,18 +1,22 @@
 /**
  * Location Draggable Picker Component
- * 
+ *
  * Fullscreen map modal with draggable pin for selecting location.
  * Option to snap to nearest marina.
  */
 
 "use client";
 
-import React, { useState, useCallback, useEffect } from 'react';
-import { Button } from '../ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import { X, MapPin, Anchor, Loader2, Magnet } from 'lucide-react';
-import { reverseGeocode, autocomplete, Place } from '../../lib/services/location';
-import { LOCATION_CONFIG } from '../../config/location.config';
+import React, { useState, useCallback, useEffect } from "react";
+import { Button } from "../ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { X, MapPin, Anchor, Loader2, Magnet } from "lucide-react";
+import {
+  reverseGeocode,
+  autocomplete,
+  Place,
+} from "../../lib/services/location";
+import { LOCATION_CONFIG } from "../../config/location.config";
 
 interface LocationDraggablePickerProps {
   isOpen: boolean;
@@ -31,26 +35,30 @@ export function LocationDraggablePicker({
   showMarinaSnap = false,
   className = "",
 }: LocationDraggablePickerProps) {
-  const [currentPosition, setCurrentPosition] = useState<{ lat: number; lon: number }>(
-    initialLocation || { lat: 0, lon: 0 }
-  );
+  const [currentPosition, setCurrentPosition] = useState<{
+    lat: number;
+    lon: number;
+  }>(initialLocation || { lat: 0, lon: 0 });
   const [selectedPlace, setSelectedPlace] = useState<Place | null>(null);
   const [isReverseGeocoding, setIsReverseGeocoding] = useState(false);
   const [isSnapping, setIsSnapping] = useState(false);
 
   // Reverse geocode position
-  const reverseGeocodeForPosition = useCallback(async (lat: number, lon: number) => {
-    setIsReverseGeocoding(true);
-    try {
-      const place = await reverseGeocode(lat, lon);
-      setSelectedPlace(place);
-    } catch (error) {
-      console.error('Reverse geocode error:', error);
-      setSelectedPlace(null);
-    } finally {
-      setIsReverseGeocoding(false);
-    }
-  }, []);
+  const reverseGeocodeForPosition = useCallback(
+    async (lat: number, lon: number) => {
+      setIsReverseGeocoding(true);
+      try {
+        const place = await reverseGeocode(lat, lon);
+        setSelectedPlace(place);
+      } catch (error) {
+        console.error("Reverse geocode error:", error);
+        setSelectedPlace(null);
+      } finally {
+        setIsReverseGeocoding(false);
+      }
+    },
+    []
+  );
 
   // Initialize position
   useEffect(() => {
@@ -69,7 +77,10 @@ export function LocationDraggablePicker({
             },
             () => {
               // Fallback to default center
-              setCurrentPosition({ lat: LOCATION_CONFIG.DEFAULT_CENTER.lat, lon: LOCATION_CONFIG.DEFAULT_CENTER.lon });
+              setCurrentPosition({
+                lat: LOCATION_CONFIG.DEFAULT_CENTER.lat,
+                lon: LOCATION_CONFIG.DEFAULT_CENTER.lon,
+              });
             }
           );
         }
@@ -78,10 +89,13 @@ export function LocationDraggablePicker({
   }, [isOpen, initialLocation, reverseGeocodeForPosition]);
 
   // Handle map drag (simulated - in real implementation, this would be from map library)
-  const handlePositionChange = useCallback((lat: number, lon: number) => {
-    setCurrentPosition({ lat, lon });
-    reverseGeocodeForPosition(lat, lon);
-  }, [reverseGeocodeForPosition]);
+  const handlePositionChange = useCallback(
+    (lat: number, lon: number) => {
+      setCurrentPosition({ lat, lon });
+      reverseGeocodeForPosition(lat, lon);
+    },
+    [reverseGeocodeForPosition]
+  );
 
   // Snap to nearest marina
   const snapToNearestMarina = useCallback(async () => {
@@ -91,7 +105,7 @@ export function LocationDraggablePicker({
       const query = `${currentPosition.lat},${currentPosition.lon}`;
       const results = await autocomplete(query, {
         limit: 5,
-        filter: 'marina',
+        filter: "marina",
         bbox: [
           currentPosition.lon - 0.05,
           currentPosition.lat - 0.05,
@@ -105,11 +119,11 @@ export function LocationDraggablePicker({
         setCurrentPosition({ lat: nearest.lat, lon: nearest.lon });
         setSelectedPlace(nearest);
       } else {
-        alert('No marinas found nearby. Try adjusting your position manually.');
+        alert("No marinas found nearby. Try adjusting your position manually.");
       }
     } catch (error) {
-      console.error('Snap to marina error:', error);
-      alert('Failed to find nearby marina. Please try again.');
+      console.error("Snap to marina error:", error);
+      alert("Failed to find nearby marina. Please try again.");
     } finally {
       setIsSnapping(false);
     }
@@ -126,9 +140,9 @@ export function LocationDraggablePicker({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
-      <Card className="w-full max-w-4xl max-h-[90vh] flex flex-col">
-        <CardHeader className="flex-shrink-0 flex items-center justify-between pb-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+      <Card className="flex max-h-[90vh] w-full max-w-4xl flex-col">
+        <CardHeader className="flex flex-shrink-0 items-center justify-between pb-4">
           <CardTitle className="flex items-center gap-2">
             <MapPin className="h-5 w-5" />
             Select Location
@@ -144,23 +158,23 @@ export function LocationDraggablePicker({
           </Button>
         </CardHeader>
 
-        <CardContent className="flex-1 flex flex-col gap-4 overflow-hidden">
+        <CardContent className="flex flex-1 flex-col gap-4 overflow-hidden">
           {/* Map Preview */}
-          <div className="flex-1 relative rounded-lg border border-slate-200 overflow-hidden bg-slate-100">
+          <div className="relative flex-1 overflow-hidden rounded-lg border border-slate-200 bg-slate-100">
             <iframe
               src={`https://www.openstreetmap.org/export/embed.html?bbox=${currentPosition.lon - 0.01},${currentPosition.lat - 0.01},${currentPosition.lon + 0.01},${currentPosition.lat + 0.01}&layer=mapnik&marker=${currentPosition.lat},${currentPosition.lon}`}
-              className="w-full h-full"
+              className="h-full w-full"
               style={{ border: 0 }}
               title="Location picker map"
             />
-            
+
             {/* Drag instructions */}
-            <div className="absolute top-2 left-2 bg-white/90 backdrop-blur-sm rounded-lg px-3 py-2 text-xs text-slate-600">
+            <div className="absolute left-2 top-2 rounded-lg bg-white/90 px-3 py-2 text-xs text-slate-600 backdrop-blur-sm">
               <p>Drag the map to adjust position</p>
             </div>
 
             {/* Center marker */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none">
+            <div className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
               <MapPin className="h-8 w-8 text-teal-600 drop-shadow-lg" />
             </div>
           </div>
@@ -173,28 +187,34 @@ export function LocationDraggablePicker({
                 <span className="text-sm">Loading location details...</span>
               </div>
             ) : selectedPlace ? (
-              <div className="p-3 bg-slate-50 rounded-lg border border-slate-200">
+              <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
                 <div className="flex items-start gap-2">
-                  {selectedPlace.category === 'marina' && (
-                    <Anchor className="h-4 w-4 text-teal-600 mt-0.5 flex-shrink-0" />
+                  {selectedPlace.category === "marina" && (
+                    <Anchor className="mt-0.5 h-4 w-4 flex-shrink-0 text-teal-600" />
                   )}
-                  {selectedPlace.category !== 'marina' && (
-                    <MapPin className="h-4 w-4 text-slate-400 mt-0.5 flex-shrink-0" />
+                  {selectedPlace.category !== "marina" && (
+                    <MapPin className="mt-0.5 h-4 w-4 flex-shrink-0 text-slate-400" />
                   )}
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-slate-900">{selectedPlace.name}</p>
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium text-slate-900">
+                      {selectedPlace.name}
+                    </p>
                     {selectedPlace.category && (
-                      <p className="text-xs text-slate-500 capitalize mt-0.5">{selectedPlace.category}</p>
+                      <p className="mt-0.5 text-xs capitalize text-slate-500">
+                        {selectedPlace.category}
+                      </p>
                     )}
-                    <p className="text-xs text-slate-400 mt-1">
-                      {currentPosition.lat.toFixed(6)}, {currentPosition.lon.toFixed(6)}
+                    <p className="mt-1 text-xs text-slate-400">
+                      {currentPosition.lat.toFixed(6)},{" "}
+                      {currentPosition.lon.toFixed(6)}
                     </p>
                   </div>
                 </div>
               </div>
             ) : (
-              <div className="p-3 bg-amber-50 rounded-lg border border-amber-200 text-sm text-amber-800">
-                Could not determine location name. Please try a different position.
+              <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
+                Could not determine location name. Please try a different
+                position.
               </div>
             )}
 
@@ -210,12 +230,12 @@ export function LocationDraggablePicker({
                 >
                   {isSnapping ? (
                     <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       Finding...
                     </>
                   ) : (
                     <>
-                      <Magnet className="h-4 w-4 mr-2" />
+                      <Magnet className="mr-2 h-4 w-4" />
                       Snap to Nearest Marina
                     </>
                   )}
@@ -236,4 +256,3 @@ export function LocationDraggablePicker({
     </div>
   );
 }
-

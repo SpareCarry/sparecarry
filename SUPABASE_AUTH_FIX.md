@@ -25,6 +25,7 @@ Modified `app/auth/callback/route.ts` to:
 ## Key Changes
 
 ### Before (Incorrect)
+
 ```typescript
 // This caused the error
 if (finalCodeVerifier && !codeVerifier) {
@@ -36,6 +37,7 @@ if (finalCodeVerifier && !codeVerifier) {
 ```
 
 ### After (Correct)
+
 ```typescript
 // Always pass just the code string - Supabase SSR handles PKCE automatically
 exchangeResult = await supabase.auth.exchangeCodeForSession(code);
@@ -48,23 +50,27 @@ exchangeResult = await supabase.auth.exchangeCodeForSession(code);
 In your Supabase Dashboard → Authentication → URL Configuration:
 
 **For Local Development:**
+
 ```
 http://localhost:3000/auth/callback
 http://localhost:3001/auth/callback
 ```
 
 **For Production:**
+
 ```
 https://yourdomain.com/auth/callback
 ```
 
 **Site URL:**
+
 - Local: `http://localhost:3000` (or your port)
 - Production: `https://yourdomain.com`
 
 ### 2. PKCE Flow
 
 The Supabase client is configured with PKCE enabled (`lib/supabase/client.ts`):
+
 ```typescript
 auth: {
   flowType: "pkce",
@@ -73,6 +79,7 @@ auth: {
 ```
 
 This ensures:
+
 - Code verifier is stored in localStorage for client-side requests
 - Supabase SSR automatically manages cookies for server-side callbacks
 - Magic links work correctly when clicked from email
@@ -80,6 +87,7 @@ This ensures:
 ### 3. Environment Variables
 
 Required environment variables in `.env.local`:
+
 ```env
 NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
@@ -140,4 +148,3 @@ If you still see errors:
 - The callback route handles both automatically
 - PKCE is required for better security with magic links
 - Supabase SSR library version: 0.1.0 (check if updates are needed)
-

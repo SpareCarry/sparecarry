@@ -52,10 +52,10 @@ SENTRY_PROJECT=javascript-nextjs
 **For basic error tracking**: Just `NEXT_PUBLIC_SENTRY_DSN` and `SENTRY_AUTH_TOKEN`
 
 **For full functionality** (recommended): All 4 variables:
+
 - `NEXT_PUBLIC_SENTRY_DSN` ✓
 - `SENTRY_AUTH_TOKEN` ✓
 - `SENTRY_ORG` ✓ (for releases)
 - `SENTRY_PROJECT` ✓ (for releases)
 
 So yes, the 4 variables in `vercel-env-variables.env` are sufficient!
-

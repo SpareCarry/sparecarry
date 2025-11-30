@@ -28,4 +28,3 @@ export const stripe = new Proxy({} as Stripe, {
     return (getStripeInstance() as any)(...args);
   },
 }) as Stripe;
-

@@ -20,6 +20,7 @@ The health check API endpoint (`/api/health`) is fully implemented and ready for
 **Purpose**: Provides comprehensive health check for all backend services.
 
 **Features**:
+
 - ✅ Supabase connectivity check
 - ✅ Stripe API check
 - ✅ Sentry DSN validation
@@ -37,11 +38,13 @@ The health check API endpoint (`/api/health`) is fully implemented and ready for
 **Check**: Simple query to verify connectivity
 
 **Method**:
+
 - Creates Supabase client
 - Executes simple query (`SELECT 1`)
 - Verifies response
 
 **Status Codes**:
+
 - ✅ `ok`: Connection successful
 - ⚠️ `degraded`: Connection slow or timeout
 - ❌ `error`: Connection failed or invalid credentials
@@ -55,11 +58,13 @@ The health check API endpoint (`/api/health`) is fully implemented and ready for
 **Check**: Calls `stripe.balance.retrieve()` to verify API connectivity
 
 **Method**:
+
 - Initializes Stripe client
 - Calls `stripe.balance.retrieve()`
 - Verifies response
 
 **Status Codes**:
+
 - ✅ `ok`: API call successful
 - ⚠️ `degraded`: API call slow or timeout
 - ❌ `error`: API call failed or invalid key
@@ -73,11 +78,13 @@ The health check API endpoint (`/api/health`) is fully implemented and ready for
 **Check**: Validates DSN format and test capture
 
 **Method**:
+
 - Validates DSN format (URL pattern)
 - Attempts test capture (if DSN provided)
 - Verifies Sentry initialization
 
 **Status Codes**:
+
 - ✅ `ok`: DSN valid and capture successful
 - ⚠️ `degraded`: DSN valid but capture failed
 - ❌ `error`: DSN invalid or missing
@@ -91,11 +98,13 @@ The health check API endpoint (`/api/health`) is fully implemented and ready for
 **Check**: Verifies Unleash server reachability
 
 **Method**:
+
 - Validates URL format
 - Attempts HTTP request to Unleash server
 - Verifies response
 
 **Status Codes**:
+
 - ✅ `ok`: Server reachable
 - ⚠️ `degraded`: Server slow or timeout
 - ❌ `error`: Server unreachable or invalid URL
@@ -109,11 +118,13 @@ The health check API endpoint (`/api/health`) is fully implemented and ready for
 **Check**: Validates all required environment variables
 
 **Method**:
+
 - Uses `scripts/validate-env.js` logic
 - Checks required variables
 - Validates format and presence
 
 **Status Codes**:
+
 - ✅ `ok`: All required variables present and valid
 - ⚠️ `degraded`: Some optional variables missing
 - ❌ `error`: Required variables missing or invalid
@@ -260,6 +271,7 @@ The health check endpoint can be used in CI/CD pipelines:
 ### Monitoring
 
 The health check endpoint can be monitored by:
+
 - ✅ Uptime monitoring services (Pingdom, UptimeRobot)
 - ✅ Application performance monitoring (APM)
 - ✅ Custom monitoring scripts
@@ -306,11 +318,13 @@ The health check endpoint can be monitored by:
 ### Manual Testing
 
 1. **Start development server**:
+
    ```bash
    pnpm dev
    ```
 
 2. **Call health check**:
+
    ```bash
    curl http://localhost:3000/api/health
    ```
@@ -323,6 +337,7 @@ The health check endpoint can be monitored by:
 ### Automated Testing
 
 Health check can be tested in:
+
 - ✅ Unit tests
 - ✅ Integration tests
 - ✅ E2E tests (Playwright)
@@ -358,4 +373,3 @@ The health check endpoint is fully implemented and ready for use. All service ch
 
 **Last Updated**: 2024-12-19  
 **Report Version**: 1.0.0
-

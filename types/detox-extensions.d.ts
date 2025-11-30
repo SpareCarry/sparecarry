@@ -1,4 +1,4 @@
-import 'detox';
+import "detox";
 
 declare global {
   namespace Detox {
@@ -11,4 +11,3 @@ declare global {
     }
   }
 }
-

@@ -1,9 +1,9 @@
 /**
  * useRealtime - React hook for Supabase Realtime subscriptions
- * 
+ *
  * Automatically subscribes on mount and unsubscribes on unmount.
  * Prevents duplicate subscriptions using RealtimeManager.
- * 
+ *
  * Usage:
  * ```typescript
  * const { data, isLoading } = useRealtime({
@@ -16,14 +16,14 @@
  * ```
  */
 
-import { useEffect, useRef, useCallback } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
-import { RealtimeManager } from './RealtimeManager';
-import type { RealtimePostgresChangesPayload } from '@supabase/supabase-js';
+import { useEffect, useRef, useCallback } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { RealtimeManager } from "./RealtimeManager";
+import type { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
 
 interface UseRealtimeOptions {
   table: string;
-  event?: '*' | 'INSERT' | 'UPDATE' | 'DELETE';
+  event?: "*" | "INSERT" | "UPDATE" | "DELETE";
   schema?: string;
   filter?: string;
   callback: (payload: RealtimePostgresChangesPayload<any>) => void;
@@ -37,8 +37,8 @@ interface UseRealtimeOptions {
  */
 export function useRealtime({
   table,
-  event = '*',
-  schema = 'public',
+  event = "*",
+  schema = "public",
   filter,
   callback,
   enabled = true,
@@ -53,9 +53,12 @@ export function useRealtime({
   }, [callback]);
 
   // Create stable callback that uses ref
-  const stableCallback = useCallback((payload: RealtimePostgresChangesPayload<any>) => {
-    callbackRef.current(payload);
-  }, []);
+  const stableCallback = useCallback(
+    (payload: RealtimePostgresChangesPayload<any>) => {
+      callbackRef.current(payload);
+    },
+    []
+  );
 
   useEffect(() => {
     if (!enabled) {
@@ -85,10 +88,18 @@ export function useRealtime({
         }
       };
     } catch (error) {
-      console.error('[useRealtime] Error subscribing:', error);
+      console.error("[useRealtime] Error subscribing:", error);
       // Don't throw - just log the error
     }
-  }, [enabled, table, event, schema, filter, stableCallback, customChannelName]);
+  }, [
+    enabled,
+    table,
+    event,
+    schema,
+    filter,
+    stableCallback,
+    customChannelName,
+  ]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -127,4 +138,3 @@ export function useRealtimeInvalidation(
     },
   });
 }
-

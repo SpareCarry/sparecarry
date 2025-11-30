@@ -23,4 +23,3 @@ export interface ListingDetails {
   restrictedItems?: boolean; // Restricted goods (lithium batteries, flammable items, etc.) - boat only
   photoCount?: number;
 }
-

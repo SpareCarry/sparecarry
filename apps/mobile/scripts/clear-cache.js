@@ -3,15 +3,15 @@
  * Works on both Windows and Unix
  */
 
-const fs = require('fs');
-const path = require('path');
+const fs = require("fs");
+const path = require("path");
 
-console.log('🧹 Clearing Metro bundler cache...');
+console.log("🧹 Clearing Metro bundler cache...");
 
 const dirsToRemove = [
-  path.join(__dirname, '..', '.expo'),
-  path.join(__dirname, '..', 'node_modules', '.cache'),
-  path.join(__dirname, '..', '..', '..', 'node_modules', '.cache'),
+  path.join(__dirname, "..", ".expo"),
+  path.join(__dirname, "..", "node_modules", ".cache"),
+  path.join(__dirname, "..", "..", "..", "node_modules", ".cache"),
 ];
 
 dirsToRemove.forEach((dir) => {
@@ -25,7 +25,6 @@ dirsToRemove.forEach((dir) => {
   }
 });
 
-console.log('');
-console.log('✅ Cache cleared!');
-console.log('Now run: pnpm start:clear');
-
+console.log("");
+console.log("✅ Cache cleared!");
+console.log("Now run: pnpm start:clear");

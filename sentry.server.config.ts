@@ -1,6 +1,6 @@
 /**
  * Sentry Server Configuration
- * 
+ *
  * Only loaded if NEXT_PUBLIC_SENTRY_DSN is set
  * Uses dynamic import to avoid build issues
  */
@@ -27,7 +27,10 @@ if (SENTRY_DSN && SENTRY_DSN.length > 0) {
         release: process.env.NEXT_PUBLIC_SENTRY_RELEASE || undefined,
         integrations: [new Sentry.Integrations.Http({ tracing: true })],
         beforeSend(event) {
-          if (ENVIRONMENT === "production" && event.environment !== "production") {
+          if (
+            ENVIRONMENT === "production" &&
+            event.environment !== "production"
+          ) {
             return null;
           }
 
@@ -47,7 +50,13 @@ if (SENTRY_DSN && SENTRY_DSN.length > 0) {
             const originalQueryString = event.request.query_string;
             if (typeof originalQueryString === "string") {
               let sanitizedQueryString = originalQueryString;
-              const sensitiveParams = ["token", "key", "secret", "password", "api_key"];
+              const sensitiveParams = [
+                "token",
+                "key",
+                "secret",
+                "password",
+                "api_key",
+              ];
               sensitiveParams.forEach((param) => {
                 if (sanitizedQueryString.includes(param)) {
                   sanitizedQueryString = sanitizedQueryString.replace(

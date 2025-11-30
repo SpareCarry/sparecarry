@@ -9,7 +9,9 @@ interface PurchaseOptionsProps {
   itemTitle: string;
   itemDescription?: string;
   selectedRetailer?: "west_marine" | "svb" | "amazon" | null;
-  onSelectRetailer?: (retailer: "west_marine" | "svb" | "amazon" | undefined) => void;
+  onSelectRetailer?: (
+    retailer: "west_marine" | "svb" | "amazon" | undefined
+  ) => void;
 }
 
 export function PurchaseOptions({
@@ -21,10 +23,11 @@ export function PurchaseOptions({
   const [internalSelectedRetailer, setInternalSelectedRetailer] = useState<
     "west_marine" | "svb" | "amazon" | null
   >(null);
-  
-  const selectedRetailer = externalSelectedRetailer !== undefined 
-    ? externalSelectedRetailer 
-    : internalSelectedRetailer;
+
+  const selectedRetailer =
+    externalSelectedRetailer !== undefined
+      ? externalSelectedRetailer
+      : internalSelectedRetailer;
 
   const handleRetailerClick = (retailer: "west_marine" | "svb" | "amazon") => {
     // Toggle selection - if same retailer clicked, deselect
@@ -38,12 +41,14 @@ export function PurchaseOptions({
       <CardContent className="pt-6">
         <div className="space-y-4">
           <div>
-            <h4 className="font-semibold text-slate-900 mb-1 flex items-center gap-2">
+            <h4 className="mb-1 flex items-center gap-2 font-semibold text-slate-900">
               <ShoppingCart className="h-4 w-4" />
               Buy & Ship Directly
             </h4>
             <p className="text-sm text-slate-600">
-              User purchases item from retailer; SpareCarry delivers to traveler. When your request is matched, we&apos;ll provide shipping details for your traveler.
+              User purchases item from retailer; SpareCarry delivers to
+              traveler. When your request is matched, we&apos;ll provide
+              shipping details for your traveler.
             </p>
           </div>
 
@@ -52,14 +57,14 @@ export function PurchaseOptions({
               type="button"
               variant="outline"
               onClick={() => handleRetailerClick("west_marine")}
-              className={`w-full justify-start h-auto py-3 ${
+              className={`h-auto w-full justify-start py-3 ${
                 selectedRetailer === "west_marine"
                   ? "border-teal-600 bg-teal-50"
                   : ""
               }`}
             >
-              <div className="flex items-center gap-3 w-full">
-                <div className="flex-shrink-0 w-10 h-10 bg-blue-100 rounded-md flex items-center justify-center">
+              <div className="flex w-full items-center gap-3">
+                <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-md bg-blue-100">
                   <Package className="h-5 w-5 text-blue-600" />
                 </div>
                 <div className="flex-1 text-left">
@@ -76,12 +81,12 @@ export function PurchaseOptions({
               type="button"
               variant="outline"
               onClick={() => handleRetailerClick("svb")}
-              className={`w-full justify-start h-auto py-3 ${
+              className={`h-auto w-full justify-start py-3 ${
                 selectedRetailer === "svb" ? "border-teal-600 bg-teal-50" : ""
               }`}
             >
-              <div className="flex items-center gap-3 w-full">
-                <div className="flex-shrink-0 w-10 h-10 bg-teal-100 rounded-md flex items-center justify-center">
+              <div className="flex w-full items-center gap-3">
+                <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-md bg-teal-100">
                   <Package className="h-5 w-5 text-teal-600" />
                 </div>
                 <div className="flex-1 text-left">
@@ -98,14 +103,14 @@ export function PurchaseOptions({
               type="button"
               variant="outline"
               onClick={() => handleRetailerClick("amazon")}
-              className={`w-full justify-start h-auto py-3 ${
+              className={`h-auto w-full justify-start py-3 ${
                 selectedRetailer === "amazon"
                   ? "border-teal-600 bg-teal-50"
                   : ""
               }`}
             >
-              <div className="flex items-center gap-3 w-full">
-                <div className="flex-shrink-0 w-10 h-10 bg-orange-100 rounded-md flex items-center justify-center">
+              <div className="flex w-full items-center gap-3">
+                <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-md bg-orange-100">
                   <Package className="h-5 w-5 text-orange-600" />
                 </div>
                 <div className="flex-1 text-left">
@@ -120,11 +125,11 @@ export function PurchaseOptions({
           </div>
 
           {selectedRetailer && (
-            <div className="mt-4 p-3 bg-teal-50 border border-teal-200 rounded-md">
+            <div className="mt-4 rounded-md border border-teal-200 bg-teal-50 p-3">
               <p className="text-xs text-teal-800">
-                <strong>Note:</strong> When your request is matched, we&apos;ll provide a
-                pre-filled shipping link with your traveler&apos;s address. You can purchase
-                now or wait until match confirmation.
+                <strong>Note:</strong> When your request is matched, we&apos;ll
+                provide a pre-filled shipping link with your traveler&apos;s
+                address. You can purchase now or wait until match confirmation.
               </p>
             </div>
           )}
@@ -133,4 +138,3 @@ export function PurchaseOptions({
     </Card>
   );
 }
-

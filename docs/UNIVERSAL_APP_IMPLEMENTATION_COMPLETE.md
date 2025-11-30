@@ -9,6 +9,7 @@ This document summarizes the universal app migration that converts SpareCarry in
 ### 1. Monorepo Structure ✅
 
 Created a clean monorepo with:
+
 - `packages/lib` - Shared utilities (Supabase, RealtimeManager, platform detection)
 - `packages/hooks` - Universal React hooks
 - `packages/ui` - Universal UI components
@@ -20,14 +21,16 @@ Created a clean monorepo with:
 **Location**: `packages/lib/realtime/RealtimeManager.ts`
 
 **Key Changes**:
+
 - **MAX_CHANNELS reduced from 10 to 5** - Prevents Supabase quota issues
 - Moved to shared package for universal use
 - Added `setSupabaseClient()` method for initialization
 - Maintains all existing features (deduplication, cleanup, logging)
 
 **Usage**:
+
 ```typescript
-import { RealtimeManager } from '@sparecarry/lib/realtime';
+import { RealtimeManager } from "@sparecarry/lib/realtime";
 RealtimeManager.setSupabaseClient(createClient());
 ```
 
@@ -36,13 +39,15 @@ RealtimeManager.setSupabaseClient(createClient());
 **Location**: `packages/lib/supabase/client.ts`
 
 **Features**:
+
 - Works for both web (localStorage) and mobile (Expo SecureStore)
 - Auto-detects platform
 - Singleton pattern prevents multiple instances
 
 **Usage**:
+
 ```typescript
-import { createClient } from '@sparecarry/lib/supabase';
+import { createClient } from "@sparecarry/lib/supabase";
 const supabase = createClient();
 ```
 
@@ -51,13 +56,15 @@ const supabase = createClient();
 **Location**: `packages/hooks/`
 
 **Created**:
+
 - `useRealtime.ts` - Realtime subscriptions with auto-cleanup
 - `useLocation.ts` - GPS/location (web: geolocation, mobile: expo-location)
 - `useCamera.ts` - Camera access (web: file input, mobile: expo-image-picker)
 
 **Usage**:
+
 ```typescript
-import { useRealtime, useLocation, useCamera } from '@sparecarry/hooks';
+import { useRealtime, useLocation, useCamera } from "@sparecarry/hooks";
 ```
 
 ### 5. Universal UI Components ✅
@@ -65,6 +72,7 @@ import { useRealtime, useLocation, useCamera } from '@sparecarry/hooks';
 **Location**: `packages/ui/`
 
 **Created**:
+
 - `CameraButton.web.tsx` / `CameraButton.native.tsx`
 - `MapView.web.tsx` / `MapView.native.tsx`
 
@@ -75,6 +83,7 @@ Platform-specific variants automatically resolved by bundlers.
 **Location**: `apps/mobile/`
 
 **Created**:
+
 - Expo Router app structure
 - TypeScript configuration
 - Babel + Metro configs
@@ -87,6 +96,7 @@ Platform-specific variants automatically resolved by bundlers.
 **Location**: `packages/lib/platform.ts`
 
 **Exports**:
+
 - `isWeb` - True if running on web
 - `isMobile` - True if running on mobile (Expo)
 - `isAndroid` - True if Android
@@ -95,6 +105,7 @@ Platform-specific variants automatically resolved by bundlers.
 ### 8. Build & Dev Workflow ✅
 
 **Added Scripts**:
+
 - `pnpm dev:web` - Run Next.js web app
 - `pnpm dev:mobile` - Run Expo mobile app
 - `pnpm build:web` - Build Next.js app
@@ -105,6 +116,7 @@ Platform-specific variants automatically resolved by bundlers.
 ### 9. Documentation ✅
 
 **Created**:
+
 - `README_UNIVERSAL_APP.md` - Complete usage guide
 - `docs/UNIVERSAL_APP_MIGRATION_SUMMARY.md` - Migration summary
 - `docs/UNIVERSAL_APP_MIGRATION_PLAN.md` - Migration plan
@@ -113,31 +125,37 @@ Platform-specific variants automatically resolved by bundlers.
 ## 📋 Remaining Tasks
 
 ### PHASE 6 - Universal Auth Flows
+
 - [ ] Update auth screens to work across platforms
 - [ ] Implement OAuth redirects for mobile
 - [ ] Share auth state between web and mobile
 
 ### PHASE 9 - Push Notifications
+
 - [ ] Configure Expo Notifications fully
 - [ ] Set up FCM for Android
 - [ ] Add push token registration to backend
 
 ### PHASE 10 - Platform-Specific Screens
+
 - [ ] Organize screens into `(web-only)`, `(mobile-only)`, `(universal)` folders
 - [ ] Add platform detection helpers in screens
 
 ### PHASE 11 - Performance Optimization
+
 - [ ] Memoize expensive components
 - [ ] Add request debouncing
 - [ ] Lazy load screens
 - [ ] Optimize RealtimeManager event batching
 
 ### PHASE 13 - Testing
+
 - [ ] Add tests for RealtimeManager
 - [ ] Add tests for useLocation
 - [ ] Add tests for CameraButton
 
 ### PHASE 15 - Final Safety Check
+
 - [ ] Run `pnpm typecheck`
 - [ ] Run `pnpm lint`
 - [ ] Run `pnpm build:web`
@@ -149,15 +167,17 @@ Platform-specific variants automatically resolved by bundlers.
 ### 1. Update Imports
 
 **Before**:
+
 ```typescript
-import { createClient } from '@/lib/supabase/client';
-import { RealtimeManager } from '@/lib/realtime/RealtimeManager';
+import { createClient } from "@/lib/supabase/client";
+import { RealtimeManager } from "@/lib/realtime/RealtimeManager";
 ```
 
 **After**:
+
 ```typescript
-import { createClient } from '@sparecarry/lib/supabase';
-import { RealtimeManager } from '@sparecarry/lib/realtime';
+import { createClient } from "@sparecarry/lib/supabase";
+import { RealtimeManager } from "@sparecarry/lib/realtime";
 ```
 
 ### 2. Initialize RealtimeManager
@@ -165,8 +185,8 @@ import { RealtimeManager } from '@sparecarry/lib/realtime';
 Add to your app root (e.g., `app/providers.tsx` or `app/layout.tsx`):
 
 ```typescript
-import { createClient } from '@sparecarry/lib/supabase';
-import { RealtimeManager } from '@sparecarry/lib/realtime';
+import { createClient } from "@sparecarry/lib/supabase";
+import { RealtimeManager } from "@sparecarry/lib/realtime";
 
 // Initialize once
 const supabase = createClient();
@@ -176,19 +196,21 @@ RealtimeManager.setSupabaseClient(supabase);
 ### 3. Replace Direct Channel Usage
 
 **Before**:
+
 ```typescript
 const channel = supabase
-  .channel('messages')
-  .on('postgres_changes', { table: 'messages' }, callback)
+  .channel("messages")
+  .on("postgres_changes", { table: "messages" }, callback)
   .subscribe();
 ```
 
 **After**:
+
 ```typescript
-import { useRealtime } from '@sparecarry/hooks';
+import { useRealtime } from "@sparecarry/hooks";
 
 useRealtime({
-  table: 'messages',
+  table: "messages",
   callback: (payload) => {
     // Handle update
   },
@@ -198,15 +220,17 @@ useRealtime({
 ### 4. Use Platform Detection
 
 **Before**:
+
 ```typescript
-if (typeof window !== 'undefined') {
+if (typeof window !== "undefined") {
   // Web code
 }
 ```
 
 **After**:
+
 ```typescript
-import { isWeb, isMobile } from '@sparecarry/lib/platform';
+import { isWeb, isMobile } from "@sparecarry/lib/platform";
 
 if (isWeb) {
   // Web code
@@ -226,16 +250,19 @@ if (isWeb) {
 ## 📝 Next Steps
 
 1. **Install dependencies**:
+
    ```bash
    pnpm install
    ```
 
 2. **Test web app**:
+
    ```bash
    pnpm dev:web
    ```
 
 3. **Test mobile app**:
+
    ```bash
    pnpm dev:mobile
    ```
@@ -265,4 +292,3 @@ if (isWeb) {
 ---
 
 **Status**: Core infrastructure complete. Ready for gradual migration of existing code.
-

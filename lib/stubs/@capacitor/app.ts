@@ -6,4 +6,3 @@ export const App = {
   addListener: () => ({ remove: () => {} }),
   getState: async () => ({ isActive: true }),
 };
-

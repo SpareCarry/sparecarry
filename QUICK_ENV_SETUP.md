@@ -46,4 +46,3 @@ CRON_SECRET=paste_your_generated_64_char_hex_string_here
 ## That's It!
 
 After adding these variables, redeploy your Vercel project and everything will work.
-

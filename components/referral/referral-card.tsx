@@ -25,9 +25,15 @@ export function ReferralCard() {
   const { user } = useUser();
 
   // First, get or create the user's referral code
-  const isTestMode = typeof window !== "undefined" && !!(window as any).__PLAYWRIGHT_TEST_MODE__;
+  const isTestMode =
+    typeof window !== "undefined" && !!(window as any).__PLAYWRIGHT_TEST_MODE__;
 
-  const { data: referralCodeData, isLoading: codeLoadingState, error: codeError, refetch: refetchCode } = useQuery<{ referralCode: string } | null>({
+  const {
+    data: referralCodeData,
+    isLoading: codeLoadingState,
+    error: codeError,
+    refetch: refetchCode,
+  } = useQuery<{ referralCode: string } | null>({
     queryKey: ["user-referral-code", user?.id],
     queryFn: async () => {
       if (!user) return null;
@@ -50,7 +56,12 @@ export function ReferralCard() {
           } catch {
             errorMsg = `Server error (${response.status})`;
           }
-          console.error("Error getting referral code:", errorMsg, "Status:", response.status);
+          console.error(
+            "Error getting referral code:",
+            errorMsg,
+            "Status:",
+            response.status
+          );
           throw new Error(errorMsg);
         }
 
@@ -71,50 +82,56 @@ export function ReferralCard() {
     staleTime: 5 * 60 * 1000, // Cache for 5 minutes
   });
 
-  const fallbackStats = useMemo<ReferralStats>(() => ({
-    referralCode: "PLAYTEST",
-    totalReferrals: 3,
-    creditsEarned: 75,
-    creditsAvailable: 25,
-  }), []);
+  const fallbackStats = useMemo<ReferralStats>(
+    () => ({
+      referralCode: "PLAYTEST",
+      totalReferrals: 3,
+      creditsEarned: 75,
+      creditsAvailable: 25,
+    }),
+    []
+  );
 
-  const referralCode = isTestMode ? fallbackStats.referralCode : referralCodeData?.referralCode;
+  const referralCode = isTestMode
+    ? fallbackStats.referralCode
+    : referralCodeData?.referralCode;
 
   // Then get stats
-  const {
-    data: statsData,
-    isLoading: statsLoadingState,
-  } = useQuery<ReferralStats | null>({
-    queryKey: ["referral-stats", user?.id],
-    queryFn: async () => {
-      if (!user) return null;
-      try {
-        const response = await fetch("/api/referrals/stats", {
-          method: "GET",
-          headers: { "Content-Type": "application/json" },
-          cache: "no-store",
-        });
+  const { data: statsData, isLoading: statsLoadingState } =
+    useQuery<ReferralStats | null>({
+      queryKey: ["referral-stats", user?.id],
+      queryFn: async () => {
+        if (!user) return null;
+        try {
+          const response = await fetch("/api/referrals/stats", {
+            method: "GET",
+            headers: { "Content-Type": "application/json" },
+            cache: "no-store",
+          });
 
-        if (response.status === 401) {
+          if (response.status === 401) {
+            return null;
+          }
+
+          if (!response.ok) {
+            const data = await response.json().catch(() => ({}));
+            console.warn(
+              "Error loading referral stats:",
+              data.error || "Failed to load referral stats"
+            );
+            return null;
+          }
+
+          return (await response.json()) as ReferralStats;
+        } catch (error) {
+          console.warn("Exception loading referral stats:", error);
           return null;
         }
-
-        if (!response.ok) {
-          const data = await response.json().catch(() => ({}));
-          console.warn("Error loading referral stats:", data.error || "Failed to load referral stats");
-          return null;
-        }
-
-        return (await response.json()) as ReferralStats;
-      } catch (error) {
-        console.warn("Exception loading referral stats:", error);
-        return null;
-      }
-    },
-    enabled: !!user && !!referralCode && !isTestMode,
-    retry: false,
-    throwOnError: false,
-  });
+      },
+      enabled: !!user && !!referralCode && !isTestMode,
+      retry: false,
+      throwOnError: false,
+    });
 
   const stats = isTestMode ? fallbackStats : statsData;
   const codeLoading = isTestMode ? false : codeLoadingState;
@@ -136,11 +153,12 @@ export function ReferralCard() {
     }
   };
 
-  const referralLink = referralCode && typeof window !== "undefined" 
-    ? `${window.location.origin}/r/${referralCode}` 
-    : referralCode 
-    ? `/r/${referralCode}` 
-    : null;
+  const referralLink =
+    referralCode && typeof window !== "undefined"
+      ? `${window.location.origin}/r/${referralCode}`
+      : referralCode
+        ? `/r/${referralCode}`
+        : null;
 
   return (
     <Card>
@@ -156,7 +174,7 @@ export function ReferralCard() {
         ) : referralCode ? (
           <>
             <div>
-              <label className="text-sm font-medium text-slate-700 mb-2 block">
+              <label className="mb-2 block text-sm font-medium text-slate-700">
                 Your Unique Referral Code
               </label>
               <div className="flex items-center gap-2">
@@ -179,13 +197,13 @@ export function ReferralCard() {
                   )}
                 </Button>
               </div>
-              <div className="mt-2 p-2 bg-slate-50 border border-slate-200 rounded-md">
+              <div className="mt-2 rounded-md border border-slate-200 bg-slate-50 p-2">
                 <div className="flex items-center justify-between gap-2">
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs text-slate-600 mb-1">
+                  <div className="min-w-0 flex-1">
+                    <p className="mb-1 text-xs text-slate-600">
                       <strong>Your referral link:</strong>
                     </p>
-                    <p className="text-xs font-mono text-teal-600 break-all">
+                    <p className="break-all font-mono text-xs text-teal-600">
                       {referralLink || `/r/${referralCode}`}
                     </p>
                   </div>
@@ -203,21 +221,22 @@ export function ReferralCard() {
                   </Button>
                 </div>
               </div>
-              <p className="text-xs text-slate-500 mt-2">
-                Share your code or link — you both get $25 when they complete their first paid delivery
+              <p className="mt-2 text-xs text-slate-500">
+                Share your code or link — you both get 2,000 Karma Points when
+                they complete their first paid delivery
               </p>
             </div>
 
             {/* Share buttons */}
-            <div className="pt-2 border-t">
-              <p className="text-sm font-medium text-slate-700 mb-3">
+            <div className="border-t pt-2">
+              <p className="mb-3 text-sm font-medium text-slate-700">
                 Share on social media:
               </p>
               <ShareButtons referralCode={referralCode} />
             </div>
 
             {stats && (
-              <div className="grid grid-cols-2 gap-4 pt-2 border-t">
+              <div className="grid grid-cols-2 gap-4 border-t pt-2">
                 <div>
                   <p className="text-xs text-slate-500">Total Referrals</p>
                   <p className="text-lg font-semibold">
@@ -227,18 +246,27 @@ export function ReferralCard() {
                 <div>
                   <p className="text-xs text-slate-500">Available Credits</p>
                   <p className="text-lg font-semibold text-teal-600">
-                    <CurrencyDisplay amount={stats.creditsAvailable || 0} showSecondary={false} />
+                    <CurrencyDisplay
+                      amount={stats.creditsAvailable || 0}
+                      showSecondary={false}
+                    />
                   </p>
                 </div>
               </div>
             )}
 
-            <div className="p-3 bg-teal-50 border border-teal-200 rounded-md mt-2">
-              <p className="text-xs text-teal-800 font-semibold mb-2">
-                Invite friends – you both get $25 when they complete their first paid delivery
+            <div className="mt-2 rounded-md border border-teal-200 bg-teal-50 p-3">
+              <p className="mb-2 text-xs font-semibold text-teal-800">
+                Invite friends – you both get 2,000 Karma Points when they
+                complete their first paid delivery
               </p>
               <p className="text-xs text-teal-700">
-                <strong>How it works:</strong> Share your referral code or link with friends. When they sign up and complete their first paid delivery (after their first 3 free deliveries), both you and your friend get $25 credit. Credits can only be used on platform fees or rewards (never expire, never cash out).
+                <strong>How it works:</strong> Share your referral code or link
+                with friends. When they sign up and complete their first paid
+                delivery (after their first free delivery), both you and your
+                friend get 2,000 Karma Points. Karma points can be used to
+                reduce platform fees at checkout. The more points you have, the
+                more you can save!
               </p>
             </div>
           </>
@@ -247,7 +275,10 @@ export function ReferralCard() {
             {codeError ? (
               <>
                 <p className="text-sm text-red-600">
-                  Error loading referral code: {codeError instanceof Error ? codeError.message : "Unknown error"}
+                  Error loading referral code:{" "}
+                  {codeError instanceof Error
+                    ? codeError.message
+                    : "Unknown error"}
                 </p>
                 <Button
                   onClick={() => refetchCode()}
@@ -260,12 +291,16 @@ export function ReferralCard() {
               </>
             ) : (
               <p className="text-sm text-slate-600">
-                We&apos;re setting up your referral code. Please refresh the page in a moment.
+                We&apos;re setting up your referral code. Please refresh the
+                page in a moment.
               </p>
             )}
-            <div className="p-3 bg-slate-50 border border-slate-200 rounded-md">
+            <div className="rounded-md border border-slate-200 bg-slate-50 p-3">
               <p className="text-xs text-slate-700">
-                <strong>How it works:</strong> Share your referral code with friends. Both you and your friend get $25 credit after their first paid delivery. Credits can only be used on platform fees or rewards.
+                <strong>How it works:</strong> Share your referral code with
+                friends. Both you and your friend get 2,000 Karma Points after
+                their first paid delivery. Karma points can be used to reduce
+                platform fees at checkout.
               </p>
             </div>
           </div>
@@ -274,5 +309,3 @@ export function ReferralCard() {
     </Card>
   );
 }
-
-

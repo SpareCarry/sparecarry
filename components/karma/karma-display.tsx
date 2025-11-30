@@ -1,6 +1,6 @@
 /**
  * Karma Points Display Component
- * 
+ *
  * Shows user's karma points with explanation, progress, and gamification
  */
 
@@ -29,7 +29,7 @@ export function KarmaDisplay() {
           .select("karma_points")
           .eq("id", user.id)
           .single();
-        
+
         if (error) {
           console.warn("Error fetching karma points:", error);
           return { karma_points: 0 };
@@ -54,11 +54,24 @@ export function KarmaDisplay() {
 
   // Determine badge level
   const getBadgeLevel = (points: number) => {
-    if (points >= 1000) return { level: "Master", color: "text-purple-600", bg: "bg-purple-100" };
-    if (points >= 500) return { level: "Expert", color: "text-blue-600", bg: "bg-blue-100" };
-    if (points >= 250) return { level: "Advanced", color: "text-teal-600", bg: "bg-teal-100" };
-    if (points >= 100) return { level: "Intermediate", color: "text-green-600", bg: "bg-green-100" };
-    if (points >= 50) return { level: "Beginner", color: "text-yellow-600", bg: "bg-yellow-100" };
+    if (points >= 1000)
+      return { level: "Master", color: "text-purple-600", bg: "bg-purple-100" };
+    if (points >= 500)
+      return { level: "Expert", color: "text-blue-600", bg: "bg-blue-100" };
+    if (points >= 250)
+      return { level: "Advanced", color: "text-teal-600", bg: "bg-teal-100" };
+    if (points >= 100)
+      return {
+        level: "Intermediate",
+        color: "text-green-600",
+        bg: "bg-green-100",
+      };
+    if (points >= 50)
+      return {
+        level: "Beginner",
+        color: "text-yellow-600",
+        bg: "bg-yellow-100",
+      };
     return { level: "Newcomer", color: "text-slate-600", bg: "bg-slate-100" };
   };
 
@@ -85,25 +98,44 @@ export function KarmaDisplay() {
             </PopoverTrigger>
             <PopoverContent className="w-80" align="start">
               <div className="space-y-2">
-                <h4 className="font-semibold text-sm text-slate-900">What are Karma Points?</h4>
+                <h4 className="text-sm font-semibold text-slate-900">
+                  What are Karma Points?
+                </h4>
                 <p className="text-xs text-slate-600">
-                  Karma points reflect your contributions to the SpareCarry community. You earn points by helping travelers deliver items successfully.
+                  Karma points reflect your contributions to the SpareCarry
+                  community. You earn points by helping travelers deliver items
+                  successfully.
                 </p>
-                <div className="pt-2 border-t space-y-1">
-                  <p className="text-xs font-medium text-slate-700">How you earn karma:</p>
-                  <ul className="text-xs text-slate-600 space-y-1 list-disc list-inside">
+                <div className="space-y-1 border-t pt-2">
+                  <p className="text-xs font-medium text-slate-700">
+                    How you earn karma:
+                  </p>
+                  <ul className="list-inside list-disc space-y-1 text-xs text-slate-600">
                     <li>Complete deliveries successfully</li>
                     <li>Points are based on package weight and platform fee</li>
                     <li>Larger contributions earn more points</li>
                   </ul>
                 </div>
-                <div className="pt-2 border-t space-y-1">
-                  <p className="text-xs font-medium text-slate-700">How karma helps:</p>
-                  <ul className="text-xs text-slate-600 space-y-1 list-disc list-inside">
+                <div className="space-y-1 border-t pt-2">
+                  <p className="text-xs font-medium text-slate-700">
+                    How karma helps:
+                  </p>
+                  <ul className="list-inside list-disc space-y-1 text-xs text-slate-600">
+                    <li>
+                      Use karma points to reduce platform fees at checkout
+                    </li>
                     <li>Build your reputation in the community</li>
                     <li>Unlock badges and achievements</li>
                     <li>Show your commitment to helping others</li>
                   </ul>
+                </div>
+                <div className="border-t pt-2">
+                  <p className="text-xs text-slate-600">
+                    <strong>Using karma points:</strong> At checkout, you can
+                    choose to use your karma points to reduce platform fees. The
+                    conversion rate and exact savings will be shown when
+                    you&apos;re ready to pay.
+                  </p>
                 </div>
               </div>
             </PopoverContent>
@@ -114,11 +146,15 @@ export function KarmaDisplay() {
         {/* Current Points */}
         <div className="flex items-center justify-between">
           <div>
-            <div className="text-3xl font-bold text-purple-600">{karmaPoints}</div>
+            <div className="text-3xl font-bold text-purple-600">
+              {karmaPoints}
+            </div>
             <div className="text-sm text-slate-600">Total karma points</div>
           </div>
-          <div className={`px-3 py-1 rounded-full ${badge.bg} ${badge.color} text-sm font-medium`}>
-            <Trophy className="h-4 w-4 inline mr-1" />
+          <div
+            className={`rounded-full px-3 py-1 ${badge.bg} ${badge.color} text-sm font-medium`}
+          >
+            <Trophy className="mr-1 inline h-4 w-4" />
             {badge.level}
           </div>
         </div>
@@ -130,9 +166,9 @@ export function KarmaDisplay() {
               <span>Progress to {nextMilestone} points</span>
               <span>{Math.round(progressToNext)}%</span>
             </div>
-            <div className="w-full bg-slate-200 rounded-full h-2">
+            <div className="h-2 w-full rounded-full bg-slate-200">
               <div
-                className="bg-purple-600 h-2 rounded-full transition-all duration-300"
+                className="h-2 rounded-full bg-purple-600 transition-all duration-300"
                 style={{ width: `${Math.min(progressToNext, 100)}%` }}
               />
             </div>
@@ -145,7 +181,7 @@ export function KarmaDisplay() {
 
         {/* Milestone Achievements */}
         {karmaPoints >= 100 && (
-          <div className="pt-3 border-t">
+          <div className="border-t pt-3">
             <div className="flex items-center gap-2 text-sm text-slate-700">
               <TrendingUp className="h-4 w-4 text-green-600" />
               <span>You&apos;ve reached the {badge.level} level!</span>
@@ -154,9 +190,11 @@ export function KarmaDisplay() {
         )}
 
         {/* How to Earn More */}
-        <div className="pt-3 border-t">
-          <p className="text-xs font-medium text-slate-700 mb-1">How to earn more:</p>
-          <ul className="text-xs text-slate-600 space-y-1">
+        <div className="border-t pt-3">
+          <p className="mb-1 text-xs font-medium text-slate-700">
+            How to earn more:
+          </p>
+          <ul className="space-y-1 text-xs text-slate-600">
             <li>• Complete more deliveries</li>
             <li>• Help with larger packages</li>
             <li>• Maintain a high completion rate</li>
@@ -166,4 +204,3 @@ export function KarmaDisplay() {
     </Card>
   );
 }
-

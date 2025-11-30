@@ -7,6 +7,7 @@ When you run `pnpm start` in `apps/mobile`, **ALL console logs appear in that te
 ### How to See Logs
 
 1. **Open a terminal** and run:
+
    ```bash
    cd apps/mobile
    pnpm start
@@ -15,11 +16,12 @@ When you run `pnpm start` in `apps/mobile`, **ALL console logs appear in that te
 2. **Look at the terminal output** - all `console.log()`, `console.error()`, `console.warn()` appear there
 
 3. **When you get a 404**, you'll see:
+
    ```
    ❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌
    ❌       404 PAGE NOT FOUND        ❌
    ❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌
-   
+
    Pathname: /your-missing-route
    Segments: your/missing/route
    ```
@@ -27,18 +29,21 @@ When you run `pnpm start` in `apps/mobile`, **ALL console logs appear in that te
 ## 🎯 What Gets Logged
 
 ### ✅ App Startup
+
 ```
 🚀 MOBILE APP STARTED
 📱 Expo Go - Console logs appear here!
 ```
 
 ### ✅ Navigation Events
+
 ```
 📍 Navigation: (tabs)
 📍 Navigation: /auth/login
 ```
 
 ### ❌ 404 Errors (VERY VISIBLE)
+
 ```
 ❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌
 ❌       404 PAGE NOT FOUND        ❌
@@ -46,6 +51,7 @@ When you run `pnpm start` in `apps/mobile`, **ALL console logs appear in that te
 ```
 
 ### ❌ Navigation Errors
+
 ```
 ❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌
 ❌      NAVIGATION ERROR       ❌
@@ -96,4 +102,3 @@ If you don't see logs:
 4. **Check Expo Go is connected** - you should see "Connected" in Metro
 
 All logs appear in the **Metro bundler terminal** automatically! 🎉
-

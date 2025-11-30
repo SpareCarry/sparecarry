@@ -1,10 +1,10 @@
 /**
  * Country Presets Utility
- * 
+ *
  * Provides default dimensions and weight presets for countries
  */
 
-const countryPresetsData = require('../../assets/data/countryPresets.json');
+const countryPresetsData = require("../../assets/data/countryPresets.json");
 
 export interface CountryPresets {
   [countryCode: string]: {
@@ -26,7 +26,9 @@ export interface PresetDimensions {
  * Get preset dimensions and weight for a country
  */
 export function getCountryPreset(countryCode: string): PresetDimensions | null {
-  const preset = (countryPresetsData as CountryPresets)[countryCode.toUpperCase()];
+  const preset = (countryPresetsData as CountryPresets)[
+    countryCode.toUpperCase()
+  ];
   if (!preset) return null;
 
   return {
@@ -43,4 +45,3 @@ export function getCountryPreset(countryCode: string): PresetDimensions | null {
 export function getAvailablePresetCountries(): string[] {
   return Object.keys(countryPresetsData);
 }
-

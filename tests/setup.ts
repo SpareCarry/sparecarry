@@ -1,21 +1,21 @@
-import '@testing-library/jest-dom';
-import { vi } from 'vitest';
-import './setup-supabase-mock';
+import "@testing-library/jest-dom";
+import { vi } from "vitest";
+import "./setup-supabase-mock";
 
 // Mock Next.js router
-vi.mock('next/navigation', () => ({
+vi.mock("next/navigation", () => ({
   useRouter: () => ({
     push: vi.fn(),
     replace: vi.fn(),
     prefetch: vi.fn(),
     back: vi.fn(),
   }),
-  usePathname: () => '/',
+  usePathname: () => "/",
   useSearchParams: () => new URLSearchParams(),
 }));
 
 // Mock Next.js headers (used by server-side Supabase client)
-vi.mock('next/headers', () => ({
+vi.mock("next/headers", () => ({
   cookies: vi.fn(() => ({
     getAll: vi.fn(() => []),
     get: vi.fn(() => undefined),
@@ -26,22 +26,21 @@ vi.mock('next/headers', () => ({
 }));
 
 // Mock next-intl
-vi.mock('next-intl', () => ({
+vi.mock("next-intl", () => ({
   useTranslations: () => (key: string) => key,
-  useLocale: () => 'en',
+  useLocale: () => "en",
 }));
 
 // Mock Capacitor
-vi.mock('@capacitor/core', () => ({
+vi.mock("@capacitor/core", () => ({
   Capacitor: {
     isNativePlatform: () => false,
-    getPlatform: () => 'web',
+    getPlatform: () => "web",
   },
 }));
 
 // Mock environment variables
-process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://test.supabase.co';
-process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'test-anon-key';
-process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY = 'pk_test_123';
-process.env.NEXT_PUBLIC_APP_URL = 'http://localhost:3000';
-
+process.env.NEXT_PUBLIC_SUPABASE_URL = "https://test.supabase.co";
+process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = "test-anon-key";
+process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY = "pk_test_123";
+process.env.NEXT_PUBLIC_APP_URL = "http://localhost:3000";

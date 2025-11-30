@@ -2,13 +2,13 @@
  * Tests for useLocation hook
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { renderHook, waitFor } from '@testing-library/react';
-import { useLocation, getCurrentLocation } from '../useLocation';
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { renderHook, waitFor } from "@testing-library/react";
+import { useLocation, getCurrentLocation } from "../useLocation";
 
 // Mock navigator.geolocation for web
 const mockGeolocation = {
-  getCurrentPosition: vi.fn((success) => {
+  getCurrentPosition: vi.fn((success, _error?) => {
     success({
       coords: {
         latitude: 37.7749,
@@ -26,33 +26,32 @@ const mockGeolocation = {
   clearWatch: vi.fn(),
 };
 
-describe('useLocation', () => {
+describe("useLocation", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    if (typeof navigator !== 'undefined') {
+    if (typeof navigator !== "undefined") {
       (navigator as any).geolocation = mockGeolocation;
     }
   });
 
-  it('should get current location on web', async () => {
+  it("should get current location on web", async () => {
     const location = await getCurrentLocation();
     expect(location).toBeDefined();
     expect(location.latitude).toBe(37.7749);
     expect(location.longitude).toBe(-122.4194);
   });
 
-  it('should handle geolocation errors', async () => {
+  it("should handle geolocation errors", async () => {
     mockGeolocation.getCurrentPosition = vi.fn((_success, error) => {
       error({
         code: 1,
-        message: 'Permission denied',
+        message: "Permission denied",
       });
     });
 
     await expect(getCurrentLocation()).rejects.toMatchObject({
       code: 1,
-      message: 'Permission denied',
+      message: "Permission denied",
     });
   });
 });
-

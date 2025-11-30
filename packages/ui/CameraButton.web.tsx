@@ -3,11 +3,15 @@
  * Uses file input for web browsers
  */
 
-import React from 'react';
-import { useCamera } from '@sparecarry/hooks';
-import type { CameraButtonProps } from './CameraButton.types';
+import React from "react";
+import { useCamera } from "@sparecarry/hooks";
+import type { CameraButtonProps } from "./CameraButton.types";
 
-export function CameraButton({ onCapture, children, className }: CameraButtonProps) {
+export function CameraButton({
+  onCapture,
+  children,
+  className,
+}: CameraButtonProps) {
   const { takePicture, pickImage, loading } = useCamera();
 
   const handleTakePicture = async () => {
@@ -27,7 +31,7 @@ export function CameraButton({ onCapture, children, className }: CameraButtonPro
   return (
     <div className={className}>
       <button onClick={handleTakePicture} disabled={loading}>
-        {children || 'Take Photo'}
+        {children || "Take Photo"}
       </button>
       <button onClick={handlePickImage} disabled={loading}>
         Pick from Gallery
@@ -35,4 +39,3 @@ export function CameraButton({ onCapture, children, className }: CameraButtonPro
     </div>
   );
 }
-

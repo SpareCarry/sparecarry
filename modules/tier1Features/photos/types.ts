@@ -13,4 +13,3 @@ export interface PhotoVerificationResult {
   message?: string;
   errors?: string[];
 }
-

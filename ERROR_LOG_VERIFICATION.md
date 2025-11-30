@@ -18,6 +18,7 @@ The error logging system is fully implemented with global error boundaries, cent
 ### Component: `app/_components/ErrorBoundary.tsx`
 
 **Features**:
+
 - ✅ Catches React render errors
 - ✅ Shows user-friendly fallback UI
 - ✅ Logs errors using logger system
@@ -33,6 +34,7 @@ The error logging system is fully implemented with global error boundaries, cent
 **Location**: `app/layout.tsx`
 
 **Integration**:
+
 - ✅ Wraps root layout
 - ✅ Catches all React errors
 - ✅ Provides fallback UI
@@ -46,6 +48,7 @@ The error logging system is fully implemented with global error boundaries, cent
 ### Logger: `lib/logger/index.ts`
 
 **Features**:
+
 - ✅ `info()` - Info level logging
 - ✅ `warn()` - Warning level logging
 - ✅ `error()` - Error level logging
@@ -61,6 +64,7 @@ The error logging system is fully implemented with global error boundaries, cent
 ### Logging Levels
 
 **Levels**:
+
 - ✅ `info` - Informational messages
 - ✅ `warn` - Warning messages
 - ✅ `error` - Error messages
@@ -73,6 +77,7 @@ The error logging system is fully implemented with global error boundaries, cent
 ### PII Redaction
 
 **Redacted Data**:
+
 - ✅ Email addresses
 - ✅ Credit card numbers (Luhn algorithm)
 - ✅ Tokens (JWT, API keys)
@@ -90,6 +95,7 @@ The error logging system is fully implemented with global error boundaries, cent
 **Location**: `sentry.client.config.ts`
 
 **Features**:
+
 - ✅ Initializes Sentry for web
 - ✅ Captures uncaught errors
 - ✅ Captures unhandled promise rejections
@@ -105,6 +111,7 @@ The error logging system is fully implemented with global error boundaries, cent
 **Location**: `sentry.server.config.ts`
 
 **Features**:
+
 - ✅ Initializes Sentry for server
 - ✅ Captures API route exceptions
 - ✅ Performance traces
@@ -119,6 +126,7 @@ The error logging system is fully implemented with global error boundaries, cent
 **Location**: `sentry.edge.config.ts`
 
 **Features**:
+
 - ✅ Initializes Sentry for edge runtime
 - ✅ Captures edge function errors
 - ✅ Performance traces
@@ -132,6 +140,7 @@ The error logging system is fully implemented with global error boundaries, cent
 ### Middleware: `lib/api/withApiErrorHandler.ts`
 
 **Features**:
+
 - ✅ Wraps API handlers in try/catch
 - ✅ Typed errors
 - ✅ Never returns raw `error.stack`
@@ -144,6 +153,7 @@ The error logging system is fully implemented with global error boundaries, cent
 ### Error Response Format
 
 **Standard Shape**:
+
 ```json
 {
   "ok": false,
@@ -165,6 +175,7 @@ The error logging system is fully implemented with global error boundaries, cent
 **Location**: `lib/mobile/logger.ts`
 
 **Features**:
+
 - ✅ Device logs → console or Sentry
 - ✅ Captures runtime errors inside WebView
 - ✅ Captures network failures
@@ -179,15 +190,16 @@ The error logging system is fully implemented with global error boundaries, cent
 ### Manual Error Capture
 
 **Usage**:
+
 ```typescript
-import { logger } from '@/lib/logger';
+import { logger } from "@/lib/logger";
 
 try {
   // Code that might fail
 } catch (error) {
-  logger.error('Operation failed', {
+  logger.error("Operation failed", {
     error,
-    context: { userId, operation }
+    context: { userId, operation },
   });
 }
 ```
@@ -203,6 +215,7 @@ try {
 **Location**: `app/api/health/error-test/route.ts`
 
 **Features**:
+
 - ✅ Staging-only endpoint
 - ✅ Behind feature flags
 - ✅ Triggers test error
@@ -217,6 +230,7 @@ try {
 ### Environment Variables
 
 **Required**:
+
 - ✅ `NEXT_PUBLIC_SENTRY_DSN` - Sentry DSN (optional)
 - ✅ `SENTRY_AUTH_TOKEN` - Sentry auth token (optional)
 - ✅ `SENTRY_ORG` - Sentry organization (optional)
@@ -229,11 +243,13 @@ try {
 ### Sampling Configuration
 
 **Production**:
+
 - ✅ Default: 10% of logs (configurable)
 - ✅ Reduces log volume
 - ✅ Critical errors always logged
 
 **Development**:
+
 - ✅ 100% of logs
 - ✅ Full debugging information
 
@@ -246,6 +262,7 @@ try {
 ### Sentry Events
 
 **Tracked**:
+
 - ✅ Uncaught errors
 - ✅ API route exceptions
 - ✅ Unhandled promise rejections
@@ -304,4 +321,3 @@ The error logging system is fully implemented with global error boundaries, cent
 
 **Last Updated**: 2024-12-19  
 **Report Version**: 1.0.0
-

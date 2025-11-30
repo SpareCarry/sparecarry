@@ -9,17 +9,20 @@
 ## 📋 Build Configuration
 
 ### Next.js Configuration
+
 - **Version**: 14.2.5 (stable App Router + static export)
 - **Output Mode**: `output: "export"`
 - **Experimental Features**: `typedRoutes: true`
 - **Configuration File**: `next.config.js` (minimal, standardized)
 
 ### TypeScript Configuration
+
 - **Base URL**: `.` (project root)
 - **Path Aliases**: `@/*` → `./*`
 - **Configuration File**: `tsconfig.json`
 
 ### Build Scripts
+
 - **Build**: `npm run build` → `next build`
 - **Post-Build**: `npm run postbuild` → `node scripts/fix-aliases.js`
 - **Validation**: `npm run validate:export` → `node scripts/validate-export.js`
@@ -30,23 +33,27 @@
 ## ✅ Verified Components
 
 ### 1. Dynamic Routes
+
 All dynamic routes have `generateStaticParams()`:
 
 - ✅ `/home/messages/[matchId]` → `app/home/messages/[matchId]/page.tsx`
 - ✅ `/r/[code]` → `app/r/[code]/page.tsx`
 
 ### 2. Admin Routes Exclusion
+
 Server-only admin routes are excluded from static export:
 
 - ✅ Admin routes moved to `app/_admin/` (not exported)
 - ✅ Admin routes remain available for SSR but ignored during static export
 
 ### 3. Path Alias Resolution
+
 - ✅ **Build-time**: TypeScript resolves `@/` via `tsconfig.json`
 - ✅ **Post-build**: `scripts/fix-aliases.js` fixes any unresolved `@/` imports in `out/`
 - ✅ **Validation**: `scripts/validate-export.js` checks for remaining `@/` imports
 
 ### 4. Build Pipeline
+
 Automated pipeline ensures consistency:
 
 1. ✅ **Build**: `next build` creates `out/` directory
@@ -61,6 +68,7 @@ Automated pipeline ensures consistency:
 The `validate:export` script performs the following checks:
 
 ### ✅ Required Checks
+
 1. **out/ Directory Exists**
    - Verifies `out/` directory is created
    - Checks it's a valid directory
@@ -137,6 +145,7 @@ After running `npm run validate:export`:
 ## 🚀 Mobile Deployment Instructions
 
 ### Prerequisites
+
 - ✅ Next.js build completed successfully
 - ✅ Export validation passed
 - ✅ Capacitor projects initialized (`ios/` and `android/` directories exist)
@@ -172,12 +181,14 @@ npm run mobile:build
 ## ⚠️ Known Limitations
 
 ### Static Export Limitations
+
 - ❌ **API Routes**: Not included in static export (server-side only)
 - ❌ **Server Components**: Limited to static generation
 - ❌ **Dynamic Routes**: Must use `generateStaticParams()` for all paths
 - ❌ **Middleware**: Runs at build time, not runtime
 
 ### Admin Routes
+
 - ✅ **SSR Available**: Admin routes work with Next.js server
 - ❌ **Static Export**: Admin routes excluded from `out/`
 - ✅ **Mobile**: Admin routes not needed in mobile app
@@ -190,7 +201,8 @@ npm run mobile:build
 
 **Error**: `Module not found: Can't resolve '@/...'`
 
-**Solution**: 
+**Solution**:
+
 1. Verify `tsconfig.json` has correct `baseUrl` and `paths`
 2. Run `npm run build` (post-build script should fix it)
 3. If persists, check `scripts/fix-aliases.js` is running
@@ -200,6 +212,7 @@ npm run mobile:build
 **Error**: `Found X unresolved @/ imports`
 
 **Solution**:
+
 1. Check `scripts/fix-aliases.js` ran successfully
 2. Verify files in `out/` directory
 3. Manually check reported files for `@/` imports
@@ -210,6 +223,7 @@ npm run mobile:build
 **Error**: `out/ directory does not exist`
 
 **Solution**:
+
 1. Verify `next.config.js` has `output: "export"`
 2. Check Next.js version is 14.2.5+
 3. Ensure build completed without errors
@@ -220,6 +234,7 @@ npm run mobile:build
 **Error**: `Capacitor sync failed`
 
 **Solution**:
+
 1. Verify `out/` directory exists and is valid
 2. Check `capacitor.config.ts` has correct `webDir: "out"`
 3. Ensure iOS/Android projects are initialized
@@ -230,12 +245,14 @@ npm run mobile:build
 ## 📝 Build Pipeline Summary
 
 ### Automated Steps
+
 1. ✅ **Build**: `next build` → Creates `out/` with static files
 2. ✅ **Fix Aliases**: `scripts/fix-aliases.js` → Replaces `@/` imports
 3. ✅ **Validate**: `scripts/validate-export.js` → Verifies export integrity
 4. ✅ **Sync**: `npx cap sync` → Updates mobile projects
 
 ### Manual Steps (if needed)
+
 1. Open iOS project: `npx cap open ios`
 2. Open Android project: `npx cap open android`
 3. Build native apps in Xcode/Android Studio
@@ -269,4 +286,3 @@ A successful build pipeline should:
 **Status**: ✅ **READY FOR PRODUCTION**  
 **Last Validated**: 2025-11-19  
 **Pipeline Version**: 1.0.0
-

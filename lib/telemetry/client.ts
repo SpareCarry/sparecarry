@@ -1,16 +1,24 @@
 /**
  * Telemetry Client
- * 
+ *
  * Unified telemetry client for web and mobile
  * Sends events to Sentry and analytics services
  */
 
-import { createTelemetryEvent, TelemetryEvent, TelemetryEventData } from './events';
-import { getAppEnvironment } from '../env/config';
-import { logger } from '../logger';
+import {
+  createTelemetryEvent,
+  TelemetryEvent,
+  TelemetryEventData,
+} from "./events";
+import { getAppEnvironment } from "../env/config";
+import { logger } from "../logger";
 
 interface TelemetryClient {
-  track(event: TelemetryEvent, metadata?: Record<string, unknown>, performance?: TelemetryEventData['performance']): void;
+  track(
+    event: TelemetryEvent,
+    metadata?: Record<string, unknown>,
+    performance?: TelemetryEventData["performance"]
+  ): void;
   setUser(userId: string, email?: string): void;
   clearUser(): void;
   setSession(sessionId: string): void;
@@ -22,14 +30,14 @@ class TelemetryClientImpl implements TelemetryClient {
   private enabled: boolean;
 
   constructor() {
-    this.enabled = process.env.NEXT_PUBLIC_ENABLE_TELEMETRY !== 'false';
-    
+    this.enabled = process.env.NEXT_PUBLIC_ENABLE_TELEMETRY !== "false";
+
     // Generate session ID
-    if (typeof window !== 'undefined') {
-      const stored = sessionStorage.getItem('telemetry_session_id');
+    if (typeof window !== "undefined") {
+      const stored = sessionStorage.getItem("telemetry_session_id");
       this.sessionId = stored || this.generateSessionId();
       if (!stored) {
-        sessionStorage.setItem('telemetry_session_id', this.sessionId);
+        sessionStorage.setItem("telemetry_session_id", this.sessionId);
       }
     } else {
       this.sessionId = this.generateSessionId();
@@ -46,7 +54,7 @@ class TelemetryClientImpl implements TelemetryClient {
   track(
     event: TelemetryEvent,
     metadata?: Record<string, unknown>,
-    performance?: TelemetryEventData['performance']
+    performance?: TelemetryEventData["performance"]
   ): void {
     if (!this.enabled) return;
 
@@ -62,7 +70,7 @@ class TelemetryClientImpl implements TelemetryClient {
       this.sendToAnalytics(eventData);
 
       // Log in development
-      if (getAppEnvironment() === 'development') {
+      if (getAppEnvironment() === "development") {
         const logPayload: Record<string, unknown> = {
           event: eventData.event,
           metadata: eventData.metadata,
@@ -70,12 +78,12 @@ class TelemetryClientImpl implements TelemetryClient {
           userId: eventData.userId,
           sessionId: eventData.sessionId,
         };
-        logger.debug('Telemetry Event', logPayload);
+        logger.debug("Telemetry Event", logPayload);
       }
     } catch (error) {
       // Silently fail - telemetry should never break the app
-      if (getAppEnvironment() === 'development') {
-        logger.warn('Telemetry tracking failed', { event, error });
+      if (getAppEnvironment() === "development") {
+        logger.warn("Telemetry tracking failed", { event, error });
       }
     }
   }
@@ -87,16 +95,16 @@ class TelemetryClientImpl implements TelemetryClient {
     if (!process.env.NEXT_PUBLIC_SENTRY_DSN) return;
 
     try {
-      const Sentry = await import('@sentry/nextjs');
-      
+      const Sentry = await import("@sentry/nextjs");
+
       if (!Sentry) return;
-      
+
       // Add event as breadcrumb
       if (Sentry.addBreadcrumb) {
         Sentry.addBreadcrumb({
-          category: 'telemetry',
+          category: "telemetry",
           message: eventData.event,
-          level: 'info',
+          level: "info",
           data: {
             ...eventData.metadata,
             performance: eventData.performance,
@@ -105,18 +113,26 @@ class TelemetryClientImpl implements TelemetryClient {
       }
 
       // For error events, capture as exception
-      if ((eventData.event.includes('error') || eventData.event.includes('failed')) && Sentry.captureMessage) {
+      if (
+        (eventData.event.includes("error") ||
+          eventData.event.includes("failed")) &&
+        Sentry.captureMessage
+      ) {
         Sentry.captureMessage(`Telemetry: ${eventData.event}`, {
-          level: 'error',
+          level: "error",
           extra: eventData.metadata,
         });
       }
 
       // For performance events, add to transaction
-      if (eventData.performance && eventData.performance.duration && Sentry.getCurrentHub) {
+      if (
+        eventData.performance &&
+        eventData.performance.duration &&
+        Sentry.getCurrentHub
+      ) {
         const transaction = Sentry.getCurrentHub().getScope()?.getTransaction();
         if (transaction) {
-          transaction.setData('telemetry', {
+          transaction.setData("telemetry", {
             event: eventData.event,
             ...eventData.performance,
           });
@@ -132,10 +148,10 @@ class TelemetryClientImpl implements TelemetryClient {
    */
   private sendToAnalytics(eventData: TelemetryEventData): void {
     // Google Analytics
-    if (typeof window !== 'undefined' && (window as any).gtag) {
+    if (typeof window !== "undefined" && (window as any).gtag) {
       try {
-        (window as any).gtag('event', eventData.event, {
-          event_category: 'telemetry',
+        (window as any).gtag("event", eventData.event, {
+          event_category: "telemetry",
           event_label: eventData.event,
           value: eventData.performance?.duration,
           ...eventData.metadata,
@@ -146,9 +162,9 @@ class TelemetryClientImpl implements TelemetryClient {
     }
 
     // Meta Pixel
-    if (typeof window !== 'undefined' && (window as any).fbq) {
+    if (typeof window !== "undefined" && (window as any).fbq) {
       try {
-        (window as any).fbq('trackCustom', eventData.event, eventData.metadata);
+        (window as any).fbq("trackCustom", eventData.event, eventData.metadata);
       } catch {
         // Meta Pixel not available
       }
@@ -160,10 +176,10 @@ class TelemetryClientImpl implements TelemetryClient {
    */
   setUser(userId: string, email?: string): void {
     this.userId = userId;
-    
+
     // Update Sentry user
     if (process.env.NEXT_PUBLIC_SENTRY_DSN) {
-      import('@sentry/nextjs')
+      import("@sentry/nextjs")
         .then((Sentry) => {
           if (Sentry?.setUser) {
             Sentry.setUser({
@@ -183,9 +199,9 @@ class TelemetryClientImpl implements TelemetryClient {
    */
   clearUser(): void {
     this.userId = null;
-    
+
     if (process.env.NEXT_PUBLIC_SENTRY_DSN) {
-      import('@sentry/nextjs')
+      import("@sentry/nextjs")
         .then((Sentry) => {
           if (Sentry?.setUser) {
             Sentry.setUser(null);
@@ -214,7 +230,7 @@ export const telemetry = new TelemetryClientImpl();
 export function trackEvent(
   event: TelemetryEvent,
   metadata?: Record<string, unknown>,
-  performance?: TelemetryEventData['performance']
+  performance?: TelemetryEventData["performance"]
 ): void {
   telemetry.track(event, metadata, performance);
 }
@@ -226,4 +242,3 @@ export function setTelemetryUser(userId: string, email?: string): void {
 export function clearTelemetryUser(): void {
   telemetry.clearUser();
 }
-

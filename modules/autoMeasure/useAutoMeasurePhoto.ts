@@ -1,6 +1,6 @@
 /**
  * useAutoMeasurePhoto - Hook for capturing, saving, and uploading auto-measure photos
- * 
+ *
  * Handles:
  * - View capture with overlay
  * - Local storage (offline support)
@@ -8,36 +8,36 @@
  * - Upload to Supabase Storage
  */
 
-import { useState, useCallback } from 'react';
-import { Platform } from 'react-native';
-import { Dimensions, MeasurementResult } from './types';
-import { CapturedPhoto } from './types';
+import { useState, useCallback } from "react";
+import { Platform } from "react-native";
+import { Dimensions, MeasurementResult } from "./types";
+import { CapturedPhoto } from "./types";
 
 // Conditional import for react-native-view-shot
-let ViewShot: typeof import('react-native-view-shot') | null = null;
-if (typeof require !== 'undefined') {
+let ViewShot: typeof import("react-native-view-shot") | null = null;
+if (typeof require !== "undefined") {
   try {
-    ViewShot = require('react-native-view-shot');
+    ViewShot = require("react-native-view-shot");
   } catch (e) {
     // react-native-view-shot not available
   }
 }
 
 // Conditional import for expo-file-system
-let FileSystem: typeof import('expo-file-system') | null = null;
-if (typeof require !== 'undefined') {
+let FileSystem: typeof import("expo-file-system") | null = null;
+if (typeof require !== "undefined") {
   try {
-    FileSystem = require('expo-file-system');
+    FileSystem = require("expo-file-system");
   } catch (e) {
     // expo-file-system not available
   }
 }
 
 // Conditional import for expo-image-manipulator
-let ImageManipulator: typeof import('expo-image-manipulator') | null = null;
-if (typeof require !== 'undefined') {
+let ImageManipulator: typeof import("expo-image-manipulator") | null = null;
+if (typeof require !== "undefined") {
   try {
-    ImageManipulator = require('expo-image-manipulator');
+    ImageManipulator = require("expo-image-manipulator");
   } catch (e) {
     // expo-image-manipulator not available
   }
@@ -53,19 +53,22 @@ interface UseAutoMeasurePhotoOptions {
  * Convert URI to File object (for web compatibility)
  * On mobile, returns a file-like object that can be used with Supabase upload
  */
-async function uriToFile(uri: string, filename: string): Promise<File | { uri: string; name: string; type: string }> {
-  if (Platform.OS === 'web') {
+async function uriToFile(
+  uri: string,
+  filename: string
+): Promise<File | { uri: string; name: string; type: string }> {
+  if (Platform.OS === "web") {
     // Web: Fetch and convert to File
     const response = await fetch(uri);
     const blob = await response.blob();
-    return new File([blob], filename, { type: 'image/jpeg' });
+    return new File([blob], filename, { type: "image/jpeg" });
   } else {
     // Mobile: Return file-like object with URI
     // Supabase Storage can handle URI directly on mobile
     return {
       uri,
       name: filename,
-      type: 'image/jpeg',
+      type: "image/jpeg",
     };
   }
 }
@@ -93,7 +96,10 @@ async function compressImage(
     );
     return result.uri;
   } catch (error) {
-    console.warn('[useAutoMeasurePhoto] Compression failed, using original:', error);
+    console.warn(
+      "[useAutoMeasurePhoto] Compression failed, using original:",
+      error
+    );
     return uri;
   }
 }
@@ -101,14 +107,17 @@ async function compressImage(
 /**
  * Save photo to local storage (offline support)
  */
-async function savePhotoLocally(uri: string, filename: string): Promise<string> {
-  if (Platform.OS === 'web') {
+async function savePhotoLocally(
+  uri: string,
+  filename: string
+): Promise<string> {
+  if (Platform.OS === "web") {
     // Web: Store in IndexedDB or localStorage (simplified - just return URI)
     return uri;
   } else {
     // Mobile: Save to app's document directory
     if (!FileSystem) {
-      throw new Error('expo-file-system not available');
+      throw new Error("expo-file-system not available");
     }
 
     const fileUri = `${FileSystem.documentDirectory}${filename}`;
@@ -125,7 +134,9 @@ export function useAutoMeasurePhoto(options: UseAutoMeasurePhotoOptions = {}) {
   const { onPhotoCaptured, onUploadComplete, onError } = options;
   const [isCapturing, setIsCapturing] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
-  const [capturedPhoto, setCapturedPhoto] = useState<CapturedPhoto | null>(null);
+  const [capturedPhoto, setCapturedPhoto] = useState<CapturedPhoto | null>(
+    null
+  );
 
   /**
    * Capture view with overlay
@@ -136,11 +147,11 @@ export function useAutoMeasurePhoto(options: UseAutoMeasurePhotoOptions = {}) {
       measurementResult: MeasurementResult
     ): Promise<CapturedPhoto | null> => {
       if (!viewRef.current) {
-        throw new Error('View ref not available');
+        throw new Error("View ref not available");
       }
 
       if (!ViewShot) {
-        throw new Error('react-native-view-shot not available');
+        throw new Error("react-native-view-shot not available");
       }
 
       try {
@@ -148,9 +159,9 @@ export function useAutoMeasurePhoto(options: UseAutoMeasurePhotoOptions = {}) {
 
         // Capture the view (camera + overlay)
         const uri = await ViewShot.captureRef(viewRef, {
-          format: 'jpg',
+          format: "jpg",
           quality: 0.9, // High quality for overlay visibility
-          result: 'tmpfile', // Save as temporary file
+          result: "tmpfile", // Save as temporary file
         });
 
         // Compress the image
@@ -180,8 +191,9 @@ export function useAutoMeasurePhoto(options: UseAutoMeasurePhotoOptions = {}) {
 
         return photo;
       } catch (error) {
-        const err = error instanceof Error ? error : new Error('Failed to capture photo');
-        console.error('[useAutoMeasurePhoto] Capture error:', err);
+        const err =
+          error instanceof Error ? error : new Error("Failed to capture photo");
+        console.error("[useAutoMeasurePhoto] Capture error:", err);
         onError?.(err);
         return null;
       } finally {
@@ -196,27 +208,31 @@ export function useAutoMeasurePhoto(options: UseAutoMeasurePhotoOptions = {}) {
    * Handles both File objects (web) and URI objects (mobile)
    */
   const uploadPhoto = useCallback(
-    async (photo: CapturedPhoto, userId: string, supabase: any): Promise<string | null> => {
+    async (
+      photo: CapturedPhoto,
+      userId: string,
+      supabase: any
+    ): Promise<string | null> => {
       if (!photo.file && !photo.uri) {
-        throw new Error('Photo file or URI not available');
+        throw new Error("Photo file or URI not available");
       }
 
       try {
         setIsUploading(true);
 
         // Generate file path
-        const fileExt = 'jpg';
+        const fileExt = "jpg";
         const fileName = `${userId}/auto-measure-${photo.timestamp}.${fileExt}`;
         const filePath = `requests/${fileName}`;
 
         // Prepare upload data
         let uploadData: any;
         let uploadOptions: any = {
-          contentType: 'image/jpeg',
+          contentType: "image/jpeg",
           upsert: false,
         };
 
-        if (Platform.OS === 'web' && photo.file instanceof File) {
+        if (Platform.OS === "web" && photo.file instanceof File) {
           // Web: Use File object directly
           uploadData = photo.file;
         } else if (photo.uri) {
@@ -238,12 +254,12 @@ export function useAutoMeasurePhoto(options: UseAutoMeasurePhotoOptions = {}) {
             uploadData = photo.uri;
           }
         } else {
-          throw new Error('Unable to prepare photo for upload');
+          throw new Error("Unable to prepare photo for upload");
         }
 
         // Upload to Supabase Storage
         const { error: uploadError } = await supabase.storage
-          .from('item-photos')
+          .from("item-photos")
           .upload(filePath, uploadData, uploadOptions);
 
         if (uploadError) {
@@ -253,13 +269,14 @@ export function useAutoMeasurePhoto(options: UseAutoMeasurePhotoOptions = {}) {
         // Get public URL
         const {
           data: { publicUrl },
-        } = supabase.storage.from('item-photos').getPublicUrl(filePath);
+        } = supabase.storage.from("item-photos").getPublicUrl(filePath);
 
         onUploadComplete?.(publicUrl);
         return publicUrl;
       } catch (error) {
-        const err = error instanceof Error ? error : new Error('Failed to upload photo');
-        console.error('[useAutoMeasurePhoto] Upload error:', err);
+        const err =
+          error instanceof Error ? error : new Error("Failed to upload photo");
+        console.error("[useAutoMeasurePhoto] Upload error:", err);
         onError?.(err);
         return null;
       } finally {
@@ -285,4 +302,3 @@ export function useAutoMeasurePhoto(options: UseAutoMeasurePhotoOptions = {}) {
     capturedPhoto,
   };
 }
-

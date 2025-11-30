@@ -3,6 +3,7 @@
 ## Quick Answer
 
 **For Expo mobile apps, you can use either:**
+
 - `.env` - General environment variables
 - `.env.local` - Local overrides (takes precedence, usually gitignored)
 
@@ -30,6 +31,7 @@ EXPO_PUBLIC_SUPABASE_ANON_KEY=your-secret-key-here
 ```
 
 **Pros:**
+
 - ✅ Automatically gitignored (won't be committed)
 - ✅ Takes precedence over `.env`
 - ✅ Safe for secrets/API keys
@@ -44,6 +46,7 @@ EXPO_PUBLIC_SUPABASE_ANON_KEY=your-key-here
 ```
 
 **Pros:**
+
 - ✅ Can be committed to git (if no secrets)
 - ✅ Shared across team
 - ✅ Works out of the box
@@ -63,6 +66,7 @@ EXPO_PUBLIC_SUPABASE_ANON_KEY=your-key-here
 ## 📝 Example Setup
 
 ### 1. Create `.env.example` (committed to git):
+
 ```env
 # Supabase Configuration
 EXPO_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
@@ -70,6 +74,7 @@ EXPO_PUBLIC_SUPABASE_ANON_KEY=your-anon-key-here
 ```
 
 ### 2. Create `.env.local` (gitignored, your actual keys):
+
 ```env
 # Your actual Supabase credentials (DO NOT COMMIT)
 EXPO_PUBLIC_SUPABASE_URL=https://abcdefghijklmnop.supabase.co
@@ -77,6 +82,7 @@ EXPO_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ```
 
 ### 3. `.gitignore` should include:
+
 ```
 .env.local
 .env*.local
@@ -99,6 +105,7 @@ const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
 ```
 
 Variables are:
+
 - ✅ Loaded at build time
 - ✅ Embedded in the bundle
 - ✅ Accessible via `process.env.EXPO_PUBLIC_*`
@@ -109,12 +116,14 @@ Variables are:
 ### For Your Mobile App:
 
 1. **Create `.env.local`** in `apps/mobile/`:
+
    ```bash
    cd apps/mobile
    touch .env.local  # or create manually
    ```
 
 2. **Add your Supabase keys**:
+
    ```env
    EXPO_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
    EXPO_PUBLIC_SUPABASE_ANON_KEY=your-key
@@ -134,4 +143,3 @@ Variables are:
 - **Must restart Metro** after changing env files
 
 **For your Supabase setup, use `.env.local`!** 🔒
-

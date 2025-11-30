@@ -14,9 +14,21 @@ import {
 } from "../ui/table";
 import { Badge } from "../ui/badge";
 import { Input } from "../ui/input";
-import { CheckCircle2, XCircle, Loader2, Search, Lightbulb, Mail } from "lucide-react";
+import {
+  CheckCircle2,
+  XCircle,
+  Loader2,
+  Search,
+  Lightbulb,
+  Mail,
+} from "lucide-react";
 import { format } from "date-fns";
-import { adminGetAllIdeas, adminAcceptIdea, adminRejectIdea, IdeaSuggestionWithUser } from "../../lib/services/ideas";
+import {
+  adminGetAllIdeas,
+  adminAcceptIdea,
+  adminRejectIdea,
+  IdeaSuggestionWithUser,
+} from "../../lib/services/ideas";
 import { trackAnalyticsEvent } from "../../lib/analytics/track-event";
 
 export function IdeasTable() {
@@ -52,7 +64,7 @@ export function IdeasTable() {
     mutationFn: async (ideaId: string) => {
       // Find the idea to get user_id for analytics
       const idea = ideas?.find((i) => i.id === ideaId);
-      
+
       const result = await adminAcceptIdea(ideaId);
       if (!result.success) {
         throw new Error(result.error || "Failed to accept idea");
@@ -113,16 +125,10 @@ export function IdeasTable() {
         );
       case "reviewing":
         return (
-          <Badge className="bg-yellow-100 text-yellow-800">
-            Reviewing
-          </Badge>
+          <Badge className="bg-yellow-100 text-yellow-800">Reviewing</Badge>
         );
       default:
-        return (
-          <Badge className="bg-slate-100 text-slate-800">
-            Pending
-          </Badge>
-        );
+        return <Badge className="bg-slate-100 text-slate-800">Pending</Badge>;
     }
   };
 
@@ -147,12 +153,12 @@ export function IdeasTable() {
       </div>
 
       {ideas && ideas.length === 0 ? (
-        <div className="text-center py-12 text-slate-500">
-          <Lightbulb className="h-12 w-12 mx-auto mb-4 text-slate-300" />
+        <div className="py-12 text-center text-slate-500">
+          <Lightbulb className="mx-auto mb-4 h-12 w-12 text-slate-300" />
           <p>No idea suggestions yet.</p>
         </div>
       ) : (
-        <div className="border rounded-lg overflow-hidden">
+        <div className="overflow-hidden rounded-lg border">
           <Table>
             <TableHeader>
               <TableRow>
@@ -167,7 +173,7 @@ export function IdeasTable() {
             <TableBody>
               {ideas?.map((idea: IdeaSuggestionWithUser) => (
                 <TableRow key={idea.id}>
-                  <TableCell className="font-medium max-w-xs truncate">
+                  <TableCell className="max-w-xs truncate font-medium">
                     {idea.title}
                   </TableCell>
                   <TableCell className="max-w-md">
@@ -191,7 +197,8 @@ export function IdeasTable() {
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end gap-2">
-                      {idea.status === "pending" || idea.status === "reviewing" ? (
+                      {idea.status === "pending" ||
+                      idea.status === "reviewing" ? (
                         <>
                           <Button
                             size="sm"
@@ -201,7 +208,7 @@ export function IdeasTable() {
                               acceptIdeaMutation.isPending ||
                               rejectIdeaMutation.isPending
                             }
-                            className="text-green-600 hover:text-green-700 hover:bg-green-50"
+                            className="text-green-600 hover:bg-green-50 hover:text-green-700"
                           >
                             {acceptIdeaMutation.isPending &&
                             acceptIdeaMutation.variables === idea.id ? (
@@ -221,7 +228,7 @@ export function IdeasTable() {
                               acceptIdeaMutation.isPending ||
                               rejectIdeaMutation.isPending
                             }
-                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                            className="text-red-600 hover:bg-red-50 hover:text-red-700"
                           >
                             {rejectIdeaMutation.isPending &&
                             rejectIdeaMutation.variables === idea.id ? (
@@ -236,9 +243,7 @@ export function IdeasTable() {
                         </>
                       ) : (
                         <span className="text-sm text-slate-400">
-                          {idea.status === "accepted"
-                            ? "Accepted"
-                            : "Rejected"}
+                          {idea.status === "accepted" ? "Accepted" : "Rejected"}
                         </span>
                       )}
                     </div>
@@ -252,4 +257,3 @@ export function IdeasTable() {
     </div>
   );
 }
-

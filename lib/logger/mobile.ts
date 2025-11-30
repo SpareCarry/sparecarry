@@ -1,17 +1,17 @@
 /**
  * Mobile Logging (Capacitor)
- * 
+ *
  * Captures device logs and runtime errors in Capacitor WebView
  */
 
-import { isNativePlatform, getPlatform } from '@/lib/utils/capacitor-safe';
-import { logger } from './index';
+import { isNativePlatform, getPlatform } from "@/lib/utils/capacitor-safe";
+import { logger } from "./index";
 
 class MobileLogger {
   private enabled = isNativePlatform();
 
   constructor() {
-    if (this.enabled && typeof window !== 'undefined') {
+    if (this.enabled && typeof window !== "undefined") {
       this.initializeMobileLogging();
     }
   }
@@ -21,12 +21,12 @@ class MobileLogger {
    */
   private initializeMobileLogging(): void {
     // Capture unhandled promise rejections
-    window.addEventListener('unhandledrejection', (event) => {
+    window.addEventListener("unhandledrejection", (event) => {
       this.logUnhandledRejection(event.reason);
     });
 
     // Capture global errors
-    window.addEventListener('error', (event) => {
+    window.addEventListener("error", (event) => {
       this.logGlobalError(event.error || event.message);
     });
 
@@ -43,9 +43,9 @@ class MobileLogger {
    */
   private logUnhandledRejection(reason: unknown): void {
     const error = reason instanceof Error ? reason : new Error(String(reason));
-    logger.error('Unhandled promise rejection', error, {
+    logger.error("Unhandled promise rejection", error, {
       platform: getPlatform(),
-      type: 'unhandled_rejection',
+      type: "unhandled_rejection",
     });
   }
 
@@ -54,9 +54,9 @@ class MobileLogger {
    */
   private logGlobalError(error: Error | string): void {
     const errorObj = error instanceof Error ? error : new Error(error);
-    logger.error('Global error caught', errorObj, {
+    logger.error("Global error caught", errorObj, {
       platform: getPlatform(),
-      type: 'global_error',
+      type: "global_error",
     });
   }
 
@@ -65,12 +65,15 @@ class MobileLogger {
    */
   private logConsoleError(args: unknown[]): void {
     // Only log if it looks like an error
-    const errorString = args.map(String).join(' ');
-    if (errorString.toLowerCase().includes('error') || errorString.toLowerCase().includes('exception')) {
-      logger.warn('Console error detected', {
+    const errorString = args.map(String).join(" ");
+    if (
+      errorString.toLowerCase().includes("error") ||
+      errorString.toLowerCase().includes("exception")
+    ) {
+      logger.warn("Console error detected", {
         platform: getPlatform(),
         message: errorString,
-        type: 'console_error',
+        type: "console_error",
       });
     }
   }
@@ -79,20 +82,24 @@ class MobileLogger {
    * Log network failure
    */
   logNetworkFailure(url: string, error: Error | unknown): void {
-    logger.error('Network request failed', error instanceof Error ? error : new Error(String(error)), {
-      platform: getPlatform(),
-      url,
-      type: 'network_failure',
-    });
+    logger.error(
+      "Network request failed",
+      error instanceof Error ? error : new Error(String(error)),
+      {
+        platform: getPlatform(),
+        url,
+        type: "network_failure",
+      }
+    );
   }
 
   /**
    * Log device info
    */
   logDeviceInfo(): void {
-    if (typeof window === 'undefined') return;
+    if (typeof window === "undefined") return;
 
-    logger.info('Device info', {
+    logger.info("Device info", {
       platform: getPlatform(),
       userAgent: navigator.userAgent.substring(0, 100), // Truncated
       language: navigator.language,
@@ -103,4 +110,3 @@ class MobileLogger {
 
 // Singleton instance
 export const mobileLogger = new MobileLogger();
-

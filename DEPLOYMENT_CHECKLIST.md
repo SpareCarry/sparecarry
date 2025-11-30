@@ -6,6 +6,7 @@
 ## 📊 Quick Status Summary
 
 ### ✅ Completed (High Priority)
+
 - ✅ Build errors fixed (shipping-estimator Suspense boundary)
 - ✅ Size Tier Integration (fully implemented)
 - ✅ Currency Conversion Integration (used in 9+ files)
@@ -18,6 +19,7 @@
 - ✅ **Push Notifications Integration** - Added to post-request-form with API route
 
 ### ⚠️ Still Pending (Requires Manual Steps)
+
 - ⚠️ Deploy edge function `notify-route-matches` to Supabase (see `DEPLOYMENT_MANUAL_STEPS.md`)
 - ⚠️ Set environment variables in Supabase for edge function (see `DEPLOYMENT_MANUAL_STEPS.md`)
 - ⚠️ Run security fix migration: `supabase/migrations/20250119000000_fix_security_issues.sql`
@@ -28,11 +30,11 @@
 ## 🔴 CRITICAL - Must Fix Before Deployment
 
 ### 1. Missing API Routes
+
 - [x] **`app/api/referrals/get-or-create/route.ts`** - ✅ **CREATED**
   - Uses `lib/supabase/server` for cookie-based auth
   - Uses `lib/referrals/referral-system` for business logic
   - Returns: `{ referralCode: string }`
-  
 - [x] **`app/api/referrals/stats/route.ts`** - ✅ **CREATED**
   - Uses `lib/supabase/server` for cookie-based auth
   - Uses `lib/referrals/referral-system` for business logic
@@ -43,10 +45,10 @@
   - Includes display names from profiles
 
 ### 2. Database Migrations
+
 - [x] **Run all migrations in order:** ✅ **VERIFIED**
   1. `supabase/migrations/20250103000000_add_first_3_deliveries_and_referral_updates.sql` - ✅ **EXISTS**
   2. `supabase/migrations/20250104000000_add_8_features.sql` - ✅ **EXISTS** (updated with boat_name)
-  
 - [x] **Verify all columns exist:** ✅ **VERIFIED**
   - [x] `profiles.completed_deliveries` (INTEGER DEFAULT 0) - ✅ **IN MIGRATION**
   - [x] `profiles.referral_credit_cents` (INTEGER DEFAULT 0) - ✅ **IN MIGRATION**
@@ -63,20 +65,21 @@
   - [x] `add_referral_credit_cents(user_id UUID, amount_cents INTEGER)` - ✅ **IN MIGRATION**
 
 ### 3. completed_deliveries Increment Logic
+
 - [x] **Verify increment happens on successful payout:** ✅ **VERIFIED & FIXED**
   - Database trigger `update_user_delivery_stats()` automatically increments when match status = 'completed'
   - Trigger `process_referral_credits_trigger` processes referral credits on first paid delivery
   - Both triggers are in migration `20250103000000_add_first_3_deliveries_and_referral_updates.sql`
-  
 - [x] **Check all payout completion points:** ✅ **VERIFIED & FIXED**
   - [x] Manual payout completion (admin) - ✅ **TRIGGER HANDLES**
   - [x] Auto-release escrow (`supabase/functions/auto-release-escrow/index.ts`) - ✅ **UPDATES STATUS TO 'completed'**
   - [x] Delivery confirmation (`components/chat/delivery-confirmation.tsx`) - ✅ **FIXED: NOW UPDATES TO 'completed'**
   - [x] Payment button completion (`components/chat/payment-button.tsx`) - ✅ **CORRECT: Sets to 'escrow_paid', then 'completed' on delivery**
-  
+
   **Status:** ✅ **ALL COMPLETION POINTS VERIFIED** - Delivery confirmation now updates to 'completed' to trigger increment.
 
 ### 4. Referral Credit Award Logic
+
 - [ ] **Verify `processReferralCredits()` is called:**
   - Should be called after `completed_deliveries` is incremented
   - Should check if `platform_fee > 0` (first PAID delivery)
@@ -85,13 +88,13 @@
   - Should update `referrals.first_paid_delivery_completed_at`
 
 ### 5. Push Notifications Integration
+
 - [x] **Call `notify-route-matches` edge function when request is created:** ✅ **IMPLEMENTED**
   - [x] Added call in `components/forms/post-request-form.tsx` `onSubmit` function
   - [x] Created API route `/api/notifications/notify-route-matches/route.ts` to proxy the call
   - [x] Uses service role key server-side for security
   - [x] Calls edge function after successful request insert
   - [x] Error handling: logs but doesn't fail request creation if notification fails
-  
 - [ ] **Verify edge function deployment:**
   - [x] Edge function exists: `supabase/functions/notify-route-matches/index.ts` - ✅ **VERIFIED**
   - [ ] Deploy to Supabase (manual step)
@@ -106,6 +109,7 @@
 ## 🟡 HIGH PRIORITY - Should Fix Before Launch
 
 ### 6. Platform Fee Display Logic
+
 - [ ] **Verify platform fee is hidden when $0:**
   - Check `components/chat/payment-button.tsx`
   - Platform fee line should not render at all when `platformFee === 0`
@@ -120,6 +124,7 @@
   - Delivery confirmation screens
 
 ### 7. Size Tier Integration
+
 - [x] **Verify size tier is saved:**
   - [x] Check `components/forms/post-request-form.tsx` includes `size_tier` in insert - ✅ **VERIFIED**
   - [x] Check `app/shipping-estimator/page.tsx` includes `size_tier` when creating job - ✅ **VERIFIED**
@@ -132,57 +137,57 @@
   - Extra Large: "30+ kg | Standing rigging, mainsail, windlass, 40–60 HP outboard, anchor + chain"
 
 ### 8. Currency Conversion Integration
+
 - [x] **Verify `CurrencyDisplay` is used everywhere:**
   - [x] All reward displays - ✅ **VERIFIED** (used in 9 files)
   - [x] All fee displays - ✅ **VERIFIED**
   - [x] All credit displays - ✅ **VERIFIED**
   - [x] Payment screens - ✅ **VERIFIED**
   - [x] Profile pages - ✅ **VERIFIED**
-  
 - [ ] **Verify currency detection:**
   - Should detect from `navigator.language` or `navigator.languages`
   - Should fall back to user's `preferred_currency` from profile
   - Should show user's currency first, original in small gray below
 
 ### 9. Imperial Units Integration
+
 - [ ] **Verify `ImperialDisplay` is used everywhere:**
   - Weight displays (kg → lbs)
   - Dimension displays (cm → ft/in)
   - Input helper text shows imperial conversions
-  
 - [ ] **Verify preference toggle:**
   - Profile settings toggle works
   - Preference is saved to `profiles.prefer_imperial_units`
   - Preference is respected in all displays
 
 ### 10. WhatsApp Button Integration
+
 - [x] **Verify all message buttons are replaced:**
   - [x] `components/feed/feed-detail-modal.tsx` - Should use `WhatsAppButton` - ✅ **VERIFIED**
   - [x] All "Contact" or "Message" buttons should be "Contact on WhatsApp" - ✅ **VERIFIED**
   - [x] WhatsApp URL format: `https://wa.me/${phone}?text=Hi! About your SpareCarry posting – ${title} from ${origin} to ${destination}. Still available?` - ✅ **VERIFIED**
-  
 - [ ] **Verify phone number collection:**
   - Check if phone numbers are being collected during signup
   - Check if phone numbers are visible in profiles
   - Handle cases where phone is missing gracefully
 
 ### 11. Yachtie/Digital Nomad Mode
+
 - [ ] **Verify profile settings:**
   - Toggle "I live on a boat or I'm a digital nomad" works
   - Boat name field appears when toggle is ON
   - Data is saved to `profiles.is_boater` and `profiles.boat_name`
-  
 - [ ] **Verify display:**
   - Profile cards show `boat_name` + Anchor icon under username
   - Golden anchor badge on avatar for ≥5 completed carries
   - Check `components/feed/feed-card.tsx` and profile pages
 
 ### 12. Shipping Estimator ↔ Post Request Link
+
 - [x] **Verify "Get suggested price" link:**
   - [x] Appears next to reward input on post request page - ✅ **VERIFIED**
   - [x] Only appears when location fields are filled - ✅ **VERIFIED**
   - [x] Navigates to estimator with pre-filled data - ✅ **VERIFIED**
-  
 - [x] **Verify "Use $XX" buttons:**
   - [x] Appear on estimator results page - ✅ **VERIFIED**
   - [x] Navigate back to post request with `?suggestedReward=XX` - ✅ **VERIFIED**
@@ -190,12 +195,14 @@
   - [x] Clean URL after use (remove query param) - ✅ **VERIFIED**
 
 ### 13. Bottom Sheet Modals
+
 - [ ] **Replace all new modals with BottomSheet:**
   - Check if `components/ui/bottom-sheet.tsx` is being used
   - Replace Dialog components with BottomSheet where appropriate
   - Verify nautical styling (bottom-sheet style)
 
 ### 14. Dark Mode Theme
+
 - [ ] **Verify deep nautical blue background:**
   - Check `app/globals.css` dark mode variables
   - Test dark mode toggle
@@ -204,17 +211,18 @@
 ## 🟢 MEDIUM PRIORITY - Nice to Have
 
 ### 15. Error Handling
+
 - [ ] **Add error boundaries:**
   - Check if `ErrorBoundary` component exists and is used
   - Add error boundaries to critical pages
   - Add fallback UI for errors
-  
 - [ ] **Add loading states:**
   - Verify all async operations show loading indicators
   - Add skeleton loaders for data fetching
   - Add timeout handling for long operations
 
 ### 16. Testing
+
 - [x] **Run full E2E test suite:**
   - [x] Fix any failing tests - ✅ **Build errors fixed**
   - [x] Add tests for new features - ✅ **Shipping-estimator tests exist**
@@ -222,7 +230,6 @@
   - [x] Add match status completion tests - ✅ **Created `tests/e2e/match-status-completion.spec.ts`**
   - [ ] Test referral flow end-to-end (runtime testing needed)
   - [ ] Test first 3 deliveries flow end-to-end (runtime testing needed)
-  
 - [ ] **Test edge cases:**
   - User with no phone number (WhatsApp button)
   - User with no referral code
@@ -232,22 +239,22 @@
   - Imperial units edge cases
 
 ### 17. Performance
+
 - [ ] **Optimize images:**
   - Verify Next.js Image component is used
   - Add image optimization
   - Add lazy loading for images
-  
 - [ ] **Optimize queries:**
   - Check React Query cache settings
   - Add query deduplication
   - Add pagination for large lists
 
 ### 18. Accessibility
+
 - [ ] **Verify ARIA labels:**
   - All buttons have accessible labels
   - All form inputs have labels
   - All icons have alt text or aria-labels
-  
 - [ ] **Keyboard navigation:**
   - All interactive elements are keyboard accessible
   - Focus management in modals
@@ -256,13 +263,13 @@
 ## 🔵 LOW PRIORITY - Post-Launch
 
 ### 19. Analytics
+
 - [ ] **Add event tracking:**
   - Referral code usage
   - First 3 deliveries completion
   - Currency conversion usage
   - Imperial units preference
   - WhatsApp button clicks
-  
 - [ ] **Add conversion tracking:**
   - Signup → first request
   - Request → match
@@ -270,22 +277,22 @@
   - Delivery → payout
 
 ### 20. Documentation
+
 - [ ] **Update README:**
   - Document new features
   - Document environment variables
   - Document deployment steps
-  
 - [ ] **Add API documentation:**
   - Document referral API routes
   - Document edge functions
   - Document webhook endpoints
 
 ### 21. Monitoring
+
 - [ ] **Set up error tracking:**
   - Verify Sentry is configured
   - Add error tracking for new features
   - Set up alerts for critical errors
-  
 - [ ] **Set up performance monitoring:**
   - Add performance tracking
   - Monitor API response times
@@ -294,6 +301,7 @@
 ## 📋 Environment Variables Checklist
 
 ### Required for Production:
+
 - [ ] `NEXT_PUBLIC_SUPABASE_URL`
 - [ ] `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 - [ ] `SUPABASE_SERVICE_ROLE_KEY`
@@ -304,6 +312,7 @@
 - [ ] `NEXT_PUBLIC_APP_ENV` (set to `production`)
 
 ### Optional but Recommended:
+
 - [ ] `RESEND_API_KEY` (for transactional emails)
 - [ ] `NOTIFICATIONS_EMAIL_FROM`
 - [ ] `NEXT_PUBLIC_GA_MEASUREMENT_ID`
@@ -387,4 +396,3 @@ grep -r "referrals/stats" components/
 
 **Last Updated:** 2025-01-19
 **Status:** ✅ **CRITICAL ITEMS COMPLETE** - Ready for manual deployment steps
-

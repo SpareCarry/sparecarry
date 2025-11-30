@@ -13,7 +13,7 @@ export function DevModeBanner() {
   }
 
   return (
-    <div className="fixed top-0 left-0 right-0 z-50 bg-yellow-400 border-b-2 border-yellow-600 px-4 py-2 text-center">
+    <div className="fixed left-0 right-0 top-0 z-50 border-b-2 border-yellow-600 bg-yellow-400 px-4 py-2 text-center">
       <p className="text-sm font-bold text-yellow-900">
         🔧 DEV MODE ENABLED - Authentication Skipped
         <span className="ml-2 text-xs">
@@ -23,4 +23,3 @@ export function DevModeBanner() {
     </div>
   );
 }
-

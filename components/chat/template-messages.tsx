@@ -26,7 +26,10 @@ export function TemplateMessages({
         },
         {
           icon: Ship,
-          text: trip.type === "boat" ? "Here's my boat: [photo]" : "Here's my flight: [details]",
+          text:
+            trip.type === "boat"
+              ? "Here's my boat: [photo]"
+              : "Here's my flight: [details]",
         },
         {
           icon: DollarSign,
@@ -45,8 +48,8 @@ export function TemplateMessages({
       ];
 
   return (
-    <div className="bg-white border-t border-slate-200 p-4">
-      <p className="text-xs text-slate-500 mb-2">Quick messages:</p>
+    <div className="border-t border-slate-200 bg-white p-4">
+      <p className="mb-2 text-xs text-slate-500">Quick messages:</p>
       <div className="flex flex-wrap gap-2">
         {templates.map((template, index) => {
           const Icon = template.icon;
@@ -59,7 +62,7 @@ export function TemplateMessages({
               onClick={() => onSelect(template.text)}
               className="text-xs"
             >
-              <Icon className="h-3 w-3 mr-1" />
+              <Icon className="mr-1 h-3 w-3" />
               {template.text}
             </Button>
           );
@@ -68,4 +71,3 @@ export function TemplateMessages({
     </div>
   );
 }
-

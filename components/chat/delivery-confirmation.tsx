@@ -9,8 +9,17 @@ import { MapPin, Camera, Loader2, Search } from "lucide-react";
 import { createClient } from "../../lib/supabase/client";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { useQuery } from "@tanstack/react-query";
-import { useLoadScript, GoogleMap, Marker, InfoWindow } from "@react-google-maps/api";
-import { searchMeetupLocations, meetupLocations, type MeetupLocation } from "../../lib/data/meetup-locations";
+import {
+  useLoadScript,
+  GoogleMap,
+  Marker,
+  InfoWindow,
+} from "@react-google-maps/api";
+import {
+  searchMeetupLocations,
+  meetupLocations,
+  type MeetupLocation,
+} from "../../lib/data/meetup-locations";
 
 interface DeliveryConfirmationProps {
   matchId: string;
@@ -39,12 +48,16 @@ export function DeliveryConfirmation({
   const [photos, setPhotos] = useState<File[]>([]);
   const [gpsLat, setGpsLat] = useState("");
   const [gpsLng, setGpsLng] = useState("");
-  const [selectedLocation, setSelectedLocation] = useState<MeetupLocation | null>(null);
+  const [selectedLocation, setSelectedLocation] =
+    useState<MeetupLocation | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<MeetupLocation[]>([]);
   const [mapCenter, setMapCenter] = useState(defaultCenter);
   const [mapZoom, setMapZoom] = useState(10);
-  const [markerPosition, setMarkerPosition] = useState<{ lat: number; lng: number } | null>(null);
+  const [markerPosition, setMarkerPosition] = useState<{
+    lat: number;
+    lng: number;
+  } | null>(null);
   const [showInfoWindow, setShowInfoWindow] = useState(false);
   const [loading, setLoading] = useState(false);
   const [match, setMatch] = useState<Match | null>(null);
@@ -168,7 +181,7 @@ export function DeliveryConfirmation({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (photos.length === 0) {
       alert("Please upload at least one photo of the item handover");
       return;
@@ -206,13 +219,15 @@ export function DeliveryConfirmation({
       }
 
       // Create delivery record
-      const { error: deliveryError } = await supabase.from("deliveries").insert({
-        match_id: matchId,
-        proof_photos: photoUrls,
-        gps_lat_long: gpsLocation,
-        meetup_location_id: meetupLocationId as any, // Store location name temporarily
-        delivered_at: new Date().toISOString(),
-      });
+      const { error: deliveryError } = await supabase
+        .from("deliveries")
+        .insert({
+          match_id: matchId,
+          proof_photos: photoUrls,
+          gps_lat_long: gpsLocation,
+          meetup_location_id: meetupLocationId as any, // Store location name temporarily
+          delivered_at: new Date().toISOString(),
+        });
 
       if (deliveryError) throw deliveryError;
 
@@ -231,13 +246,16 @@ export function DeliveryConfirmation({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ matchId }),
         });
-        
+
         if (karmaResponse.ok) {
           const karmaData = await karmaResponse.json();
           console.log("Karma points applied:", karmaData.karmaPoints);
         } else {
           // Log but don't fail the delivery if karma application fails
-          console.warn("Failed to apply karma points:", await karmaResponse.text());
+          console.warn(
+            "Failed to apply karma points:",
+            await karmaResponse.text()
+          );
         }
       } catch (karmaError) {
         // Log but don't fail the delivery if karma application fails
@@ -278,8 +296,8 @@ export function DeliveryConfirmation({
   return (
     <Card className="m-4">
       <CardContent className="pt-6">
-        <h3 className="font-semibold mb-4 text-lg">Check In - Item Handover</h3>
-        <p className="text-sm text-slate-600 mb-4">
+        <h3 className="mb-4 text-lg font-semibold">Check In - Item Handover</h3>
+        <p className="mb-4 text-sm text-slate-600">
           Upload photos and confirm your location to complete the delivery.
         </p>
 
@@ -288,7 +306,7 @@ export function DeliveryConfirmation({
           <div className="space-y-2">
             <Label>Search Meetup Location</Label>
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform text-slate-400" />
               <Input
                 type="text"
                 placeholder="Search marinas, airports..."
@@ -297,15 +315,15 @@ export function DeliveryConfirmation({
                 className="pl-10"
               />
               {searchResults.length > 0 && (
-                <div className="absolute z-10 w-full mt-1 bg-white border border-slate-200 rounded-md shadow-lg max-h-60 overflow-y-auto">
+                <div className="absolute z-10 mt-1 max-h-60 w-full overflow-y-auto rounded-md border border-slate-200 bg-white shadow-lg">
                   {searchResults.map((location, index) => (
                     <button
                       key={index}
                       type="button"
                       onClick={() => handleLocationSelect(location)}
-                      className="w-full text-left px-4 py-2 hover:bg-slate-50 border-b border-slate-100 last:border-b-0"
+                      className="w-full border-b border-slate-100 px-4 py-2 text-left last:border-b-0 hover:bg-slate-50"
                     >
-                      <div className="font-medium text-sm">{location.name}</div>
+                      <div className="text-sm font-medium">{location.name}</div>
                       <div className="text-xs text-slate-500">
                         {location.city}, {location.country} • {location.type}
                       </div>
@@ -334,11 +352,11 @@ export function DeliveryConfirmation({
                 size="sm"
                 onClick={getCurrentLocation}
               >
-                <MapPin className="h-4 w-4 mr-1" />
+                <MapPin className="mr-1 h-4 w-4" />
                 Use My Location
               </Button>
             </div>
-            <div className="border border-slate-200 rounded-md overflow-hidden">
+            <div className="overflow-hidden rounded-md border border-slate-200">
               <GoogleMap
                 mapContainerStyle={mapContainerStyle}
                 center={mapCenter}
@@ -361,7 +379,8 @@ export function DeliveryConfirmation({
                         <div className="text-sm">
                           <div className="font-medium">Selected Location</div>
                           <div className="text-slate-600">
-                            {markerPosition.lat.toFixed(6)}, {markerPosition.lng.toFixed(6)}
+                            {markerPosition.lat.toFixed(6)},{" "}
+                            {markerPosition.lng.toFixed(6)}
                           </div>
                         </div>
                       </InfoWindow>
@@ -372,7 +391,8 @@ export function DeliveryConfirmation({
             </div>
             {markerPosition && (
               <div className="text-xs text-slate-500">
-                GPS: {markerPosition.lat.toFixed(6)}, {markerPosition.lng.toFixed(6)}
+                GPS: {markerPosition.lat.toFixed(6)},{" "}
+                {markerPosition.lng.toFixed(6)}
               </div>
             )}
           </div>
@@ -430,24 +450,24 @@ export function DeliveryConfirmation({
             <Label>Proof Photos (Item Handover) *</Label>
             <div className="grid grid-cols-3 gap-2">
               {photos.map((photo, index) => (
-                <div key={index} className="relative aspect-square group">
+                <div key={index} className="group relative aspect-square">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={URL.createObjectURL(photo)}
                     alt={`Proof ${index + 1}`}
-                    className="w-full h-full object-cover rounded-md border"
+                    className="h-full w-full rounded-md border object-cover"
                   />
                   <button
                     type="button"
                     onClick={() => removePhoto(index)}
-                    className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                    className="absolute right-1 top-1 rounded-full bg-red-500 p-1 text-white opacity-0 transition-opacity group-hover:opacity-100"
                   >
                     ×
                   </button>
                 </div>
               ))}
               {photos.length < 6 && (
-                <label className="aspect-square border-2 border-dashed border-slate-300 rounded-md flex items-center justify-center cursor-pointer hover:border-teal-600 transition-colors">
+                <label className="flex aspect-square cursor-pointer items-center justify-center rounded-md border-2 border-dashed border-slate-300 transition-colors hover:border-teal-600">
                   <Camera className="h-6 w-6 text-slate-400" />
                   <input
                     type="file"

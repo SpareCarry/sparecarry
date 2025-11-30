@@ -1,4 +1,4 @@
-import { device, expect, element, by, waitFor } from 'detox';
+import { device, expect, element, by, waitFor } from "detox";
 
 beforeAll(async () => {
   await device.launchApp();
@@ -11,4 +11,3 @@ beforeEach(async () => {
 afterAll(async () => {
   // Cleanup if needed
 });
-

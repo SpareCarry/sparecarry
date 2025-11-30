@@ -14,9 +14,11 @@ This document serves as a comprehensive reference for the Playwright E2E test su
 ## 🎯 TEST FILES
 
 ### 1. `tests/e2e/auth-flow.spec.ts` (6 tests)
+
 **Purpose**: Comprehensive authentication flow testing
 
 **Tests**:
+
 1. ✅ `should navigate to login from landing page buttons` (24.3s)
 2. ✅ `should request magic link with correct email` (12.8s)
 3. ✅ `should handle magic link callback with code` (12.0s)
@@ -25,32 +27,40 @@ This document serves as a comprehensive reference for the Playwright E2E test su
 6. ✅ `should preserve redirect parameter through auth flow` (9.4s)
 
 ### 2. `tests/e2e/auth.spec.ts` (3 tests)
+
 **Purpose**: Basic authentication UI tests
 
 **Tests**:
+
 1. ✅ `should display login page` (10.2s)
 2. ✅ `should show validation error for invalid email` (13.1s)
 3. ✅ `should navigate to signup page` (7.1s)
 
 ### 3. `tests/e2e/complete-app-flow.spec.ts` (3 tests)
+
 **Purpose**: End-to-end user journey testing
 
 **Tests**:
+
 1. ✅ `full user journey: landing → auth → home` (9.9s)
 2. ✅ `all buttons on landing page work` (5.8s)
 3. ✅ `auth callback handles all scenarios` (11.9s)
 
 ### 4. `tests/e2e/feed.spec.ts` (2 tests)
+
 **Purpose**: Feed browsing functionality
 
 **Tests**:
+
 1. ✅ `should display feed page` (18.5s)
 2. ✅ `should allow filtering by type` (0.9s)
 
 ### 5. `tests/e2e/full-payment-flow.spec.ts` (2 tests)
+
 **Purpose**: Payment flow testing
 
 **Tests**:
+
 1. ✅ `should complete full payment flow` (7.5s)
 2. ✅ `should browse page should load` (17.2s)
 
@@ -59,61 +69,64 @@ This document serves as a comprehensive reference for the Playwright E2E test su
 ## 🔍 SELECTORS USED
 
 ### Landing Page Selectors
+
 ```typescript
 // Buttons
-page.getByRole("button", { name: /I'm traveling by Plane/i })
-page.getByRole("button", { name: /I'm sailing by Boat/i })
+page.getByRole("button", { name: /I'm traveling by Plane/i });
+page.getByRole("button", { name: /I'm sailing by Boat/i });
 
 // Text
-page.getByText('Welcome to CarrySpace')
-page.getByText(/SpareCarry/i)
+page.getByText("Welcome to CarrySpace");
+page.getByText(/SpareCarry/i);
 ```
 
 **Breakpoint Risk**: ⚠️ **HIGH** - Button text changes will break tests
 **Mitigation**: Use semantic selectors where possible
 
 ### Login Page Selectors
+
 ```typescript
 // Inputs
-page.locator('input[type="email"]')
-page.getByLabel(/email/i)
-page.getByRole('textbox', { name: /email/i })
+page.locator('input[type="email"]');
+page.getByLabel(/email/i);
+page.getByRole("textbox", { name: /email/i });
 
 // Buttons
-page.locator('button[type="submit"]')
-page.getByRole('button', { name: /send magic link/i })
+page.locator('button[type="submit"]');
+page.getByRole("button", { name: /send magic link/i });
 
 // Links
-page.getByRole('link', { name: /sign up/i })
+page.getByRole("link", { name: /sign up/i });
 
 // Text
-page.getByText('Welcome to CarrySpace')
-page.getByText(/check your email/i)
+page.getByText("Welcome to CarrySpace");
+page.getByText(/check your email/i);
 
 // Success Messages
-page.locator('div.bg-teal-50')
-page.locator('div.bg-teal-50:has-text("Check your email")')
-page.getByText(/check your email/i)
+page.locator("div.bg-teal-50");
+page.locator('div.bg-teal-50:has-text("Check your email")');
+page.getByText(/check your email/i);
 
 // Error Messages
-page.locator('div.bg-red-50')
-page.getByText(/authentication failed|test error/i)
+page.locator("div.bg-red-50");
+page.getByText(/authentication failed|test error/i);
 ```
 
 **Breakpoint Risk**: ⚠️ **MEDIUM** - Class names and text changes
 **Mitigation**: Multiple fallback selectors for success messages
 
 ### Navigation Selectors
+
 ```typescript
 // Links
-page.getByRole('link', { name: /browse/i })
-page.getByRole('link', { name: /sign up/i })
+page.getByRole("link", { name: /browse/i });
+page.getByRole("link", { name: /sign up/i });
 
 // Headings
-page.getByRole('heading', { name: /browse/i })
+page.getByRole("heading", { name: /browse/i });
 
 // Text
-page.locator('text=/^browse$/i')
+page.locator("text=/^browse$/i");
 ```
 
 **Breakpoint Risk**: ⚠️ **MEDIUM** - Role-based selectors are more stable
@@ -126,13 +139,16 @@ page.locator('text=/^browse$/i')
 ### Auth Endpoints
 
 #### 1. OTP (Magic Link Sign-In)
+
 **Patterns**:
+
 - `**/auth/v1/otp**` (with query params)
 - `**/*supabase*/auth/v1/otp**` (with query params)
 
 **Methods**: POST only
 **Response**: `{}`
-**Used in**: 
+**Used in**:
+
 - `app/auth/login/page.tsx` - `signInWithOtp({ email })`
 - `app/auth/signup/page.tsx` - `signInWithOtp({ email })`
 - `components/onboarding/step-1-phone.tsx` - `signInWithOtp({ phone, channel: "sms" })`
@@ -140,13 +156,16 @@ page.locator('text=/^browse$/i')
 **Breakpoint Risk**: ⚠️ **LOW** - Well-established endpoint
 
 #### 2. User Info
+
 **Patterns**:
+
 - `**/auth/v1/user`
 - `**/*supabase*/auth/v1/user`
 
 **Methods**: GET only
 **Response**: `{ user: null, error: null }`
 **Used in**:
+
 - `app/page.tsx` - `getUser()` (landing page auth check)
 - `app/auth/login/page.tsx` - `getUser()` (check if already authenticated)
 - `app/auth/signup/page.tsx` - `getUser()` (check if already authenticated)
@@ -157,7 +176,9 @@ page.locator('text=/^browse$/i')
 **Breakpoint Risk**: ⚠️ **LOW** - Standard endpoint
 
 #### 3. Token Refresh
+
 **Patterns**:
+
 - `**/auth/v1/token`
 - `**/*supabase*/auth/v1/token`
 
@@ -168,6 +189,7 @@ page.locator('text=/^browse$/i')
 **Breakpoint Risk**: ⚠️ **LOW** - Standard endpoint
 
 #### 4. Exchange Code for Session
+
 **Endpoint**: Not currently mocked (callback page)
 **Used in**: `app/auth/callback/page.tsx` - `exchangeCodeForSession(code)`
 
@@ -175,6 +197,7 @@ page.locator('text=/^browse$/i')
 **Action Needed**: Add mock
 
 #### 5. Set Session
+
 **Endpoint**: Not currently mocked (callback page)
 **Used in**: `app/auth/callback/page.tsx` - `setSession({ access_token, refresh_token })`
 
@@ -182,6 +205,7 @@ page.locator('text=/^browse$/i')
 **Action Needed**: Add mock
 
 #### 6. OAuth Sign-In
+
 **Endpoint**: Not currently mocked
 **Used in**: `app/auth/login/page.tsx` - `signInWithOAuth({ provider })`
 
@@ -191,12 +215,15 @@ page.locator('text=/^browse$/i')
 ### REST API Endpoints
 
 #### 1. Database Queries
+
 **Patterns**:
+
 - `**/rest/v1/**`
 - `**/*supabase*/rest/v1/**`
 
 **Response**: `[]` (empty array)
 **Used in**:
+
 - `app/home/page.tsx` - `.from("trips")`, `.from("requests")`, `.from("profiles")`
 - `app/onboarding/page.tsx` - `.from("profiles")`, `.from("users")`
 - `components/forms/post-trip-form.tsx` - `.from("trips")`
@@ -208,7 +235,9 @@ page.locator('text=/^browse$/i')
 **Action Needed**: Add specific mocks for different tables
 
 #### 2. Tables Used in App
+
 Based on code analysis:
+
 - `trips` - Trip listings
 - `requests` - Delivery requests
 - `profiles` - User profiles
@@ -228,7 +257,9 @@ Based on code analysis:
 ### Storage Endpoints
 
 #### 1. File Storage
+
 **Patterns**:
+
 - `**/storage/v1/**`
 - `**/*supabase*/storage/v1/**`
 
@@ -242,84 +273,92 @@ Based on code analysis:
 ## ⏱️ WAIT CONDITIONS
 
 ### 1. Network Waits
+
 ```typescript
 // Wait for page to fully load
-await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {})
+await page.waitForLoadState("networkidle", { timeout: 10000 }).catch(() => {});
 
 // Wait for DOM content
-await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 15000 })
+await page.goto(url, { waitUntil: "domcontentloaded", timeout: 15000 });
 ```
 
 **Breakpoint Risk**: ⚠️ **MEDIUM** - Network idle may not always trigger
 **Mitigation**: Combine with explicit element waits
 
 ### 2. Element Waits
+
 ```typescript
 // Visibility waits
-await expect(element).toBeVisible({ timeout: 10000 })
+await expect(element).toBeVisible({ timeout: 10000 });
 
 // Enabled state waits
-await expect(button).toBeEnabled({ timeout: 5000 })
+await expect(button).toBeEnabled({ timeout: 5000 });
 
 // Text content waits
-await page.waitForFunction(() => condition, { timeout: 30000, polling: 100 })
+await page.waitForFunction(() => condition, { timeout: 30000, polling: 100 });
 ```
 
 **Breakpoint Risk**: ⚠️ **LOW** - Explicit waits are stable
 
 ### 3. Navigation Waits
+
 ```typescript
 // URL change waits
-await page.waitForURL(/\/auth\/login/, { timeout: 10000 })
+await page.waitForURL(/\/auth\/login/, { timeout: 10000 });
 
 // Function-based URL polling (for client-side routing)
-await page.waitForFunction(
-  () => /\/auth\/login/.test(window.location.href),
-  { timeout: 30000, polling: 100 }
-)
+await page.waitForFunction(() => /\/auth\/login/.test(window.location.href), {
+  timeout: 30000,
+  polling: 100,
+});
 ```
 
 **Breakpoint Risk**: ⚠️ **MEDIUM** - Client-side routing doesn't trigger full navigation
 **Mitigation**: Polling-based wait with fallback
 
 ### 4. Response Waits
+
 ```typescript
 // Wait for specific API response
 await page.waitForResponse(
   (response) => {
     const url = response.url();
-    return url.includes("/auth/v1/otp") && response.request().method() === "POST";
+    return (
+      url.includes("/auth/v1/otp") && response.request().method() === "POST"
+    );
   },
   { timeout: 15000 }
-)
+);
 ```
 
 **Breakpoint Risk**: ⚠️ **LOW** - Explicit response waiting is stable
 
 ### 5. State Waits
+
 ```typescript
 // Wait for loading state to clear
 await page.waitForFunction(
   () => {
     const button = document.querySelector('button[type="submit"]');
     if (!button) return false;
-    const buttonText = button.textContent || '';
-    return !buttonText.includes('Sending') && !buttonText.includes('...');
+    const buttonText = button.textContent || "";
+    return !buttonText.includes("Sending") && !buttonText.includes("...");
   },
   { timeout: 15000 }
-)
+);
 ```
 
 **Breakpoint Risk**: ⚠️ **MEDIUM** - Depends on button text
 **Mitigation**: Check for disabled state or loading class
 
 ### 6. Fixed Timeouts (Anti-Pattern)
+
 ```typescript
 // ❌ AVOID: Fixed timeouts
-await page.waitForTimeout(1000)
+await page.waitForTimeout(1000);
 
 // ✅ PREFER: Conditional waits
-await page.waitForFunction(() => condition)
+await page.waitForFunction(() => condition);
 ```
 
 **Breakpoint Risk**: ⚠️ **HIGH** - Fixed timeouts are unreliable
@@ -330,7 +369,9 @@ await page.waitForFunction(() => condition)
 ## 🔄 TEST FLOWS COVERED
 
 ### Flow 1: Landing Page → Login
+
 **Steps**:
+
 1. Navigate to landing page
 2. Click "I'm traveling by Plane" button
 3. Auth check via `getUser()`
@@ -340,7 +381,9 @@ await page.waitForFunction(() => condition)
 **Covered by**: `auth-flow.spec.ts:30`, `complete-app-flow.spec.ts:33`
 
 ### Flow 2: Magic Link Request
+
 **Steps**:
+
 1. Navigate to `/auth/login`
 2. Enter email address
 3. Click "Send Magic Link" button
@@ -350,7 +393,9 @@ await page.waitForFunction(() => condition)
 **Covered by**: `auth-flow.spec.ts:109`, `complete-app-flow.spec.ts:33`
 
 ### Flow 3: Auth Callback
+
 **Steps**:
+
 1. Navigate to `/auth/callback?code=...&redirect=/home`
 2. Exchange code for session (or set session with tokens)
 3. Redirect to `/home` or `/auth/login` (if error)
@@ -358,7 +403,9 @@ await page.waitForFunction(() => condition)
 **Covered by**: `auth-flow.spec.ts:155`, `complete-app-flow.spec.ts:133`
 
 ### Flow 4: Login Page Display
+
 **Steps**:
+
 1. Navigate to `/auth/login`
 2. Verify "Welcome to CarrySpace" heading
 3. Verify email input is visible
@@ -367,7 +414,9 @@ await page.waitForFunction(() => condition)
 **Covered by**: `auth.spec.ts:17`
 
 ### Flow 5: Email Validation
+
 **Steps**:
+
 1. Navigate to `/auth/login`
 2. Enter invalid email format
 3. Click submit button
@@ -376,7 +425,9 @@ await page.waitForFunction(() => condition)
 **Covered by**: `auth.spec.ts:23`
 
 ### Flow 6: Navigation to Signup
+
 **Steps**:
+
 1. Navigate to `/auth/login`
 2. Click "Sign up" link
 3. Verify navigation to `/auth/signup`
@@ -384,7 +435,9 @@ await page.waitForFunction(() => condition)
 **Covered by**: `auth.spec.ts:38`
 
 ### Flow 7: Feed Page Load
+
 **Steps**:
+
 1. Navigate to `/home`
 2. May redirect to `/auth/login` if not authenticated
 3. If authenticated, verify "Browse" heading appears
@@ -472,15 +525,20 @@ await page.waitForFunction(() => condition)
 ## 📋 FALLBACK LOGIC
 
 ### Success Message Detection
+
 ```typescript
 // Primary: Text match
 const successMessage = page.getByText(/check your email/i).first();
 
 // Fallback 1: Success div by class
-const successDiv = page.locator('div.bg-teal-50').first();
+const successDiv = page.locator("div.bg-teal-50").first();
 
 // Fallback 2: Any message div
-const anyMessage = page.locator('div:has-text("Check your email"), div.bg-teal-50, [class*="teal-50"]').first();
+const anyMessage = page
+  .locator(
+    'div:has-text("Check your email"), div.bg-teal-50, [class*="teal-50"]'
+  )
+  .first();
 
 // Try primary, then fallbacks
 try {
@@ -491,6 +549,7 @@ try {
 ```
 
 ### Navigation Detection
+
 ```typescript
 // Primary: waitForFunction with polling
 await page.waitForFunction(
@@ -517,20 +576,24 @@ catch (e2) {
 ## ⏱️ TIMING EXPECTATIONS
 
 ### Page Load Times
+
 - Landing page: ~2-5 seconds
 - Login page: ~2-5 seconds
 - Feed page: ~3-8 seconds (depends on auth)
 
 ### Network Request Times
+
 - `getUser()`: ~100-500ms (mocked)
 - `signInWithOtp()`: ~500-1000ms (mocked)
 - REST API queries: ~200-800ms (mocked)
 
 ### Client-Side Navigation
+
 - Next.js router.push(): ~100-500ms
 - Full page navigation: ~1-3 seconds
 
 ### React Rendering
+
 - State updates: ~16-100ms (one frame)
 - Re-renders: ~100-500ms (with async operations)
 
@@ -571,12 +634,14 @@ catch (e2) {
 ## 🚀 NEXT STEPS FOR IMPROVEMENT
 
 ### 1. Add Missing Mocks
+
 - [ ] `exchangeCodeForSession` endpoint
-- [ ] `setSession` endpoint  
+- [ ] `setSession` endpoint
 - [ ] Type-safe REST API mocks for each table
 - [ ] OAuth endpoints (if needed)
 
 ### 2. Add Negative Tests
+
 - [ ] Invalid email formats
 - [ ] Expired magic links
 - [ ] Network errors
@@ -584,16 +649,19 @@ catch (e2) {
 - [ ] Missing required fields
 
 ### 3. Improve Selector Stability
+
 - [ ] Add `data-testid` attributes to critical elements
 - [ ] Prefer role-based selectors
 - [ ] Document all selectors in this profile
 
 ### 4. Remove Non-Deterministic Waits
+
 - [ ] Replace `waitForTimeout()` with conditional waits
 - [ ] Improve network idle detection
 - [ ] Add explicit loading state checks
 
 ### 5. Add Type Safety
+
 - [ ] Type-safe mock responses
 - [ ] Validate mock structure matches Supabase schema
 - [ ] Type-check selector results
@@ -602,17 +670,16 @@ catch (e2) {
 
 ## 📊 TEST COVERAGE SUMMARY
 
-| Category | Tests | Status |
-|----------|-------|--------|
-| **Authentication Flow** | 6 | ✅ 100% |
-| **Basic Auth UI** | 3 | ✅ 100% |
-| **Complete App Flow** | 3 | ✅ 100% |
-| **Feed Browsing** | 2 | ✅ 100% |
-| **Payment Flow** | 2 | ✅ 100% |
-| **Total** | **16** | ✅ **100%** |
+| Category                | Tests  | Status      |
+| ----------------------- | ------ | ----------- |
+| **Authentication Flow** | 6      | ✅ 100%     |
+| **Basic Auth UI**       | 3      | ✅ 100%     |
+| **Complete App Flow**   | 3      | ✅ 100%     |
+| **Feed Browsing**       | 2      | ✅ 100%     |
+| **Payment Flow**        | 2      | ✅ 100%     |
+| **Total**               | **16** | ✅ **100%** |
 
 ---
 
 **Last Updated**: 2025-01-20  
 **Status**: ✅ **STABLE** - All tests passing consistently
-

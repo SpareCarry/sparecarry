@@ -16,7 +16,7 @@ SENTRY_PROJECT=javascript-nextjs
 
 ## Add to Vercel
 
-The `vercel-env-variables.env` file has been updated with these values. 
+The `vercel-env-variables.env` file has been updated with these values.
 
 **To add to Vercel:**
 
@@ -50,4 +50,3 @@ SENTRY_PROJECT=javascript-nextjs
 ## Security Note
 
 ⚠️ **Never commit `.env.local` or tokens to git!** These are already in `.gitignore`.
-

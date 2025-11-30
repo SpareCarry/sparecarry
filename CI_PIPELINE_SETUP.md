@@ -7,6 +7,7 @@ This document explains how to integrate the Next.js → Static Export → Capaci
 ## 📋 Overview
 
 The build pipeline consists of:
+
 1. **Dependency Installation** (`npm install --legacy-peer-deps`)
 2. **Linting** (`npm run lint`)
 3. **Next.js Build** (`npm run build`)
@@ -35,30 +36,30 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '18'
-          cache: 'npm'
-      
+          node-version: "18"
+          cache: "npm"
+
       - name: Install dependencies
         run: npm install --legacy-peer-deps
-      
+
       - name: Run linter
         run: npm run lint
         continue-on-error: true
-      
+
       - name: Build Next.js
         run: npm run build
-      
+
       - name: Validate export
         run: npm run validate:export
-      
+
       - name: Upload build artifacts
         uses: actions/upload-artifact@v3
         with:
@@ -81,20 +82,20 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '18'
-          cache: 'npm'
-      
+          node-version: "18"
+          cache: "npm"
+
       - name: Run CI build pipeline
         run: bash scripts/ci-build.sh
-      
+
       - name: Upload build artifacts
         uses: actions/upload-artifact@v3
         with:
@@ -113,36 +114,36 @@ name: Mobile Build
 on:
   push:
     tags:
-      - 'v*'
+      - "v*"
 
 jobs:
   build-mobile:
-    runs-on: macos-latest  # Required for iOS builds
-    
+    runs-on: macos-latest # Required for iOS builds
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '18'
-          cache: 'npm'
-      
+          node-version: "18"
+          cache: "npm"
+
       - name: Run CI build pipeline
         run: bash scripts/ci-build.sh
-      
+
       - name: Setup Java (for Android)
         uses: actions/setup-java@v3
         with:
-          distribution: 'temurin'
-          java-version: '17'
-      
+          distribution: "temurin"
+          java-version: "17"
+
       - name: Build Android APK
         run: |
           cd android
           ./gradlew assembleRelease
-      
+
       - name: Build iOS (requires signing)
         run: |
           cd ios
@@ -160,16 +161,19 @@ jobs:
 Render supports build commands directly in the dashboard:
 
 ### Build Command
+
 ```bash
 npm install --legacy-peer-deps && npm run build && npm run validate:export
 ```
 
 ### Publish Directory
+
 ```
 out
 ```
 
 ### Environment Variables
+
 - `NODE_VERSION`: `18`
 - `NPM_FLAGS`: `--legacy-peer-deps`
 
@@ -180,16 +184,19 @@ out
 Vercel automatically detects Next.js projects. For static export:
 
 ### Build Command (override in Vercel dashboard)
+
 ```bash
 npm run build && npm run validate:export
 ```
 
 ### Output Directory
+
 ```
 out
 ```
 
 ### Environment Variables
+
 - `NEXT_PUBLIC_*`: Public environment variables
 - `NODE_ENV`: `production`
 
@@ -231,6 +238,7 @@ CMD ["nginx", "-g", "daemon off;"]
 ```
 
 ### Build Command
+
 ```bash
 docker build -t sparecarry-web .
 docker run -p 80:80 sparecarry-web
@@ -248,23 +256,23 @@ name: iOS Build
 on:
   push:
     tags:
-      - 'ios-*'
+      - "ios-*"
 
 jobs:
   ios-build:
     runs-on: macos-latest
-    
+
     steps:
       - uses: actions/checkout@v3
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '18'
-      
+          node-version: "18"
+
       - name: Build and sync
         run: npm run mobile:build
-      
+
       - name: Build iOS
         run: |
           cd ios/App
@@ -273,14 +281,14 @@ jobs:
             -configuration Release \
             -archivePath build/App.xcarchive \
             archive
-      
+
       - name: Export IPA
         run: |
           xcodebuild -exportArchive \
             -archivePath ios/App/build/App.xcarchive \
             -exportPath ios/App/build/export \
             -exportOptionsPlist ios/App/ExportOptions.plist
-      
+
       - name: Upload IPA
         uses: actions/upload-artifact@v3
         with:
@@ -296,34 +304,34 @@ name: Android Build
 on:
   push:
     tags:
-      - 'android-*'
+      - "android-*"
 
 jobs:
   android-build:
     runs-on: ubuntu-latest
-    
+
     steps:
       - uses: actions/checkout@v3
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '18'
-      
+          node-version: "18"
+
       - name: Setup Java
         uses: actions/setup-java@v3
         with:
-          distribution: 'temurin'
-          java-version: '17'
-      
+          distribution: "temurin"
+          java-version: "17"
+
       - name: Build and sync
         run: npm run mobile:build
-      
+
       - name: Build Android APK
         run: |
           cd android
           ./gradlew assembleRelease
-      
+
       - name: Sign APK (if keystore configured)
         run: |
           cd android/app/build/outputs/apk/release
@@ -332,7 +340,7 @@ jobs:
             -keystore ${{ secrets.ANDROID_KEYSTORE }} \
             app-release-unsigned.apk \
             ${{ secrets.ANDROID_KEY_ALIAS }}
-      
+
       - name: Upload APK
         uses: actions/upload-artifact@v3
         with:
@@ -345,6 +353,7 @@ jobs:
 ## 🔍 Validation in CI
 
 The `validate:export` script ensures:
+
 - ✅ `out/` directory exists
 - ✅ `index.html` exists
 - ✅ No unresolved `@/` imports
@@ -357,6 +366,7 @@ If validation fails, the CI pipeline will fail with a clear error message.
 ## 📊 Build Artifacts
 
 After a successful build:
+
 - **Static files**: `out/` directory
 - **Build logs**: Console output
 - **Validation report**: `validate:export` output
@@ -408,4 +418,3 @@ After a successful build:
 
 **Last Updated**: 2025-11-19  
 **Pipeline Version**: 1.0.0
-

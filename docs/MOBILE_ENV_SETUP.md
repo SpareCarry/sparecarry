@@ -15,6 +15,7 @@ cd apps/mobile
 ```
 
 Create `.env` file:
+
 ```env
 EXPO_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 EXPO_PUBLIC_SUPABASE_ANON_KEY=your-anon-key-here
@@ -51,6 +52,7 @@ node scripts/check-env.js
 ```
 
 You should see:
+
 ```
 ✅ EXPO_PUBLIC_SUPABASE_URL: SET
 ✅ EXPO_PUBLIC_SUPABASE_ANON_KEY: SET
@@ -86,10 +88,10 @@ EXPO_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzd
 ## ✅ After Setup
 
 Once `.env` is created and Metro restarted:
+
 - ✅ App should load without 500 error
 - ✅ Supabase client will initialize
 - ✅ Authentication will work
 - ✅ All features will function
 
 The 500 error should be gone! 🎉
-

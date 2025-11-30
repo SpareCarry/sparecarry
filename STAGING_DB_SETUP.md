@@ -45,18 +45,20 @@ The staging database is a separate Supabase project used for beta testing. It co
 ### Required Tools
 
 - **Supabase CLI** (optional, for direct DB access):
+
   ```bash
   npm install -g supabase
   ```
 
 - **psql** (optional, for direct PostgreSQL access):
+
   ```bash
   # macOS
   brew install postgresql
-  
+
   # Linux
   sudo apt-get install postgresql-client
-  
+
   # Windows
   # Download from: https://www.postgresql.org/download/windows/
   ```
@@ -122,6 +124,7 @@ pnpm db:migrate:staging
 ```
 
 **What it does:**
+
 1. Checks for required environment variables
 2. Applies schema (`supabase/schema.sql`)
 3. Sets up storage buckets (`supabase/storage-setup.sql`)
@@ -160,6 +163,7 @@ node scripts/seed-staging-data.js
 ```
 
 **What it creates:**
+
 - ✅ **5 test users** (travelers, requesters, sailor)
 - ✅ **3 test trips** (plane and boat)
 - ✅ **5 test requests** (various items)
@@ -168,6 +172,7 @@ node scripts/seed-staging-data.js
 - ✅ **1 test delivery** (with dispute)
 
 **Test User Credentials:**
+
 ```
 Traveler 1: test-traveler1@sparecarry.test / Test123!@#
 Traveler 2: test-traveler2@sparecarry.test / Test123!@#
@@ -193,13 +198,13 @@ After seeding, verify in Supabase Dashboard:
 
 ### Database
 
-| Aspect | Staging | Production |
-|--------|---------|------------|
-| **Project** | Separate Supabase project | Production Supabase project |
-| **Data** | Test data only | Real user data |
-| **Schema** | Same as production | Same as staging |
-| **RLS Policies** | Enabled (same as production) | Enabled |
-| **Backups** | Optional | Required (nightly) |
+| Aspect           | Staging                      | Production                  |
+| ---------------- | ---------------------------- | --------------------------- |
+| **Project**      | Separate Supabase project    | Production Supabase project |
+| **Data**         | Test data only               | Real user data              |
+| **Schema**       | Same as production           | Same as staging             |
+| **RLS Policies** | Enabled (same as production) | Enabled                     |
+| **Backups**      | Optional                     | Required (nightly)          |
 
 ### Environment Variables
 
@@ -282,15 +287,18 @@ After migrations, you should have:
 ### Sample Data Structure
 
 **Users:**
+
 - 2 travelers (can create trips)
 - 2 requesters (can create requests)
 - 1 sailor (can create boat trips)
 
 **Trips:**
+
 - 2 plane trips (San Francisco → Grenada, Miami → Barbados)
 - 1 boat trip (Rodney Bay → Grenada)
 
 **Requests:**
+
 - Marine battery (West Marine)
 - Winch handle (SVB)
 - Emergency prop seal (Amazon)
@@ -298,6 +306,7 @@ After migrations, you should have:
 - VHF radio (SVB)
 
 **Matches:**
+
 - 1 pending match
 - 1 chatting match
 - 1 escrow_paid match (with dispute)
@@ -310,7 +319,8 @@ After migrations, you should have:
 
 **Error**: "Permission denied" or "RLS policy violation"
 
-**Solution**: 
+**Solution**:
+
 - Ensure you're using `SERVICE_ROLE_KEY` (not anon key)
 - Service role key bypasses RLS
 - Check key is correct in `.env.staging`
@@ -320,6 +330,7 @@ After migrations, you should have:
 **Error**: "User already exists"
 
 **Solution**:
+
 - Script checks if tables are empty before inserting
 - If data exists, it skips insertion
 - To reset: Delete all data manually or recreate project
@@ -327,6 +338,7 @@ After migrations, you should have:
 **Error**: "Foreign key constraint violation"
 
 **Solution**:
+
 - Ensure migrations ran successfully
 - Check that all tables exist
 - Verify foreign key relationships
@@ -336,6 +348,7 @@ After migrations, you should have:
 **Error**: "Connection refused" or "Timeout"
 
 **Solution**:
+
 - Verify `STAGING_SUPABASE_URL` is correct
 - Check network connectivity
 - Ensure Supabase project is active (not paused)
@@ -345,6 +358,7 @@ After migrations, you should have:
 **Error**: "New row violates row-level security policy"
 
 **Solution**:
+
 - This is expected for client-side operations
 - Service role key should bypass RLS
 - Check that you're using service role key for seeding
@@ -379,6 +393,7 @@ After setup, verify:
 ## Support
 
 For issues:
+
 - **Supabase Dashboard**: Check logs and errors
 - **SQL Editor**: Run queries to debug
 - **Health Check**: `/api/health` endpoint
@@ -387,4 +402,3 @@ For issues:
 
 **Last Updated**: 2024-12-19  
 **Version**: 1.0.0
-

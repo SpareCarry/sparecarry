@@ -47,12 +47,16 @@ function withTestModeAuth(client: TypedSupabaseClient) {
   const fakeUserResponse = { data: { user: testUser }, error: null };
 
   client.auth.getUser = async () => {
-    console.log("[SUPABASE][TEST_MODE] Returning mocked user for auth.getUser()");
+    console.log(
+      "[SUPABASE][TEST_MODE] Returning mocked user for auth.getUser()"
+    );
     return fakeUserResponse as any;
   };
 
   client.auth.getSession = async () => {
-    console.log("[SUPABASE][TEST_MODE] Returning mocked session for auth.getSession()");
+    console.log(
+      "[SUPABASE][TEST_MODE] Returning mocked session for auth.getSession()"
+    );
     return {
       data: {
         session: {
@@ -70,7 +74,9 @@ function withTestModeAuth(client: TypedSupabaseClient) {
 
   // Immediately invoke callbacks with a signed-in event so components listening for auth state don't hang
   client.auth.onAuthStateChange = (callback) => {
-    console.log("[SUPABASE][TEST_MODE] Triggering immediate SIGNED_IN event for onAuthStateChange");
+    console.log(
+      "[SUPABASE][TEST_MODE] Triggering immediate SIGNED_IN event for onAuthStateChange"
+    );
     const handler = {
       data: {
         subscription: {
@@ -95,9 +101,14 @@ let browserClientInstance: TypedSupabaseClient | null = null;
 let mobileClientInstance: TypedSupabaseClient | null = null;
 
 export function createClient(): TypedSupabaseClient {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  
+  // Prefer Expo-style env vars in mobile, but also support NEXT_PUBLIC_* for web.
+  const supabaseUrl =
+    process.env.EXPO_PUBLIC_SUPABASE_URL ||
+    process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey =
+    process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ||
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
   // During static export build, env vars may not be set
   // Return a client with placeholder values that will fail gracefully at runtime
   if (!supabaseUrl || !supabaseAnonKey) {
@@ -117,14 +128,16 @@ export function createClient(): TypedSupabaseClient {
       return mobileClientInstance;
     }
     if (!browserClientInstance) {
-      browserClientInstance = withTestModeAuth(createBrowserClient<Database>(
-        "https://placeholder.supabase.co",
-        "placeholder-key"
-      ));
+      browserClientInstance = withTestModeAuth(
+        createBrowserClient<Database>(
+          "https://placeholder.supabase.co",
+          "placeholder-key"
+        )
+      );
     }
     return browserClientInstance;
   }
-  
+
   // Check if we're in a mobile Capacitor environment
   if (typeof window !== "undefined" && isMobile()) {
     if (!mobileClientInstance) {
@@ -133,12 +146,15 @@ export function createClient(): TypedSupabaseClient {
     }
     return mobileClientInstance;
   }
-  
+
   // Browser client - use singleton
   // createBrowserClient from @supabase/ssr automatically handles cookie syncing
   // It uses localStorage for client-side and syncs to cookies for SSR
   if (!browserClientInstance) {
-    browserClientInstance = createBrowserClient<Database>(supabaseUrl, supabaseAnonKey);
+    browserClientInstance = createBrowserClient<Database>(
+      supabaseUrl,
+      supabaseAnonKey
+    );
     browserClientInstance = withTestModeAuth(browserClientInstance);
   }
   return browserClientInstance;

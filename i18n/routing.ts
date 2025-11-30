@@ -9,4 +9,3 @@ export const routing = {
   defaultLocale: defaultLocale as string,
   localePrefix: "as-needed" as const, // Only show locale prefix for non-default locale
 };
-

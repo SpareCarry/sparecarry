@@ -83,4 +83,3 @@ SSH is the easiest and doesn't require managing PAT scopes. Once set up, you won
 ---
 
 **Current Status**: Commit is ready, just needs proper authentication method.
-

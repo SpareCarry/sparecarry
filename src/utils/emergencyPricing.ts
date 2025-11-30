@@ -1,6 +1,6 @@
 /**
  * Emergency Add-On Pricing Utility
- * 
+ *
  * Calculates tiered percentage bonus for emergency requests:
  * - Base reward ≤ $20 → +25%
  * - Base reward $20–$50 → +15%
@@ -15,9 +15,11 @@ export interface EmergencyPricingResult {
   finalReward: number;
 }
 
-export function calculateEmergencyPricing(baseReward: number): EmergencyPricingResult {
+export function calculateEmergencyPricing(
+  baseReward: number
+): EmergencyPricingResult {
   let bonusPercentage: number;
-  
+
   if (baseReward <= 20) {
     bonusPercentage = 25;
   } else if (baseReward <= 50) {
@@ -25,13 +27,13 @@ export function calculateEmergencyPricing(baseReward: number): EmergencyPricingR
   } else {
     bonusPercentage = 10;
   }
-  
+
   // Calculate extra amount
   const extraAmount = Math.min((baseReward * bonusPercentage) / 100, 15);
-  
+
   // Calculate final reward
   const finalReward = baseReward + extraAmount;
-  
+
   return {
     baseReward,
     bonusPercentage,
@@ -39,4 +41,3 @@ export function calculateEmergencyPricing(baseReward: number): EmergencyPricingR
     finalReward: Math.round(finalReward * 100) / 100,
   };
 }
-

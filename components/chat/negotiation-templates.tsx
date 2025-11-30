@@ -92,9 +92,9 @@ export function NegotiationTemplates({
   });
 
   return (
-    <Card className="border-slate-200 bg-slate-50 my-2">
+    <Card className="my-2 border-slate-200 bg-slate-50">
       <CardContent className="p-3">
-        <div className="flex items-center gap-2 mb-2">
+        <div className="mb-2 flex items-center gap-2">
           <MessageSquare className="h-4 w-4 text-slate-500" />
           <span className="text-xs font-medium text-slate-700">
             Quick Replies
@@ -108,7 +108,7 @@ export function NegotiationTemplates({
               disabled={sendTemplateMutation.isPending}
               variant="outline"
               size="sm"
-              className="text-xs h-auto py-2 px-3 text-left justify-start whitespace-normal border-slate-200 hover:bg-white hover:border-teal-300"
+              className="h-auto justify-start whitespace-normal border-slate-200 px-3 py-2 text-left text-xs hover:border-teal-300 hover:bg-white"
             >
               {template}
             </Button>
@@ -118,4 +118,3 @@ export function NegotiationTemplates({
     </Card>
   );
 }
-

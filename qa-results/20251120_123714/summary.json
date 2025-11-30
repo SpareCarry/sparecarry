@@ -1,100 +1,98 @@
 ﻿{
-    "timestamp":  "20251120_123714",
-    "errors":  [
-                   "Preflight \u0026 Environment Validation : ΓÜá∩╕Å  Git working directory clean: Uncommitted changes detected",
-                   "Web Build (Staging) : \u0027NEXT_PUBLIC_APP_ENV\u0027 is not recognized as an internal or external command,",
-                   "Database Migration \u0026 Seed : w\u0000s\u0000l\u0000:\u0000 \u0000U\u0000n\u0000k\u0000n\u0000o\u0000w\u0000n\u0000 \u0000k\u0000e\u0000y\u0000 \u0000\u0027\u0000a\u0000u\u0000t\u0000o\u0000m\u0000o\u0000u\u0000n\u0000t\u0000.\u0000c\u0000r\u0000o\u0000s\u0000s\u0000D\u0000i\u0000s\u0000t\u0000r\u0000o\u0000\u0027\u0000 \u0000i\u0000n\u0000 \u0000/\u0000e\u0000t\u0000c\u0000/\u0000w\u0000s\u0000l\u0000.\u0000c\u0000o\u0000n\u0000f\u0000:\u00003\u0000",
-                   "QA Simulation : \u003c3\u003eWSL (12 - Relay) ERROR: CreateProcessCommon:735: execvpe(/bin/bash) failed: No such file or directory"
-               ],
-    "overall":  "FAIL",
-    "score":  41.7,
-    "steps":  {
-                  "Preflight \u0026 Environment Validation":  {
-                                                                  "status":  "FAIL",
-                                                                  "timestamp":  "2025-11-20 12:37:15",
-                                                                  "message":  "ΓÜá∩╕Å  Git working directory clean: Uncommitted changes detected",
-                                                                  "details":  {
-                                                                                  "error":  "ΓÜá∩╕Å  Git working directory clean: Uncommitted changes detected",
-                                                                                  "stack":  "at \u003cScriptBlock\u003e, C:\\SpareCarry\\scripts\\run-full-beta-test.ps1: line 150\r\nat Test-Step, C:\\SpareCarry\\scripts\\run-full-beta-test.ps1: line 102\r\nat \u003cScriptBlock\u003e, C:\\SpareCarry\\scripts\\run-full-beta-test.ps1: line 131\r\nat \u003cScriptBlock\u003e, \u003cNo file\u003e: line 1"
-                                                                              }
-                                                              },
-                  "Health Check Endpoint":  {
-                                                "status":  "PASS",
-                                                "timestamp":  "2025-11-20 12:37:21",
-                                                "message":  "Completed successfully",
-                                                "details":  null
-                                            },
-                  "Sentry \u0026 Logging Verification":  {
-                                                             "status":  "PASS",
-                                                             "timestamp":  "2025-11-20 12:37:21",
-                                                             "message":  "Completed successfully",
-                                                             "details":  null
-                                                         },
-                  "Database Migration \u0026 Seed":  {
-                                                         "status":  "FAIL",
-                                                         "timestamp":  "2025-11-20 12:37:18",
-                                                         "message":  "w\u0000s\u0000l\u0000:\u0000 \u0000U\u0000n\u0000k\u0000n\u0000o\u0000w\u0000n\u0000 \u0000k\u0000e\u0000y\u0000 \u0000\u0027\u0000a\u0000u\u0000t\u0000o\u0000m\u0000o\u0000u\u0000n\u0000t\u0000.\u0000c\u0000r\u0000o\u0000s\u0000s\u0000D\u0000i\u0000s\u0000t\u0000r\u0000o\u0000\u0027\u0000 \u0000i\u0000n\u0000 \u0000/\u0000e\u0000t\u0000c\u0000/\u0000w\u0000s\u0000l\u0000.\u0000c\u0000o\u0000n\u0000f\u0000:\u00003\u0000",
-                                                         "details":  {
-                                                                         "error":  "w\u0000s\u0000l\u0000:\u0000 \u0000U\u0000n\u0000k\u0000n\u0000o\u0000w\u0000n\u0000 \u0000k\u0000e\u0000y\u0000 \u0000\u0027\u0000a\u0000u\u0000t\u0000o\u0000m\u0000o\u0000u\u0000n\u0000t\u0000.\u0000c\u0000r\u0000o\u0000s\u0000s\u0000D\u0000i\u0000s\u0000t\u0000r\u0000o\u0000\u0027\u0000 \u0000i\u0000n\u0000 \u0000/\u0000e\u0000t\u0000c\u0000/\u0000w\u0000s\u0000l\u0000.\u0000c\u0000o\u0000n\u0000f\u0000:\u00003\u0000",
-                                                                         "stack":  "at \u003cScriptBlock\u003e, C:\\Users\\admin\\AppData\\Roaming\\npm\\pnpm.ps1: line 24\r\nat \u003cScriptBlock\u003e, C:\\SpareCarry\\scripts\\run-full-beta-test.ps1: line 274\r\nat Test-Step, C:\\SpareCarry\\scripts\\run-full-beta-test.ps1: line 102\r\nat \u003cScriptBlock\u003e, C:\\SpareCarry\\scripts\\run-full-beta-test.ps1: line 264\r\nat \u003cScriptBlock\u003e, \u003cNo file\u003e: line 1"
-                                                                     }
-                                                     },
-                  "Health Check":  {
-                                       "status":  "WARN",
-                                       "timestamp":  "2025-11-20 12:37:21",
-                                       "message":  "Endpoint not accessible - server may not be running",
-                                       "details":  null
-                                   },
-                  "Feature Flags Verification":  {
-                                                     "status":  "PASS",
-                                                     "timestamp":  "2025-11-20 12:37:21",
-                                                     "message":  "Completed successfully",
-                                                     "details":  null
-                                                 },
-                  "Sentry \u0026 Logging":  {
-                                                "status":  "PASS",
-                                                "timestamp":  "2025-11-20 12:37:21",
-                                                "message":  "Sentry DSN configured",
-                                                "details":  null
-                                            },
-                  "Backup \u0026 Recovery":  {
-                                                 "status":  "WARN",
-                                                 "timestamp":  "2025-11-20 12:37:21",
-                                                 "message":  "Skipped - requires Supabase credentials",
-                                                 "details":  null
-                                             },
-                  "Backup \u0026 Recovery Verification":  {
-                                                              "status":  "PASS",
-                                                              "timestamp":  "2025-11-20 12:37:21",
-                                                              "message":  "Completed successfully",
-                                                              "details":  null
-                                                          },
-                  "Web Build (Staging)":  {
-                                              "status":  "FAIL",
-                                              "timestamp":  "2025-11-20 12:37:15",
-                                              "message":  "\u0027NEXT_PUBLIC_APP_ENV\u0027 is not recognized as an internal or external command,",
-                                              "details":  {
-                                                              "error":  "\u0027NEXT_PUBLIC_APP_ENV\u0027 is not recognized as an internal or external command,",
-                                                              "stack":  "at \u003cScriptBlock\u003e, C:\\Users\\admin\\AppData\\Roaming\\npm\\pnpm.ps1: line 24\r\nat \u003cScriptBlock\u003e, C:\\SpareCarry\\scripts\\run-full-beta-test.ps1: line 213\r\nat Test-Step, C:\\SpareCarry\\scripts\\run-full-beta-test.ps1: line 102\r\nat \u003cScriptBlock\u003e, C:\\SpareCarry\\scripts\\run-full-beta-test.ps1: line 174\r\nat \u003cScriptBlock\u003e, \u003cNo file\u003e: line 1"
-                                                          }
-                                          },
-                  "QA Simulation":  {
-                                        "status":  "FAIL",
-                                        "timestamp":  "2025-11-20 12:37:18",
-                                        "message":  "\u003c3\u003eWSL (12 - Relay) ERROR: CreateProcessCommon:735: execvpe(/bin/bash) failed: No such file or directory",
-                                        "details":  {
-                                                        "error":  "\u003c3\u003eWSL (12 - Relay) ERROR: CreateProcessCommon:735: execvpe(/bin/bash) failed: No such file or directory",
-                                                        "stack":  "at \u003cScriptBlock\u003e, C:\\SpareCarry\\scripts\\run-full-beta-test.ps1: line 322\r\nat Test-Step, C:\\SpareCarry\\scripts\\run-full-beta-test.ps1: line 102\r\nat \u003cScriptBlock\u003e, C:\\SpareCarry\\scripts\\run-full-beta-test.ps1: line 313\r\nat \u003cScriptBlock\u003e, \u003cNo file\u003e: line 1"
-                                                    }
-                                    },
-                  "Feature Flags":  {
-                                        "status":  "WARN",
-                                        "timestamp":  "2025-11-20 12:37:21",
-                                        "message":  "Skipped - requires Unleash server",
-                                        "details":  null
-                                    }
-              },
-    "warnings":  [
-
-                 ]
+  "timestamp": "20251120_123714",
+  "errors": [
+    "Preflight \u0026 Environment Validation : ΓÜá∩╕Å  Git working directory clean: Uncommitted changes detected",
+    "Web Build (Staging) : \u0027NEXT_PUBLIC_APP_ENV\u0027 is not recognized as an internal or external command,",
+    "Database Migration \u0026 Seed : w\u0000s\u0000l\u0000:\u0000 \u0000U\u0000n\u0000k\u0000n\u0000o\u0000w\u0000n\u0000 \u0000k\u0000e\u0000y\u0000 \u0000\u0027\u0000a\u0000u\u0000t\u0000o\u0000m\u0000o\u0000u\u0000n\u0000t\u0000.\u0000c\u0000r\u0000o\u0000s\u0000s\u0000D\u0000i\u0000s\u0000t\u0000r\u0000o\u0000\u0027\u0000 \u0000i\u0000n\u0000 \u0000/\u0000e\u0000t\u0000c\u0000/\u0000w\u0000s\u0000l\u0000.\u0000c\u0000o\u0000n\u0000f\u0000:\u00003\u0000",
+    "QA Simulation : \u003c3\u003eWSL (12 - Relay) ERROR: CreateProcessCommon:735: execvpe(/bin/bash) failed: No such file or directory"
+  ],
+  "overall": "FAIL",
+  "score": 41.7,
+  "steps": {
+    "Preflight \u0026 Environment Validation": {
+      "status": "FAIL",
+      "timestamp": "2025-11-20 12:37:15",
+      "message": "ΓÜá∩╕Å  Git working directory clean: Uncommitted changes detected",
+      "details": {
+        "error": "ΓÜá∩╕Å  Git working directory clean: Uncommitted changes detected",
+        "stack": "at \u003cScriptBlock\u003e, C:\\SpareCarry\\scripts\\run-full-beta-test.ps1: line 150\r\nat Test-Step, C:\\SpareCarry\\scripts\\run-full-beta-test.ps1: line 102\r\nat \u003cScriptBlock\u003e, C:\\SpareCarry\\scripts\\run-full-beta-test.ps1: line 131\r\nat \u003cScriptBlock\u003e, \u003cNo file\u003e: line 1"
+      }
+    },
+    "Health Check Endpoint": {
+      "status": "PASS",
+      "timestamp": "2025-11-20 12:37:21",
+      "message": "Completed successfully",
+      "details": null
+    },
+    "Sentry \u0026 Logging Verification": {
+      "status": "PASS",
+      "timestamp": "2025-11-20 12:37:21",
+      "message": "Completed successfully",
+      "details": null
+    },
+    "Database Migration \u0026 Seed": {
+      "status": "FAIL",
+      "timestamp": "2025-11-20 12:37:18",
+      "message": "w\u0000s\u0000l\u0000:\u0000 \u0000U\u0000n\u0000k\u0000n\u0000o\u0000w\u0000n\u0000 \u0000k\u0000e\u0000y\u0000 \u0000\u0027\u0000a\u0000u\u0000t\u0000o\u0000m\u0000o\u0000u\u0000n\u0000t\u0000.\u0000c\u0000r\u0000o\u0000s\u0000s\u0000D\u0000i\u0000s\u0000t\u0000r\u0000o\u0000\u0027\u0000 \u0000i\u0000n\u0000 \u0000/\u0000e\u0000t\u0000c\u0000/\u0000w\u0000s\u0000l\u0000.\u0000c\u0000o\u0000n\u0000f\u0000:\u00003\u0000",
+      "details": {
+        "error": "w\u0000s\u0000l\u0000:\u0000 \u0000U\u0000n\u0000k\u0000n\u0000o\u0000w\u0000n\u0000 \u0000k\u0000e\u0000y\u0000 \u0000\u0027\u0000a\u0000u\u0000t\u0000o\u0000m\u0000o\u0000u\u0000n\u0000t\u0000.\u0000c\u0000r\u0000o\u0000s\u0000s\u0000D\u0000i\u0000s\u0000t\u0000r\u0000o\u0000\u0027\u0000 \u0000i\u0000n\u0000 \u0000/\u0000e\u0000t\u0000c\u0000/\u0000w\u0000s\u0000l\u0000.\u0000c\u0000o\u0000n\u0000f\u0000:\u00003\u0000",
+        "stack": "at \u003cScriptBlock\u003e, C:\\Users\\admin\\AppData\\Roaming\\npm\\pnpm.ps1: line 24\r\nat \u003cScriptBlock\u003e, C:\\SpareCarry\\scripts\\run-full-beta-test.ps1: line 274\r\nat Test-Step, C:\\SpareCarry\\scripts\\run-full-beta-test.ps1: line 102\r\nat \u003cScriptBlock\u003e, C:\\SpareCarry\\scripts\\run-full-beta-test.ps1: line 264\r\nat \u003cScriptBlock\u003e, \u003cNo file\u003e: line 1"
+      }
+    },
+    "Health Check": {
+      "status": "WARN",
+      "timestamp": "2025-11-20 12:37:21",
+      "message": "Endpoint not accessible - server may not be running",
+      "details": null
+    },
+    "Feature Flags Verification": {
+      "status": "PASS",
+      "timestamp": "2025-11-20 12:37:21",
+      "message": "Completed successfully",
+      "details": null
+    },
+    "Sentry \u0026 Logging": {
+      "status": "PASS",
+      "timestamp": "2025-11-20 12:37:21",
+      "message": "Sentry DSN configured",
+      "details": null
+    },
+    "Backup \u0026 Recovery": {
+      "status": "WARN",
+      "timestamp": "2025-11-20 12:37:21",
+      "message": "Skipped - requires Supabase credentials",
+      "details": null
+    },
+    "Backup \u0026 Recovery Verification": {
+      "status": "PASS",
+      "timestamp": "2025-11-20 12:37:21",
+      "message": "Completed successfully",
+      "details": null
+    },
+    "Web Build (Staging)": {
+      "status": "FAIL",
+      "timestamp": "2025-11-20 12:37:15",
+      "message": "\u0027NEXT_PUBLIC_APP_ENV\u0027 is not recognized as an internal or external command,",
+      "details": {
+        "error": "\u0027NEXT_PUBLIC_APP_ENV\u0027 is not recognized as an internal or external command,",
+        "stack": "at \u003cScriptBlock\u003e, C:\\Users\\admin\\AppData\\Roaming\\npm\\pnpm.ps1: line 24\r\nat \u003cScriptBlock\u003e, C:\\SpareCarry\\scripts\\run-full-beta-test.ps1: line 213\r\nat Test-Step, C:\\SpareCarry\\scripts\\run-full-beta-test.ps1: line 102\r\nat \u003cScriptBlock\u003e, C:\\SpareCarry\\scripts\\run-full-beta-test.ps1: line 174\r\nat \u003cScriptBlock\u003e, \u003cNo file\u003e: line 1"
+      }
+    },
+    "QA Simulation": {
+      "status": "FAIL",
+      "timestamp": "2025-11-20 12:37:18",
+      "message": "\u003c3\u003eWSL (12 - Relay) ERROR: CreateProcessCommon:735: execvpe(/bin/bash) failed: No such file or directory",
+      "details": {
+        "error": "\u003c3\u003eWSL (12 - Relay) ERROR: CreateProcessCommon:735: execvpe(/bin/bash) failed: No such file or directory",
+        "stack": "at \u003cScriptBlock\u003e, C:\\SpareCarry\\scripts\\run-full-beta-test.ps1: line 322\r\nat Test-Step, C:\\SpareCarry\\scripts\\run-full-beta-test.ps1: line 102\r\nat \u003cScriptBlock\u003e, C:\\SpareCarry\\scripts\\run-full-beta-test.ps1: line 313\r\nat \u003cScriptBlock\u003e, \u003cNo file\u003e: line 1"
+      }
+    },
+    "Feature Flags": {
+      "status": "WARN",
+      "timestamp": "2025-11-20 12:37:21",
+      "message": "Skipped - requires Unleash server",
+      "details": null
+    }
+  },
+  "warnings": []
 }

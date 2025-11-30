@@ -7,27 +7,32 @@ I've set up comprehensive error logging for the **Expo mobile app** so all 404s 
 ## Changes Made
 
 ### 1. **Mobile Logger** (`apps/mobile/lib/logger.ts`)
+
 - Centralized logging system for React Native
 - Outputs to console (which appears in Metro bundler terminal)
 - Formats errors with timestamps, routes, and stack traces
 
 ### 2. **Enhanced Root Layout** (`apps/mobile/app/_layout.tsx`)
+
 - Logs all navigation events
 - Logs screen focus events
 - Logs authentication redirects
 - Logs app startup/shutdown
 
 ### 3. **Error Boundary** (`apps/mobile/app/_error.tsx`)
+
 - Catches all unhandled errors
 - Logs them to terminal
 - Shows user-friendly error screen
 
 ### 4. **Auto-Measure Screen Logging** (`apps/mobile/app/auto-measure.tsx`)
+
 - Logs when screen opens
 - Logs measurement completion
 - Logs storage operations
 
 ### 5. **Fixed Type Mismatches**
+
 - Fixed `AutoMeasureCamera` to pass photos as array
 - Fixed `auto-measure.tsx` to handle array format
 - Added AsyncStorage for native storage
@@ -50,11 +55,13 @@ When a 404 or error occurs, you'll see:
 ```
 
 For app errors:
+
 ```
 [2025-11-28T10:30:00.000Z] [MOBILE] [ERROR] App Error Boundary caught error | Error: Cannot read property 'x' of undefined | Stack: ...
 ```
 
 For navigation:
+
 ```
 [2025-11-28T10:30:00.000Z] [MOBILE] [DEBUG] Navigation: (tabs) | Route: (tabs) | segments: ["(tabs)"] | hasUser: true
 ```
@@ -72,6 +79,7 @@ For navigation:
 ## Testing the Logging
 
 1. **Start the app:**
+
    ```bash
    cd apps/mobile
    pnpm start
@@ -80,6 +88,7 @@ For navigation:
 2. **Open Expo Go** and scan QR code
 
 3. **Try navigating** - you'll see logs in terminal:
+
    ```
    [MOBILE] [DEBUG] Screen focused: (tabs)
    [MOBILE] [INFO] Navigation: (tabs)
@@ -99,6 +108,7 @@ For navigation:
 ## Available Routes
 
 Current routes in mobile app:
+
 - ✅ `/(tabs)` - Tab navigation (home, profile)
 - ✅ `/auth/login` - Login screen
 - ✅ `/auth/callback` - OAuth callback
@@ -114,4 +124,3 @@ Current routes in mobile app:
 4. **Share the terminal output** with me so I can fix it
 
 All mobile app errors now show in your terminal! 🎉
-

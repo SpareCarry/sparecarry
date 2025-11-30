@@ -8,19 +8,23 @@
 ## ✅ Completed Integrations
 
 ### 1. Feed Detail Modal (`components/feed/feed-detail-modal.tsx`)
+
 - ✅ Added `SuggestedMatches` component
 - ✅ Added `WatchlistButton` component
 - ✅ Added `TrustBadges` component (replacing old badge system)
 
 ### 2. Feed Card (`components/feed/feed-card.tsx`)
+
 - ✅ Added `TrustBadges` component
 - ✅ Integrated with existing badge system
 
 ### 3. Home Page (`app/home/page.tsx`)
+
 - ✅ Added `TopRoutes` component
 - ✅ Wrapped in ErrorBoundary for safety
 
 ### 4. Shipping Estimator (`app/shipping-estimator/page.tsx`)
+
 - ✅ Added `TopRoutes` component
 - ✅ Added `TipsTooltip` component
 - ✅ Tips appear in form header
@@ -32,6 +36,7 @@
 These can be added as needed:
 
 ### 1. Cancellation Modal Integration
+
 - Add `CancellationReasonModal` to cancel flows
 - Update cancel buttons in:
   - `components/forms/post-trip-form.tsx`
@@ -39,17 +44,20 @@ These can be added as needed:
   - Match detail pages
 
 ### 2. Payout ETA Display
+
 - Add `PayoutETA` component to match detail pages
 - Show after delivery confirmation
 - Location: `app/home/messages/[matchId]/page.tsx`
 
 ### 3. Additional Tips
+
 - Add `TipsTooltip` to:
   - Post request form (`components/forms/post-request-form.tsx`)
   - Post trip form (`components/forms/post-trip-form.tsx`)
   - Message threads (already integrated)
 
 ### 4. Navigation Links
+
 - Add watchlist link to navigation menu
 - Add link in user profile dropdown
 
@@ -73,12 +81,14 @@ After running the migration, test:
 ## 🚀 Next Steps
 
 1. **Run Database Migration**:
+
    ```sql
    -- In Supabase SQL Editor, run:
    -- supabase/migrations/20250102000000_add_trust_match_watchlist.sql
    ```
 
 2. **Refresh Materialized Views**:
+
    ```sql
    SELECT refresh_top_routes();
    SELECT refresh_matched_candidates();
@@ -99,4 +109,3 @@ After running the migration, test:
 
 **Integration Status**: ✅ Complete  
 **Ready for Testing**: ✅ Yes
-

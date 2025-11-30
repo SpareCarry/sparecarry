@@ -91,10 +91,10 @@ SpareCarry uses Unleash for feature flag management, allowing gradual rollouts a
 ### Check Flag
 
 ```typescript
-import { useFlag } from '@/app/providers/FeatureFlagProvider';
+import { useFlag } from "@/app/providers/FeatureFlagProvider";
 
 function MyComponent() {
-  const enablePushNotifications = useFlag('enable_push_notifications', false);
+  const enablePushNotifications = useFlag("enable_push_notifications", false);
 
   if (enablePushNotifications) {
     // New feature code
@@ -107,10 +107,10 @@ function MyComponent() {
 ### Get Flag with Variant
 
 ```typescript
-import { useFeatureFlag } from '@/app/providers/FeatureFlagProvider';
+import { useFeatureFlag } from "@/app/providers/FeatureFlagProvider";
 
 function MyComponent() {
-  const flag = useFeatureFlag('payment_ux_improvements');
+  const flag = useFeatureFlag("payment_ux_improvements");
 
   if (flag?.enabled) {
     const variant = flag.variant; // 'control', 'variant-a', etc.
@@ -160,6 +160,7 @@ function MyComponent() {
 ### Alert Rules
 
 Set up alerts for:
+
 - Error rate > 1%
 - API latency > 1s
 - Feature usage drops > 20%
@@ -223,31 +224,37 @@ Set up alerts for:
 ### Notifications v1
 
 **Week 1: Staging**
+
 - Enable in staging
 - Test all notification types
 - Fix bugs
 
 **Week 2: Internal Testing**
+
 - Enable for TestFlight/Play Store testers
 - Collect feedback
 - Monitor metrics
 
 **Week 3: 10% Rollout**
+
 - Enable for 10% of users
 - Monitor error rates
 - Check performance
 
 **Week 4: 25% Rollout**
+
 - Increase to 25%
 - Continue monitoring
 - Fix any issues
 
 **Week 5: 50% Rollout**
+
 - Increase to 50%
 - Monitor closely
 - Collect feedback
 
 **Week 6: 100% Rollout**
+
 - Enable for all users
 - Monitor for 1 week
 - Remove flag if stable
@@ -259,4 +266,3 @@ Set up alerts for:
 - [ ] Create rollout schedule
 - [ ] Set up monitoring
 - [ ] Document flag usage
-

@@ -1,22 +1,24 @@
 /**
  * Photo Verification Hook
- * 
+ *
  * Validates uploaded photos meet requirements
  */
 
-import { PhotoVerificationResult } from './types';
+import { PhotoVerificationResult } from "./types";
 
 /**
  * Verify photo meets basic requirements
  * Note: In a real implementation, this would analyze image data
  * For now, we check file properties passed in
  */
-export function usePhotoVerification(file?: File | null): PhotoVerificationResult {
+export function usePhotoVerification(
+  file?: File | null
+): PhotoVerificationResult {
   if (!file) {
     return {
       verified: false,
-      message: 'No file provided',
-      errors: ['File is required'],
+      message: "No file provided",
+      errors: ["File is required"],
     };
   }
 
@@ -25,11 +27,11 @@ export function usePhotoVerification(file?: File | null): PhotoVerificationResul
 
   // Check file size
   if (file.size > maxSize) {
-    errors.push('File size exceeds 5MB limit');
+    errors.push("File size exceeds 5MB limit");
   }
 
   // Check file type
-  const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+  const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
   if (!allowedTypes.includes(file.type)) {
     errors.push(`File type ${file.type} not allowed. Use JPEG or PNG`);
   }
@@ -46,28 +48,32 @@ export function usePhotoVerification(file?: File | null): PhotoVerificationResul
 
   return {
     verified: true,
-    message: 'Photo verified successfully',
+    message: "Photo verified successfully",
   };
 }
 
 /**
  * Verify multiple photos meet requirements
  */
-export function verifyPhotoSet(photos: (File | null)[]): PhotoVerificationResult {
+export function verifyPhotoSet(
+  photos: (File | null)[]
+): PhotoVerificationResult {
   const validPhotos = photos.filter((p): p is File => p !== null);
-  
+
   if (validPhotos.length < 3) {
     return {
       verified: false,
-      message: 'Minimum 3 photos required',
-      errors: [`Only ${validPhotos.length} photos provided. Need at least 3 (front, side, size-for-scale)`],
+      message: "Minimum 3 photos required",
+      errors: [
+        `Only ${validPhotos.length} photos provided. Need at least 3 (front, side, size-for-scale)`,
+      ],
     };
   }
 
   if (validPhotos.length > 6) {
     return {
       verified: false,
-      message: 'Maximum 6 photos allowed',
+      message: "Maximum 6 photos allowed",
       errors: [`Too many photos (${validPhotos.length}). Maximum is 6.`],
     };
   }
@@ -77,7 +83,7 @@ export function verifyPhotoSet(photos: (File | null)[]): PhotoVerificationResult
   for (let i = 0; i < validPhotos.length; i++) {
     const result = usePhotoVerification(validPhotos[i]);
     if (!result.verified && result.errors) {
-      errors.push(`Photo ${i + 1}: ${result.errors.join(', ')}`);
+      errors.push(`Photo ${i + 1}: ${result.errors.join(", ")}`);
     }
   }
 
@@ -93,4 +99,3 @@ export function verifyPhotoSet(photos: (File | null)[]): PhotoVerificationResult
     message: `All ${validPhotos.length} photos verified`,
   };
 }
-

@@ -79,15 +79,18 @@ After applying all migrations, verify in Supabase Dashboard:
 ## Troubleshooting
 
 ### Error: "relation already exists"
+
 - Some tables may already exist
 - This is OK - the migrations use `CREATE TABLE IF NOT EXISTS`
 - Continue with next migration
 
 ### Error: "permission denied"
+
 - Make sure you're logged into Supabase Dashboard
 - You need project owner/admin access
 
 ### Error: "syntax error"
+
 - Check that you copied the entire file
 - Make sure no text was cut off
 - Try copying again
@@ -110,11 +113,13 @@ All migration files are in: `supabase/migrations/`
 Once all migrations are applied, you can:
 
 1. **Verify setup**:
+
    ```bash
    node scripts/setup-supabase.js
    ```
 
 2. **Seed additional data** (optional):
+
    ```bash
    node scripts/seed-staging-data.js
    ```
@@ -126,4 +131,3 @@ Once all migrations are applied, you can:
 ---
 
 **Last Updated**: 2024-12-19
-

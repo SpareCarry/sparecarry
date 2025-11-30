@@ -4,7 +4,7 @@
  * Shows user's trips, requests, and matches.
  */
 
-import React, { useMemo } from 'react';
+import React, { useMemo } from "react";
 import {
   View,
   Text,
@@ -13,14 +13,14 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   RefreshControl,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useQuery } from '@tanstack/react-query';
-import { createClient } from '@sparecarry/lib/supabase';
-import { useAuth } from '@sparecarry/hooks/useAuth';
-import { MaterialIcons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import { format } from 'date-fns';
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useQuery } from "@tanstack/react-query";
+import { createClient } from "@sparecarry/lib/supabase";
+import { useAuth } from "@sparecarry/hooks/useAuth";
+import { MaterialIcons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
+import { format } from "date-fns";
 
 type Trip = {
   id: string;
@@ -63,17 +63,17 @@ type MyStuffData = {
 
 function normalizeSingle<T>(value?: T | T[] | null): T | null {
   if (!value) return null;
-  return Array.isArray(value) ? value[0] ?? null : value;
+  return Array.isArray(value) ? (value[0] ?? null) : value;
 }
 
 const matchStatusLabels: Record<string, string> = {
-  pending: 'Pending',
-  chatting: 'Chatting',
-  escrow_paid: 'In Escrow',
-  delivered: 'Delivered',
-  completed: 'Completed',
-  cancelled: 'Cancelled',
-  disputed: 'Disputed',
+  pending: "Pending",
+  chatting: "Chatting",
+  escrow_paid: "In Escrow",
+  delivered: "Delivered",
+  completed: "Completed",
+  cancelled: "Cancelled",
+  disputed: "Disputed",
 };
 
 async function fetchMyStuff(userId: string): Promise<MyStuffData> {
@@ -81,26 +81,26 @@ async function fetchMyStuff(userId: string): Promise<MyStuffData> {
 
   const [tripsResult, requestsResult, matchesResult] = await Promise.all([
     supabase
-      .from('trips')
-      .select('*')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false }),
+      .from("trips")
+      .select("*")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false }),
     supabase
-      .from('requests')
-      .select('*')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false }),
+      .from("requests")
+      .select("*")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false }),
     supabase
-      .from('matches')
+      .from("matches")
       .select(
         `
         *,
         requests(*),
         trips(*)
-      `.trim(),
+      `.trim()
       )
       .or(`requester_id.eq.${userId},traveler_id.eq.${userId}`)
-      .order('updated_at', { ascending: false }),
+      .order("updated_at", { ascending: false }),
   ]);
 
   return {
@@ -114,29 +114,24 @@ export default function MyStuffScreen() {
   const router = useRouter();
   const { user } = useAuth();
 
-  const {
-    data,
-    isLoading,
-    error,
-    refetch,
-    isRefetching,
-  } = useQuery<MyStuffData>({
-    queryKey: ['my-stuff', user?.id],
-    queryFn: async () => {
-      if (!user?.id) {
-        throw new Error('You need to be signed in to view this page.');
-      }
-      return fetchMyStuff(user.id);
-    },
-    enabled: !!user?.id,
-    retry: 1,
-    retryDelay: 1000,
-  });
+  const { data, isLoading, error, refetch, isRefetching } =
+    useQuery<MyStuffData>({
+      queryKey: ["my-stuff", user?.id],
+      queryFn: async () => {
+        if (!user?.id) {
+          throw new Error("You need to be signed in to view this page.");
+        }
+        return fetchMyStuff(user.id);
+      },
+      enabled: !!user?.id,
+      retry: 1,
+      retryDelay: 1000,
+    });
 
   const activeMatches = useMemo(() => {
     if (!data) return [];
     return data.matches.filter(
-      (match) => match.status !== 'cancelled' && match.status !== 'completed',
+      (match) => match.status !== "cancelled" && match.status !== "completed"
     );
   }, [data]);
 
@@ -151,7 +146,7 @@ export default function MyStuffScreen() {
           </Text>
           <TouchableOpacity
             style={styles.retryButton}
-            onPress={() => router.push('/auth/login')}
+            onPress={() => router.push("/auth/login")}
           >
             <Text style={styles.retryButtonText}>Log In</Text>
           </TouchableOpacity>
@@ -177,9 +172,12 @@ export default function MyStuffScreen() {
         <View style={styles.centerContainer}>
           <MaterialIcons name="error-outline" size={48} color="#ef4444" />
           <Text style={styles.errorText}>
-            {error instanceof Error ? error.message : 'Failed to load data'}
+            {error instanceof Error ? error.message : "Failed to load data"}
           </Text>
-          <TouchableOpacity style={styles.retryButton} onPress={() => refetch()}>
+          <TouchableOpacity
+            style={styles.retryButton}
+            onPress={() => refetch()}
+          >
             <Text style={styles.retryButtonText}>Retry</Text>
           </TouchableOpacity>
         </View>
@@ -188,7 +186,7 @@ export default function MyStuffScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top']}>
+    <SafeAreaView style={styles.safeArea} edges={["top"]}>
       <ScrollView
         style={styles.container}
         contentContainerStyle={styles.content}
@@ -234,7 +232,7 @@ export default function MyStuffScreen() {
               <Text style={styles.emptyText}>No requests yet</Text>
               <TouchableOpacity
                 style={styles.actionButton}
-                onPress={() => router.push('/(tabs)/post-request')}
+                onPress={() => router.push("/(tabs)/post-request")}
               >
                 <Text style={styles.actionButtonText}>Post Request</Text>
               </TouchableOpacity>
@@ -254,7 +252,7 @@ export default function MyStuffScreen() {
                 <View style={styles.itemFooter}>
                   <Text style={styles.itemReward}>${request.max_reward}</Text>
                   <Text style={styles.itemDate}>
-                    {format(new Date(request.deadline_latest), 'MMM d, yyyy')}
+                    {format(new Date(request.deadline_latest), "MMM d, yyyy")}
                   </Text>
                 </View>
               </TouchableOpacity>
@@ -270,7 +268,7 @@ export default function MyStuffScreen() {
               <Text style={styles.emptyText}>No trips yet</Text>
               <TouchableOpacity
                 style={styles.actionButton}
-                onPress={() => router.push('/(tabs)/post-trip')}
+                onPress={() => router.push("/(tabs)/post-trip")}
               >
                 <Text style={styles.actionButtonText}>Post Trip</Text>
               </TouchableOpacity>
@@ -280,7 +278,7 @@ export default function MyStuffScreen() {
               <TouchableOpacity key={trip.id} style={styles.itemCard}>
                 <View style={styles.itemHeader}>
                   <MaterialIcons
-                    name={trip.type === 'plane' ? 'flight' : 'directions-boat'}
+                    name={trip.type === "plane" ? "flight" : "directions-boat"}
                     size={20}
                     color="#14b8a6"
                   />
@@ -296,18 +294,18 @@ export default function MyStuffScreen() {
                 </Text>
                 <Text style={styles.itemDate}>
                   {trip.departure_date
-                    ? format(new Date(trip.departure_date), 'MMM d, yyyy')
+                    ? format(new Date(trip.departure_date), "MMM d, yyyy")
                     : trip.eta_window_start
                       ? `${format(
                           new Date(trip.eta_window_start),
-                          'MMM d',
+                          "MMM d"
                         )} - ${format(
                           new Date(
-                            trip.eta_window_end || trip.eta_window_start,
+                            trip.eta_window_end || trip.eta_window_start
                           ),
-                          'MMM d',
+                          "MMM d"
                         )}`
-                      : 'Flexible'}
+                      : "Flexible"}
                 </Text>
               </TouchableOpacity>
             ))
@@ -321,7 +319,8 @@ export default function MyStuffScreen() {
             <View style={styles.emptyState}>
               <Text style={styles.emptyText}>No matches yet</Text>
               <Text style={styles.emptySubtext}>
-                Once someone connects with your request or trip, the chat will show up here.
+                Once someone connects with your request or trip, the chat will
+                show up here.
               </Text>
             </View>
           ) : (
@@ -348,7 +347,7 @@ export default function MyStuffScreen() {
                   </View>
                   <Text style={styles.itemReward}>${match.reward_amount}</Text>
                   <Text style={styles.itemDate}>
-                    Updated {format(new Date(match.updated_at), 'MMM d, yyyy')}
+                    Updated {format(new Date(match.updated_at), "MMM d, yyyy")}
                   </Text>
                 </TouchableOpacity>
               );
@@ -363,11 +362,11 @@ export default function MyStuffScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#f9fafb',
+    backgroundColor: "#f9fafb",
   },
   container: {
     flex: 1,
-    backgroundColor: '#f9fafb',
+    backgroundColor: "#f9fafb",
   },
   content: {
     padding: 16,
@@ -375,8 +374,8 @@ const styles = StyleSheet.create({
   },
   centerContainer: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     padding: 20,
   },
   header: {
@@ -384,37 +383,37 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 28,
-    fontWeight: 'bold',
-    color: '#333',
+    fontWeight: "bold",
+    color: "#333",
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
-    color: '#666',
+    color: "#666",
   },
   overviewRow: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 12,
     marginBottom: 24,
   },
   overviewCard: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderRadius: 12,
     padding: 16,
-    alignItems: 'center',
+    alignItems: "center",
     borderWidth: 1,
-    borderColor: '#e5e7eb',
+    borderColor: "#e5e7eb",
   },
   overviewNumber: {
     fontSize: 24,
-    fontWeight: 'bold',
-    color: '#333',
+    fontWeight: "bold",
+    color: "#333",
     marginTop: 8,
   },
   overviewLabel: {
     fontSize: 12,
-    color: '#666',
+    color: "#666",
     marginTop: 4,
   },
   section: {
@@ -422,61 +421,61 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
+    fontWeight: "bold",
+    color: "#333",
     marginBottom: 12,
   },
   emptyState: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderRadius: 12,
     padding: 24,
-    alignItems: 'center',
+    alignItems: "center",
     borderWidth: 1,
-    borderColor: '#e5e7eb',
+    borderColor: "#e5e7eb",
   },
   emptyText: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
+    fontWeight: "600",
+    color: "#333",
     marginBottom: 8,
   },
   emptySubtext: {
     fontSize: 14,
-    color: '#666',
-    textAlign: 'center',
+    color: "#666",
+    textAlign: "center",
     marginTop: 4,
   },
   actionButton: {
-    backgroundColor: '#14b8a6',
+    backgroundColor: "#14b8a6",
     borderRadius: 8,
     paddingHorizontal: 16,
     paddingVertical: 8,
     marginTop: 12,
   },
   actionButtonText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   itemCard: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: '#e5e7eb',
+    borderColor: "#e5e7eb",
   },
   itemHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 8,
     marginBottom: 8,
   },
   itemTitle: {
     flex: 1,
     fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
+    fontWeight: "600",
+    color: "#333",
   },
   statusBadge: {
     paddingHorizontal: 8,
@@ -484,74 +483,72 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   statusOpen: {
-    backgroundColor: '#f0fdfa',
+    backgroundColor: "#f0fdfa",
   },
   statusActive: {
-    backgroundColor: '#eff6ff',
+    backgroundColor: "#eff6ff",
   },
   statusChatting: {
-    backgroundColor: '#fef3c7',
+    backgroundColor: "#fef3c7",
   },
   statusText: {
     fontSize: 12,
-    fontWeight: '600',
-    color: '#333',
+    fontWeight: "600",
+    color: "#333",
   },
   itemLocation: {
     fontSize: 14,
-    color: '#666',
+    color: "#666",
     marginBottom: 8,
   },
   itemCapacity: {
     fontSize: 14,
-    color: '#14b8a6',
-    fontWeight: '500',
+    color: "#14b8a6",
+    fontWeight: "500",
     marginBottom: 4,
   },
   itemFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   itemReward: {
     fontSize: 16,
-    fontWeight: 'bold',
-    color: '#14b8a6',
+    fontWeight: "bold",
+    color: "#14b8a6",
   },
   itemDate: {
     fontSize: 12,
-    color: '#666',
+    color: "#666",
   },
   loadingText: {
     marginTop: 12,
     fontSize: 16,
-    color: '#666',
+    color: "#666",
   },
   errorText: {
     marginTop: 12,
     fontSize: 16,
-    color: '#ef4444',
-    fontWeight: '600',
-    textAlign: 'center',
+    color: "#ef4444",
+    fontWeight: "600",
+    textAlign: "center",
   },
   errorSubtext: {
     marginTop: 8,
     fontSize: 14,
-    color: '#666',
-    textAlign: 'center',
+    color: "#666",
+    textAlign: "center",
   },
   retryButton: {
     marginTop: 16,
-    backgroundColor: '#14b8a6',
+    backgroundColor: "#14b8a6",
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 8,
   },
   retryButtonText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
   },
 });
-
-

@@ -3,6 +3,7 @@
 ## ✅ Implemented Features
 
 ### 1. WhatsApp Messaging Integration
+
 **Location**: `apps/mobile/app/feed-detail.tsx`
 
 - **Free WhatsApp Deep Linking**: Uses native WhatsApp app or falls back to WhatsApp Web
@@ -11,6 +12,7 @@
 - **Pre-filled Messages**: Generates contextual messages based on item type (trip/request)
 
 **How it works**:
+
 1. User taps "Message on WhatsApp" button on feed detail screen
 2. System fetches recipient's phone number from profile
 3. Creates or retrieves existing match record
@@ -18,13 +20,16 @@
 5. Falls back to WhatsApp Web if app not installed
 
 **WhatsApp URL Format**:
+
 - Native: `whatsapp://send?phone={phone}&text={message}`
 - Web: `https://wa.me/{phone}?text={message}`
 
 ### 2. Feed Detail Screen
+
 **Location**: `apps/mobile/app/feed-detail.tsx`
 
 **Features**:
+
 - Full item details display
 - Shows all relevant information (locations, dates, dimensions, capacity, etc.)
 - Emergency badges
@@ -34,13 +39,16 @@
 - Navigation back to feed
 
 **Displays**:
+
 - For Trips: departure/arrival, capacity (kg/liters), dates
 - For Requests: title, description, dimensions, weight, reward, preferred method, restricted items
 
 ### 3. Photo Upload for Requests
+
 **Location**: `apps/mobile/app/(tabs)/post-request.tsx`
 
 **Features**:
+
 - Multiple photo selection from gallery
 - Photo preview with remove option
 - Upload to Supabase Storage (`item-photos` bucket)
@@ -49,12 +57,14 @@
 - Photos stored as array of URLs in request record
 
 **Implementation**:
+
 - Uses `expo-image-picker` for photo selection
 - Uploads to `item-photos/requests/{userId}/{timestamp}-{random}.{ext}`
 - Stores public URLs in `requests.photos` JSON field
 - Handles upload errors gracefully
 
 ### 4. Navigation Updates
+
 **Location**: `apps/mobile/app/_layout.tsx`
 
 - Added `feed-detail` route to Stack navigator
@@ -64,6 +74,7 @@
 ## 📱 User Flow
 
 ### Messaging Flow:
+
 1. User browses feed → taps on item
 2. Detail screen opens → shows full information
 3. User taps "Message on WhatsApp"
@@ -74,6 +85,7 @@
 8. User continues conversation in WhatsApp
 
 ### Photo Upload Flow:
+
 1. User fills out Post Request form
 2. Taps "Add Photos" button
 3. Selects photos from gallery (multiple selection)
@@ -85,13 +97,16 @@
 ## 🔧 Technical Details
 
 ### WhatsApp Integration
+
 ```typescript
 function openWhatsApp(phone: string, message: string) {
-  const cleanPhone = phone.replace(/[^\d+]/g, '');
-  const whatsappPhone = cleanPhone.startsWith('+') ? cleanPhone : `+1${cleanPhone}`;
+  const cleanPhone = phone.replace(/[^\d+]/g, "");
+  const whatsappPhone = cleanPhone.startsWith("+")
+    ? cleanPhone
+    : `+1${cleanPhone}`;
   const encodedMessage = encodeURIComponent(message);
   const whatsappUrl = `whatsapp://send?phone=${whatsappPhone}&text=${encodedMessage}`;
-  
+
   Linking.openURL(whatsappUrl).catch(() => {
     // Fallback to web
     Linking.openURL(`https://wa.me/${whatsappPhone}?text=${encodedMessage}`);
@@ -100,16 +115,17 @@ function openWhatsApp(phone: string, message: string) {
 ```
 
 ### Photo Upload
+
 ```typescript
 const uploadPhotos = async (): Promise<string[]> => {
   const uploadedUrls: string[] = [];
   for (const photoUri of photos) {
-    const blob = await fetch(photoUri).then(r => r.blob());
+    const blob = await fetch(photoUri).then((r) => r.blob());
     const filePath = `requests/${userId}/${timestamp}-${random}.${ext}`;
-    await supabase.storage.from('item-photos').upload(filePath, blob);
-    const { data: { publicUrl } } = supabase.storage
-      .from('item-photos')
-      .getPublicUrl(filePath);
+    await supabase.storage.from("item-photos").upload(filePath, blob);
+    const {
+      data: { publicUrl },
+    } = supabase.storage.from("item-photos").getPublicUrl(filePath);
     uploadedUrls.push(publicUrl);
   }
   return uploadedUrls;
@@ -117,6 +133,7 @@ const uploadPhotos = async (): Promise<string[]> => {
 ```
 
 ### Match Creation
+
 - Automatically creates match when user initiates messaging
 - Prevents duplicate matches
 - Sets initial status to 'pending'
@@ -125,16 +142,20 @@ const uploadPhotos = async (): Promise<string[]> => {
 ## 📋 Requirements
 
 ### Supabase Storage Buckets
+
 Ensure these buckets exist:
+
 - `item-photos` - For request photos (public)
 - Storage policies should allow authenticated users to upload
 
 ### Database Fields
+
 - `requests.photos` - JSON array of photo URLs
 - `profiles.phone` - User phone numbers (E.164 format recommended)
 - `matches` table - For tracking conversations
 
 ### Permissions
+
 - Camera roll access for photo selection
 - WhatsApp app installed (optional, falls back to web)
 
@@ -166,4 +187,3 @@ Ensure these buckets exist:
 - Match records help track conversation history
 - Phone numbers are fetched on-demand for privacy
 - All features work offline (except actual upload/messaging)
-

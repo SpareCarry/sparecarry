@@ -3,11 +3,11 @@ name: Nightly Backup
 on:
   schedule:
     # Run daily at 2 AM UTC
-    - cron: '0 2 * * *'
+    - cron: "0 2 * * *"
   workflow_dispatch:
     inputs:
       backup_type:
-        description: 'Type of backup to run'
+        description: "Type of backup to run"
         required: true
         type: choice
         options:
@@ -19,7 +19,7 @@ jobs:
   backup:
     name: Backup Database and Storage
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -95,7 +95,7 @@ jobs:
             unzip awscliv2.zip
             sudo ./aws/install
           fi
-          
+
           # Upload database backups
           if [ -d "backups/db" ]; then
             aws s3 sync backups/db/ s3://${{ secrets.BACKUP_S3_BUCKET }}/db/ \
@@ -103,7 +103,7 @@ jobs:
               --storage-class STANDARD_IA \
               ${secrets.BACKUP_S3_ENDPOINT && format('--endpoint-url %s', secrets.BACKUP_S3_ENDPOINT) || ''}
           fi
-          
+
           # Upload storage backups
           if [ -d "backups/storage" ]; then
             aws s3 sync backups/storage/ s3://${{ secrets.BACKUP_S3_BUCKET }}/storage/ \
@@ -131,7 +131,7 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "| Type | Status |" >> $GITHUB_STEP_SUMMARY
           echo "|------|--------|" >> $GITHUB_STEP_SUMMARY
-          
+
           if [ -d "backups/db" ] && [ "$(ls -A backups/db/*.sql.gz backups/db/*.sql 2>/dev/null)" ]; then
             DB_COUNT=$(ls -1 backups/db/*.sql.gz backups/db/*.sql 2>/dev/null | wc -l)
             DB_SIZE=$(du -sh backups/db | cut -f1)
@@ -139,7 +139,7 @@ jobs:
           else
             echo "| Database | ⚠️  No backups found |" >> $GITHUB_STEP_SUMMARY
           fi
-          
+
           if [ -d "backups/storage" ] && [ "$(ls -A backups/storage/*.tar.gz 2>/dev/null)" ]; then
             STORAGE_COUNT=$(ls -1 backups/storage/*.tar.gz 2>/dev/null | wc -l)
             STORAGE_SIZE=$(du -sh backups/storage | cut -f1)
@@ -147,4 +147,3 @@ jobs:
           else
             echo "| Storage | ⚠️  No backups found |" >> $GITHUB_STEP_SUMMARY
           fi
-

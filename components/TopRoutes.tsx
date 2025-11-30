@@ -1,16 +1,16 @@
 /**
  * Top Routes Component
- * 
+ *
  * Displays trending/active routes from top_routes view
  */
 
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
-import { Badge } from './ui/badge';
-import { Loader2, TrendingUp, MapPin, Package } from 'lucide-react';
-import { createClient } from '../lib/supabase/client';
+import React, { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
+import { Badge } from "./ui/badge";
+import { Loader2, TrendingUp, MapPin, Package } from "lucide-react";
+import { createClient } from "../lib/supabase/client";
 
 export interface TopRoute {
   route_hash: string;
@@ -48,10 +48,10 @@ export function TopRoutes({
         // await supabase.rpc('refresh_top_routes');
 
         const { data, error: fetchError } = await supabase
-          .from('top_routes')
-          .select('*')
-          .order('active_posts_30d', { ascending: false })
-          .order('match_count', { ascending: false })
+          .from("top_routes")
+          .select("*")
+          .order("active_posts_30d", { ascending: false })
+          .order("match_count", { ascending: false })
           .limit(limit);
 
         if (fetchError) {
@@ -106,24 +106,24 @@ export function TopRoutes({
           {routes.map((route, index) => (
             <div
               key={route.route_hash}
-              className="flex items-start justify-between p-3 border border-slate-200 rounded-lg hover:border-teal-300 transition-colors"
+              className="flex items-start justify-between rounded-lg border border-slate-200 p-3 transition-colors hover:border-teal-300"
             >
               <div className="flex-1">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-sm font-medium text-slate-500">#{index + 1}</span>
+                <div className="mb-1 flex items-center gap-2">
+                  <span className="text-sm font-medium text-slate-500">
+                    #{index + 1}
+                  </span>
                   <MapPin className="h-4 w-4 text-slate-400" />
                   <span className="font-semibold text-slate-900">
                     {route.from_location} → {route.to_location}
                   </span>
                 </div>
-                <div className="flex items-center gap-4 text-xs text-slate-600 ml-6">
+                <div className="ml-6 flex items-center gap-4 text-xs text-slate-600">
                   <span className="flex items-center gap-1">
                     <Package className="h-3 w-3" />
                     {route.active_posts_30d} active
                   </span>
-                  {showMatchCount && (
-                    <span>{route.match_count} matches</span>
-                  )}
+                  {showMatchCount && <span>{route.match_count} matches</span>}
                 </div>
               </div>
               <Badge variant="secondary" className="ml-2">
@@ -136,4 +136,3 @@ export function TopRoutes({
     </Card>
   );
 }
-

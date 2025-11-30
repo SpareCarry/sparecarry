@@ -3,12 +3,14 @@
 ## ✅ All Features Implemented
 
 ### 1. ✅ Post Request ↔ Shipping Estimator Two-Way Link + Auto-Fill
+
 - **"Get suggested price" link** added next to reward input in post request form
 - **Pre-fill functionality** in shipping estimator from query params
 - **"Use $XX" and "I'll set my own" buttons** on estimator results
 - **Clean URL** after reading params
 
 ### 2. ✅ Size Selector (4 Tiers with Tooltips)
+
 - **SizeTierSelector component** with 4 tiers:
   - Small: Up to 5 kg | "Laptop, shoes, drone, small spare part"
   - Medium: 5–15 kg | "Suitcase, dive bag, speargun, small outboard impeller"
@@ -19,6 +21,7 @@
 - Added to both post request form and shipping estimator
 
 ### 3. ✅ Yachtie / Digital Nomad Mode
+
 - **Profile settings component** with toggle "I live on a boat or I'm a digital nomad"
 - **Optional "Boat name" field** when toggle is ON
 - **Database migration** adds `is_boater` and `boat_name` columns
@@ -26,12 +29,14 @@
 - **Profile cards** show boat_name + Anchor icon under username
 
 ### 4. ✅ Replace Message/Chat Buttons with WhatsApp
+
 - **WhatsAppButton component** created
 - **Replaced Message buttons** in feed-detail-modal.tsx with WhatsApp
 - **URL format**: `https://wa.me/${phone}?text=Hi! About your SpareCarry posting – ${title} from ${origin} to ${destination}. Still available?`
 - **Falls back** to Message if no phone available
 
 ### 5. ✅ Auto Currency Conversion
+
 - **CurrencyDisplay component** created
 - **Detects user locale** and shows preferred currency first
 - **Original currency** shown in small gray below
@@ -43,6 +48,7 @@
   - Referral card (credits available)
 
 ### 6. ✅ Auto Imperial Units
+
 - **WeightDisplay and DimensionsDisplay components** created
 - **Detects en-US locale** or user preference
 - **Shows lbs + ft/in first**, kg/cm in parentheses
@@ -51,6 +57,7 @@
 - **Helper text** below dimension/weight inputs showing imperial conversions
 
 ### 7. ✅ Instant Push Notifications for Route Matches
+
 - **Database migration** adds `notify_route_matches` column
 - **Profile settings toggle** added
 - **Supabase edge function** created: `supabase/functions/notify-route-matches/index.ts`
@@ -61,6 +68,7 @@
   - Handles route matching logic
 
 ### 8. ✅ Nautical Polish
+
 - **BottomSheet component** created (shadcn/ui style)
 - **Dark mode theme** updated with deep nautical blue background:
   - Background: `hsl(220 40% 8%)` - Deep nautical blue
@@ -72,11 +80,13 @@
 ## Files Created
 
 ### Utilities
+
 1. `lib/utils/size-tier.ts` - Size tier utilities
 2. `lib/utils/currency.ts` - Currency conversion utilities
 3. `lib/utils/imperial.ts` - Imperial units conversion utilities
 
 ### Components
+
 4. `components/ui/size-tier-selector.tsx` - Size tier selector component
 5. `components/ui/tooltip.tsx` - Tooltip component (shadcn)
 6. `components/ui/switch.tsx` - Switch component (shadcn)
@@ -87,9 +97,11 @@
 11. `components/imperial/imperial-display.tsx` - Imperial units display components
 
 ### Backend
+
 12. `supabase/functions/notify-route-matches/index.ts` - Push notification edge function
 
 ### Database
+
 13. `supabase/migrations/20250104000000_add_8_features.sql` - Database migration
 
 ## Files Modified
@@ -128,4 +140,3 @@
 - [ ] Test bottom sheet modals
 
 All features are implemented and ready for testing! 🎉
-

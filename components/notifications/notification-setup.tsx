@@ -16,19 +16,21 @@ type ProfileNotificationSettings = {
 export function NotificationSetup() {
   useEffect(() => {
     const isNative = isNativePlatform();
-    
+
     if (isNative) {
       // Use Capacitor push notifications for native iOS/Android
       setupCapacitorHandlers();
-      
+
       // Register Expo push token for native platforms
       const registerToken = async () => {
         try {
           const supabase = createClient() as SupabaseClient;
-          const { data: { user } } = await supabase.auth.getUser();
-          
+          const {
+            data: { user },
+          } = await supabase.auth.getUser();
+
           if (!user) return;
-          
+
           // Check if token already exists
           const { data: profileData } = await supabase
             .from("profiles")
@@ -36,12 +38,16 @@ export function NotificationSetup() {
             .eq("user_id", user.id)
             .single();
 
-          const profile = (profileData ?? null) as ProfileNotificationSettings | null;
-          
+          const profile = (profileData ??
+            null) as ProfileNotificationSettings | null;
+
           // Only register if we don't have a token or notifications are enabled
-          if (!profile?.expo_push_token && profile?.push_notifications_enabled !== false) {
+          if (
+            !profile?.expo_push_token &&
+            profile?.push_notifications_enabled !== false
+          ) {
             const token = await registerForExpoPushNotifications();
-            
+
             if (token) {
               // Register token with backend
               await fetch("/api/notifications/register-token", {
@@ -58,7 +64,7 @@ export function NotificationSetup() {
           console.error("Error registering Expo push token:", error);
         }
       };
-      
+
       // Register token after a short delay to ensure auth is ready
       setTimeout(registerToken, 1000);
     } else {

@@ -1,43 +1,43 @@
 /**
  * Telemetry Events
- * 
+ *
  * Centralized event definitions for analytics and monitoring
  * Used by Sentry, analytics, and custom telemetry
  */
 
-export type TelemetryEvent = 
-  | 'user.signup'
-  | 'user.login'
-  | 'user.logout'
-  | 'match.created'
-  | 'match.accepted'
-  | 'match.rejected'
-  | 'match.completed'
-  | 'trade.initiated'
-  | 'trade.completed'
-  | 'payment.intent_created'
-  | 'payment.completed'
-  | 'payment.failed'
-  | 'dispute.submitted'
-  | 'dispute.resolved'
-  | 'chat.message_sent'
-  | 'chat.message_received'
-  | 'notification.sent'
-  | 'notification.delivered'
-  | 'notification.opened'
-  | 'page.view'
-  | 'page.load'
-  | 'api.request'
-  | 'api.error'
-  | 'performance.metric';
+export type TelemetryEvent =
+  | "user.signup"
+  | "user.login"
+  | "user.logout"
+  | "match.created"
+  | "match.accepted"
+  | "match.rejected"
+  | "match.completed"
+  | "trade.initiated"
+  | "trade.completed"
+  | "payment.intent_created"
+  | "payment.completed"
+  | "payment.failed"
+  | "dispute.submitted"
+  | "dispute.resolved"
+  | "chat.message_sent"
+  | "chat.message_received"
+  | "notification.sent"
+  | "notification.delivered"
+  | "notification.opened"
+  | "page.view"
+  | "page.load"
+  | "api.request"
+  | "api.error"
+  | "performance.metric";
 
 export interface TelemetryEventData {
   event: TelemetryEvent;
   userId?: string;
   sessionId?: string;
   timestamp: number;
-  environment: 'development' | 'staging' | 'production';
-  platform: 'web' | 'ios' | 'android';
+  environment: "development" | "staging" | "production";
+  platform: "web" | "ios" | "android";
   metadata?: Record<string, unknown>;
   performance?: {
     duration?: number;
@@ -55,13 +55,13 @@ export interface TelemetryEventData {
 export function createTelemetryEvent(
   event: TelemetryEvent,
   metadata?: Record<string, unknown>,
-  performance?: TelemetryEventData['performance']
+  performance?: TelemetryEventData["performance"]
 ): TelemetryEventData {
   return {
     event,
     timestamp: Date.now(),
-    environment: (process.env.NEXT_PUBLIC_APP_ENV as any) || 'development',
-    platform: typeof window !== 'undefined' ? 'web' : 'web', // Will be overridden by mobile
+    environment: (process.env.NEXT_PUBLIC_APP_ENV as any) || "development",
+    platform: typeof window !== "undefined" ? "web" : "web", // Will be overridden by mobile
     metadata,
     performance,
   };
@@ -71,12 +71,12 @@ export function createTelemetryEvent(
  * Event metadata schemas
  */
 export interface SignupEventMetadata {
-  method: 'email' | 'google' | 'apple';
-  userType?: 'traveler' | 'requester' | 'both';
+  method: "email" | "google" | "apple";
+  userType?: "traveler" | "requester" | "both";
 }
 
 export interface LoginEventMetadata {
-  method: 'email' | 'google' | 'apple';
+  method: "email" | "google" | "apple";
 }
 
 export interface MatchCreatedEventMetadata {
@@ -99,7 +99,7 @@ export interface TradeInitiatedEventMetadata {
 
 export interface DisputeSubmittedEventMetadata {
   matchId: string;
-  disputeType: 'delivery' | 'payment' | 'other';
+  disputeType: "delivery" | "payment" | "other";
   description?: string;
 }
 
@@ -110,7 +110,7 @@ export interface ChatMessageSentEventMetadata {
 }
 
 export interface NotificationEventMetadata {
-  type: 'match' | 'message' | 'payment' | 'dispute' | 'system';
+  type: "match" | "message" | "payment" | "dispute" | "system";
   notificationId?: string;
   delivered: boolean;
   opened?: boolean;
@@ -131,9 +131,8 @@ export interface ApiRequestEventMetadata {
 }
 
 export interface PerformanceMetricEventMetadata {
-  metric: 'ttfb' | 'fcp' | 'lcp' | 'fid' | 'cls' | 'cold_start' | 'warm_start';
+  metric: "ttfb" | "fcp" | "lcp" | "fid" | "cls" | "cold_start" | "warm_start";
   value: number;
-  unit: 'ms' | 'score';
+  unit: "ms" | "score";
   page?: string;
 }
-

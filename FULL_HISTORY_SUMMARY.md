@@ -29,6 +29,7 @@
 ## All Files Modified
 
 ### Configuration Files
+
 - `apps/mobile/metro.config.js` - Metro bundler config with React module mapping
 - `package.json` - Root pnpm overrides for React versions
 - `apps/mobile/package.json` - Mobile app dependencies
@@ -37,27 +38,32 @@
 - `next.config.js` - Webpack aliases for web app
 
 ### Code Files
+
 - `apps/mobile/index.js` - Entry point shim
 - `apps/mobile/app/_layout.tsx` - Root layout with diagnostic check
 - `lib/services/shipping.ts` - Updated imports to use aliases
 - `src/constants/shippingFees.ts` - Updated imports to use aliases
 
 ### Diagnostic Files
+
 - `apps/mobile/debug/checkReact.js` - Runtime React resolution checker
 
 ## Fix Timeline
 
 ### Phase 1: React Version (✅ FIXED)
+
 - Problem: React 19 incompatible with Expo SDK 54
 - Fix: Downgraded to React 18.3.1
 - Result: PlatformConstants error resolved
 
 ### Phase 2: Module Resolution (✅ FIXED)
+
 - Problem: Can't resolve root-level lib imports
 - Fix: Added Metro aliases, updated imports
 - Result: Bundling succeeds
 
 ### Phase 3: Multiple React Instances (❌ STILL FAILING)
+
 - Problem: Invariant violation at runtime
 - Fixes Attempted:
   - Metro extraNodeModules explicit mapping
@@ -68,12 +74,14 @@
 ## Current Status
 
 ✅ **Working**:
+
 - Bundling succeeds
 - Module resolution works
 - React version correct (18.3.1)
 - All imports resolve
 
 ❌ **Not Working**:
+
 - Runtime invariant violation in Expo Go
 - Multiple React instances (suspected)
 
@@ -90,4 +98,3 @@
 - Metro config changes may not be taking effect
 - May need EAS Development Build instead of Expo Go
 - pnpm hoisting might be overriding Metro config
-

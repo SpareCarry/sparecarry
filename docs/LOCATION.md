@@ -107,13 +107,14 @@ To switch from Geoapify to Google Places (or any other provider):
    - Export `googlePlacesAutocomplete`, `googlePlacesReverse`, `googlePlacesForward`
 
 2. **Update `lib/locationProvider.ts`:**
+
    ```typescript
    // Change this:
    import { geoapifyAutocomplete, ... } from './geoapify';
-   
+
    // To this:
    import { googlePlacesAutocomplete, ... } from './googlePlaces';
-   
+
    // Update function bodies:
    export async function autocomplete(...) {
      return googlePlacesAutocomplete(...); // Changed from geoapifyAutocomplete
@@ -136,16 +137,17 @@ Edit `config/location.config.ts`:
 
 ```typescript
 MARINA_KEYWORDS: [
-  'marina',
-  'harbor',
-  'port',
-  'pier',
-  'dock',
+  "marina",
+  "harbor",
+  "port",
+  "pier",
+  "dock",
   // Add more keywords
-]
+];
 ```
 
 The filtering logic in `lib/geoapify.ts` checks:
+
 - Feature category/type fields
 - Place name for keywords
 - OSM tags (if available)
@@ -155,8 +157,8 @@ The filtering logic in `lib/geoapify.ts` checks:
 ### Basic Integration
 
 ```tsx
-import { LocationFieldGroup } from '@/components/location';
-import { Place } from '@/lib/locationProvider';
+import { LocationFieldGroup } from "@/components/location";
+import { Place } from "@/lib/locationProvider";
 
 const [departure, setDeparture] = useState<Place | null>(null);
 
@@ -166,7 +168,7 @@ const [departure, setDeparture] = useState<Place | null>(null);
   onChange={setDeparture}
   showOnlyMarinas={true}
   required
-/>
+/>;
 
 // On form submit:
 const formData = {
@@ -186,13 +188,13 @@ const { setValue, watch } = useForm();
   label="Departure"
   onChange={(place) => {
     if (place) {
-      setValue('departure_location', place.name);
-      setValue('departure_lat', place.lat);
-      setValue('departure_lon', place.lon);
-      setValue('departure_category', place.category);
+      setValue("departure_location", place.name);
+      setValue("departure_lat", place.lat);
+      setValue("departure_lon", place.lon);
+      setValue("departure_category", place.category);
     }
   }}
-/>
+/>;
 ```
 
 ## Database Schema
@@ -225,6 +227,7 @@ NEXT_PUBLIC_GEOAPIFY_KEY=d6dec9413f4f495295e42d4158a3803d
 ### API Key
 
 The Geoapify key is already configured. For production:
+
 1. Create account at https://www.geoapify.com
 2. Get API key
 3. Update environment variable
@@ -342,8 +345,8 @@ npx playwright test tests/e2e/location-flow.spec.ts
 ## Support
 
 For issues:
+
 1. Check this documentation
 2. Review code comments in `lib/geoapify.ts`
 3. Check browser console for errors
 4. Verify API key and network connectivity
-

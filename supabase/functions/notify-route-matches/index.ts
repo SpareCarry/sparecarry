@@ -114,7 +114,10 @@ serve(async (req) => {
       });
 
       if (!expoResponse.ok) {
-        console.error("Failed to send Expo push notifications:", await expoResponse.text());
+        console.error(
+          "Failed to send Expo push notifications:",
+          await expoResponse.text()
+        );
       }
     }
 
@@ -130,13 +133,9 @@ serve(async (req) => {
     );
   } catch (error) {
     console.error("Error in notify-route-matches:", error);
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 500,
-      }
-    );
+    return new Response(JSON.stringify({ error: error.message }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 500,
+    });
   }
 });
-

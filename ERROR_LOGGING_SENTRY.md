@@ -48,12 +48,14 @@ pnpm add @sentry/nextjs
 ### Step 3: Configure Environment Variables
 
 **Development (.env.local):**
+
 ```env
 NEXT_PUBLIC_SENTRY_DSN=https://your-key@sentry.io/your-project-id
 NODE_ENV=development
 ```
 
 **Staging:**
+
 ```env
 NEXT_PUBLIC_SENTRY_DSN=https://your-key@sentry.io/your-project-id
 NODE_ENV=production
@@ -63,12 +65,14 @@ VERCEL_ENV=preview
 ### Step 4: Test Integration
 
 **Run health check:**
+
 ```bash
 export NEXT_PUBLIC_SENTRY_DSN=your-dsn
 node scripts/sentry-healthcheck.js
 ```
 
 **Expected output:**
+
 ```
 🔍 Sentry Health Check
 
@@ -85,6 +89,7 @@ node scripts/sentry-healthcheck.js
 ```
 
 **Test error endpoint (staging only):**
+
 ```bash
 curl https://staging.sparecarry.com/api/health/error-test?type=sentry
 ```
@@ -184,6 +189,7 @@ LOG_SAMPLING_RATE=0.1
 #### 3.3 Set Up Dashboards
 
 Create Sentry dashboards for:
+
 - Error trends
 - Top errors
 - Performance metrics
@@ -209,14 +215,17 @@ SENTRY_DEBUG=false                 # Enable debug logging
 ### Sampling Configuration
 
 **Error Logs:**
+
 - Always sent (not sampled)
 - Critical for debugging
 
 **Info/Warning Logs:**
+
 - Sampled in production
 - Default: 10% (configurable via `LOG_SAMPLING_RATE`)
 
 **Performance Traces:**
+
 - Sampled separately
 - Default: 10% (configurable via `SENTRY_TRACES_SAMPLE_RATE`)
 
@@ -238,25 +247,27 @@ The logger automatically redacts:
 ### Manual Redaction
 
 ```typescript
-import { logger } from '@/lib/logger';
+import { logger } from "@/lib/logger";
 
 // Context is automatically sanitized
-logger.error('Payment failed', error, {
-  userId: '123',           // ✅ Safe
-  email: 'user@example.com', // ✅ Auto-redacted
-  cardNumber: '4111111111111111', // ✅ Auto-redacted
-  amount: 100,            // ✅ Safe
+logger.error("Payment failed", error, {
+  userId: "123", // ✅ Safe
+  email: "user@example.com", // ✅ Auto-redacted
+  cardNumber: "4111111111111111", // ✅ Auto-redacted
+  amount: 100, // ✅ Safe
 });
 ```
 
 ### Redaction Rules
 
 **Sensitive Keys:**
+
 - `password`, `token`, `jwt`, `secret`, `key`
 - `authorization`, `cookie`, `session`
 - `access_token`, `refresh_token`, `api_key`
 
 **Pattern-Based:**
+
 - Email: `email`, `user_email`, `contact_email`
 - Phone: `phone`, `phone_number`, `mobile`
 - SSN: `ssn`, `social_security_number`
@@ -268,12 +279,14 @@ logger.error('Payment failed', error, {
 ### Automated Health Check
 
 **CI Integration:**
+
 - Runs automatically in CI
 - Validates Sentry DSN format
 - Tests connectivity
 - Fails build if Sentry misconfigured
 
 **Manual Check:**
+
 ```bash
 node scripts/sentry-healthcheck.js
 ```
@@ -281,6 +294,7 @@ node scripts/sentry-healthcheck.js
 ### Error Test Endpoint
 
 **Staging Only:**
+
 ```bash
 # Test generic error
 curl https://staging.sparecarry.com/api/health/error-test?type=generic
@@ -296,6 +310,7 @@ curl https://staging.sparecarry.com/api/health/error-test?type=validation
 ```
 
 **Verify in Sentry:**
+
 1. Go to Sentry dashboard
 2. Check "Issues" tab
 3. Look for test errors
@@ -328,12 +343,14 @@ curl https://staging.sparecarry.com/api/health/error-test?type=validation
 ### Dashboard Setup
 
 **Key Metrics:**
+
 - Error rate over time
 - Top errors by count
 - Affected users
 - Performance impact
 
 **Create Dashboard:**
+
 1. Go to Sentry → Dashboards
 2. Add widgets:
    - Error count
@@ -349,43 +366,43 @@ curl https://staging.sparecarry.com/api/health/error-test?type=validation
 
 ```typescript
 // ✅ Good
-logger.error('Payment failed', error, { userId });
-logger.warn('Rate limit approaching', null, { remaining: 5 });
-logger.info('User logged in', null, { userId });
+logger.error("Payment failed", error, { userId });
+logger.warn("Rate limit approaching", null, { remaining: 5 });
+logger.info("User logged in", null, { userId });
 
 // ❌ Bad
-logger.error('User logged in', null, { userId }); // Use info
-logger.info('Payment failed', error); // Use error
+logger.error("User logged in", null, { userId }); // Use info
+logger.info("Payment failed", error); // Use error
 ```
 
 ### 2. Provide Context
 
 ```typescript
 // ✅ Good
-logger.error('Payment failed', error, {
+logger.error("Payment failed", error, {
   userId: user.id,
   amount: 100,
-  paymentMethod: 'card',
+  paymentMethod: "card",
   transactionId: transaction.id,
 });
 
 // ❌ Bad
-logger.error('Payment failed', error); // No context
+logger.error("Payment failed", error); // No context
 ```
 
 ### 3. Don't Log Sensitive Data
 
 ```typescript
 // ❌ Bad
-logger.error('Login failed', error, {
+logger.error("Login failed", error, {
   password: userPassword, // Never!
   creditCard: cardNumber, // Never!
 });
 
 // ✅ Good
-logger.error('Login failed', error, {
+logger.error("Login failed", error, {
   email: userEmail, // ✅ Auto-redacted
-  userId: user.id,  // ✅ Safe
+  userId: user.id, // ✅ Safe
 });
 ```
 
@@ -409,12 +426,14 @@ LOG_SAMPLING_RATE=0.1
 ### Sentry Not Capturing Errors
 
 **Check:**
+
 1. DSN is set correctly
 2. Sentry is initialized
 3. Errors are being logged
 4. Network connectivity
 
 **Debug:**
+
 ```bash
 # Health check
 node scripts/sentry-healthcheck.js
@@ -428,6 +447,7 @@ curl https://staging.sparecarry.com/api/health/error-test?type=sentry
 ### Too Many Errors
 
 **Solutions:**
+
 1. Reduce sampling rate
 2. Filter out noisy errors
 3. Adjust alert thresholds
@@ -436,11 +456,13 @@ curl https://staging.sparecarry.com/api/health/error-test?type=sentry
 ### Performance Impact
 
 **Monitor:**
+
 - Response times
 - Error capture latency
 - Sentry quota usage
 
 **Optimize:**
+
 - Reduce sampling
 - Filter low-priority errors
 - Use async error capture
@@ -474,6 +496,7 @@ curl https://staging.sparecarry.com/api/health/error-test?type=sentry
 ### If Issues Occur
 
 1. **Disable Sentry:**
+
    ```env
    # Remove or comment out
    # NEXT_PUBLIC_SENTRY_DSN=...
@@ -512,4 +535,3 @@ curl https://staging.sparecarry.com/api/health/error-test?type=sentry
 ---
 
 **Last Updated**: November 20, 2025
-

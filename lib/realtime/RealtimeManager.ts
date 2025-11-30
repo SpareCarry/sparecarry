@@ -1,36 +1,41 @@
 /**
  * RealtimeManager - Centralized Supabase Realtime Connection Manager
- * 
+ *
  * Prevents duplicate connections, tracks all channels, and provides logging.
- * 
+ *
  * Features:
  * - Deduplication: Same channel name = reuse existing channel
  * - Global tracking: Know exactly how many channels are active
  * - Automatic cleanup: Channels auto-close when not needed
  * - Connection limits: Hard limit to prevent runaway connections
  * - Verbose logging: See every create/destroy event
- * 
+ *
  * Usage:
  * ```typescript
  * // In a component
  * const channel = RealtimeManager.listen('table-name', callback);
- * 
+ *
  * // Cleanup
  * RealtimeManager.remove('table-name', callback);
  * ```
  */
 
-import { createClient } from '../supabase/client';
-import type { RealtimeChannel, RealtimePostgresChangesPayload } from '@supabase/supabase-js';
+import { createClient } from "../supabase/client";
+import type {
+  RealtimeChannel,
+  RealtimePostgresChangesPayload,
+} from "@supabase/supabase-js";
 
-type ChannelCallback = (payload: RealtimePostgresChangesPayload<Record<string, unknown>>) => void;
+type ChannelCallback = (
+  payload: RealtimePostgresChangesPayload<Record<string, unknown>>
+) => void;
 type ChannelConfig = {
-  event?: '*' | 'INSERT' | 'UPDATE' | 'DELETE';
+  event?: "*" | "INSERT" | "UPDATE" | "DELETE";
   schema?: string;
   table: string;
   filter?: string;
 };
-type PostgresChangesFilter = Parameters<RealtimeChannel['on']>[1];
+type PostgresChangesFilter = Parameters<RealtimeChannel["on"]>[1];
 
 interface ChannelInfo {
   channel: RealtimeChannel;
@@ -50,13 +55,13 @@ class RealtimeManagerClass {
 
   constructor() {
     // Start cleanup interval
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       this.cleanupInterval = setInterval(() => {
         this.cleanupInactiveChannels();
       }, 60000); // Check every minute
 
       // Cleanup on page unload
-      window.addEventListener('beforeunload', () => {
+      window.addEventListener("beforeunload", () => {
         this.destroyAll();
       });
     }
@@ -89,7 +94,7 @@ class RealtimeManagerClass {
   private log(message: string, data?: any) {
     if (this.isLoggingEnabled) {
       const timestamp = new Date().toISOString();
-      const prefix = '[RT]';
+      const prefix = "[RT]";
       if (data) {
         console.log(`${prefix} [${timestamp}] ${message}`, data);
       } else {
@@ -106,7 +111,9 @@ class RealtimeManagerClass {
       return customName;
     }
     // Generate name from table + filter
-    const filterPart = config.filter ? `:${config.filter.replace(/[^a-zA-Z0-9]/g, '_')}` : '';
+    const filterPart = config.filter
+      ? `:${config.filter.replace(/[^a-zA-Z0-9]/g, "_")}`
+      : "";
     return `${config.table}${filterPart}`;
   }
 
@@ -120,20 +127,21 @@ class RealtimeManagerClass {
     customChannelName?: string
   ): string {
     // Handle string shorthand (just table name)
-    const fullConfig: ChannelConfig = typeof config === 'string' 
-      ? { table: config }
-      : config;
+    const fullConfig: ChannelConfig =
+      typeof config === "string" ? { table: config } : config;
 
     const channelName = this.getChannelName(fullConfig, customChannelName);
 
     // Check if channel already exists
     const existing = this.channels.get(channelName);
-    
+
     if (existing) {
       // Channel exists - just add callback
       existing.callbacks.add(callback);
       existing.lastUsed = Date.now();
-      this.log(`channel reused: ${channelName} (${existing.callbacks.size} callbacks)`);
+      this.log(
+        `channel reused: ${channelName} (${existing.callbacks.size} callbacks)`
+      );
       return channelName;
     }
 
@@ -141,18 +149,18 @@ class RealtimeManagerClass {
     if (this.channels.size >= this.MAX_CHANNELS) {
       const error = new Error(
         `RealtimeManager: Maximum channel limit (${this.MAX_CHANNELS}) reached. ` +
-        `Active channels: ${this.getActiveChannels().join(', ')}`
+          `Active channels: ${this.getActiveChannels().join(", ")}`
       );
-      this.log('ERROR: Connection limit reached', { 
-        limit: this.MAX_CHANNELS, 
-        active: this.getActiveChannels() 
+      this.log("ERROR: Connection limit reached", {
+        limit: this.MAX_CHANNELS,
+        active: this.getActiveChannels(),
       });
       throw error;
     }
 
     const filterOptions: PostgresChangesFilter = {
-      event: fullConfig.event || '*',
-      schema: fullConfig.schema || 'public',
+      event: fullConfig.event || "*",
+      schema: fullConfig.schema || "public",
       table: fullConfig.table,
       filter: fullConfig.filter,
     };
@@ -162,8 +170,8 @@ class RealtimeManagerClass {
 
     channel
       .on(
-        'postgres_changes' as Parameters<RealtimeChannel['on']>[0],
-        filterOptions as Parameters<RealtimeChannel['on']>[1],
+        "postgres_changes" as Parameters<RealtimeChannel["on"]>[0],
+        filterOptions as Parameters<RealtimeChannel["on"]>[1],
         (payload: RealtimePostgresChangesPayload<Record<string, unknown>>) => {
           // Call all registered callbacks
           const channelInfo = this.channels.get(channelName);
@@ -173,16 +181,19 @@ class RealtimeManagerClass {
               try {
                 cb(payload);
               } catch (error) {
-                console.error(`[RT] Error in callback for ${channelName}:`, error);
+                console.error(
+                  `[RT] Error in callback for ${channelName}:`,
+                  error
+                );
               }
             });
           }
         }
       )
       .subscribe((status) => {
-        if (status === 'SUBSCRIBED') {
+        if (status === "SUBSCRIBED") {
           this.log(`channel subscribed: ${channelName}`);
-        } else if (status === 'CHANNEL_ERROR') {
+        } else if (status === "CHANNEL_ERROR") {
           this.log(`ERROR: channel error: ${channelName}`, status);
         }
       });
@@ -198,7 +209,7 @@ class RealtimeManagerClass {
     });
 
     this.log(`channel created: ${channelName} (total: ${this.channels.size})`);
-    
+
     return channelName;
   }
 
@@ -208,9 +219,11 @@ class RealtimeManagerClass {
    */
   remove(channelName: string, callback: ChannelCallback): void {
     const channelInfo = this.channels.get(channelName);
-    
+
     if (!channelInfo) {
-      this.log(`WARNING: Attempted to remove non-existent channel: ${channelName}`);
+      this.log(
+        `WARNING: Attempted to remove non-existent channel: ${channelName}`
+      );
       return;
     }
 
@@ -223,7 +236,9 @@ class RealtimeManagerClass {
       channelInfo.channel.unsubscribe();
       this.channels.delete(channelName);
     } else {
-      this.log(`callback removed from: ${channelName} (${channelInfo.callbacks.size} callbacks remaining)`);
+      this.log(
+        `callback removed from: ${channelName} (${channelInfo.callbacks.size} callbacks remaining)`
+      );
     }
   }
 
@@ -232,7 +247,7 @@ class RealtimeManagerClass {
    */
   removeChannel(channelName: string): void {
     const channelInfo = this.channels.get(channelName);
-    
+
     if (!channelInfo) {
       return;
     }
@@ -257,7 +272,9 @@ class RealtimeManagerClass {
     });
 
     toRemove.forEach((channelName) => {
-      this.log(`channel auto-cleaned: ${channelName} (inactive for ${Math.round((now - (this.channels.get(channelName)?.lastUsed || 0)) / 1000)}s)`);
+      this.log(
+        `channel auto-cleaned: ${channelName} (inactive for ${Math.round((now - (this.channels.get(channelName)?.lastUsed || 0)) / 1000)}s)`
+      );
       this.removeChannel(channelName);
     });
   }
@@ -267,7 +284,7 @@ class RealtimeManagerClass {
    */
   destroyAll(): void {
     this.log(`destroying all channels (${this.channels.size} active)`);
-    
+
     this.channels.forEach((info, channelName) => {
       try {
         info.channel.unsubscribe();
@@ -278,7 +295,7 @@ class RealtimeManagerClass {
     });
 
     this.channels.clear();
-    
+
     if (this.cleanupInterval) {
       clearInterval(this.cleanupInterval);
       this.cleanupInterval = null;
@@ -307,7 +324,6 @@ class RealtimeManagerClass {
 export const RealtimeManager = new RealtimeManagerClass();
 
 // Expose in dev tools for debugging
-if (typeof window !== 'undefined') {
+if (typeof window !== "undefined") {
   (window as any).__REALTIME_MANAGER__ = RealtimeManager;
 }
-

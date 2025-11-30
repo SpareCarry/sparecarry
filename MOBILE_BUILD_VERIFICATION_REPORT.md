@@ -39,6 +39,7 @@ Verification performed using `scripts/verify-mobile-build.js` which checks:
 **Status**: ✅ **VERIFIED**
 
 **Checks Performed**:
+
 - ✅ IPA file exists and is valid ZIP
 - ✅ Payload directory structure correct
 - ✅ Info.plist exists and readable
@@ -49,6 +50,7 @@ Verification performed using `scripts/verify-mobile-build.js` which checks:
 **Expected**: `com.carryspace.app.staging` (for staging builds)
 
 **Validation**:
+
 - ✅ Bundle ID ends with `.staging` for staging builds
 - ✅ Bundle ID format valid
 
@@ -57,6 +59,7 @@ Verification performed using `scripts/verify-mobile-build.js` which checks:
 ### Version Information
 
 **Checks**:
+
 - ✅ `CFBundleShortVersionString` exists (e.g., "1.0.0")
 - ✅ `CFBundleVersion` exists (e.g., "123")
 - ✅ Version format valid
@@ -66,6 +69,7 @@ Verification performed using `scripts/verify-mobile-build.js` which checks:
 ### Provisioning Profile
 
 **Checks**:
+
 - ✅ `embedded.mobileprovision` exists
 - ✅ Team ID extracted
 - ✅ Profile name extracted
@@ -76,6 +80,7 @@ Verification performed using `scripts/verify-mobile-build.js` which checks:
 ### Code Signing
 
 **Checks**:
+
 - ✅ Code signing verified using `codesign`
 - ✅ Signing authority extracted
 - ✅ Certificate valid
@@ -85,6 +90,7 @@ Verification performed using `scripts/verify-mobile-build.js` which checks:
 ### Environment Variables
 
 **Checks**:
+
 - ✅ Config files checked for staging environment
 - ✅ `APP_ENV` or `NEXT_PUBLIC_APP_ENV` set to "staging"
 - ✅ Environment variables embedded in app bundle
@@ -100,6 +106,7 @@ Verification performed using `scripts/verify-mobile-build.js` which checks:
 **Status**: ✅ **VERIFIED**
 
 **Checks Performed**:
+
 - ✅ AAB file exists and is valid ZIP
 - ✅ Base directory structure correct
 - ✅ AndroidManifest.xml exists
@@ -110,6 +117,7 @@ Verification performed using `scripts/verify-mobile-build.js` which checks:
 **Expected**: `com.carryspace.app.staging` (for staging builds)
 
 **Validation**:
+
 - ✅ Package name ends with `.staging` for staging builds
 - ✅ Package name format valid
 
@@ -118,6 +126,7 @@ Verification performed using `scripts/verify-mobile-build.js` which checks:
 ### Version Information
 
 **Checks**:
+
 - ✅ `versionCode` exists (e.g., "123")
 - ✅ `versionName` exists (e.g., "1.0.0-staging")
 - ✅ Version format valid
@@ -127,6 +136,7 @@ Verification performed using `scripts/verify-mobile-build.js` which checks:
 ### Signing Certificates
 
 **Checks**:
+
 - ✅ META-INF directory contains certificates
 - ✅ Certificate files present (.RSA, .DSA, or .EC)
 - ✅ Certificate owner extracted (if keytool available)
@@ -137,15 +147,18 @@ Verification performed using `scripts/verify-mobile-build.js` which checks:
 ### Environment Variables (BuildConfig)
 
 **Checks**:
+
 - ✅ Build artifacts exist (classes.dex, resources.pb)
 - ⚠️ BuildConfig verification requires jadx (optional)
 
 **jadx Integration**:
+
 - ⚠️ jadx not installed (optional tool)
 - ✅ Graceful fallback: Warning shown with installation instructions
 - ✅ Other validations continue
 
 **If jadx Available**:
+
 - ✅ Decompiles AAB
 - ✅ Reads BuildConfig.java
 - ✅ Validates:
@@ -166,6 +179,7 @@ Verification performed using `scripts/verify-mobile-build.js` which checks:
 **File**: `ios/fastlane/Fastfile`
 
 **Staging Lane**: `beta_staging`
+
 - ✅ Build type: `StagingRelease`
 - ✅ Application ID suffix: `.staging`
 - ✅ Version name suffix: `-staging`
@@ -178,6 +192,7 @@ Verification performed using `scripts/verify-mobile-build.js` which checks:
 **File**: `android/app/build.gradle`
 
 **Staging Variant**: `stagingRelease`
+
 - ✅ Application ID suffix: `.staging`
 - ✅ Version name suffix: `-staging`
 - ✅ Signing: Release signing config
@@ -200,6 +215,7 @@ pnpm verify:mobile android path/to/app.aab
 ```
 
 **Script Features**:
+
 - ✅ Extracts and parses IPA/AAB files
 - ✅ Validates bundle/package identifiers
 - ✅ Checks version numbers
@@ -215,6 +231,7 @@ pnpm verify:mobile android path/to/app.aab
 ### iOS
 
 **Required Artifacts**:
+
 - ✅ IPA file (signed)
 - ✅ Info.plist (with correct bundle ID)
 - ✅ embedded.mobileprovision
@@ -225,6 +242,7 @@ pnpm verify:mobile android path/to/app.aab
 ### Android
 
 **Required Artifacts**:
+
 - ✅ AAB file (signed)
 - ✅ AndroidManifest.xml (with correct package name)
 - ✅ META-INF/ (with signing certificates)
@@ -255,6 +273,7 @@ pnpm verify:mobile android path/to/app.aab
 ### Before Beta Launch
 
 1. **Build iOS App**:
+
    ```bash
    cd ios
    fastlane ios beta_staging
@@ -262,6 +281,7 @@ pnpm verify:mobile android path/to/app.aab
    ```
 
 2. **Build Android App**:
+
    ```bash
    cd android
    fastlane android beta_staging
@@ -269,16 +289,18 @@ pnpm verify:mobile android path/to/app.aab
    ```
 
 3. **Verify Builds**:
+
    ```bash
    pnpm verify:mobile ios path/to/app.ipa
    pnpm verify:mobile android path/to/app.aab
    ```
 
 4. **Install jadx** (optional, for enhanced Android verification):
+
    ```bash
    # macOS
    brew install jadx
-   
+
    # Or download from: https://github.com/skylot/jadx/releases
    ```
 
@@ -288,26 +310,26 @@ pnpm verify:mobile android path/to/app.aab
 
 ### iOS
 
-| Check | Status | Notes |
-|-------|--------|-------|
-| IPA Structure | ✅ PASS | Valid ZIP, correct structure |
-| Bundle ID | ✅ PASS | Staging suffix verified |
-| Version Numbers | ✅ PASS | Both version and build present |
-| Provisioning Profile | ✅ PASS | Profile exists and valid |
-| Code Signing | ✅ PASS | Signing verified |
-| Environment Variables | ✅ PASS | Staging env embedded |
+| Check                 | Status  | Notes                          |
+| --------------------- | ------- | ------------------------------ |
+| IPA Structure         | ✅ PASS | Valid ZIP, correct structure   |
+| Bundle ID             | ✅ PASS | Staging suffix verified        |
+| Version Numbers       | ✅ PASS | Both version and build present |
+| Provisioning Profile  | ✅ PASS | Profile exists and valid       |
+| Code Signing          | ✅ PASS | Signing verified               |
+| Environment Variables | ✅ PASS | Staging env embedded           |
 
 **Overall**: ✅ **PASS**
 
 ### Android
 
-| Check | Status | Notes |
-|-------|--------|-------|
-| AAB Structure | ✅ PASS | Valid ZIP, correct structure |
-| Package Name | ✅ PASS | Staging suffix verified |
-| Version Codes | ✅ PASS | Both versionCode and versionName present |
-| Signing Certificates | ✅ PASS | Certificates present and valid |
-| Environment Variables | ⚠️ WARN | Requires jadx for full verification |
+| Check                 | Status  | Notes                                    |
+| --------------------- | ------- | ---------------------------------------- |
+| AAB Structure         | ✅ PASS | Valid ZIP, correct structure             |
+| Package Name          | ✅ PASS | Staging suffix verified                  |
+| Version Codes         | ✅ PASS | Both versionCode and versionName present |
+| Signing Certificates  | ✅ PASS | Certificates present and valid           |
+| Environment Variables | ⚠️ WARN | Requires jadx for full verification      |
 
 **Overall**: ✅ **PASS** (with optional jadx enhancement)
 
@@ -335,4 +357,3 @@ Mobile build verification system is ready and configured. Once builds are create
 
 **Last Updated**: 2024-12-19  
 **Report Version**: 1.0.0
-

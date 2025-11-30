@@ -37,20 +37,24 @@ The SpareCarry application includes comprehensive performance instrumentation fo
 ### Usage
 
 ```typescript
-import { perfMark, perfMeasure, perfWrap } from '@/lib/performance/web-profiler';
+import {
+  perfMark,
+  perfMeasure,
+  perfWrap,
+} from "@/lib/performance/web-profiler";
 
 // Manual marking
-perfMark('my-operation');
+perfMark("my-operation");
 // ... do work ...
-perfMeasure('my-operation');
+perfMeasure("my-operation");
 
 // Automatic wrapping
-const result = await perfWrap('fetch-data', async () => {
-  return await fetch('/api/data');
+const result = await perfWrap("fetch-data", async () => {
+  return await fetch("/api/data");
 });
 
 // Sync operations
-const result = perfWrapSync('process-data', () => {
+const result = perfWrapSync("process-data", () => {
   return processData();
 });
 ```
@@ -66,6 +70,7 @@ const result = perfWrapSync('process-data', () => {
 ### Configuration
 
 Set environment variables:
+
 ```env
 NEXT_PUBLIC_ENABLE_PERF=true  # Enable in production
 NEXT_PUBLIC_DEBUG_PERF=true   # Enable debug logging
@@ -86,7 +91,7 @@ NEXT_PUBLIC_DEBUG_PERF=true   # Enable debug logging
 ### Usage
 
 ```typescript
-import { mobileProfiler, perfBridge } from '@/lib/performance/mobile-profiler';
+import { mobileProfiler, perfBridge } from "@/lib/performance/mobile-profiler";
 
 // Track cold start (automatic)
 mobileProfiler.recordColdStart();
@@ -95,8 +100,8 @@ mobileProfiler.recordColdStart();
 mobileProfiler.recordWarmStart();
 
 // Wrap Capacitor plugin calls
-import { Camera } from '@capacitor/camera';
-const photo = await perfBridge('camera.getPhoto', () => 
+import { Camera } from "@capacitor/camera";
+const photo = await perfBridge("camera.getPhoto", () =>
   Camera.getPhoto({ quality: 90 })
 );
 
@@ -132,23 +137,23 @@ mobileProfiler.recordPushNotificationLatency(
 The profiled client is automatically used when you import from `@/lib/supabase/client`:
 
 ```typescript
-import { createClient } from '@/lib/supabase/client';
+import { createClient } from "@/lib/supabase/client";
 
 const supabase = createClient();
 // All queries are automatically profiled
 const { data } = await supabase
-  .from('trips')
-  .select('*')
-  .eq('status', 'active');
+  .from("trips")
+  .select("*")
+  .eq("status", "active");
 ```
 
 ### Manual Profiling
 
 ```typescript
-import { profileQuery } from '@/lib/performance/db-profiler';
+import { profileQuery } from "@/lib/performance/db-profiler";
 
-const result = await profileQuery('trips', 'select', async () => {
-  return await supabase.from('trips').select('*');
+const result = await profileQuery("trips", "select", async () => {
+  return await supabase.from("trips").select("*");
 });
 ```
 
@@ -187,7 +192,7 @@ import { PerformanceProfiler, useRenderCount, usePerfEffect } from '@/lib/perfor
 // Wrap component with profiler
 function MyComponent() {
   const renderCount = useRenderCount('MyComponent');
-  
+
   usePerfEffect(() => {
     // Effect code
   }, [deps], 'my-effect');
@@ -224,7 +229,7 @@ function MyComponent() {
 ### Usage
 
 ```typescript
-import { performanceLogger } from '@/lib/performance/logger';
+import { performanceLogger } from "@/lib/performance/logger";
 
 // Generate report
 const report = performanceLogger.generateReport();
@@ -354,7 +359,7 @@ import {
   mobileProfiler,
   dbProfiler,
   reactProfiler,
-} from '@/lib/performance';
+} from "@/lib/performance";
 
 // Get all metrics
 const webMetrics = webProfiler.getMetrics();
@@ -396,12 +401,12 @@ const report = performanceLogger.generateReport();
 
 // Check if page load is regressing
 if (report.web.averagePageLoad && report.web.averagePageLoad > 2000) {
-  console.warn('Page load regression detected!');
+  console.warn("Page load regression detected!");
 }
 
 // Check if database queries are slowing
 if (report.database.averageQueryTime > 100) {
-  console.warn('Database query regression detected!');
+  console.warn("Database query regression detected!");
 }
 ```
 
@@ -412,7 +417,9 @@ Track slow database queries:
 ```typescript
 const slowQueries = dbProfiler.getSlowQueries(100); // > 100ms
 slowQueries.forEach((query) => {
-  console.warn(`Slow query: ${query.table}.${query.operation} - ${query.duration}ms`);
+  console.warn(
+    `Slow query: ${query.table}.${query.operation} - ${query.duration}ms`
+  );
 });
 ```
 
@@ -424,7 +431,9 @@ Track React component performance:
 const slowComponents = reactProfiler.getSlowestComponents(10);
 slowComponents.forEach((component) => {
   if (component.averageRenderTime > 50) {
-    console.warn(`Slow component: ${component.componentName} - ${component.averageRenderTime}ms`);
+    console.warn(
+      `Slow component: ${component.componentName} - ${component.averageRenderTime}ms`
+    );
   }
 });
 ```
@@ -454,7 +463,7 @@ jobs:
       - run: |
           # Run performance tests
           NEXT_PUBLIC_ENABLE_PERF=true pnpm test:performance
-          
+
           # Check for regressions
           pnpm check-performance-regressions
 ```
@@ -465,31 +474,38 @@ Create a script to detect regressions:
 
 ```typescript
 // scripts/check-performance-regressions.ts
-import { performanceLogger } from '@/lib/performance/logger';
+import { performanceLogger } from "@/lib/performance/logger";
 
 const report = performanceLogger.generateReport();
 
 // Define thresholds
 const thresholds = {
-  pageLoad: 2000,      // 2 seconds
+  pageLoad: 2000, // 2 seconds
   routeTransition: 500, // 500ms
-  dbQuery: 100,        // 100ms
-  componentRender: 50,  // 50ms
+  dbQuery: 100, // 100ms
+  componentRender: 50, // 50ms
 };
 
 // Check for regressions
 const regressions = [];
 
-if (report.web.averagePageLoad && report.web.averagePageLoad > thresholds.pageLoad) {
-  regressions.push(`Page load regression: ${report.web.averagePageLoad}ms > ${thresholds.pageLoad}ms`);
+if (
+  report.web.averagePageLoad &&
+  report.web.averagePageLoad > thresholds.pageLoad
+) {
+  regressions.push(
+    `Page load regression: ${report.web.averagePageLoad}ms > ${thresholds.pageLoad}ms`
+  );
 }
 
 if (report.database.averageQueryTime > thresholds.dbQuery) {
-  regressions.push(`DB query regression: ${report.database.averageQueryTime}ms > ${thresholds.dbQuery}ms`);
+  regressions.push(
+    `DB query regression: ${report.database.averageQueryTime}ms > ${thresholds.dbQuery}ms`
+  );
 }
 
 if (regressions.length > 0) {
-  console.error('Performance regressions detected:');
+  console.error("Performance regressions detected:");
   regressions.forEach((r) => console.error(`  - ${r}`));
   process.exit(1);
 }
@@ -532,13 +548,13 @@ The performance logger will automatically send reports to this endpoint.
 ### Custom Monitoring Integration
 
 ```typescript
-import { performanceLogger } from '@/lib/performance/logger';
+import { performanceLogger } from "@/lib/performance/logger";
 
 // Custom integration
-performanceLogger['sendToEndpoint'] = async (report) => {
+performanceLogger["sendToEndpoint"] = async (report) => {
   // Send to your monitoring service
-  await fetch('https://your-service.com/metrics', {
-    method: 'POST',
+  await fetch("https://your-service.com/metrics", {
+    method: "POST",
     body: JSON.stringify(report),
   });
 };
@@ -554,7 +570,7 @@ Always wrap expensive operations:
 
 ```typescript
 // Good
-const result = await perfWrap('expensive-operation', async () => {
+const result = await perfWrap("expensive-operation", async () => {
   return await expensiveOperation();
 });
 
@@ -568,9 +584,9 @@ All Supabase queries are automatically profiled, but you can add context:
 
 ```typescript
 const { data } = await supabase
-  .from('trips')
-  .select('*')
-  .eq('status', 'active');
+  .from("trips")
+  .select("*")
+  .eq("status", "active");
 // Automatically profiled as 'trips.select'
 ```
 
@@ -601,9 +617,12 @@ Clear metrics to prevent memory issues:
 
 ```typescript
 // Clear every hour
-setInterval(() => {
-  performanceLogger.clearAll();
-}, 60 * 60 * 1000);
+setInterval(
+  () => {
+    performanceLogger.clearAll();
+  },
+  60 * 60 * 1000
+);
 ```
 
 ---
@@ -613,6 +632,7 @@ setInterval(() => {
 ### Performance Not Logging
 
 1. Check environment variables:
+
    ```env
    NEXT_PUBLIC_ENABLE_PERF=true
    ```
@@ -631,6 +651,7 @@ setInterval(() => {
 ### High Memory Usage
 
 1. Clear metrics periodically:
+
    ```typescript
    performanceLogger.clearAll();
    ```
@@ -681,4 +702,3 @@ dbProfiler.slowThreshold = 150; // ms
 ---
 
 **Last Updated**: November 20, 2025
-

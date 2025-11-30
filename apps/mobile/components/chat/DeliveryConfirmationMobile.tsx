@@ -3,7 +3,7 @@
  * Allows traveler to confirm delivery with photos and location
  */
 
-import { useState } from 'react';
+import { useState } from "react";
 import {
   View,
   Text,
@@ -13,31 +13,36 @@ import {
   Alert,
   ScrollView,
   TextInput,
-} from 'react-native';
-import { MaterialIcons } from '@expo/vector-icons';
-import * as ImagePicker from 'expo-image-picker';
-import { getCurrentLocation } from '@sparecarry/hooks/useLocation';
-import { createClient } from '@sparecarry/lib/supabase';
-import { useAuth } from '@sparecarry/hooks/useAuth';
+} from "react-native";
+import { MaterialIcons } from "@expo/vector-icons";
+import * as ImagePicker from "expo-image-picker";
+import { getCurrentLocation } from "@sparecarry/hooks/useLocation";
+import { createClient } from "@sparecarry/lib/supabase";
+import { useAuth } from "@sparecarry/hooks/useAuth";
 
 interface DeliveryConfirmationMobileProps {
   matchId: string;
 }
 
-export function DeliveryConfirmationMobile({ matchId }: DeliveryConfirmationMobileProps) {
+export function DeliveryConfirmationMobile({
+  matchId,
+}: DeliveryConfirmationMobileProps) {
   const { user } = useAuth();
   const supabase = createClient();
   const [photos, setPhotos] = useState<string[]>([]);
-  const [gpsLat, setGpsLat] = useState<string>('');
-  const [gpsLng, setGpsLng] = useState<string>('');
-  const [locationName, setLocationName] = useState('');
+  const [gpsLat, setGpsLat] = useState<string>("");
+  const [gpsLng, setGpsLng] = useState<string>("");
+  const [locationName, setLocationName] = useState("");
   const [loading, setLoading] = useState(false);
   const [gettingLocation, setGettingLocation] = useState(false);
 
   const handlePickPhoto = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== 'granted') {
-      Alert.alert('Permission Required', 'Please grant camera roll access to upload photos');
+    if (status !== "granted") {
+      Alert.alert(
+        "Permission Required",
+        "Please grant camera roll access to upload photos"
+      );
       return;
     }
 
@@ -55,8 +60,11 @@ export function DeliveryConfirmationMobile({ matchId }: DeliveryConfirmationMobi
 
   const handleTakePhoto = async () => {
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
-    if (status !== 'granted') {
-      Alert.alert('Permission Required', 'Please grant camera access to take photos');
+    if (status !== "granted") {
+      Alert.alert(
+        "Permission Required",
+        "Please grant camera access to take photos"
+      );
       return;
     }
 
@@ -76,7 +84,7 @@ export function DeliveryConfirmationMobile({ matchId }: DeliveryConfirmationMobi
       setGpsLat(location.latitude.toString());
       setGpsLng(location.longitude.toString());
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'Failed to get location');
+      Alert.alert("Error", error.message || "Failed to get location");
     } finally {
       setGettingLocation(false);
     }
@@ -88,12 +96,12 @@ export function DeliveryConfirmationMobile({ matchId }: DeliveryConfirmationMobi
 
   const handleSubmit = async () => {
     if (photos.length === 0) {
-      Alert.alert('Error', 'Please add at least one photo');
+      Alert.alert("Error", "Please add at least one photo");
       return;
     }
 
     if (!gpsLat || !gpsLng) {
-      Alert.alert('Error', 'Please get your GPS location');
+      Alert.alert("Error", "Please get your GPS location");
       return;
     }
 
@@ -104,47 +112,52 @@ export function DeliveryConfirmationMobile({ matchId }: DeliveryConfirmationMobi
       for (const photoUri of photos) {
         const response = await fetch(photoUri);
         const blob = await response.blob();
-        const fileExt = photoUri.split('.').pop() || 'jpg';
+        const fileExt = photoUri.split(".").pop() || "jpg";
         const fileName = `${user!.id}/${Date.now()}-${Math.random()}.${fileExt}`;
         const filePath = `deliveries/${fileName}`;
 
         const { error: uploadError } = await supabase.storage
-          .from('item-photos')
+          .from("item-photos")
           .upload(filePath, blob);
 
         if (uploadError) throw uploadError;
 
-        const { data: { publicUrl } } = supabase.storage
-          .from('item-photos')
-          .getPublicUrl(filePath);
+        const {
+          data: { publicUrl },
+        } = supabase.storage.from("item-photos").getPublicUrl(filePath);
 
         photoUrls.push(publicUrl);
       }
 
       // Create delivery record
-      const { error: deliveryError } = await supabase.from('deliveries').insert({
-        match_id: matchId,
-        proof_photos: photoUrls,
-        delivery_lat: parseFloat(gpsLat),
-        delivery_lon: parseFloat(gpsLng),
-        delivery_location_name: locationName || null,
-        delivered_at: new Date().toISOString(),
-      });
+      const { error: deliveryError } = await supabase
+        .from("deliveries")
+        .insert({
+          match_id: matchId,
+          proof_photos: photoUrls,
+          delivery_lat: parseFloat(gpsLat),
+          delivery_lon: parseFloat(gpsLng),
+          delivery_location_name: locationName || null,
+          delivered_at: new Date().toISOString(),
+        });
 
       if (deliveryError) throw deliveryError;
 
       // Update match status
       const { error: matchError } = await supabase
-        .from('matches')
-        .update({ status: 'delivered' })
-        .eq('id', matchId);
+        .from("matches")
+        .update({ status: "delivered" })
+        .eq("id", matchId);
 
       if (matchError) throw matchError;
 
-      Alert.alert('Success', 'Delivery confirmed! Waiting for requester confirmation.');
+      Alert.alert(
+        "Success",
+        "Delivery confirmed! Waiting for requester confirmation."
+      );
     } catch (error: any) {
-      console.error('Error confirming delivery:', error);
-      Alert.alert('Error', error.message || 'Failed to confirm delivery');
+      console.error("Error confirming delivery:", error);
+      Alert.alert("Error", error.message || "Failed to confirm delivery");
     } finally {
       setLoading(false);
     }
@@ -153,9 +166,14 @@ export function DeliveryConfirmationMobile({ matchId }: DeliveryConfirmationMobi
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Confirm Delivery</Text>
-      <Text style={styles.subtitle}>Add photos and location to confirm delivery</Text>
+      <Text style={styles.subtitle}>
+        Add photos and location to confirm delivery
+      </Text>
 
-      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+      >
         {/* Photos */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Photos *</Text>
@@ -174,18 +192,31 @@ export function DeliveryConfirmationMobile({ matchId }: DeliveryConfirmationMobi
               </View>
             ))}
             {photos.length < 6 && (
-              <TouchableOpacity style={styles.addPhotoButton} onPress={handlePickPhoto}>
-                <MaterialIcons name="add-photo-alternate" size={32} color="#14b8a6" />
+              <TouchableOpacity
+                style={styles.addPhotoButton}
+                onPress={handlePickPhoto}
+              >
+                <MaterialIcons
+                  name="add-photo-alternate"
+                  size={32}
+                  color="#14b8a6"
+                />
                 <Text style={styles.addPhotoText}>Add Photo</Text>
               </TouchableOpacity>
             )}
           </View>
           <View style={styles.photoActions}>
-            <TouchableOpacity style={styles.photoActionButton} onPress={handleTakePhoto}>
+            <TouchableOpacity
+              style={styles.photoActionButton}
+              onPress={handleTakePhoto}
+            >
               <MaterialIcons name="camera-alt" size={20} color="#14b8a6" />
               <Text style={styles.photoActionText}>Take Photo</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.photoActionButton} onPress={handlePickPhoto}>
+            <TouchableOpacity
+              style={styles.photoActionButton}
+              onPress={handlePickPhoto}
+            >
               <MaterialIcons name="photo-library" size={20} color="#14b8a6" />
               <Text style={styles.photoActionText}>Choose from Library</Text>
             </TouchableOpacity>
@@ -205,11 +236,13 @@ export function DeliveryConfirmationMobile({ matchId }: DeliveryConfirmationMobi
             ) : (
               <>
                 <MaterialIcons name="my-location" size={20} color="#14b8a6" />
-                <Text style={styles.locationButtonText}>Get Current Location</Text>
+                <Text style={styles.locationButtonText}>
+                  Get Current Location
+                </Text>
               </>
             )}
           </TouchableOpacity>
-          {(gpsLat && gpsLng) && (
+          {gpsLat && gpsLng && (
             <View style={styles.locationInfo}>
               <Text style={styles.locationInfoText}>
                 {gpsLat}, {gpsLng}
@@ -247,19 +280,19 @@ export function DeliveryConfirmationMobile({ matchId }: DeliveryConfirmationMobi
 const styles = StyleSheet.create({
   container: {
     padding: 16,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderTopWidth: 1,
-    borderTopColor: '#e5e7eb',
+    borderTopColor: "#e5e7eb",
   },
   title: {
     fontSize: 18,
-    fontWeight: '600',
-    color: '#333',
+    fontWeight: "600",
+    color: "#333",
     marginBottom: 4,
   },
   subtitle: {
     fontSize: 14,
-    color: '#666',
+    color: "#666",
     marginBottom: 16,
   },
   scrollView: {
@@ -273,115 +306,115 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#333',
+    fontWeight: "600",
+    color: "#333",
   },
   photosContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    flexWrap: "wrap",
     gap: 8,
   },
   photoWrapper: {
     width: 100,
     height: 100,
-    position: 'relative',
+    position: "relative",
   },
   photoPlaceholder: {
     width: 100,
     height: 100,
-    backgroundColor: '#f3f4f6',
+    backgroundColor: "#f3f4f6",
     borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   removePhotoButton: {
-    position: 'absolute',
+    position: "absolute",
     top: -8,
     right: -8,
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: '#ef4444',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "#ef4444",
+    alignItems: "center",
+    justifyContent: "center",
   },
   addPhotoButton: {
     width: 100,
     height: 100,
     borderWidth: 2,
-    borderColor: '#14b8a6',
-    borderStyle: 'dashed',
+    borderColor: "#14b8a6",
+    borderStyle: "dashed",
     borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     gap: 4,
   },
   addPhotoText: {
     fontSize: 12,
-    color: '#14b8a6',
-    fontWeight: '600',
+    color: "#14b8a6",
+    fontWeight: "600",
   },
   photoActions: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 12,
   },
   photoActionButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 6,
     paddingHorizontal: 12,
     paddingVertical: 8,
-    backgroundColor: '#f0fdfa',
+    backgroundColor: "#f0fdfa",
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#14b8a6',
+    borderColor: "#14b8a6",
   },
   photoActionText: {
     fontSize: 14,
-    color: '#14b8a6',
-    fontWeight: '600',
+    color: "#14b8a6",
+    fontWeight: "600",
   },
   locationButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     gap: 8,
-    backgroundColor: '#f0fdfa',
+    backgroundColor: "#f0fdfa",
     borderRadius: 8,
     padding: 12,
     borderWidth: 1,
-    borderColor: '#14b8a6',
+    borderColor: "#14b8a6",
   },
   locationButtonText: {
     fontSize: 14,
-    color: '#14b8a6',
-    fontWeight: '600',
+    color: "#14b8a6",
+    fontWeight: "600",
   },
   locationInfo: {
-    backgroundColor: '#f9fafb',
+    backgroundColor: "#f9fafb",
     borderRadius: 8,
     padding: 12,
   },
   locationInfoText: {
     fontSize: 12,
-    color: '#666',
-    fontFamily: 'monospace',
+    color: "#666",
+    fontFamily: "monospace",
   },
   locationInput: {
-    backgroundColor: '#f9fafb',
+    backgroundColor: "#f9fafb",
     borderRadius: 8,
     padding: 12,
     fontSize: 14,
-    color: '#333',
+    color: "#333",
     borderWidth: 1,
-    borderColor: '#e5e7eb',
+    borderColor: "#e5e7eb",
   },
   submitButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     gap: 8,
-    backgroundColor: '#14b8a6',
+    backgroundColor: "#14b8a6",
     borderRadius: 8,
     padding: 16,
     marginTop: 8,
@@ -390,9 +423,8 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   submitButtonText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
   },
 });
-

@@ -1,21 +1,21 @@
 /**
  * Location Field Group Component
- * 
+ *
  * Complete location input group with autocomplete, map preview, and current location button.
  * Wraps LocationInput, LocationMapPreview, and UseCurrentLocationButton for easy integration.
  */
 
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import { Label } from '../ui/label';
-import { Button } from '../ui/button';
-import { Magnet, MapPin } from 'lucide-react';
-import { LocationInput } from './LocationInput';
-import { LocationMapPreview } from './LocationMapPreview';
-import { UseCurrentLocationButton } from './UseCurrentLocationButton';
-import { LocationDraggablePicker } from './LocationDraggablePicker';
-import { Place } from '../../lib/services/location';
+import React, { useState, useEffect } from "react";
+import { Label } from "../ui/label";
+import { Button } from "../ui/button";
+import { Magnet, MapPin } from "lucide-react";
+import { LocationInput } from "./LocationInput";
+import { LocationMapPreview } from "./LocationMapPreview";
+import { UseCurrentLocationButton } from "./UseCurrentLocationButton";
+import { LocationDraggablePicker } from "./LocationDraggablePicker";
+import { Place } from "../../lib/services/location";
 
 interface LocationFieldGroupProps {
   label: string;
@@ -59,14 +59,19 @@ export function LocationFieldGroup({
     // Check if device is mobile
     const checkMobile = () => {
       // Check for touch capability and screen size
-      const hasTouchScreen = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+      const hasTouchScreen =
+        "ontouchstart" in window || navigator.maxTouchPoints > 0;
       const isSmallScreen = window.innerWidth < 768;
-      setIsMobile(hasTouchScreen && (isSmallScreen || /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)));
+      setIsMobile(
+        hasTouchScreen &&
+          (isSmallScreen ||
+            /iPhone|iPad|iPod|Android/i.test(navigator.userAgent))
+      );
     };
-    
+
     checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
   const handleSelect = (place: Place) => {
@@ -87,7 +92,7 @@ export function LocationFieldGroup({
       <div className="flex items-center justify-between">
         <Label htmlFor={inputId}>
           {label}
-          {required && <span className="text-red-500 ml-1">*</span>}
+          {required && <span className="ml-1 text-red-500">*</span>}
         </Label>
       </div>
 
@@ -103,15 +108,15 @@ export function LocationFieldGroup({
         className="w-full"
       />
 
-      <div className="flex flex-col sm:flex-row gap-2">
+      <div className="flex flex-col gap-2 sm:flex-row">
         {showMapPicker && (
           <Button
             type="button"
             variant="outline"
             onClick={() => setIsMapPickerOpen(true)}
-            className="flex-1 border-teal-600 text-teal-600 hover:bg-teal-50 font-medium"
+            className="flex-1 border-teal-600 font-medium text-teal-600 hover:bg-teal-50"
           >
-            <MapPin className="h-4 w-4 mr-2" />
+            <MapPin className="mr-2 h-4 w-4" />
             Pick on Map
           </Button>
         )}
@@ -129,9 +134,7 @@ export function LocationFieldGroup({
         <LocationMapPreview place={value} className="w-full" />
       )}
 
-      {error && (
-        <p className="text-sm text-red-600">{error}</p>
-      )}
+      {error && <p className="text-sm text-red-600">{error}</p>}
 
       {showOnlyMarinas && (
         <p className="text-xs text-slate-500">
@@ -145,11 +148,12 @@ export function LocationFieldGroup({
           isOpen={isMapPickerOpen}
           onClose={() => setIsMapPickerOpen(false)}
           onConfirm={handleMapPickerConfirm}
-          initialLocation={value ? { lat: value.lat, lon: value.lon } : undefined}
+          initialLocation={
+            value ? { lat: value.lat, lon: value.lon } : undefined
+          }
           showMarinaSnap={showOnlyMarinas}
         />
       )}
     </div>
   );
 }
-

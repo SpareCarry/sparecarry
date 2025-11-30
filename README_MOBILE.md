@@ -15,11 +15,13 @@ Your Next.js static export is now ready to be wrapped into production iOS and An
 ## 🚀 Quick Start
 
 ### 1. Build & Sync (One Command)
+
 ```bash
 npm run mobile:setup
 ```
 
 This will:
+
 - Build your Next.js app (`npm run build`)
 - Copy web assets from `out/` to native projects
 - Sync Capacitor configuration
@@ -27,6 +29,7 @@ This will:
 ### 2. Open Native Projects
 
 **iOS** (macOS only):
+
 ```bash
 npm run mobile:ios
 # Or manually:
@@ -34,6 +37,7 @@ npx cap open ios
 ```
 
 **Android**:
+
 ```bash
 npm run mobile:android
 # Or manually:
@@ -45,6 +49,7 @@ npx cap open android
 ### iOS Setup
 
 1. **Open in Xcode**:
+
    ```bash
    npx cap open ios
    ```
@@ -67,6 +72,7 @@ npx cap open android
 ### Android Setup
 
 1. **Open in Android Studio**:
+
    ```bash
    npx cap open android
    ```
@@ -78,6 +84,7 @@ npx cap open android
    - Sync Gradle files
 
 3. **Configure Signing** (for production):
+
    ```bash
    # Create keystore (one-time, store securely!)
    keytool -genkey -v -keystore carryspace-release.keystore \
@@ -85,6 +92,7 @@ npx cap open android
    ```
 
    Update `android/app/build.gradle`:
+
    ```gradle
    android {
        signingConfigs {
@@ -116,34 +124,38 @@ npx cap open android
 1. Create Expo account: https://expo.dev
 2. Get access token: https://expo.dev/accounts/[account]/settings/access-tokens
 3. Install Expo Server SDK:
+
    ```bash
    npm install expo-server-sdk
    ```
 
 4. **Backend API Example** (`app/api/notifications/send-expo-push/route.ts`):
+
    ```typescript
-   import { Expo } from 'expo-server-sdk';
-   
+   import { Expo } from "expo-server-sdk";
+
    const expo = new Expo({ accessToken: process.env.EXPO_ACCESS_TOKEN });
-   
+
    export async function POST(request: Request) {
      const { token, title, body, data } = await request.json();
-     
+
      if (!Expo.isExpoPushToken(token)) {
-       return Response.json({ error: 'Invalid token' }, { status: 400 });
+       return Response.json({ error: "Invalid token" }, { status: 400 });
      }
-     
-     const messages = [{
-       to: token,
-       sound: 'default',
-       title,
-       body,
-       data,
-     }];
-     
+
+     const messages = [
+       {
+         to: token,
+         sound: "default",
+         title,
+         body,
+         data,
+       },
+     ];
+
      const chunks = expo.chunkPushNotifications(messages);
      const tickets = [];
-     
+
      for (const chunk of chunks) {
        try {
          const ticketChunk = await expo.sendPushNotificationsAsync(chunk);
@@ -152,7 +164,7 @@ npx cap open android
          console.error(error);
        }
      }
-     
+
      return Response.json({ success: true, tickets });
    }
    ```
@@ -162,10 +174,10 @@ npx cap open android
 The client code is ready in `lib/notifications/expo-push-service.ts`. Use it like this:
 
 ```typescript
-import { 
-  registerForExpoPushNotifications, 
-  setupExpoPushNotificationListeners 
-} from '@/lib/notifications/expo-push-service';
+import {
+  registerForExpoPushNotifications,
+  setupExpoPushNotificationListeners,
+} from "@/lib/notifications/expo-push-service";
 
 // On app start
 setupExpoPushNotificationListeners();
@@ -174,9 +186,9 @@ setupExpoPushNotificationListeners();
 const token = await registerForExpoPushNotifications();
 if (token) {
   // Send token to your backend
-  await fetch('/api/notifications/register-token', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+  await fetch("/api/notifications/register-token", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ token }),
   });
 }
@@ -294,17 +306,20 @@ If you prefer FCM directly:
 ### Build Issues
 
 **"out folder not found"**:
+
 ```bash
 npm run build
 ```
 
 **"Module not found"**:
+
 ```bash
 npm install
 npx cap sync
 ```
 
 **"Capacitor CLI not found"**:
+
 ```bash
 npm install -g @capacitor/cli
 # Or use npx (recommended)
@@ -314,11 +329,13 @@ npx cap sync
 ### Push Notification Issues
 
 **iOS**:
+
 - Ensure Push Notifications capability enabled in Xcode
 - Check APNs certificate is valid
 - Verify device token is received (check logs)
 
 **Android**:
+
 - Ensure `google-services.json` is in `android/app/`
 - Check Firebase project configuration
 - Verify FCM token is received (check logs)
@@ -350,4 +367,3 @@ npx cap sync
 ---
 
 **Ready to deploy?** Follow the step-by-step guide in `docs/MOBILE_DEPLOYMENT.md`!
-

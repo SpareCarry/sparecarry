@@ -11,6 +11,7 @@
 **All High Priority Items Completed!**
 
 ### ✅ Testing & Validation (5/5 Complete)
+
 - ✅ Comprehensive unit tests for plane restrictions (12 tests)
 - ✅ Distance calculation tests (5 tests)
 - ✅ Shipping restriction integration tests (7 tests)
@@ -18,6 +19,7 @@
 - ✅ **Total: 36 tests passing**
 
 ### ✅ UI/UX Improvements (5/5 Complete)
+
 - ✅ Transport method toggle (Plane/Boat/Auto) with icons
 - ✅ Detailed restriction breakdown with expandable section
 - ✅ Tooltips explaining restrictions
@@ -25,6 +27,7 @@
 - ✅ Category selector improvements
 
 ### ✅ Data Integration (3/3 Complete)
+
 - ✅ Category alignment between forms
 - ✅ Additional category options added
 - ✅ Country-specific restrictions implemented
@@ -44,6 +47,7 @@ The shipping calculator has been enhanced with smart pricing logic, plane transp
 ### 1. **Customs Tax Calculation** 💰
 
 **Added:**
+
 - Tax (VAT/GST) calculation to customs cost
 - Country-specific tax rates for 16+ countries
 - De minimis thresholds (tax only applies above certain values)
@@ -51,11 +55,13 @@ The shipping calculator has been enhanced with smart pricing logic, plane transp
 - Updated `assets/data/countryCustoms.json` with tax rates and thresholds
 
 **Changed:**
+
 - `lib/services/shipping.ts` - `calculateCustomsCost()` now includes tax
 - `ShippingEstimateResult` interface - Added `customsBreakdown` with duty, tax, taxName, processingFee
 - UI now shows detailed breakdown: Shipping + Duty + Tax + Processing Fee
 
 **Key Features:**
+
 - Tax only applies if CIF value exceeds de minimis threshold
 - Different tax names by country (VAT, GST, Sales Tax, Consumption Tax)
 - Accurate CIF calculation (Cost + Insurance + Freight)
@@ -65,6 +71,7 @@ The shipping calculator has been enhanced with smart pricing logic, plane transp
 ### 2. **Enhanced Courier Rate Accuracy** 📦
 
 **Added:**
+
 - Zone-based pricing (domestic, neighboring, regional, international_short/long/remote)
 - Fuel surcharges (12-15% based on courier)
 - Weight tier pricing (volume discounts for heavier packages: 5-10% discount for 30kg+)
@@ -73,11 +80,13 @@ The shipping calculator has been enhanced with smart pricing logic, plane transp
 - Added Australia Post to courier options
 
 **Changed:**
+
 - `assets/data/courierRates.json` - Enhanced with zone multipliers, fuel surcharges, weight tiers
 - `lib/services/shipping.ts` - `calculateCourierPrice()` now uses all enhancement factors
 - Courier pricing now accounts for distance, zones, fuel, weight tiers, and remote areas
 
 **Key Features:**
+
 - More accurate courier price estimates
 - Accounts for real-world pricing factors
 - Better reflects actual courier costs
@@ -87,17 +96,20 @@ The shipping calculator has been enhanced with smart pricing logic, plane transp
 ### 3. **Plane vs Boat Pricing Balance** ⚖️
 
 **Changed:**
+
 - Plane base pricing increased: $2.0-2.2/kg → $4.0-5.0/kg (4-5x boat base)
 - Plane base fee increased: $6-8 → $10-15
 - Added minimum price floor: $35 for plane transport
 - Plane distance multiplier reduced: max 50% → max 30% (planes are fast regardless)
 
 **Added to Plane Pricing:**
+
 - Value premium: +8% (>$1000), +15% (>$5000)
 - Fragile premium: +12% (extra care needed)
 - Urgency premium: +5-30% (faster delivery)
 
 **Result:**
+
 - Planes are now appropriately more expensive than boats
 - Reflects faster delivery and higher convenience
 - Both pricing models account for fragile, value, and urgency
@@ -107,12 +119,14 @@ The shipping calculator has been enhanced with smart pricing logic, plane transp
 ### 4. **Post Trip Form Improvements** 🚢
 
 **Fixed:**
+
 - Made max tonnage optional (removed required validation)
 - Fixed NaN validation error when fields left empty
 - Added imperial weight display (shows lbs when kg entered)
 - Added imperial cubic meters display (shows ft³ when m³ entered)
 
 **Changed:**
+
 - `components/forms/post-trip-form.tsx` - Updated Zod schema to handle optional/NaN values
 - Added `z.preprocess` to handle empty strings and NaN values
 - UI now shows imperial conversions inline
@@ -122,11 +136,13 @@ The shipping calculator has been enhanced with smart pricing logic, plane transp
 ### 5. **Homepage Rendering Fix** 🏠
 
 **Fixed:**
+
 - Removed nested HTML/body tags from `app/[locale]/layout.tsx`
 - Fixed "missing required error components" error
 - Created `app/error.tsx` for route-level error boundaries
 
 **Changed:**
+
 - `app/[locale]/layout.tsx` - Removed duplicate `<html>` and `<body>` tags
 - Root layout now provides HTML structure, locale layout only provides providers
 
@@ -137,6 +153,7 @@ The shipping calculator has been enhanced with smart pricing logic, plane transp
 ### 1. **Plane Restrictions System** ✈️
 
 **Added:**
+
 - `lib/utils/plane-restrictions.ts` - Comprehensive plane transport restriction checker
   - Checks weight limits (carry-on: 7kg, checked: 32kg, oversized: 45kg)
   - Checks size limits (carry-on: 55×40×23cm, checked: 158cm max dimension)
@@ -145,6 +162,7 @@ The shipping calculator has been enhanced with smart pricing logic, plane transp
   - Returns detailed restriction reasons and suggested alternatives
 
 **Key Features:**
+
 - Automatically determines if items can be transported by plane
 - Provides human-readable restriction messages
 - Suggests boat transport as alternative when plane is not available
@@ -154,6 +172,7 @@ The shipping calculator has been enhanced with smart pricing logic, plane transp
 ### 1.5. **Country-Specific Restrictions** 🌍
 
 **Added:**
+
 - `lib/utils/country-restrictions.ts` - Country-specific restriction database
   - Support for 16+ countries with specific import/export regulations
   - Prohibited categories by country (e.g., food prohibited in Australia, Japan)
@@ -162,6 +181,7 @@ The shipping calculator has been enhanced with smart pricing logic, plane transp
   - Integrated into plane restriction checking system
 
 **Supported Countries:**
+
 - Australia (AU) - Strict biosecurity laws
 - New Zealand (NZ) - Biosecurity requirements
 - United States (US) - Firearms restrictions
@@ -177,6 +197,7 @@ The shipping calculator has been enhanced with smart pricing logic, plane transp
 - Saudi Arabia (SA) - Strict import regulations
 
 **Key Features:**
+
 - Automatically checks origin and destination country restrictions
 - Provides country-specific restriction messages
 - Identifies items requiring special documentation
@@ -187,11 +208,13 @@ The shipping calculator has been enhanced with smart pricing logic, plane transp
 ### 2. **Distance-Based Pricing** 📏
 
 **Added:**
+
 - `lib/utils/distance-calculator.ts` - Distance calculation utility
   - Uses Haversine formula to calculate distance between coordinates
   - Returns distance in kilometers
 
 **Changed:**
+
 - `lib/services/shipping.ts` - Enhanced pricing functions
   - `calculateSpareCarryPlaneBasePrice()` now accepts distance, dimensions
   - `calculateSpareCarryBoatBasePrice()` now accepts distance, dimensions
@@ -207,6 +230,7 @@ The shipping calculator has been enhanced with smart pricing logic, plane transp
 ### 3. **Shipping Service Enhancements** 🚢
 
 **Changed:**
+
 - `lib/services/shipping.ts` - `ShippingEstimateInput` interface
   - Added `distanceKm?: number` - Optional distance for distance-based pricing
   - Added `restrictedItems?: boolean` - Flag for restricted goods
@@ -228,20 +252,24 @@ The shipping calculator has been enhanced with smart pricing logic, plane transp
 ### 4. **Shipping Calculator UI Updates** 🎨
 
 **Changed:**
+
 - `app/shipping-estimator/page.tsx` - Major UI enhancements
 
 **Added State:**
+
 - `restrictedItems` - Checkbox state for restricted goods
 - `category` - Item category selector
 - `selectedTransportMethod` - User's transport method preference
 
 **Added UI Elements:**
+
 - "Contains restricted goods" checkbox with description
 - Item category selector (Electronics, Clothing, Food, Tools, Sports, Books, Other)
 - Distance display when coordinates are available
 - Plane restriction warning message when plane transport is not available
 
 **Changed Behavior:**
+
 - Conditionally shows/hides plane pricing based on `canTransportByPlane`
 - Shows amber warning card when plane transport is unavailable
 - Auto-selects boat method when restricted items are checked
@@ -250,6 +278,7 @@ The shipping calculator has been enhanced with smart pricing logic, plane transp
 - Passes restricted items and category to estimate calculation
 
 **Updated Logic:**
+
 - `handleCreateJob()` now considers plane restrictions when prefilling max reward
 - Sets `preferred_method` to 'boat' if plane transport is not available
 - Includes `restricted_items` flag in prefill data
@@ -259,6 +288,7 @@ The shipping calculator has been enhanced with smart pricing logic, plane transp
 ### 5. **Post Request Form Integration** 📝
 
 **Changed:**
+
 - `components/forms/post-request-form.tsx` - Shipping estimator link
   - Now passes `restricted_items` parameter to shipping estimator
   - Preserves category information when navigating to estimator
@@ -268,12 +298,14 @@ The shipping calculator has been enhanced with smart pricing logic, plane transp
 ### 6. **Previous Session Fixes** (Context)
 
 **Fixed:**
+
 - Infinite loop in `post-request-form.tsx` caused by `useEffect` with `watch` in dependencies
   - Solution: Removed `watch` from dependencies, used watched values directly
   - Added ref-based tracking to prevent unnecessary saves
   - Added initial mount check to prevent overwriting prefill data
 
 **Fixed:**
+
 - `ReferenceError: category_other_description is not defined`
   - Solution: Changed to camelCase `categoryOtherDescription` to match watch variable
 
@@ -284,20 +316,24 @@ The shipping calculator has been enhanced with smart pricing logic, plane transp
 ### Plane Restriction Limits
 
 **Carry-on:**
+
 - Max weight: 7kg
 - Max dimensions: 55×40×23cm
 - Max linear dimensions: 115cm (L+W+H)
 
 **Checked Baggage:**
+
 - Max weight: 32kg
 - Max dimension: 158cm (any side)
 - Max linear dimensions: 300cm (L+W+H)
 
 **Oversized/Overweight:**
+
 - Max weight: 45kg (with extra fees)
 - Max linear dimensions: 320cm (with extra fees)
 
 **Prohibited Categories:**
+
 - Explosives, flammable, toxic, radioactive, corrosive
 - Weapons, ammunition
 
@@ -306,6 +342,7 @@ The shipping calculator has been enhanced with smart pricing logic, plane transp
 ### Pricing Formula
 
 **Plane (with distance):**
+
 ```
 Base price = (pricePerKg × chargeableWeight) + baseFee
 Distance multiplier = min(1 + (distanceKm / 15000), 1.3)  // Max 30%
@@ -317,6 +354,7 @@ Minimum price = $35
 ```
 
 **Boat (with distance):**
+
 ```
 Base price = (pricePerKg × chargeableWeight) + baseFee
 Distance multiplier = 1.1-1.4 (based on distance, max 40%)
@@ -333,12 +371,14 @@ Final price = basePrice × distanceMultiplier × totalMultiplier × routeComplex
 ```
 
 **Chargeable Weight:**
+
 ```
 chargeableWeight = max(actualWeight, dimensionalWeight)
 dimensionalWeight = (length × width × height) / 5000
 ```
 
 **Customs Cost:**
+
 ```
 CIF value = declaredValue + shippingCost
 Duty = CIF value × duty_rate
@@ -414,6 +454,7 @@ Total customs = Duty + Tax + Processing fee
 ## 🔄 Integration Points
 
 ### Files Modified
+
 - `lib/utils/plane-restrictions.ts` (NEW)
 - `lib/utils/distance-calculator.ts` (NEW)
 - `lib/utils/country-restrictions.ts` (NEW)
@@ -427,10 +468,12 @@ Total customs = Duty + Tax + Processing fee
 - `assets/data/courierRates.json` (MODIFIED - added zones, fuel, weight tiers)
 
 ### Dependencies
+
 - No new npm packages required
 - Uses existing utilities and services
 
 ### Database Changes
+
 - None required for this feature
 
 ---
@@ -482,7 +525,7 @@ The pricing system now:
 
 5. ~~**Courier Estimates Inaccurate**: Courier rates were too simplified, missing zones, fuel surcharges, weight tiers.~~ ✅ **FIXED** - Enhanced with zone-based pricing, fuel surcharges, weight tiers, remote area surcharges.
 
-3. ~~**Premium Pricing Display**: Premium plane pricing still shows even when plane transport is not available (partially fixed, may need review).~~ ✅ **FIXED** - Plane pricing is now properly hidden when restrictions apply.
+6. ~~**Premium Pricing Display**: Premium plane pricing still shows even when plane transport is not available (partially fixed, may need review).~~ ✅ **FIXED** - Plane pricing is now properly hidden when restrictions apply.
 
 ---
 
@@ -535,4 +578,3 @@ The pricing system now:
 ---
 
 **End of Summary**
-

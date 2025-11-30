@@ -12,10 +12,13 @@ export function SessionSync() {
     const syncSession = async () => {
       try {
         const supabase = createClient();
-        
+
         // Check if we have a session in localStorage
-        const { data: { session }, error } = await supabase.auth.getSession();
-        
+        const {
+          data: { session },
+          error,
+        } = await supabase.auth.getSession();
+
         // Only sync if we have a valid session and no error
         if (session && !error && session.access_token) {
           // Sync session to cookies by calling the sync-session API
@@ -30,13 +33,16 @@ export function SessionSync() {
               refreshToken: session.refresh_token,
             }),
           });
-          
+
           if (response.ok) {
             console.log("[SessionSync] Session synced to cookies successfully");
           } else {
             // Only log as warning if it's not a 401 (which means no session on server)
             if (response.status !== 401) {
-              console.warn("[SessionSync] Failed to sync session to cookies:", response.status);
+              console.warn(
+                "[SessionSync] Failed to sync session to cookies:",
+                response.status
+              );
             }
             // Silently ignore 401 errors - they just mean the session isn't valid on the server
           }
@@ -48,23 +54,24 @@ export function SessionSync() {
         }
       }
     };
-    
+
     // Sync on mount
     syncSession();
-    
+
     // Also sync when auth state changes
     const supabase = createClient();
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === "SIGNED_IN" && session) {
         syncSession();
       }
     });
-    
+
     return () => {
       subscription.unsubscribe();
     };
   }, []);
-  
+
   return null; // This component doesn't render anything
 }
-

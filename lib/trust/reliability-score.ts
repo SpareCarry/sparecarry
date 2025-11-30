@@ -1,6 +1,6 @@
 /**
  * Reliability Score Calculation
- * 
+ *
  * Calculates and updates user reliability scores based on:
  * - Completed deliveries
  * - Average rating
@@ -8,8 +8,8 @@
  * - Response time (future)
  */
 
-import { createClient } from '../supabase/client';
-import type { SupabaseClient } from '@supabase/supabase-js';
+import { createClient } from "../supabase/client";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
 export interface ReliabilityScoreFactors {
   completedDeliveries: number;
@@ -21,7 +21,9 @@ export interface ReliabilityScoreFactors {
 /**
  * Calculate reliability score (0-100)
  */
-export function calculateReliabilityScore(factors: ReliabilityScoreFactors): number {
+export function calculateReliabilityScore(
+  factors: ReliabilityScoreFactors
+): number {
   let score = 0;
 
   // Base score from completed deliveries (0-40 points)
@@ -85,24 +87,26 @@ export function calculateReliabilityScore(factors: ReliabilityScoreFactors): num
 /**
  * Update reliability score for a user
  */
-export async function updateUserReliabilityScore(userId: string): Promise<number> {
+export async function updateUserReliabilityScore(
+  userId: string
+): Promise<number> {
   const supabase = createClient() as SupabaseClient;
 
   // Call database function
-  const { data, error } = await supabase.rpc('update_user_reliability_score', {
+  const { data, error } = await supabase.rpc("update_user_reliability_score", {
     user_id_param: userId,
   });
 
   if (error) {
-    console.error('Error updating reliability score:', error);
+    console.error("Error updating reliability score:", error);
     return 0;
   }
 
   // Get updated score
   const { data: user, error: userError } = await supabase
-    .from('users')
-    .select('reliability_score')
-    .eq('id', userId)
+    .from("users")
+    .select("reliability_score")
+    .eq("id", userId)
     .single();
 
   if (userError || !user) {
@@ -115,11 +119,13 @@ export async function updateUserReliabilityScore(userId: string): Promise<number
 /**
  * Get reliability level from score
  */
-export function getReliabilityLevel(score: number): 'excellent' | 'good' | 'fair' | 'new' {
-  if (score >= 80) return 'excellent';
-  if (score >= 60) return 'good';
-  if (score >= 40) return 'fair';
-  return 'new';
+export function getReliabilityLevel(
+  score: number
+): "excellent" | "good" | "fair" | "new" {
+  if (score >= 80) return "excellent";
+  if (score >= 60) return "good";
+  if (score >= 40) return "fair";
+  return "new";
 }
 
 /**
@@ -128,14 +134,13 @@ export function getReliabilityLevel(score: number): 'excellent' | 'good' | 'fair
 export function getReliabilityLabel(score: number): string {
   const level = getReliabilityLevel(score);
   switch (level) {
-    case 'excellent':
-      return 'Excellent';
-    case 'good':
-      return 'Good';
-    case 'fair':
-      return 'Fair';
-    case 'new':
-      return 'New User';
+    case "excellent":
+      return "Excellent";
+    case "good":
+      return "Good";
+    case "fair":
+      return "Fair";
+    case "new":
+      return "New User";
   }
 }
-

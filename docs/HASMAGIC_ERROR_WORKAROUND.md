@@ -21,6 +21,7 @@ This occurs because Metro's resolver tries to access a property that doesn't exi
 ### Solution 1: Custom Metro Resolver (Already Applied) ✅
 
 We've added a custom resolver in `metro.config.js` that:
+
 - Handles `expo-router/entry` explicitly
 - Catches `hasMagic` errors and uses fallback resolution
 - Manually resolves modules when needed
@@ -37,6 +38,7 @@ pnpm switch-to-npm
 ```
 
 Or manually:
+
 ```bash
 cd apps/mobile
 rm -rf node_modules
@@ -58,6 +60,7 @@ yarn start
 ### Solution 4: Wait for Metro Fix
 
 This is a known issue in Metro. You can:
+
 - Track the issue on Metro's GitHub
 - Use npm/yarn as a temporary workaround
 - Check for Metro updates that fix this
@@ -80,6 +83,7 @@ After applying a solution:
 ## Long-term Fix
 
 The proper fix requires:
+
 - Metro bundler to support pnpm's symlink structure
 - Or pnpm to provide a compatibility mode for Metro
 
@@ -90,4 +94,3 @@ Until then, using npm for the mobile app is the most reliable workaround.
 - `apps/mobile/metro.config.js` - Added custom resolver
 - `apps/mobile/scripts/switch-to-npm.js` - Workaround script
 - `apps/mobile/package.json` - Added `switch-to-npm` script
-

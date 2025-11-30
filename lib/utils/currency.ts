@@ -9,14 +9,14 @@ export interface CurrencyInfo {
 }
 
 export const CURRENCIES: Record<string, CurrencyInfo> = {
-  USD: { code: 'USD', symbol: '$', name: 'US Dollar' },
-  EUR: { code: 'EUR', symbol: '€', name: 'Euro' },
-  GBP: { code: 'GBP', symbol: '£', name: 'British Pound' },
-  CAD: { code: 'CAD', symbol: 'C$', name: 'Canadian Dollar' },
-  AUD: { code: 'AUD', symbol: 'A$', name: 'Australian Dollar' },
-  JPY: { code: 'JPY', symbol: '¥', name: 'Japanese Yen' },
-  CHF: { code: 'CHF', symbol: 'CHF', name: 'Swiss Franc' },
-  NZD: { code: 'NZD', symbol: 'NZ$', name: 'New Zealand Dollar' },
+  USD: { code: "USD", symbol: "$", name: "US Dollar" },
+  EUR: { code: "EUR", symbol: "€", name: "Euro" },
+  GBP: { code: "GBP", symbol: "£", name: "British Pound" },
+  CAD: { code: "CAD", symbol: "C$", name: "Canadian Dollar" },
+  AUD: { code: "AUD", symbol: "A$", name: "Australian Dollar" },
+  JPY: { code: "JPY", symbol: "¥", name: "Japanese Yen" },
+  CHF: { code: "CHF", symbol: "CHF", name: "Swiss Franc" },
+  NZD: { code: "NZD", symbol: "NZ$", name: "New Zealand Dollar" },
 };
 
 // Exchange rates (simplified - in production, use real-time API)
@@ -31,38 +31,53 @@ const EXCHANGE_RATES: Record<string, number> = {
   NZD: 1.64,
 };
 
+/**
+ * Detect user currency from browser locale
+ * NOTE: This is only used as a fallback when user hasn't set a preferred currency.
+ * The user's preferred_currency from their profile always takes priority.
+ * This function does NOT use IP geolocation - it only uses browser language settings.
+ */
 export function detectUserCurrency(): string {
-  if (typeof window === 'undefined') return 'USD';
-  
+  if (typeof window === "undefined") return "USD";
+
   try {
-    const locale = navigator.language || 'en-US';
-    const region = locale.split('-')[1] || 'US';
-    
+    // Use browser locale (NOT IP geolocation)
+    // This is just a fallback - user's preferred_currency always takes priority
+    const locale = navigator.language || "en-US";
+    const region = locale.split("-")[1] || "US";
+
     const regionToCurrency: Record<string, string> = {
-      US: 'USD',
-      GB: 'GBP',
-      CA: 'CAD',
-      AU: 'AUD',
-      NZ: 'NZD',
-      JP: 'JPY',
-      CH: 'CHF',
-      EU: 'EUR',
+      US: "USD",
+      GB: "GBP",
+      CA: "CAD",
+      AU: "AUD",
+      NZ: "NZD",
+      JP: "JPY",
+      CH: "CHF",
+      EU: "EUR",
     };
-    
-    return regionToCurrency[region] || 'USD';
+
+    return regionToCurrency[region] || "USD";
   } catch {
-    return 'USD';
+    return "USD";
   }
 }
 
-export function convertCurrency(amount: number, from: string, to: string): number {
+export function convertCurrency(
+  amount: number,
+  from: string,
+  to: string
+): number {
   if (from === to) return amount;
   const fromRate = EXCHANGE_RATES[from] || 1;
   const toRate = EXCHANGE_RATES[to] || 1;
   return (amount / fromRate) * toRate;
 }
 
-export function formatCurrency(amount: number, currency: string = 'USD'): string {
+export function formatCurrency(
+  amount: number,
+  currency: string = "USD"
+): string {
   const info = CURRENCIES[currency] || CURRENCIES.USD;
   return `${info.symbol}${amount.toFixed(2)}`;
 }
@@ -70,7 +85,7 @@ export function formatCurrency(amount: number, currency: string = 'USD'): string
 export function formatCurrencyWithConversion(
   amount: number,
   userCurrency: string,
-  originalCurrency: string = 'USD'
+  originalCurrency: string = "USD"
 ): { primary: string; secondary: string | null } {
   if (userCurrency === originalCurrency) {
     return {
@@ -78,11 +93,10 @@ export function formatCurrencyWithConversion(
       secondary: null,
     };
   }
-  
+
   const converted = convertCurrency(amount, originalCurrency, userCurrency);
   return {
     primary: formatCurrency(converted, userCurrency),
     secondary: formatCurrency(amount, originalCurrency),
   };
 }
-

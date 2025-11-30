@@ -483,7 +483,14 @@ export interface Match {
   trip_id: string;
   request_id: string;
   group_buy_id?: string | null;
-  status: "pending" | "chatting" | "escrow_paid" | "delivered" | "completed" | "cancelled" | "disputed";
+  status:
+    | "pending"
+    | "chatting"
+    | "escrow_paid"
+    | "delivered"
+    | "completed"
+    | "cancelled"
+    | "disputed";
   reward_amount: number;
   platform_fee_percent?: number | null;
   insurance_policy_number?: string | null;
@@ -549,6 +556,8 @@ export interface Message {
   conversation_id: string;
   sender_id: string;
   content: string;
+  image_urls?: string[] | null;
+  audio_url?: string | null;
   created_at: string;
 }
 
@@ -556,6 +565,8 @@ export interface MessageInsert {
   conversation_id: string;
   sender_id: string;
   content: string;
+  image_urls?: string[] | null;
+  audio_url?: string | null;
 }
 
 export interface MessageUpdate {
@@ -707,4 +718,3 @@ export interface TripWithProfile extends Trip {
 export interface RequestWithUser extends Request {
   users: User | null;
 }
-

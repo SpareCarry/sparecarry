@@ -5,7 +5,7 @@
 
 interface LogEntry {
   timestamp: string;
-  level: 'error' | 'warn' | 'info' | 'debug';
+  level: "error" | "warn" | "info" | "debug";
   message: string;
   route?: string;
   error?: Error;
@@ -36,87 +36,99 @@ class MobileLogger {
       parts.push(`Metadata: ${JSON.stringify(entry.metadata, null, 2)}`);
     }
 
-    return parts.join(' | ');
+    return parts.join(" | ");
   }
 
   private log(entry: LogEntry) {
     const formatted = this.formatLog(entry);
-    
+
     // Always log to console (appears in Metro bundler)
     // Use console.log for all levels so they're visible
     console.log(formatted);
-    
+
     switch (entry.level) {
-      case 'error':
-        console.error('❌ ERROR:', formatted);
+      case "error":
+        console.error("❌ ERROR:", formatted);
         // Also log to console.error for React Native
         if (entry.error) {
-          console.error('❌ ERROR STACK:', entry.error);
+          console.error("❌ ERROR STACK:", entry.error);
           if (entry.error.stack) {
-            console.error('❌ STACK TRACE:', entry.error.stack);
+            console.error("❌ STACK TRACE:", entry.error.stack);
           }
         }
         break;
-      case 'warn':
-        console.warn('⚠️ WARN:', formatted);
+      case "warn":
+        console.warn("⚠️ WARN:", formatted);
         break;
-      case 'info':
-        console.info('ℹ️ INFO:', formatted);
+      case "info":
+        console.info("ℹ️ INFO:", formatted);
         break;
-      case 'debug':
+      case "debug":
         if (__DEV__) {
-          console.debug('🔍 DEBUG:', formatted);
+          console.debug("🔍 DEBUG:", formatted);
         }
         break;
     }
   }
 
-  error(message: string, options?: {
-    route?: string;
-    error?: Error;
-    metadata?: Record<string, any>;
-  }) {
+  error(
+    message: string,
+    options?: {
+      route?: string;
+      error?: Error;
+      metadata?: Record<string, any>;
+    }
+  ) {
     this.log({
       timestamp: new Date().toISOString(),
-      level: 'error',
+      level: "error",
       message,
       ...options,
     });
   }
 
-  warn(message: string, options?: {
-    route?: string;
-    error?: Error;
-    metadata?: Record<string, any>;
-  }) {
+  warn(
+    message: string,
+    options?: {
+      route?: string;
+      error?: Error;
+      metadata?: Record<string, any>;
+    }
+  ) {
     this.log({
       timestamp: new Date().toISOString(),
-      level: 'warn',
+      level: "warn",
       message,
       ...options,
     });
   }
 
-  info(message: string, options?: {
-    route?: string;
-    metadata?: Record<string, any>;
-  }) {
+  info(
+    message: string,
+    options?: {
+      route?: string;
+      metadata?: Record<string, any>;
+    }
+  ) {
     this.log({
       timestamp: new Date().toISOString(),
-      level: 'info',
+      level: "info",
       message,
       ...options,
     });
   }
 
-  debug(message: string, options?: {
-    route?: string;
-    metadata?: Record<string, any>;
-  }) {
+  debug(
+    message: string,
+    options?: {
+      route?: string;
+      metadata?: Record<string, any>;
+    }
+  ) {
     if (__DEV__) {
       this.log({
         timestamp: new Date().toISOString(),
-        level: 'debug',
+        level: "debug",
         message,
         ...options,
       });
@@ -125,4 +137,3 @@ class MobileLogger {
 }
 
 export const mobileLogger = new MobileLogger();
-

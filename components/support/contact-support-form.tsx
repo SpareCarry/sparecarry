@@ -4,7 +4,13 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "../ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "../ui/dialog";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
@@ -26,7 +32,11 @@ interface ContactSupportFormProps {
   matchId?: string;
 }
 
-export function ContactSupportForm({ open, onOpenChange, matchId }: ContactSupportFormProps) {
+export function ContactSupportForm({
+  open,
+  onOpenChange,
+  matchId,
+}: ContactSupportFormProps) {
   const { user } = useUser();
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -82,7 +92,9 @@ export function ContactSupportForm({ open, onOpenChange, matchId }: ContactSuppo
       }, 3000);
     } catch (error) {
       console.error("Error submitting support form:", error);
-      alert("Failed to submit support request. Please try again or email ryanhbrooks@gmail.com directly.");
+      alert(
+        "Failed to submit support request. Please try again or email ryanhbrooks@gmail.com directly."
+      );
     } finally {
       setLoading(false);
     }
@@ -97,20 +109,27 @@ export function ContactSupportForm({ open, onOpenChange, matchId }: ContactSuppo
             Contact Support
           </DialogTitle>
           <DialogDescription>
-            Fill out the form below and we&apos;ll get back to you as soon as possible.
+            Fill out the form below and we&apos;ll get back to you as soon as
+            possible.
           </DialogDescription>
         </DialogHeader>
 
         {success && ticketNumber ? (
-          <div className="py-8 text-center space-y-4">
-            <CheckCircle2 className="h-16 w-16 text-green-500 mx-auto" />
+          <div className="space-y-4 py-8 text-center">
+            <CheckCircle2 className="mx-auto h-16 w-16 text-green-500" />
             <div>
-              <h3 className="text-lg font-semibold text-slate-900 mb-2">Support request submitted!</h3>
-              <p className="text-sm text-slate-600 mb-4">
-                Your ticket number is: <span className="font-mono font-semibold text-teal-600">{ticketNumber}</span>
+              <h3 className="mb-2 text-lg font-semibold text-slate-900">
+                Support request submitted!
+              </h3>
+              <p className="mb-4 text-sm text-slate-600">
+                Your ticket number is:{" "}
+                <span className="font-mono font-semibold text-teal-600">
+                  {ticketNumber}
+                </span>
               </p>
               <p className="text-xs text-slate-500">
-                Please save this ticket number for your records. We&apos;ll respond via email.
+                Please save this ticket number for your records. We&apos;ll
+                respond via email.
               </p>
             </div>
           </div>
@@ -136,7 +155,7 @@ export function ContactSupportForm({ open, onOpenChange, matchId }: ContactSuppo
                 {...register("message")}
                 placeholder="Please provide details about your issue..."
                 rows={6}
-                className="bg-white resize-none"
+                className="resize-none bg-white"
               />
               {errors.message && (
                 <p className="text-sm text-red-600">{errors.message.message}</p>
@@ -159,12 +178,12 @@ export function ContactSupportForm({ open, onOpenChange, matchId }: ContactSuppo
               <Button type="submit" disabled={loading}>
                 {loading ? (
                   <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Sending...
                   </>
                 ) : (
                   <>
-                    <Mail className="h-4 w-4 mr-2" />
+                    <Mail className="mr-2 h-4 w-4" />
                     Send Request
                   </>
                 )}
@@ -176,4 +195,3 @@ export function ContactSupportForm({ open, onOpenChange, matchId }: ContactSuppo
     </Dialog>
   );
 }
-

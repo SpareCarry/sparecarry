@@ -12,44 +12,44 @@ jobs:
     name: Playwright E2E Tests
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    
+
     env:
-      NODE_VERSION: '22.x'
-      PLAYWRIGHT_TEST_BASE_URL: 'http://localhost:3000'
-    
+      NODE_VERSION: "22.x"
+      PLAYWRIGHT_TEST_BASE_URL: "http://localhost:3000"
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'pnpm'
-      
+          cache: "pnpm"
+
       - name: Install pnpm
         uses: pnpm/action-setup@v2
         with:
           version: 10
-      
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-      
+
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
-      
+
       - name: Build application
         run: pnpm build
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co' }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-key' }}
-      
+
       - name: Start production server
         run: pnpm start &
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co' }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-key' }}
-      
+
       - name: Wait for server to be ready
         run: |
           timeout=120
@@ -60,12 +60,12 @@ jobs:
             elapsed=$((elapsed + interval))
             echo "Waiting for server... ($elapsed/$timeout seconds)"
           done
-      
+
       - name: Run Playwright tests
         run: pnpm test:e2e
         env:
-          PLAYWRIGHT_TEST_BASE_URL: 'http://localhost:3000'
-      
+          PLAYWRIGHT_TEST_BASE_URL: "http://localhost:3000"
+
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4
@@ -73,7 +73,7 @@ jobs:
           name: playwright-report
           path: playwright-report/
           retention-days: 30
-      
+
       - name: Upload test videos
         if: failure()
         uses: actions/upload-artifact@v4
@@ -81,4 +81,3 @@ jobs:
           name: test-videos
           path: test-results/
           retention-days: 7
-

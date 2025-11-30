@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -10,23 +10,22 @@ import {
 } from "../ui/dialog";
 import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
-import { Plane, Ship, CheckCircle2, Clock, DollarSign, MapPin, MessageCircle } from "lucide-react";
+import {
+  Plane,
+  Ship,
+  Clock,
+  DollarSign,
+  MapPin,
+  MessageCircle,
+} from "lucide-react";
 import { format, parseISO, isValid } from "date-fns";
-import { createClient } from "../../lib/supabase/client";
-import { useRouter } from "next/navigation";
 import { cn } from "../../lib/utils";
 import { PostMessageThreadModal } from "../messaging/PostMessageThreadModal";
 import { SuggestedMatches } from "../matching/SuggestedMatches";
 import { WatchlistButton } from "../WatchlistButton";
 import { TrustBadges } from "../TrustBadges";
-import { useQuery } from "@tanstack/react-query";
 import { useUser } from "../../hooks/useUser";
-import { WhatsAppButton } from "../whatsapp/whatsapp-button";
 import { CurrencyDisplay } from "../currency/currency-display";
-
-type MatchRecord = {
-  id: string;
-};
 
 interface FeedItem {
   id: string;
@@ -56,9 +55,6 @@ interface FeedDetailModalProps {
 }
 
 export function FeedDetailModal({ item, open, onClose }: FeedDetailModalProps) {
-  const router = useRouter();
-  const supabase = createClient();
-  const [loading, setLoading] = useState(false);
   const [showMessageThread, setShowMessageThread] = useState(false);
   const isTrip = item.type === "trip";
 
@@ -66,71 +62,6 @@ export function FeedDetailModal({ item, open, onClose }: FeedDetailModalProps) {
   const { user: currentUser } = useUser();
 
   const isInvolved = currentUser?.id === item.user_id;
-
-  // Fetch user phone for WhatsApp
-  const { data: userProfile } = useQuery<{ phone?: string | null } | null>({
-    queryKey: ["user-profile-phone", item.user_id],
-    queryFn: async (): Promise<{ phone?: string | null } | null> => {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("phone")
-        .eq("user_id", item.user_id)
-        .single();
-      
-      if (error && error.code !== 'PGRST116') {
-        console.warn("Error fetching user phone:", error);
-        return null;
-      }
-      return (data as { phone?: string | null } | null) ?? null;
-    },
-    enabled: !isInvolved && !!item.user_id,
-  });
-
-  const handleMessage = async () => {
-    setLoading(true);
-    try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      if (!user) {
-        router.push("/auth/login");
-        return;
-      }
-
-      // Check if match already exists or create new one
-      if (isTrip) {
-        // User viewing a trip - they want to create a request match
-        // For now, redirect to post request page
-        router.push("/home/post-request");
-      } else {
-        // User viewing a request - find matching trips or create match
-        // Check for existing matches first
-        const { data: existingMatch } = await supabase
-          .from("matches")
-          .select("id")
-          .eq("request_id", item.id)
-          .eq("status", "pending")
-          .limit(1)
-          .single();
-
-        const matchRecord = (existingMatch ?? null) as MatchRecord | null;
-
-        if (matchRecord) {
-          router.push(`/home/messages/${matchRecord.id}`);
-        } else {
-          // For now, show message that they need to wait for a match
-          alert("No matching trips found yet. We'll notify you when someone can carry your item!");
-        }
-      }
-
-      onClose();
-    } catch (error) {
-      console.error("Error:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const getDateRange = () => {
     if (isTrip) {
@@ -159,12 +90,12 @@ export function FeedDetailModal({ item, open, onClose }: FeedDetailModalProps) {
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-[600px]">
         <DialogHeader>
-          <div className="flex items-center gap-3 mb-2">
+          <div className="mb-2 flex items-center gap-3">
             <div
               className={cn(
-                "w-12 h-12 rounded-full flex items-center justify-center",
+                "flex h-12 w-12 items-center justify-center rounded-full",
                 isTrip ? "bg-blue-100" : "bg-purple-100"
               )}
             >
@@ -211,16 +142,21 @@ export function FeedDetailModal({ item, open, onClose }: FeedDetailModalProps) {
               <div className="text-sm text-slate-500">
                 {isTrip ? "Available Capacity" : "Reward Offered"}
               </div>
-              <div className="font-semibold text-lg text-slate-900">
-                {isTrip
-                  ? `${item.spare_kg}kg / ${item.spare_volume_liters}L`
-                  : <CurrencyDisplay amount={item.max_reward || 0} showSecondary={false} />}
+              <div className="text-lg font-semibold text-slate-900">
+                {isTrip ? (
+                  `${item.spare_kg}kg / ${item.spare_volume_liters}L`
+                ) : (
+                  <CurrencyDisplay
+                    amount={item.max_reward || 0}
+                    showSecondary={false}
+                  />
+                )}
               </div>
             </div>
           </div>
 
           {/* Trust Badges */}
-          <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex flex-wrap items-center gap-2">
             <TrustBadges
               id_verified={item.user_verified_identity || false}
               email_verified={true} // Assume verified if user exists
@@ -239,7 +175,7 @@ export function FeedDetailModal({ item, open, onClose }: FeedDetailModalProps) {
             <div className="pt-2">
               <WatchlistButton
                 userId={currentUser.id}
-                type={isTrip ? 'route' : 'item'}
+                type={isTrip ? "route" : "item"}
                 payload={
                   isTrip
                     ? {
@@ -251,7 +187,7 @@ export function FeedDetailModal({ item, open, onClose }: FeedDetailModalProps) {
                         from_location: item.from_location,
                         to_location: item.to_location,
                         request_id: item.id,
-                        title: 'Request',
+                        title: "Request",
                       }
                 }
                 size="sm"
@@ -259,42 +195,15 @@ export function FeedDetailModal({ item, open, onClose }: FeedDetailModalProps) {
             </div>
           )}
 
-          {/* Message Button - Show if user is involved in the post */}
-          {isInvolved && (
-            <div className="pt-4 border-t">
+          {/* Message Button - Show for all users (involved users see their messages, others can message the post owner) */}
+          {currentUser?.id && (
+            <div className="border-t pt-4">
               <Button
                 onClick={() => setShowMessageThread(true)}
                 className="w-full bg-teal-600 hover:bg-teal-700"
               >
                 <MessageCircle className="mr-2 h-4 w-4" />
-                Open Messages
-              </Button>
-            </div>
-          )}
-
-          {/* WhatsApp Button for non-involved users */}
-          {!isInvolved && userProfile?.phone && (
-            <div className="pt-4 border-t">
-              <WhatsAppButton
-                phone={userProfile.phone}
-                title={isTrip ? "Trip" : "Request"}
-                origin={item.from_location}
-                destination={item.to_location}
-                className="w-full bg-green-600 hover:bg-green-700"
-              />
-            </div>
-          )}
-          
-          {/* Fallback to message if no phone */}
-          {!isInvolved && !userProfile?.phone && (
-            <div className="pt-4 border-t">
-              <Button
-                onClick={handleMessage}
-                disabled={loading}
-                className="w-full bg-teal-600 hover:bg-teal-700"
-              >
-                <MessageCircle className="mr-2 h-4 w-4" />
-                {loading ? "Loading..." : "Message"}
+                {isInvolved ? "Open Messages" : "Message"}
               </Button>
             </div>
           )}
@@ -302,7 +211,7 @@ export function FeedDetailModal({ item, open, onClose }: FeedDetailModalProps) {
 
         {/* Suggested Matches */}
         {currentUser?.id && (
-          <div className="pt-4 border-t mt-4">
+          <div className="mt-4 border-t pt-4">
             <SuggestedMatches
               postType={item.type}
               postId={item.id}
@@ -326,4 +235,3 @@ export function FeedDetailModal({ item, open, onClose }: FeedDetailModalProps) {
     </Dialog>
   );
 }
-

@@ -124,6 +124,7 @@ Try clicking "Continue with Apple" on your login page.
 ### "Unsupported provider: provider is not enabled"
 
 This means the provider isn't enabled in Supabase:
+
 1. Go to Supabase Dashboard → **Authentication** → **Providers**
 2. Find the provider (Google/Apple)
 3. Toggle it **ON**
@@ -147,6 +148,7 @@ This means the provider isn't enabled in Supabase:
 ## For Development (Localhost)
 
 For local development, you may need to:
+
 1. Add `http://localhost:3000` to authorized domains in Google/Apple
 2. Use Supabase's local development setup, or
 3. Test OAuth on your deployed Vercel URL instead
@@ -158,4 +160,3 @@ For local development, you may need to:
 - **Magic Link** (passwordless email) is already enabled by default in Supabase
 - **Password login** is now available in the login page (toggle between "Password" and "Magic Link")
 - OAuth providers are optional - you can use just email/password or magic links if preferred
-

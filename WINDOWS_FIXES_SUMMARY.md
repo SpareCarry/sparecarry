@@ -11,6 +11,7 @@ All Windows-specific issues preventing the beta test script from running have be
 **Problem**: `NEXT_PUBLIC_APP_ENV=staging next build` doesn't work on Windows PowerShell/CMD.
 
 **Solution**:
+
 - Added `cross-env` to `package.json` devDependencies
 - Updated all build scripts to use `cross-env`:
   - `build:staging`: `cross-env NEXT_PUBLIC_APP_ENV=staging next build`
@@ -19,6 +20,7 @@ All Windows-specific issues preventing the beta test script from running have be
   - `mobile:build:production`: Updated to use `cross-env`
 
 **Files Modified**:
+
 - `package.json`
 
 ### 2. ✅ Git Preflight Check (Non-Blocking)
@@ -26,11 +28,13 @@ All Windows-specific issues preventing the beta test script from running have be
 **Problem**: Git working directory check was failing and blocking the preflight process.
 
 **Solution**:
+
 - Changed Git status check from `check()` to `warn()` in `preflight-beta.js`
 - Git uncommitted changes now show as a warning, not a failure
 - Preflight continues even if Git is not available or has uncommitted changes
 
 **Files Modified**:
+
 - `scripts/preflight-beta.js`
 
 ### 3. ✅ WSL/Bash Dependency Removal
@@ -38,6 +42,7 @@ All Windows-specific issues preventing the beta test script from running have be
 **Problem**: Scripts were calling `bash` and `.sh` files which require WSL on Windows.
 
 **Solution**:
+
 - Created Windows-compatible Node.js versions:
   - `scripts/migrate-staging-db.js` (replaces `migrate-staging-db.sh`)
   - `scripts/final_qa_script.js` (replaces `final_qa_script.sh`)
@@ -47,10 +52,12 @@ All Windows-specific issues preventing the beta test script from running have be
 - Updated `scripts/run-full-beta-test.ps1` to call Node.js scripts directly
 
 **Files Created**:
+
 - `scripts/migrate-staging-db.js`
 - `scripts/final_qa_script.js`
 
 **Files Modified**:
+
 - `package.json`
 - `scripts/run-full-beta-test.ps1`
 
@@ -59,12 +66,14 @@ All Windows-specific issues preventing the beta test script from running have be
 **Status**: Previously fixed in earlier session.
 
 **Verification**:
+
 - `lib/flags/unleashClient.ts` uses `typeof window !== 'undefined'` checks
 - `lib/utils/capacitor-safe.ts` provides SSR-safe utilities
 - `next.config.mjs` excludes Capacitor modules from server-side bundle
 - All Capacitor imports are dynamically loaded client-side only
 
 **Files Verified**:
+
 - `lib/flags/unleashClient.ts` ✅
 - `lib/utils/capacitor-safe.ts` ✅
 - `next.config.mjs` ✅
@@ -74,16 +83,20 @@ All Windows-specific issues preventing the beta test script from running have be
 **Status**: Previously fixed in earlier session.
 
 **Verification**:
+
 - `lib/logger/index.ts` uses dynamic imports for Sentry
 - `next.config.mjs` excludes `@sentry/nextjs` from server-side bundle
 
 ## Installation Steps
 
 1. **Install cross-env**:
+
    ```powershell
    npm install --save-dev cross-env
    ```
+
    Or if using pnpm:
+
    ```powershell
    pnpm add -D cross-env
    ```
@@ -111,6 +124,7 @@ All Windows-specific issues preventing the beta test script from running have be
 ## Next Steps
 
 1. **Install dependencies**:
+
    ```powershell
    npm install
    # or
@@ -118,12 +132,15 @@ All Windows-specific issues preventing the beta test script from running have be
    ```
 
 2. **Test development server**:
+
    ```powershell
    pnpm dev
    ```
+
    Should start without Capacitor or Sentry errors.
 
 3. **Run beta test suite**:
+
    ```powershell
    .\scripts\run-full-beta-test.ps1 -SkipMobile -SkipLoadTest
    ```
@@ -136,16 +153,19 @@ All Windows-specific issues preventing the beta test script from running have be
 ## Files Changed
 
 ### Created
+
 - `scripts/migrate-staging-db.js` - Windows-compatible migration script
 - `scripts/final_qa_script.js` - Windows-compatible QA script
 - `WINDOWS_FIXES_SUMMARY.md` - This document
 
 ### Modified
+
 - `package.json` - Added cross-env, updated scripts
 - `scripts/preflight-beta.js` - Made Git check non-blocking
 - `scripts/run-full-beta-test.ps1` - Updated to use Node.js scripts
 
 ### Verified (No Changes Needed)
+
 - `lib/flags/unleashClient.ts` - Already has SSR guards
 - `lib/utils/capacitor-safe.ts` - Already provides SSR-safe utilities
 - `next.config.mjs` - Already excludes Capacitor/Sentry from SSR
@@ -171,4 +191,3 @@ If you encounter any issues:
 ---
 
 **Status**: ✅ All Windows compatibility issues resolved. Ready for Windows development and testing.
-

@@ -41,15 +41,15 @@ export function CreditBanner() {
             .eq("user_id", user.id)
             .single(),
         ]);
-        
-        if (userResult.error && userResult.error.code !== 'PGRST116') {
+
+        if (userResult.error && userResult.error.code !== "PGRST116") {
           console.warn("Error fetching user referral code:", userResult.error);
         }
-        
-        if (profileResult.error && profileResult.error.code !== 'PGRST116') {
+
+        if (profileResult.error && profileResult.error.code !== "PGRST116") {
           console.warn("Error fetching profile credits:", profileResult.error);
         }
-        
+
         return {
           referral_code: userResult.data?.referral_code || null,
           referral_credit_cents: profileResult.data?.referral_credit_cents || 0,
@@ -72,18 +72,24 @@ export function CreditBanner() {
   }
 
   return (
-    <Card className="border-teal-200 bg-gradient-to-r from-teal-50 to-blue-50 mb-4">
+    <Card className="mb-4 border-teal-200 bg-gradient-to-r from-teal-50 to-blue-50">
       <CardContent className="pt-6">
-        <div className="flex items-center justify-between flex-wrap gap-4">
+        <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="flex-shrink-0 w-12 h-12 bg-teal-100 rounded-full flex items-center justify-center">
+            <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-teal-100">
               <Gift className="h-6 w-6 text-teal-600" />
             </div>
             <div>
               <div className="text-2xl font-bold text-slate-900">
-                You have <CurrencyDisplay amount={credits} showSecondary={false} className="inline" /> in credit 🔥
+                You have{" "}
+                <CurrencyDisplay
+                  amount={credits}
+                  showSecondary={false}
+                  className="inline"
+                />{" "}
+                in credit 🔥
               </div>
-              <p className="text-sm text-slate-600 mt-0.5">
+              <p className="mt-0.5 text-sm text-slate-600">
                 Use on platform fees or rewards • Never expires
               </p>
             </div>
@@ -100,7 +106,7 @@ export function CreditBanner() {
         </div>
 
         {showShare && referralCode && (
-          <div className="mt-4 pt-4 border-t border-teal-200">
+          <div className="mt-4 border-t border-teal-200 pt-4">
             <ShareButtons referralCode={referralCode} />
           </div>
         )}
@@ -108,4 +114,3 @@ export function CreditBanner() {
     </Card>
   );
 }
-

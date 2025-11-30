@@ -2,9 +2,9 @@
  * Optimized version of useRealtime with debouncing
  */
 
-import { useCallback, useRef } from 'react';
-import { useRealtime as useRealtimeBase } from './useRealtime';
-import type { RealtimePostgresChangesPayload } from '@supabase/supabase-js';
+import { useCallback, useRef } from "react";
+import { useRealtime as useRealtimeBase } from "./useRealtime";
+import type { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
 
 const DEBOUNCE_DELAY = 100;
 
@@ -32,4 +32,3 @@ export function useRealtimeOptimized(
     callback: debouncedCallback,
   });
 }
-

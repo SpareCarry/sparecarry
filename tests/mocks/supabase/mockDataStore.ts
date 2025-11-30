@@ -1,6 +1,6 @@
 /**
  * In-Memory Data Store for Mock Supabase
- * 
+ *
  * Provides a simple in-memory database for testing.
  */
 
@@ -67,7 +67,10 @@ export function updateMockData<T = unknown>(
 /**
  * Delete a record from a table
  */
-export function deleteMockData<T = unknown>(table: string, id: string): boolean {
+export function deleteMockData<T = unknown>(
+  table: string,
+  id: string
+): boolean {
   const records = getMockData<T>(table);
   const index = records.findIndex((record: unknown) => {
     const r = record as Record<string, unknown>;
@@ -88,4 +91,3 @@ export function deleteMockData<T = unknown>(table: string, id: string): boolean 
 export function clearMockTable(table: string): void {
   delete mockDataStore[table];
 }
-

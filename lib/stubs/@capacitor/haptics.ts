@@ -9,8 +9,7 @@ export const Haptics = {
 };
 
 export const ImpactStyle = {
-  Light: 'light',
-  Medium: 'medium',
-  Heavy: 'heavy',
+  Light: "light",
+  Medium: "medium",
+  Heavy: "heavy",
 };
-

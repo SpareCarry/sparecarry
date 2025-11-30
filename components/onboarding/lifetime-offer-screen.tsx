@@ -2,8 +2,8 @@
  * Lifetime Offer Screen - shown after signup if:
  * - User is new
  * - User doesn't have lifetime_active
- * - Global lifetime count < 1000
- * 
+ * - Global lifetime count < 100
+ *
  * Optional screen that allows users to purchase lifetime access
  * or skip to continue to the main app
  */
@@ -37,18 +37,19 @@ export function LifetimeOfferScreen({
     queryKey: ["lifetime-remaining-spots"],
     queryFn: async () => {
       try {
-        const { data, error } = await supabase
-          .rpc("get_lifetime_purchase_count");
-        
+        const { data, error } = await supabase.rpc(
+          "get_lifetime_purchase_count"
+        );
+
         if (error) {
           console.warn("Error fetching lifetime count:", error);
           return null;
         }
-        
+
         // Handle both single result and array result
         const result = Array.isArray(data) ? data[0] : data;
         const currentCount = (result as { total?: number })?.total || 0;
-        return Math.max(0, 1000 - currentCount);
+        return Math.max(0, 100 - currentCount);
       } catch (error) {
         console.warn("Exception fetching lifetime count:", error);
         return null;
@@ -63,7 +64,7 @@ export function LifetimeOfferScreen({
   // But wait for loading to finish first
   if (availabilityLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex min-h-screen items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-teal-600" />
       </div>
     );
@@ -106,10 +107,10 @@ export function LifetimeOfferScreen({
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen px-4 py-8">
-      <Card className="max-w-md w-full border-teal-200 bg-gradient-to-br from-teal-50 via-blue-50 to-white shadow-lg">
-        <CardHeader className="text-center pb-4">
-          <div className="mx-auto mb-4 w-16 h-16 bg-gradient-to-br from-blue-600 to-teal-600 rounded-full flex items-center justify-center">
+    <div className="flex min-h-screen items-center justify-center px-4 py-8">
+      <Card className="w-full max-w-md border-teal-200 bg-gradient-to-br from-teal-50 via-blue-50 to-white shadow-lg">
+        <CardHeader className="pb-4 text-center">
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-teal-600">
             <Infinity className="h-8 w-8 text-white" />
           </div>
           <CardTitle className="text-2xl font-bold text-slate-900">
@@ -118,28 +119,36 @@ export function LifetimeOfferScreen({
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Main message */}
-          <div className="text-center space-y-3">
-            <p className="text-lg text-slate-700 leading-relaxed">
-              Thanks for joining SpareCarry! To help keep the app fair, affordable, and community-powered, the first 1000 supporters can unlock Lifetime Access for a one-time $100.
+          <div className="space-y-3 text-center">
+            <p className="text-lg leading-relaxed text-slate-700">
+              Thanks for joining SpareCarry! To help keep the app fair,
+              affordable, and community-powered, the first 100 supporters can
+              unlock Lifetime Access for a one-time $100.
             </p>
-            {remainingSpots !== null && remainingSpots !== undefined && remainingSpots > 0 && (
-              <p className="text-sm text-blue-600 font-semibold">
-                Only {remainingSpots} {remainingSpots === 1 ? 'spot' : 'spots'} left!
-              </p>
-            )}
+            {remainingSpots !== null &&
+              remainingSpots !== undefined &&
+              remainingSpots > 0 && (
+                <p className="text-sm font-semibold text-blue-600">
+                  Only {remainingSpots}{" "}
+                  {remainingSpots === 1 ? "spot" : "spots"} left!
+                </p>
+              )}
           </div>
 
           {/* Support message */}
-          <div className="p-4 bg-slate-50 rounded-lg border border-slate-200">
-            <p className="text-xs text-slate-600 text-center leading-relaxed">
-              Your support helps keep SpareCarry fair, affordable, and community-powered.
+          <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+            <p className="text-center text-xs leading-relaxed text-slate-600">
+              Your support helps keep SpareCarry fair, affordable, and
+              community-powered.
             </p>
           </div>
 
           {/* Benefits preview */}
           <div className="space-y-2">
-            <p className="text-sm font-semibold text-slate-900">All Pro benefits included:</p>
-            <ul className="text-xs text-slate-600 space-y-1">
+            <p className="text-sm font-semibold text-slate-900">
+              All Pro benefits included:
+            </p>
+            <ul className="space-y-1 text-xs text-slate-600">
               <li>• Lower SpareCarry service fees</li>
               <li>• Faster match priority</li>
               <li>• Priority chat support</li>
@@ -152,7 +161,7 @@ export function LifetimeOfferScreen({
             <Button
               onClick={handleGetLifetime}
               disabled={loading}
-              className="w-full bg-gradient-to-r from-blue-600 to-teal-600 hover:from-blue-700 hover:to-teal-700 text-white h-12 text-base font-semibold"
+              className="h-12 w-full bg-gradient-to-r from-blue-600 to-teal-600 text-base font-semibold text-white hover:from-blue-700 hover:to-teal-700"
             >
               {loading ? (
                 <>
@@ -171,14 +180,14 @@ export function LifetimeOfferScreen({
               onClick={handleSkip}
               disabled={loading}
               variant="outline"
-              className="w-full h-12 text-base"
+              className="h-12 w-full text-base"
             >
               <X className="mr-2 h-4 w-4" />
               Skip for now
             </Button>
           </div>
 
-          <p className="text-xs text-center text-slate-500 pt-2">
+          <p className="pt-2 text-center text-xs text-slate-500">
             No pressure. You can always upgrade later from your profile.
           </p>
         </CardContent>
@@ -186,4 +195,3 @@ export function LifetimeOfferScreen({
     </div>
   );
 }
-

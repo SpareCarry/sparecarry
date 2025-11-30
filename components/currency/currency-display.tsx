@@ -3,7 +3,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { createClient } from "../../lib/supabase/client";
 import { useUser } from "../../hooks/useUser";
-import { formatCurrencyWithConversion, detectUserCurrency } from "../../lib/utils/currency";
+import {
+  formatCurrencyWithConversion,
+  detectUserCurrency,
+} from "../../lib/utils/currency";
 import { cn } from "../../lib/utils";
 
 interface CurrencyDisplayProps {
@@ -20,7 +23,7 @@ export function CurrencyDisplay({
   showSecondary = true,
 }: CurrencyDisplayProps) {
   const { user } = useUser();
-  
+
   // Use a default currency immediately to prevent flickering
   const defaultCurrency = detectUserCurrency();
 
@@ -28,7 +31,7 @@ export function CurrencyDisplay({
     queryKey: ["user-currency", user?.id],
     queryFn: async (): Promise<string> => {
       if (!user) return defaultCurrency;
-      
+
       // Create client inside queryFn to avoid creating it on every render
       const supabase = createClient();
       const { data, error } = await supabase
@@ -36,14 +39,22 @@ export function CurrencyDisplay({
         .select("preferred_currency")
         .eq("user_id", user.id)
         .single();
-      
-      if (error && error.code !== 'PGRST116') {
+
+      if (error && error.code !== "PGRST116") {
         console.warn("Error fetching preferred currency:", error);
         return defaultCurrency;
       }
-      
-      const currency = (data as { preferred_currency?: string } | null)?.preferred_currency;
-      return currency || defaultCurrency;
+
+      // Always prioritize user's preferred currency if set
+      // This ensures currency stays consistent regardless of location/IP
+      const currency = (data as { preferred_currency?: string } | null)
+        ?.preferred_currency;
+      if (currency) {
+        return currency; // Use user's preference, ignore browser locale
+      }
+
+      // Only use browser locale as fallback if user hasn't set a preference
+      return defaultCurrency;
     },
     enabled: !!user,
     staleTime: 5 * 60 * 1000, // Cache for 5 minutes
@@ -55,7 +66,11 @@ export function CurrencyDisplay({
 
   // Always use a currency value - never undefined
   const currency = userCurrency ?? defaultCurrency;
-  const formatted = formatCurrencyWithConversion(amount, currency, originalCurrency);
+  const formatted = formatCurrencyWithConversion(
+    amount,
+    currency,
+    originalCurrency
+  );
 
   return (
     <span className={cn("inline-flex flex-col", className)}>
@@ -66,4 +81,3 @@ export function CurrencyDisplay({
     </span>
   );
 }
-

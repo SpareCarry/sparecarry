@@ -2,28 +2,33 @@
  * Validation utilities for ensuring all selectors are valid and stable
  */
 
-import type { Page } from '@playwright/test';
+import type { Page } from "@playwright/test";
 
 /**
  * List of all critical selectors used in tests
  */
 export const CRITICAL_SELECTORS = {
   // Landing page
-  landingPagePlaneButton: "button[name*='traveling by Plane'], button:has-text('I\\'m traveling by Plane')",
-  landingPageBoatButton: "button[name*='sailing by Boat'], button:has-text('I\\'m sailing by Boat')",
-  
+  landingPagePlaneButton:
+    "button[name*='traveling by Plane'], button:has-text('I\\'m traveling by Plane')",
+  landingPageBoatButton:
+    "button[name*='sailing by Boat'], button:has-text('I\\'m sailing by Boat')",
+
   // Login page
-  loginPageHeading: "text=/Welcome to CarrySpace/i, h1:has-text('Welcome to CarrySpace')",
-  loginPageEmailInput: "input[type='email'], [aria-label*='email' i], [label*='email' i]",
-  loginPageSubmitButton: "button[type='submit'], button:has-text('Send Magic Link')",
+  loginPageHeading:
+    "text=/Welcome to CarrySpace/i, h1:has-text('Welcome to CarrySpace')",
+  loginPageEmailInput:
+    "input[type='email'], [aria-label*='email' i], [label*='email' i]",
+  loginPageSubmitButton:
+    "button[type='submit'], button:has-text('Send Magic Link')",
   loginPageSuccessMessage: "div.bg-teal-50, text=/check your email/i",
   loginPageErrorMessage: "div.bg-red-50, text=/error|failed/i",
   loginPageSignupLink: "a[href*='/auth/signup'], link:has-text('Sign up')",
-  
+
   // Feed page
   feedPageHeading: "h1:has-text('Browse'), heading[name*='Browse' i]",
   feedPageBrowseLink: "a[href='/home'], link:has-text('Browse')",
-  
+
   // Navigation
   navigationBrowseLink: "a[href='/home'], link:has-text('Browse')",
 } as const;
@@ -41,11 +46,11 @@ export async function validateSelectors(
 }> {
   const missing: string[] = [];
   const found: string[] = [];
-  
+
   for (const [name, selector] of Object.entries(selectors)) {
     const selectorsList = Array.isArray(selector) ? selector : [selector];
     let foundAny = false;
-    
+
     for (const sel of selectorsList) {
       try {
         const count = await page.locator(sel).count();
@@ -59,12 +64,12 @@ export async function validateSelectors(
         console.warn(`Invalid selector "${sel}" for ${name}:`, e);
       }
     }
-    
+
     if (!foundAny) {
       missing.push(name);
     }
   }
-  
+
   return {
     valid: missing.length === 0,
     missing,
@@ -92,8 +97,8 @@ export function isStableSelector(selector: string): boolean {
     /getByLabel\(/,
     /getByTestId\(/,
   ];
-  
-  return stablePatterns.some(pattern => pattern.test(selector));
+
+  return stablePatterns.some((pattern) => pattern.test(selector));
 }
 
 /**
@@ -107,7 +112,6 @@ export function isFragileSelector(selector: string): boolean {
     /\.[a-z-]+/, // CSS classes
     />>>/, // Complex selectors
   ];
-  
-  return fragilePatterns.some(pattern => pattern.test(selector));
-}
 
+  return fragilePatterns.some((pattern) => pattern.test(selector));
+}

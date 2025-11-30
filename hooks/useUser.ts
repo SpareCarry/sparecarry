@@ -15,24 +15,35 @@ export function useUser() {
   // Memoize supabase client to prevent creating new instances
   const supabase = useMemo(() => createClient(), []);
 
-  const { data: user, isLoading, error } = useQuery<User | null>({
+  const {
+    data: user,
+    isLoading,
+    error,
+  } = useQuery<User | null>({
     queryKey: ["current-user"],
     queryFn: async () => {
       // TEST MODE: Check for test user in window (set by Playwright)
-      if (typeof window !== 'undefined' && (window as any).__PLAYWRIGHT_TEST_MODE__ && (window as any).__TEST_USER__) {
+      if (
+        typeof window !== "undefined" &&
+        (window as any).__PLAYWRIGHT_TEST_MODE__ &&
+        (window as any).__TEST_USER__
+      ) {
         const testUser = (window as any).__TEST_USER__;
-        console.log('[useUser] Using test user:', testUser?.email);
+        console.log("[useUser] Using test user:", testUser?.email);
         return testUser;
       }
 
       try {
-        const { data: { user }, error } = await supabase.auth.getUser();
-        
+        const {
+          data: { user },
+          error,
+        } = await supabase.auth.getUser();
+
         if (error) {
           console.warn("Error getting user:", error);
           return null;
         }
-        
+
         return user;
       } catch (error: any) {
         console.warn("Exception getting user:", error);
@@ -57,4 +68,3 @@ export function useUser() {
     isAuthenticated: !!user,
   };
 }
-

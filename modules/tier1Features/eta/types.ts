@@ -5,7 +5,7 @@
 export interface EtaResult {
   estimatedHours: number;
   estimatedDays: number;
-  method: 'plane' | 'boat' | 'manual';
+  method: "plane" | "boat" | "manual";
   isManual?: boolean;
   manualDays?: number;
 }
@@ -15,4 +15,3 @@ export interface Location {
   longitude: number;
   name?: string;
 }
-

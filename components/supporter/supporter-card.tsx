@@ -31,15 +31,20 @@ export function SupporterCard() {
       try {
         const { data, error } = await supabase
           .from("users")
-          .select("supporter_status, supporter_purchased_at, supporter_expires_at")
+          .select(
+            "supporter_status, supporter_purchased_at, supporter_expires_at"
+          )
           .eq("id", user.id)
           .single();
-        
+
         // If record doesn't exist, return null instead of throwing
-        if (error && (error.code === 'PGRST116' || error.message?.includes('No rows'))) {
+        if (
+          error &&
+          (error.code === "PGRST116" || error.message?.includes("No rows"))
+        ) {
           return null;
         }
-        
+
         if (error) {
           console.warn("Error fetching supporter status:", error);
           return null; // Return null instead of throwing
@@ -88,48 +93,55 @@ export function SupporterCard() {
       <CardContent className="space-y-4">
         {isSupporter ? (
           <>
-            <div className="p-4 bg-gradient-to-r from-blue-50 to-teal-50 border border-blue-200 rounded-lg">
-              <div className="flex items-center gap-2 mb-2">
+            <div className="rounded-lg border border-blue-200 bg-gradient-to-r from-blue-50 to-teal-50 p-4">
+              <div className="mb-2 flex items-center gap-2">
                 <CheckCircle2 className="h-5 w-5 text-blue-600" />
                 <span className="font-semibold text-blue-900">
                   You&apos;re a Supporter!
                 </span>
               </div>
               <p className="text-sm text-blue-800">
-                Thank you for supporting SpareCarry! Your benefits are active until{" "}
+                Thank you for supporting SpareCarry! Your benefits are active
+                until{" "}
                 {userData?.supporter_expires_at
-                  ? new Date(userData.supporter_expires_at).toLocaleDateString("en-US", {
-                      month: "long",
-                      day: "numeric",
-                      year: "numeric",
-                    })
+                  ? new Date(userData.supporter_expires_at).toLocaleDateString(
+                      "en-US",
+                      {
+                        month: "long",
+                        day: "numeric",
+                        year: "numeric",
+                      }
+                    )
                   : "next year"}
               </p>
             </div>
 
             <div className="space-y-2">
-              <h4 className="font-semibold text-slate-900">Your Exclusive Benefits:</h4>
+              <h4 className="font-semibold text-slate-900">
+                Your Exclusive Benefits:
+              </h4>
               <ul className="space-y-2 text-sm text-slate-700">
                 <li className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-blue-600 flex-shrink-0" />
+                  <CheckCircle2 className="h-4 w-4 flex-shrink-0 text-blue-600" />
                   <span>0% platform fees forever</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-blue-600 flex-shrink-0" />
+                  <CheckCircle2 className="h-4 w-4 flex-shrink-0 text-blue-600" />
                   <span>
-                    <SupporterBadge size="sm" /> Blue anchor badge + &quot;Supporter&quot; title
+                    <SupporterBadge size="sm" /> Blue anchor badge +
+                    &quot;Supporter&quot; title
                   </span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-blue-600 flex-shrink-0" />
+                  <CheckCircle2 className="h-4 w-4 flex-shrink-0 text-blue-600" />
                   <span>Priority listing (appear first in match feed)</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-blue-600 flex-shrink-0" />
+                  <CheckCircle2 className="h-4 w-4 flex-shrink-0 text-blue-600" />
                   <span>Dark mode / light mode toggle (early access)</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-blue-600 flex-shrink-0" />
+                  <CheckCircle2 className="h-4 w-4 flex-shrink-0 text-blue-600" />
                   <span>Name in &quot;Hall of Fame&quot; page</span>
                 </li>
               </ul>
@@ -146,51 +158,60 @@ export function SupporterCard() {
           </>
         ) : (
           <>
-            <div className="text-center py-4">
-              <div className="inline-flex items-center justify-center mb-3">
+            <div className="py-4 text-center">
+              <div className="mb-3 inline-flex items-center justify-center">
                 <SupporterBadge size="lg" />
               </div>
-              <h3 className="text-2xl font-bold text-slate-900 mb-2">
+              <h3 className="mb-2 text-2xl font-bold text-slate-900">
                 Become a Supporter
               </h3>
-              <p className="text-slate-600 mb-4">
+              <p className="mb-4 text-slate-600">
                 Join the early backers who are building SpareCarry with us
               </p>
-              <div className="text-3xl font-bold text-blue-600 mb-1">$39</div>
-              <p className="text-sm text-slate-500 mb-6">per year • one-time payment</p>
+              <div className="mb-1 text-3xl font-bold text-blue-600">$39</div>
+              <p className="mb-6 text-sm text-slate-500">
+                per year • one-time payment
+              </p>
             </div>
 
-            <div className="space-y-2 mb-6">
-              <h4 className="font-semibold text-slate-900">Exclusive Benefits:</h4>
+            <div className="mb-6 space-y-2">
+              <h4 className="font-semibold text-slate-900">
+                Exclusive Benefits:
+              </h4>
               <ul className="space-y-2 text-sm text-slate-700">
                 <li className="flex items-start gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                  <CheckCircle2 className="mt-0.5 h-4 w-4 flex-shrink-0 text-blue-600" />
                   <span>
-                    <strong>0% platform fees forever</strong> – save 15–18% on every delivery
+                    <strong>0% platform fees forever</strong> – save 15–18% on
+                    every delivery
                   </span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                  <CheckCircle2 className="mt-0.5 h-4 w-4 flex-shrink-0 text-blue-600" />
                   <span>
-                    <SupporterBadge size="sm" /> Blue anchor badge + &quot;Supporter&quot; title
+                    <SupporterBadge size="sm" /> Blue anchor badge +
+                    &quot;Supporter&quot; title
                   </span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                  <CheckCircle2 className="mt-0.5 h-4 w-4 flex-shrink-0 text-blue-600" />
                   <span>
-                    <strong>Priority listing</strong> – appear first in match feed
+                    <strong>Priority listing</strong> – appear first in match
+                    feed
                   </span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                  <CheckCircle2 className="mt-0.5 h-4 w-4 flex-shrink-0 text-blue-600" />
                   <span>
-                    <strong>Dark mode toggle</strong> – early access to theme switching
+                    <strong>Dark mode toggle</strong> – early access to theme
+                    switching
                   </span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                  <CheckCircle2 className="mt-0.5 h-4 w-4 flex-shrink-0 text-blue-600" />
                   <span>
-                    <strong>Hall of Fame</strong> – your name on the supporters page
+                    <strong>Hall of Fame</strong> – your name on the supporters
+                    page
                   </span>
                 </li>
               </ul>
@@ -199,7 +220,7 @@ export function SupporterCard() {
             <Button
               onClick={handleBecomeSupporter}
               disabled={loading}
-              className="w-full bg-gradient-to-r from-blue-600 to-teal-600 hover:from-blue-700 hover:to-teal-700 text-white font-semibold h-12 text-base"
+              className="h-12 w-full bg-gradient-to-r from-blue-600 to-teal-600 text-base font-semibold text-white hover:from-blue-700 hover:to-teal-700"
             >
               {loading ? (
                 <>
@@ -214,7 +235,7 @@ export function SupporterCard() {
               )}
             </Button>
 
-            <p className="text-xs text-center text-slate-500">
+            <p className="text-center text-xs text-slate-500">
               One-time payment • No recurring charges • Cancel anytime
             </p>
           </>
@@ -223,4 +244,3 @@ export function SupporterCard() {
     </Card>
   );
 }
-

@@ -1,10 +1,10 @@
 /**
  * Mock Auth State Management
- * 
+ *
  * Manages authentication state for mock Supabase client
  */
 
-import type { MockUser, MockSession, MockSubscription } from './types';
+import type { MockUser, MockSession, MockSubscription } from "./types";
 
 interface AuthStateChangeCallback {
   (event: string, session: MockSession | null): void;
@@ -22,7 +22,10 @@ class MockAuthStateManager {
     this.listeners.set(id, callback);
 
     // Immediately call with current state
-    callback(this.currentSession ? 'SIGNED_IN' : 'SIGNED_OUT', this.currentSession);
+    callback(
+      this.currentSession ? "SIGNED_IN" : "SIGNED_OUT",
+      this.currentSession
+    );
 
     return {
       unsubscribe: () => {
@@ -40,13 +43,13 @@ class MockAuthStateManager {
   setUser(user: MockUser, session: MockSession): void {
     this.currentUser = user;
     this.currentSession = session;
-    this.notifyListeners('SIGNED_IN', session);
+    this.notifyListeners("SIGNED_IN", session);
   }
 
   clearUser(): void {
     this.currentUser = null;
     this.currentSession = null;
-    this.notifyListeners('SIGNED_OUT', null);
+    this.notifyListeners("SIGNED_OUT", null);
   }
 
   reset(): void {
@@ -59,4 +62,3 @@ class MockAuthStateManager {
 }
 
 export const mockAuthState = new MockAuthStateManager();
-

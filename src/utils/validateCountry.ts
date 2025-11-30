@@ -1,11 +1,11 @@
 /**
  * Country Validation Utility
- * 
+ *
  * Provides validation functions for country ISO codes.
  * Used both client-side and server-side.
  */
 
-import { COUNTRIES, Country, getCountryByIso2 } from '../constants/countries';
+import { COUNTRIES, Country, getCountryByIso2 } from "../constants/countries";
 
 /**
  * Validate ISO2 country code
@@ -13,7 +13,7 @@ import { COUNTRIES, Country, getCountryByIso2 } from '../constants/countries';
  * @returns true if valid, false otherwise
  */
 export function isValidIso2(code: string): boolean {
-  if (!code || typeof code !== 'string' || code.length !== 2) {
+  if (!code || typeof code !== "string" || code.length !== 2) {
     return false;
   }
   return getCountryByIso2(code) !== undefined;
@@ -25,7 +25,7 @@ export function isValidIso2(code: string): boolean {
  * @returns true if valid, false otherwise
  */
 export function isValidIso3(code: string): boolean {
-  if (!code || typeof code !== 'string' || code.length !== 3) {
+  if (!code || typeof code !== "string" || code.length !== 3) {
     return false;
   }
   const country = COUNTRIES.find(
@@ -52,4 +52,3 @@ export function normalizeIso2(code: string): string | null {
   }
   return code.toUpperCase();
 }
-

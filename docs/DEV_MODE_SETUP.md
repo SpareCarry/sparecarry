@@ -13,11 +13,13 @@ Dev mode allows you to skip authentication and go straight to the home screen fo
 ### Enable Dev Mode
 
 1. Create or update `apps/mobile/.env`:
+
 ```env
 EXPO_PUBLIC_DEV_MODE=true
 ```
 
 2. Restart the Expo dev server:
+
 ```bash
 pnpm dev:mobile
 ```
@@ -38,11 +40,13 @@ pnpm dev:mobile
 ### Enable Dev Mode
 
 1. Add to `.env.local`:
+
 ```env
 NEXT_PUBLIC_DEV_MODE=true
 ```
 
 2. Restart the dev server:
+
 ```bash
 pnpm dev:web
 ```
@@ -76,6 +80,7 @@ pnpm dev:web
 ### Before Production
 
 **Checklist:**
+
 - [ ] `EXPO_PUBLIC_DEV_MODE` is not set or set to `false`
 - [ ] `NEXT_PUBLIC_DEV_MODE` is not set or set to `false`
 - [ ] No yellow dev mode banner visible
@@ -92,12 +97,13 @@ pnpm dev:web
 ## Troubleshooting
 
 **Dev mode not working?**
+
 - Make sure you restarted the dev server after changing env vars
 - Check that the env variable is set correctly (case-sensitive)
 - Verify you're not in production mode (`NODE_ENV=production`)
 
 **Can't disable dev mode?**
+
 - Remove the env variable completely (don't just set to false)
 - Clear `.next` cache: `rm -rf .next`
 - Restart the dev server
-

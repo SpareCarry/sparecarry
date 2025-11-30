@@ -11,6 +11,7 @@ We've been fixing E2E test failures in a Playwright test suite. Here's where we 
 ## ✅ COMPLETED (155/161 tests passing - 96.3% pass rate)
 
 ### Fixed Test Suites:
+
 1. **Promo Card Tests** (`promo-card.spec.ts`) - 6/6 ✅
    - Fixed navigation to `/home` instead of `/`
    - Added test mode setup
@@ -48,16 +49,18 @@ We've been fixing E2E test failures in a Playwright test suite. Here's where we 
 ## 🚧 REMAINING ISSUES (6 failures)
 
 ### 1. Auto Category Test (`auto-category.spec.ts:46`)
+
 - **Test**: "should auto-detect clothing category"
 - **Error**: `TimeoutError: locator.inputValue: Timeout 15000ms exceeded` waiting for `input[name="title"]`
 - **Issue**: Title input not found/visible when test tries to read value
 - **Likely Cause**: Form not fully loaded or element selector issue
-- **Action Needed**: 
+- **Action Needed**:
   - Check if form is fully loaded before accessing input
   - Verify selector matches actual form structure
   - Add proper wait conditions
 
 ### 2. Beta Testing Flow (`beta-testing-flow.spec.ts:76`)
+
 - **Test**: "should complete shipping estimator → job creation flow"
 - **Error**: `TimeoutError: locator.waitFor: Timeout 5000ms exceeded` waiting for `getByText('United States')`
 - **Issue**: Country dropdown not appearing in `selectCountry()` helper
@@ -68,7 +71,8 @@ We've been fixing E2E test failures in a Playwright test suite. Here's where we 
   - Verify CountrySelect component is working correctly
 
 ### 3-5. Idea Suggestion Flow (`idea-suggestion.spec.ts`) - 3 tests failing
-- **Tests**: 
+
+- **Tests**:
   - "user can navigate to suggest idea from profile" (line 22)
   - "user can submit an idea suggestion" (line 39)
   - "form validation works correctly" (line 61)
@@ -82,12 +86,14 @@ We've been fixing E2E test failures in a Playwright test suite. Here's where we 
   - Update tests to use test mode pattern like other suites
 
 ### 6. Job Posting Flow (`jobs.spec.ts:156`) - Previously fixed, verify still passing
+
 - **Test**: "should require prohibited items confirmation"
 - **Status**: Should be passing after our fix, but verify
 
 ## 📋 Current Test Infrastructure
 
 ### Key Helpers Available:
+
 - `enableTestMode(page, user)` - Sets up authenticated test mode
 - `waitForPageReady(page)` - Waits for page to load
 - `waitForLoadingToFinish(page)` - Waits for loaders to disappear
@@ -96,12 +102,14 @@ We've been fixing E2E test failures in a Playwright test suite. Here's where we 
 - `setupComprehensiveMocks(page)` - Comprehensive API mocking
 
 ### Playwright Configuration:
+
 - Test timeout: 90s
 - Action timeout: 15s
 - Navigation timeout: 45s
 - Workers: 1 (sequential execution for stability)
 
 ### Test Files Structure:
+
 - `tests/e2e/flows/` - Main flow tests
 - `tests/e2e/helpers/` - Test helper functions
 - `tests/e2e/setup/` - Test setup utilities
@@ -110,14 +118,16 @@ We've been fixing E2E test failures in a Playwright test suite. Here's where we 
 ## 🎯 Next Steps
 
 ### Priority 1: Fix Idea Suggestion Tests (3 failures)
+
 These are the easiest - just need to add test mode setup.
 
 **File**: `tests/e2e/flows/idea-suggestion.spec.ts`
 **Fix**:
+
 ```typescript
 test.beforeEach(async ({ page, context }) => {
   await context.clearCookies();
-  await page.unroute('**');
+  await page.unroute("**");
   await setupSupabaseMocks(page);
   await setupComprehensiveMocks(page);
   await enableTestMode(page, USER_A); // ADD THIS
@@ -126,11 +136,13 @@ test.beforeEach(async ({ page, context }) => {
 ```
 
 ### Priority 2: Fix Auto Category Test
+
 - Check form loading state
 - Verify title input selector
 - Add proper waits
 
 ### Priority 3: Fix Beta Testing Flow
+
 - Improve `selectCountry()` helper timeout/detection
 - Check CountrySelect component rendering
 
@@ -160,4 +172,3 @@ Get to 100% pass rate (161/161 tests passing). Currently at 96.3% (155/161).
 ---
 
 **When resuming**: Start by running the full test suite to see current status, then fix the 6 remaining failures starting with the easiest ones (idea-suggestion tests).
-

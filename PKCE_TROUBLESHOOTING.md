@@ -7,10 +7,12 @@
 ## Why This Happens
 
 Supabase magic links now use PKCE (Proof Key for Code Exchange) flow by default. This requires:
+
 1. **Code verifier** - Generated and stored when requesting the magic link
 2. **Authorization code** - Sent in the email link
 
 The problem: When you click the magic link from your email:
+
 - The code verifier is stored in **localStorage** on the browser where you requested the link
 - If you click the link in a **different browser/device**, or **after clearing storage**, the code verifier is missing
 - This causes the PKCE error
@@ -27,6 +29,7 @@ The problem: When you click the magic link from your email:
 ### Solution 2: Store Code Verifier in Cookies (Better)
 
 The code verifier should be stored in cookies (not localStorage) so it persists across:
+
 - Different tabs
 - Email link clicks
 - Page refreshes
@@ -34,12 +37,14 @@ The code verifier should be stored in cookies (not localStorage) so it persists 
 ### Solution 3: Disable PKCE for Magic Links (If Allowed)
 
 If Supabase allows it, you can disable PKCE for magic links:
+
 - Only use PKCE for OAuth flows (Google, Apple)
 - Use regular code exchange for magic links
 
 ## Current Implementation
 
 The app now:
+
 1. ✅ Configures Supabase client with PKCE flow
 2. ✅ Uses localStorage for code verifier storage
 3. ✅ Handles both PKCE and regular flows in callback
@@ -50,6 +55,7 @@ The app now:
 ### 1. Check Terminal Logs
 
 When you click the magic link, check terminal for:
+
 ```
 Auth callback received: {
   code: "present" | "missing",
@@ -59,12 +65,14 @@ Auth callback received: {
 ```
 
 **If `codeVerifier: "missing"`:**
+
 - The code verifier wasn't stored or is in a different browser
 - Try requesting a new magic link in the same browser session
 
 ### 2. Check Browser Console
 
 When requesting a magic link, check console (F12) for:
+
 - "Sending magic link to: [email]"
 - "Callback URL: [url]"
 
@@ -89,8 +97,8 @@ This ensures the code verifier in localStorage is available.
 ## Next Steps
 
 The callback route now handles both PKCE and regular flows. If you still get the error:
+
 1. Check terminal logs for what parameters are present
 2. Try requesting a new magic link
 3. Click the link in the same browser session
 4. Share the terminal logs so we can debug further
-

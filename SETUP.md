@@ -118,7 +118,9 @@ const paymentIntent = await stripe.paymentIntents.create({
 "use client";
 import { loadStripe } from "@stripe/stripe-js";
 
-const stripe = await loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
+const stripe = await loadStripe(
+  process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
+);
 ```
 
 ## Validation with Zod
@@ -134,11 +136,13 @@ const validatedTrip = tripSchema.parse(tripData);
 ## Code Formatting
 
 Format code:
+
 ```bash
 npm run format
 ```
 
 Check formatting:
+
 ```bash
 npm run format:check
 ```
@@ -152,4 +156,3 @@ npm run format:check
 5. Add messaging UI
 6. Integrate Stripe Connect onboarding
 7. Build delivery tracking
-

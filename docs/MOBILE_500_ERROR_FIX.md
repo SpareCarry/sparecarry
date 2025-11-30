@@ -1,6 +1,7 @@
 # Mobile 500 Error Fix - Complete Guide
 
 ## Problem
+
 The mobile app was showing 500 internal server errors when testing on mobile devices via Expo Go.
 
 ## Root Causes Identified
@@ -30,16 +31,20 @@ The mobile app was showing 500 internal server errors when testing on mobile dev
 - Fallback to in-memory storage if SecureStore fails
 
 **Changes**:
+
 ```typescript
 // Before: Threw error and crashed app
 if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing env vars');
+  throw new Error("Missing env vars");
 }
 
 // After: Returns placeholder client, app continues
 if (!supabaseUrl || !supabaseAnonKey) {
-  console.warn('Creating placeholder client');
-  return createSupabaseClient('https://placeholder.supabase.co', 'placeholder-key');
+  console.warn("Creating placeholder client");
+  return createSupabaseClient(
+    "https://placeholder.supabase.co",
+    "placeholder-key"
+  );
 }
 ```
 
@@ -52,6 +57,7 @@ if (!supabaseUrl || !supabaseAnonKey) {
 - Better error logging and recovery
 
 **Changes**:
+
 ```typescript
 // Before: Module-level initialization (could crash on import)
 let supabase = createClient();
@@ -72,6 +78,7 @@ function initializeSupabase() {
 - Script to find your local IP address
 
 **Usage**:
+
 ```bash
 # Find your LAN IP
 pnpm get-lan-ip
@@ -91,6 +98,7 @@ EXPO_PUBLIC_LAN_IP=192.168.1.100
 ### Required Files
 
 1. **`apps/mobile/.env.local`** (create if missing):
+
 ```env
 EXPO_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 EXPO_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
@@ -100,15 +108,18 @@ EXPO_PUBLIC_LAN_IP=192.168.1.100  # Optional, for LAN testing
 ### Setup Steps
 
 1. **Copy environment variables from root**:
+
    ```bash
    cd apps/mobile
    pnpm sync-env
    ```
 
 2. **Get your LAN IP** (for mobile testing):
+
    ```bash
    pnpm get-lan-ip
    ```
+
    Then add `EXPO_PUBLIC_LAN_IP=your-ip` to `.env.local`
 
 3. **Verify environment variables**:
@@ -172,6 +183,7 @@ EXPO_PUBLIC_LAN_IP=192.168.1.100  # Optional, for LAN testing
 ### Issue: "Missing Supabase environment variables"
 
 **Solution**:
+
 1. Create `apps/mobile/.env.local`
 2. Add `EXPO_PUBLIC_SUPABASE_URL` and `EXPO_PUBLIC_SUPABASE_ANON_KEY`
 3. Run `pnpm sync-env` to copy from root
@@ -180,6 +192,7 @@ EXPO_PUBLIC_LAN_IP=192.168.1.100  # Optional, for LAN testing
 ### Issue: "Cannot connect to Supabase"
 
 **Solution**:
+
 1. Check internet connection
 2. Verify Supabase URL is correct
 3. Check Supabase project is active
@@ -188,6 +201,7 @@ EXPO_PUBLIC_LAN_IP=192.168.1.100  # Optional, for LAN testing
 ### Issue: "500 error on specific screen"
 
 **Solution**:
+
 1. Check Metro terminal for exact error
 2. Verify the screen file exists
 3. Check for missing imports
@@ -196,6 +210,7 @@ EXPO_PUBLIC_LAN_IP=192.168.1.100  # Optional, for LAN testing
 ### Issue: "App crashes on startup"
 
 **Solution**:
+
 1. Clear Metro cache: `pnpm start:clear`
 2. Check `_layout.tsx` for module-level errors
 3. Verify all required files exist
@@ -206,6 +221,7 @@ EXPO_PUBLIC_LAN_IP=192.168.1.100  # Optional, for LAN testing
 ### 1. Check Metro Terminal
 
 All errors are logged to the Metro terminal. Look for:
+
 - `❌` error markers
 - Stack traces
 - Environment variable warnings
@@ -213,6 +229,7 @@ All errors are logged to the Metro terminal. Look for:
 ### 2. Enable Verbose Logging
 
 Add to `apps/mobile/.env.local`:
+
 ```env
 EXPO_PUBLIC_DEBUG=true
 ```
@@ -244,15 +261,16 @@ Use React Native Debugger or Flipper to inspect network requests.
 ## Summary
 
 The 500 errors were primarily caused by:
+
 - Missing environment variables
 - Module-level code execution errors
 - Lack of graceful error handling
 
 All issues have been fixed with:
+
 - Graceful fallbacks
 - Lazy initialization
 - Better error messages
 - Comprehensive logging
 
 The app should now start successfully even if some services are unavailable, with clear error messages guiding users to fix configuration issues.
-

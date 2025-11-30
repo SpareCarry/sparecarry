@@ -1,16 +1,19 @@
 /**
  * Secure API Response Helpers
- * 
+ *
  * Provides safe response formatting that never leaks sensitive data
  */
 
-import { NextResponse } from 'next/server';
-import { sanitizeError } from './validation';
+import { NextResponse } from "next/server";
+import { sanitizeError } from "./validation";
 
 /**
  * Create a success response
  */
-export function successResponse<T>(data: T, status: number = 200): NextResponse {
+export function successResponse<T>(
+  data: T,
+  status: number = 200
+): NextResponse {
   return NextResponse.json(
     {
       success: true,
@@ -57,7 +60,7 @@ export function validationErrorResponse(
     {
       success: false,
       error: message,
-      code: 'VALIDATION_ERROR',
+      code: "VALIDATION_ERROR",
     },
     { status }
   );
@@ -70,8 +73,8 @@ export function rateLimitResponse(headers?: Headers): NextResponse {
   const response = NextResponse.json(
     {
       success: false,
-      error: 'Rate limit exceeded. Please try again later.',
-      code: 'RATE_LIMIT_EXCEEDED',
+      error: "Rate limit exceeded. Please try again later.",
+      code: "RATE_LIMIT_EXCEEDED",
     },
     {
       status: 429,
@@ -85,12 +88,14 @@ export function rateLimitResponse(headers?: Headers): NextResponse {
 /**
  * Create an authentication error response
  */
-export function authErrorResponse(message: string = 'Authentication required'): NextResponse {
+export function authErrorResponse(
+  message: string = "Authentication required"
+): NextResponse {
   return NextResponse.json(
     {
       success: false,
       error: message,
-      code: 'AUTH_ERROR',
+      code: "AUTH_ERROR",
     },
     { status: 401 }
   );
@@ -99,12 +104,14 @@ export function authErrorResponse(message: string = 'Authentication required'): 
 /**
  * Create a forbidden error response
  */
-export function forbiddenResponse(message: string = 'Access denied'): NextResponse {
+export function forbiddenResponse(
+  message: string = "Access denied"
+): NextResponse {
   return NextResponse.json(
     {
       success: false,
       error: message,
-      code: 'FORBIDDEN',
+      code: "FORBIDDEN",
     },
     { status: 403 }
   );
@@ -113,9 +120,9 @@ export function forbiddenResponse(message: string = 'Access denied'): NextRespon
 /**
  * Wrap API route handler with error handling
  */
-export function withErrorHandling<T extends (...args: any[]) => Promise<NextResponse>>(
-  handler: T
-): T {
+export function withErrorHandling<
+  T extends (...args: any[]) => Promise<NextResponse>,
+>(handler: T): T {
   return (async (...args: Parameters<T>) => {
     try {
       return await handler(...args);
@@ -124,4 +131,3 @@ export function withErrorHandling<T extends (...args: any[]) => Promise<NextResp
     }
   }) as T;
 }
-

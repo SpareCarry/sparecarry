@@ -110,7 +110,7 @@ export function GroupBuyCard({ groupBuy, onJoin }: GroupBuyCardProps) {
           </div>
           {groupBuy.discount_percent > 0 && (
             <Badge className="bg-green-100 text-green-800">
-              <Percent className="h-3 w-3 mr-1" />
+              <Percent className="mr-1 h-3 w-3" />
               {groupBuy.discount_percent}% {t("discount")}
             </Badge>
           )}
@@ -122,8 +122,8 @@ export function GroupBuyCard({ groupBuy, onJoin }: GroupBuyCardProps) {
               groupBuy.status === "open"
                 ? "default"
                 : groupBuy.status === "full"
-                ? "secondary"
-                : "outline"
+                  ? "secondary"
+                  : "outline"
             }
           >
             {t(groupBuy.status as any)}
@@ -144,4 +144,3 @@ export function GroupBuyCard({ groupBuy, onJoin }: GroupBuyCardProps) {
     </Card>
   );
 }
-

@@ -26,6 +26,7 @@
 **SpareCarry** is a peer-to-peer delivery platform connecting travelers (sailors, pilots, frequent flyers) with people who need items delivered to remote or hard-to-reach destinations. The platform enables cost-effective, community-driven shipping by leveraging spare capacity on existing travel routes.
 
 ### Key Value Propositions
+
 - **Cost Savings**: 50-80% cheaper than traditional courier services
 - **Community-Driven**: Karma points system rewards helpful travelers
 - **Flexible Options**: Plane, boat, or any method
@@ -33,6 +34,7 @@
 - **Buy & Ship Directly**: Integrated purchase options from major retailers
 
 ### Technology Stack
+
 - **Frontend**: Next.js 15 (App Router), React 18, TypeScript, Tailwind CSS
 - **Backend**: Supabase (PostgreSQL), Row Level Security (RLS)
 - **Payments**: Stripe (Connect, Subscriptions, Identity)
@@ -46,9 +48,11 @@
 ## Core Features
 
 ### 1. Location System
+
 **Purpose**: Intelligent location input and matching
 
 **Components**:
+
 - `LocationInput.tsx` - Autocomplete search with Geoapify API
 - `LocationDraggablePicker.tsx` - Interactive map pin placement
 - `LocationMapPreview.tsx` - Visual location confirmation
@@ -56,6 +60,7 @@
 - `UseCurrentLocationButton.tsx` - GPS-based location detection
 
 **Features**:
+
 - Autocomplete with debouncing (300ms delay)
 - Reverse geocoding for GPS coordinates
 - Forward geocoding for address validation
@@ -68,11 +73,13 @@
 ---
 
 ### 2. Shipping Cost Estimator
+
 **Purpose**: Compare courier prices vs SpareCarry delivery options
 
 **Location**: `app/shipping-estimator/page.tsx`
 
 **Features**:
+
 - Real-time cost calculation for courier services
 - SpareCarry Plane vs Boat price comparison
 - Premium discount calculation (0% fees for Pro subscribers)
@@ -84,6 +91,7 @@
 **Service**: `lib/services/shipping.ts` (unified shipping service)
 
 **Calculations**:
+
 - Courier rates: DHL, FedEx, UPS (via API integration)
 - Customs costs: Based on declared value and country
 - Platform fees: 12-18% (dynamic based on user history)
@@ -93,16 +101,19 @@
 ---
 
 ### 3. Karma Points System
+
 **Purpose**: Reward users for helping travelers
 
 **Implementation**: `src/utils/karma.ts`
 
 **Formula**:
+
 ```
 Karma Points = (weight_kg × 10) + (platform_fee_usd × 2)
 ```
 
 **Features**:
+
 - Automatic calculation on delivery completion
 - Display in user profiles
 - Visual tooltips explaining karma benefits
@@ -114,20 +125,24 @@ Karma Points = (weight_kg × 10) + (platform_fee_usd × 2)
 ---
 
 ### 4. Premium Features (SpareCarry Pro)
+
 **Purpose**: Subscription-based premium tier
 
 **Pricing**:
+
 - Monthly: $6.99/month
 - Yearly: $59/year (30% savings)
 - Lifetime: $100 one-time (limited availability)
 
 **Benefits**:
+
 - **0% Platform Fees**: Save 12-18% on every delivery
 - **Priority in Feed**: Posts appear first in search results
 - **Blue Check Badge**: Verified status indicator
 - **Early Access**: New features before general release
 
 **Implementation**:
+
 - Stripe subscription management
 - Webhook handlers for subscription events
 - RLS policies for premium feature access
@@ -138,20 +153,24 @@ Karma Points = (weight_kg × 10) + (platform_fee_usd × 2)
 ---
 
 ### 5. Buy & Ship Directly
+
 **Purpose**: Integrated purchase options from retailers
 
 **Retailers Supported**:
+
 - West Marine (marine equipment)
 - SVB (sailing gear)
 - Amazon (general items)
 
 **Features**:
+
 - Retailer selection in request form
 - Affiliate link generation on match
 - Shipping address sharing with traveler
 - Purchase tracking (future)
 
 **Components**:
+
 - `components/purchase/purchase-options.tsx` - Retailer selection
 - `components/purchase/purchase-link-button.tsx` - Purchase link display
 
@@ -160,9 +179,11 @@ Karma Points = (weight_kg × 10) + (platform_fee_usd × 2)
 ---
 
 ### 6. Messaging System
+
 **Purpose**: Real-time communication between requesters and travelers
 
 **Features**:
+
 - Thread-based conversations (one per match)
 - Real-time message delivery
 - Read receipts
@@ -171,12 +192,14 @@ Karma Points = (weight_kg × 10) + (platform_fee_usd × 2)
 - Push notifications
 
 **Components**:
+
 - `components/messaging/MessageThread.tsx` - Message list (optimized with React.memo)
 - `components/messaging/MessageInput.tsx` - Message composer
 - `components/messaging/MessageBadge.tsx` - Unread count indicator
 - `components/chat/message-bubble.tsx` - Individual message display
 
 **Database**:
+
 - `conversations` - One per match
 - `messages` - Individual messages with read tracking
 - `post_messages` - Alternative message system (legacy)
@@ -186,16 +209,19 @@ Karma Points = (weight_kg × 10) + (platform_fee_usd × 2)
 ---
 
 ### 7. Emergency Multiplier
+
 **Purpose**: Incentivize urgent deliveries
 
 **Implementation**: `src/utils/emergencyPricing.ts`
 
 **Tiered Bonus System**:
+
 - Base reward ≤ $20 → +25% bonus (max $5)
 - Base reward $20-$50 → +15% bonus (max $7.50)
 - Base reward > $50 → +10% bonus (max $15)
 
 **Features**:
+
 - Automatic calculation in shipping estimator
 - Visual indicator in request cards
 - Capped at $15 extra to prevent abuse
@@ -206,9 +232,11 @@ Karma Points = (weight_kg × 10) + (platform_fee_usd × 2)
 ---
 
 ### 8. Photo Upload
+
 **Purpose**: Visual item documentation
 
 **Features**:
+
 - Multiple photo uploads (up to 5 per request)
 - Supabase Storage integration
 - Image compression and optimization
@@ -216,6 +244,7 @@ Karma Points = (weight_kg × 10) + (platform_fee_usd × 2)
 - Delete functionality
 
 **Components**:
+
 - `components/forms/photo-upload.tsx` - Upload interface
 - Supabase Storage bucket: `item-photos`
 
@@ -224,9 +253,11 @@ Karma Points = (weight_kg × 10) + (platform_fee_usd × 2)
 ---
 
 ### 9. Categories
+
 **Purpose**: Organize and filter requests
 
 **Categories**:
+
 - Marine Equipment
 - Electronics
 - Clothing
@@ -236,6 +267,7 @@ Karma Points = (weight_kg × 10) + (platform_fee_usd × 2)
 - Other (manual entry)
 
 **Features**:
+
 - Auto-categorization based on title/description (future)
 - Manual category selection
 - Category filtering in feed
@@ -246,21 +278,25 @@ Karma Points = (weight_kg × 10) + (platform_fee_usd × 2)
 ---
 
 ### 10. Restricted Items Handling
+
 **Purpose**: Safety and compliance
 
 **Restricted Items**:
+
 - Lithium batteries
 - Liquids over 100ml
 - Flammable materials
 - Hazardous goods
 
 **Features**:
+
 - Automatic method restriction (plane → boat only)
 - Warning modals
 - Compliance checks
 - Traveler capability flags (`can_take_lithium_batteries`, etc.)
 
 **Components**:
+
 - `components/modals/lithium-warning-modal.tsx` - Safety warnings
 - Form validation prevents plane transport for restricted items
 
@@ -269,9 +305,11 @@ Karma Points = (weight_kg × 10) + (platform_fee_usd × 2)
 ---
 
 ### 11. Sidebar Navigation
+
 **Purpose**: Main app navigation
 
 **Sections**:
+
 - Browse (home feed)
 - Post Request
 - Post Trip
@@ -281,6 +319,7 @@ Karma Points = (weight_kg × 10) + (platform_fee_usd × 2)
 - Sign Out
 
 **Features**:
+
 - Responsive design (mobile drawer, desktop sidebar)
 - Active route highlighting
 - Unread message badges
@@ -291,19 +330,23 @@ Karma Points = (weight_kg × 10) + (platform_fee_usd × 2)
 ---
 
 ### 12. Referral Program
+
 **Purpose**: User acquisition and retention
 
 **Rewards**:
+
 - Referrer: $50 credit when referred user completes first delivery
 - Referred: $50 credit after completing first delivery
 
 **Features**:
+
 - Unique referral codes per user
 - Credit tracking in database
 - Credit application to deliveries
 - Referral stats dashboard
 
 **Database**:
+
 - `users.referral_code` - Unique code
 - `users.referred_by` - Referrer user ID
 - `users.referral_credits` - Available credits
@@ -312,9 +355,11 @@ Karma Points = (weight_kg × 10) + (platform_fee_usd × 2)
 ---
 
 ### 13. Group Buys
+
 **Purpose**: Multiple requesters share a single trip
 
 **Features**:
+
 - Organizer creates group buy for a trip
 - Participants join with their requests
 - Volume discounts
@@ -325,9 +370,11 @@ Karma Points = (weight_kg × 10) + (platform_fee_usd × 2)
 ---
 
 ### 14. Rating System
+
 **Purpose**: Build trust and reputation
 
 **Features**:
+
 - 5-star rating system
 - Optional comments
 - Rating after delivery completion
@@ -339,9 +386,11 @@ Karma Points = (weight_kg × 10) + (platform_fee_usd × 2)
 ---
 
 ### 15. Delivery Tracking
+
 **Purpose**: Proof of delivery and escrow release
 
 **Features**:
+
 - GPS location capture
 - Photo proof upload
 - Meetup location selection
@@ -390,21 +439,25 @@ lib/
 ### Key Components
 
 **Forms**:
+
 - `PostRequestForm.tsx` - Request creation (1050+ lines, optimized with useMemo)
 - `PostTripForm.tsx` - Trip creation (plane/boat)
 - Form validation with React Hook Form + Zod
 
 **Feed**:
+
 - `FeedCard.tsx` - Individual post card (optimized with React.memo)
 - Infinite scroll with pagination
 - Filtering by location, method, date
 
 **Location**:
+
 - Unified location service with caching
 - Multiple input methods (autocomplete, map, GPS)
 - Country-level matching
 
 **Performance**:
+
 - React.memo for list items
 - useMemo for expensive calculations
 - useCallback for stable function references
@@ -493,12 +546,14 @@ lib/
 ### Row Level Security (RLS) Policies
 
 **All tables have RLS enabled** with policies for:
+
 - **SELECT**: Users can view their own data + public data (trips, requests)
 - **INSERT**: Users can create their own records
 - **UPDATE**: Users can update their own records
 - **DELETE**: Users can delete their own records
 
 **Special Policies**:
+
 - Matches: Viewable by trip owner OR request owner
 - Messages: Viewable by conversation participants
 - Deliveries: Viewable by match participants
@@ -526,6 +581,7 @@ lib/
 ### Indexes
 
 Comprehensive indexing on:
+
 - Foreign keys (user_id, trip_id, request_id, etc.)
 - Location fields (from_location, to_location)
 - Status fields (status, subscription_status)
@@ -537,9 +593,11 @@ Comprehensive indexing on:
 ## External Services & APIs
 
 ### 1. Supabase
+
 **Purpose**: Backend-as-a-Service (database, auth, storage)
 
 **Services Used**:
+
 - PostgreSQL database
 - Supabase Auth (Magic Link, Google, Apple OAuth)
 - Supabase Storage (photo uploads)
@@ -547,6 +605,7 @@ Comprehensive indexing on:
 - Real-time subscriptions (future)
 
 **Configuration**:
+
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 - `SUPABASE_SERVICE_ROLE_KEY` (server-only)
@@ -554,15 +613,18 @@ Comprehensive indexing on:
 ---
 
 ### 2. Stripe
+
 **Purpose**: Payment processing and subscriptions
 
 **Products**:
+
 - SpareCarry Pro Monthly ($6.99/month)
 - SpareCarry Pro Yearly ($59/year)
 - SpareCarry Pro Lifetime ($100 one-time)
 - Supporter Tier (variable pricing)
 
 **Services Used**:
+
 - Stripe Connect (payouts to travelers)
 - Stripe Subscriptions (recurring payments)
 - Stripe Checkout (one-time payments)
@@ -570,6 +632,7 @@ Comprehensive indexing on:
 - Stripe Webhooks (event handling)
 
 **Configuration**:
+
 - `STRIPE_SECRET_KEY`
 - `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`
 - `STRIPE_WEBHOOK_SECRET`
@@ -578,6 +641,7 @@ Comprehensive indexing on:
 - `STRIPE_SUPPORTER_PRICE_ID`
 
 **Webhook Events**:
+
 - `checkout.session.completed`
 - `customer.subscription.created`
 - `customer.subscription.updated`
@@ -587,20 +651,24 @@ Comprehensive indexing on:
 ---
 
 ### 3. Geoapify API
+
 **Purpose**: Location autocomplete and geocoding
 
 **Endpoints Used**:
+
 - `/v1/geocode/autocomplete` - Address autocomplete
 - `/v1/geocode/reverse` - Reverse geocoding (lat/lng → address)
 - `/v1/geocode/search` - Forward geocoding (address → lat/lng)
 
 **Features**:
+
 - Debouncing (300ms delay)
 - Caching (24-hour TTL)
 - Country filtering
 - Result limit (20 results)
 
 **Configuration**:
+
 - `NEXT_PUBLIC_GEOAPIFY_KEY`
 
 **Service**: `lib/services/location.ts`
@@ -608,26 +676,32 @@ Comprehensive indexing on:
 ---
 
 ### 4. Google Maps API
+
 **Purpose**: Interactive maps and distance calculations
 
 **Services Used**:
+
 - Places Autocomplete (address input)
 - Distance Matrix API (route calculations)
 - Maps JavaScript API (map display)
 
 **Configuration**:
+
 - `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY`
 
 **Components**:
+
 - `LocationDraggablePicker.tsx` - Map with draggable pin
 - `LocationMapPreview.tsx` - Static map preview
 
 ---
 
 ### 5. Resend
+
 **Purpose**: Transactional email
 
 **Emails Sent**:
+
 - Welcome emails
 - Match notifications
 - Delivery confirmations
@@ -635,21 +709,25 @@ Comprehensive indexing on:
 - Subscription updates
 
 **Configuration**:
+
 - `RESEND_API_KEY`
 - `NOTIFICATIONS_EMAIL_FROM`
 
 ---
 
 ### 6. Expo Push Notifications
+
 **Purpose**: Mobile push notifications
 
 **Features**:
+
 - Match notifications
 - Message notifications
 - Delivery updates
 - Subscription reminders
 
 **Configuration**:
+
 - `EXPO_ACCESS_TOKEN`
 - `FCM_SERVER_KEY` (Android)
 
@@ -658,31 +736,38 @@ Comprehensive indexing on:
 ---
 
 ### 7. Google Analytics
+
 **Purpose**: Web analytics
 
 **Events Tracked**:
+
 - Page views
 - Custom events (post created, message sent, etc.)
 - User flows
 - Conversion tracking
 
 **Configuration**:
+
 - `NEXT_PUBLIC_GA_MEASUREMENT_ID`
 
 ---
 
 ### 8. Meta Pixel
+
 **Purpose**: Facebook/Instagram advertising tracking
 
 **Configuration**:
+
 - `NEXT_PUBLIC_META_PIXEL_ID`
 
 ---
 
 ### 9. Sentry
+
 **Purpose**: Error tracking and monitoring
 
 **Features**:
+
 - Error capture
 - Performance monitoring
 - Release tracking
@@ -695,19 +780,23 @@ Comprehensive indexing on:
 ## Security Measures
 
 ### 1. Row Level Security (RLS)
+
 **Status**: ✅ Enabled on all tables
 
 **Policies**:
+
 - Users can only access their own data
 - Public data (trips, requests) viewable by all
 - Match data accessible only by participants
 - Messages accessible only by conversation participants
 
 ### 2. Input Validation
+
 **Frontend**: Zod schemas for all forms
 **Backend**: TypeScript types + database constraints
 
 **Validation**:
+
 - Email format
 - URL format
 - Numeric ranges (weight, dimensions, rewards)
@@ -715,12 +804,15 @@ Comprehensive indexing on:
 - Country codes (ISO2)
 
 ### 3. API Key Security
+
 **Client-Side**: Only public keys exposed
 **Server-Side**: Secret keys in environment variables
 **Stripe**: Webhook signature verification
 
 ### 4. Authentication
+
 **Methods**:
+
 - Magic Link (email)
 - Google OAuth
 - Apple OAuth
@@ -729,16 +821,19 @@ Comprehensive indexing on:
 **Session Management**: Supabase Auth handles sessions
 
 ### 5. Payment Security
+
 **Escrow**: Payments held until delivery confirmation
 **Stripe**: PCI-compliant payment processing
 **Webhooks**: Signature verification for all events
 
 ### 6. Data Encryption
+
 **In Transit**: HTTPS (TLS 1.3)
 **At Rest**: Supabase encryption
 **Sensitive Data**: Encrypted in database (future: message encryption)
 
 ### 7. Function Security
+
 **Search Path**: All functions use `SET search_path = public, pg_temp;`
 **Security Context**: `SECURITY INVOKER` for user context
 **Extensions**: Moved to `extensions` schema (not `public`)
@@ -748,59 +843,73 @@ Comprehensive indexing on:
 ## Performance Optimizations
 
 ### 1. Service Consolidation
+
 **Status**: ✅ Complete
 
 **Unified Services**:
+
 - `lib/services/location.ts` - Merged locationProvider + geoapify
 - `lib/services/shipping.ts` - Merged shippingEstimator + courierRates + customsRates
 
 **Benefits**:
+
 - 60-80% reduction in API calls (caching)
 - 15-20% bundle size reduction
 - Single source of truth
 
 ### 2. Component Optimization
+
 **Status**: ✅ Partial (example implementations)
 
 **Optimized Components**:
+
 - `FeedCard.tsx` - React.memo + useMemo
 - `MessageThread.tsx` - React.memo + useMemo
 - `PostRequestForm.tsx` - useMemo for calculations
 
 **Patterns**:
+
 - React.memo for list items
 - useMemo for expensive calculations
 - useCallback for stable callbacks
 
 ### 3. Caching
+
 **Location Service**: 24-hour TTL cache
 **Shipping Service**: Lazy-loaded courier rates
 **API Calls**: Debounced (300ms)
 
 ### 4. Lazy Loading
+
 **Status**: ⚠️ Planned
 
 **Targets**:
+
 - Google Maps API
 - Photo upload modal
 - Heavy components
 
 ### 5. Image Optimization
+
 **Status**: ✅ Partial
 
 **Current**:
+
 - Next.js Image component
 - Supabase Storage compression
 
 **Planned**:
+
 - WebP format conversion
 - Responsive image sizes
 - Lazy loading
 
 ### 6. Performance Monitoring
+
 **Status**: ✅ Complete
 
 **Tools**:
+
 - Enhanced profiler (`lib/performance/enhanced-profiler.tsx`)
 - React Profiler integration
 - Network request tracking
@@ -813,10 +922,12 @@ Comprehensive indexing on:
 ## Testing Coverage
 
 ### Unit Tests
+
 **Framework**: Vitest
 **Coverage**: 13 test files
 
 **Test Files**:
+
 - `tests/karma.test.ts` - Karma calculation
 - `tests/shippingFees.test.ts` - Shipping calculations
 - `tests/stripeFees.test.ts` - Stripe fee calculations
@@ -826,10 +937,12 @@ Comprehensive indexing on:
 - `tests/unit/lib/matching/match-score.test.ts` - Matching logic
 
 ### Integration Tests
+
 **Framework**: Vitest
 **Coverage**: 6 test files
 
 **Test Files**:
+
 - `tests/integration/api/subscription-flow.test.ts`
 - `tests/integration/api/payment-flow.test.ts`
 - `tests/integration/api/auto-release.test.ts`
@@ -838,10 +951,12 @@ Comprehensive indexing on:
 - `tests/integration/api/matches/auto-match.test.ts`
 
 ### E2E Tests
+
 **Framework**: Playwright
 **Coverage**: 30+ test files
 
 **Test Suites**:
+
 - `tests/e2e/auth-flow.spec.ts` - Authentication
 - `tests/e2e/subscription-flow.spec.ts` - Premium subscriptions
 - `tests/e2e/shipping-estimator.spec.ts` - Cost calculator
@@ -857,10 +972,12 @@ Comprehensive indexing on:
 - `tests/e2e/flows/*.spec.ts` - Feature-specific flows
 
 **Mobile E2E**:
+
 - Detox (iOS/Android)
 - Configuration files present
 
 ### Test Scripts
+
 ```bash
 pnpm test              # Unit tests
 pnpm test:e2e          # E2E tests
@@ -873,9 +990,11 @@ pnpm test:coverage     # Coverage report
 ## User Engagement Mechanics
 
 ### 1. Karma Points
+
 **Purpose**: Reward helpful behavior
 
 **Earning**:
+
 - Complete deliveries
 - Help travelers
 - Platform fee contribution
@@ -883,44 +1002,54 @@ pnpm test:coverage     # Coverage report
 **Formula**: `(weight_kg × 10) + (platform_fee_usd × 2)`
 
 **Future Benefits**:
+
 - Discounts on platform fees
 - Priority matching
 - Badge unlocks
 
 ### 2. Premium Discounts
+
 **Purpose**: Incentivize subscriptions
 
 **Benefits**:
+
 - 0% platform fees (vs 12-18%)
 - Priority in feed
 - Verified badge
 - Early access
 
 ### 3. Referral Program
+
 **Purpose**: User acquisition
 
 **Rewards**:
+
 - $50 credit each way
 - Trackable referrals
 - Credit application to deliveries
 
 ### 4. Emergency Multiplier
+
 **Purpose**: Incentivize urgent deliveries
 
 **Bonus**: +10-25% (capped at $15)
 
 ### 5. Volume Discounts
+
 **Purpose**: Reward frequent users
 
 **Tiers**:
+
 - 10+ deliveries: 1% discount
 - 20+ deliveries: 2% discount
 - 50+ deliveries: 3% discount
 
 ### 6. Rating-Based Discounts
+
 **Purpose**: Reward quality
 
 **Tiers**:
+
 - 4.5+ rating: 0.5% discount
 - 4.8+ rating: 1% discount
 
@@ -929,9 +1058,11 @@ pnpm test:coverage     # Coverage report
 ## Observability & Monitoring
 
 ### 1. Internal Analytics
+
 **Status**: ✅ Complete
 
 **Events Tracked**:
+
 - Post created
 - Shipping estimator used
 - Message sent
@@ -949,9 +1080,11 @@ pnpm test:coverage     # Coverage report
 **Service**: `lib/analytics/tracking.ts`
 
 ### 2. Performance Monitoring
+
 **Status**: ✅ Complete
 
 **Tools**:
+
 - Enhanced profiler with bottleneck detection
 - React Profiler integration
 - Network request tracking
@@ -960,28 +1093,35 @@ pnpm test:coverage     # Coverage report
 **Access**: `?perf=true` in development
 
 ### 3. Error Tracking
+
 **Status**: ✅ Complete
 
 **Tool**: Sentry
+
 - Error capture
 - Performance monitoring
 - Release tracking
 
 ### 4. Web Analytics
+
 **Status**: ✅ Complete
 
 **Tools**:
+
 - Google Analytics
 - Meta Pixel
 
 ### 5. Logging
+
 **Status**: ✅ Partial
 
 **Current**:
+
 - Console logging (development)
 - Supabase analytics events
 
 **Planned**:
+
 - Structured logging
 - Log aggregation
 - Alerting
@@ -991,6 +1131,7 @@ pnpm test:coverage     # Coverage report
 ## Missing Items & Future Enhancements
 
 ### High Priority
+
 1. **Lazy Loading**: Google Maps, photo modals
 2. **Image Optimization**: WebP conversion, responsive sizes
 3. **Message Encryption**: End-to-end encryption for sensitive messages
@@ -998,6 +1139,7 @@ pnpm test:coverage     # Coverage report
 5. **Multi-party Transport Chains**: Complex routing
 
 ### Medium Priority
+
 1. **Advanced Matching**: ML-based matching algorithm
 2. **Real-time Updates**: Supabase real-time subscriptions
 3. **Photo Compression**: Client-side compression before upload
@@ -1005,6 +1147,7 @@ pnpm test:coverage     # Coverage report
 5. **Push Notifications**: Full implementation across all events
 
 ### Low Priority
+
 1. **Dark Mode**: Theme switching (UI ready, needs implementation)
 2. **Internationalization**: Complete Spanish/French translations
 3. **Advanced Analytics**: Custom dashboards
@@ -1018,6 +1161,7 @@ pnpm test:coverage     # Coverage report
 SpareCarry is a **production-ready beta** application with comprehensive features, robust security, and strong performance optimizations. The platform is ready for beta testing and can scale to production with minimal additional work.
 
 **Key Strengths**:
+
 - Comprehensive feature set
 - Strong security (RLS, validation, encryption)
 - Performance optimizations in place
@@ -1026,6 +1170,7 @@ SpareCarry is a **production-ready beta** application with comprehensive feature
 - Scalable architecture
 
 **Next Steps**:
+
 1. Complete remaining optimizations (lazy loading, image optimization)
 2. Integrate insurance API (Allianz)
 3. Launch beta program
@@ -1037,4 +1182,3 @@ SpareCarry is a **production-ready beta** application with comprehensive feature
 **Document Version**: 1.0  
 **Last Updated**: January 2025  
 **Maintained By**: SpareCarry Development Team
-

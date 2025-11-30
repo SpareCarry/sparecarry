@@ -18,7 +18,7 @@ NEXT_PUBLIC_SUPPORT_EMAIL=support@sparecarry.com
 
 ✅ **vercel-env-variables.env** - Updated with your CRON_SECRET and all variables  
 ✅ **Ready to import** into Vercel Dashboard  
-✅ **Phone auth disabled** for free Supabase tier  
+✅ **Phone auth disabled** for free Supabase tier
 
 ## 🚀 Next Steps
 
@@ -27,4 +27,3 @@ NEXT_PUBLIC_SUPPORT_EMAIL=support@sparecarry.com
 3. Redeploy on Vercel
 
 Done! 🎉
-

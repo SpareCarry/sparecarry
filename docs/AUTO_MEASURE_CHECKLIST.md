@@ -7,12 +7,14 @@ All core files have been created and integrated. Use this checklist to verify th
 ## Pre-Testing Setup
 
 ### Dependencies
+
 - [ ] `expo-camera` installed (already in `apps/mobile/package.json`)
 - [ ] `expo-image-manipulator` installed (added to `apps/mobile/package.json`)
 - [ ] Run `pnpm install` in root directory
 - [ ] Run `pnpm install` in `apps/mobile` directory
 
 ### Configuration
+
 - [ ] Camera permissions configured in `apps/mobile/app.json`
 - [ ] Expo camera plugin configured
 - [ ] iOS Info.plist has `NSCameraUsageDescription`
@@ -21,12 +23,14 @@ All core files have been created and integrated. Use this checklist to verify th
 ## iOS Testing
 
 ### Permissions
+
 - [ ] App requests camera permission on first launch
 - [ ] Permission can be granted
 - [ ] Permission can be denied (graceful handling)
 - [ ] Permission can be changed in Settings
 
 ### Camera Screen
+
 - [ ] Camera opens successfully
 - [ ] Camera preview displays
 - [ ] Camera can be flipped (front/back)
@@ -35,6 +39,7 @@ All core files have been created and integrated. Use this checklist to verify th
 - [ ] Status indicator shows dimensions when available
 
 ### Measurement Flow
+
 - [ ] "Auto-Measure" button is visible
 - [ ] Button is disabled while capturing
 - [ ] Photo is captured when button is tapped
@@ -45,11 +50,13 @@ All core files have been created and integrated. Use this checklist to verify th
 - [ ] "Use This" button works
 
 ### Navigation
+
 - [ ] "Cancel" button navigates back
 - [ ] After "Use This", navigates back to form
 - [ ] Dimensions are passed back to form
 
 ### Form Integration
+
 - [ ] "Auto-Fill Dimensions (Camera)" button appears above dimension inputs
 - [ ] Button opens camera screen on mobile
 - [ ] Dimensions are auto-filled after measurement
@@ -61,12 +68,14 @@ All core files have been created and integrated. Use this checklist to verify th
 ## Android Testing
 
 ### Permissions
+
 - [ ] App requests camera permission on first launch
 - [ ] Permission can be granted
 - [ ] Permission can be denied (graceful handling)
 - [ ] Permission can be changed in Settings
 
 ### Camera Screen
+
 - [ ] Camera opens successfully
 - [ ] Camera preview displays
 - [ ] Camera can be flipped (front/back)
@@ -75,6 +84,7 @@ All core files have been created and integrated. Use this checklist to verify th
 - [ ] Status indicator shows dimensions when available
 
 ### Measurement Flow
+
 - [ ] "Auto-Measure" button is visible
 - [ ] Button is disabled while capturing
 - [ ] Photo is captured when button is tapped
@@ -85,11 +95,13 @@ All core files have been created and integrated. Use this checklist to verify th
 - [ ] "Use This" button works
 
 ### Navigation
+
 - [ ] "Cancel" button navigates back
 - [ ] After "Use This", navigates back to form
 - [ ] Dimensions are passed back to form
 
 ### Form Integration
+
 - [ ] "Auto-Fill Dimensions (Camera)" button appears above dimension inputs
 - [ ] Button opens camera screen on mobile
 - [ ] Dimensions are auto-filled after measurement
@@ -101,11 +113,13 @@ All core files have been created and integrated. Use this checklist to verify th
 ## Web Testing
 
 ### Button Display
+
 - [ ] "Auto-Fill Dimensions (Camera)" button appears
 - [ ] Info message shows: "Auto-measure is only available in the mobile app"
 - [ ] Clicking button shows alert on web
 
 ### Form Behavior
+
 - [ ] Form still works normally on web
 - [ ] Manual dimension entry works
 - [ ] No errors in console
@@ -113,6 +127,7 @@ All core files have been created and integrated. Use this checklist to verify th
 ## Performance Testing
 
 ### Camera Performance
+
 - [ ] Camera preview is smooth (no lag)
 - [ ] Frame processing doesn't block UI
 - [ ] Photo capture completes in < 2 seconds
@@ -120,6 +135,7 @@ All core files have been created and integrated. Use this checklist to verify th
 - [ ] No memory leaks on repeated use
 
 ### Low-End Device Testing
+
 - [ ] Works on Android device with 2GB RAM
 - [ ] Works on older iOS device (iPhone 8 or newer)
 - [ ] No crashes or freezes
@@ -128,6 +144,7 @@ All core files have been created and integrated. Use this checklist to verify th
 ## Edge Cases
 
 ### Error Handling
+
 - [ ] Handles camera permission denial gracefully
 - [ ] Shows appropriate error message if camera fails to open
 - [ ] Handles measurement calculation failures
@@ -135,6 +152,7 @@ All core files have been created and integrated. Use this checklist to verify th
 - [ ] Handles missing form values
 
 ### Environmental Conditions
+
 - [ ] Works in low light (may be less accurate)
 - [ ] Works in bright light
 - [ ] Works with various object sizes (small to large)
@@ -142,6 +160,7 @@ All core files have been created and integrated. Use this checklist to verify th
 - [ ] Works with objects at different distances
 
 ### User Interactions
+
 - [ ] User can cancel at any time
 - [ ] User can retake measurement
 - [ ] User can edit auto-filled values
@@ -151,13 +170,16 @@ All core files have been created and integrated. Use this checklist to verify th
 ## Accuracy Testing
 
 ### Expected Accuracy
+
 - [ ] Measurements are within 20-30% of actual size
 - [ ] Length estimates are reasonable
 - [ ] Width estimates are reasonable
 - [ ] Height estimates are reasonable (may be less accurate)
 
 ### Test Objects
+
 Test with known dimensions:
+
 - [ ] Small box (e.g., 10cm x 10cm x 5cm)
 - [ ] Medium box (e.g., 30cm x 20cm x 15cm)
 - [ ] Large box (e.g., 50cm x 40cm x 30cm)
@@ -167,6 +189,7 @@ Test with known dimensions:
 ## Build & Deployment
 
 ### Build Verification
+
 - [ ] iOS build completes successfully
 - [ ] Android build completes successfully
 - [ ] No TypeScript errors
@@ -174,6 +197,7 @@ Test with known dimensions:
 - [ ] No missing dependencies
 
 ### App Store / Play Store
+
 - [ ] Camera permission description is clear
 - [ ] Feature is documented in app description (optional)
 - [ ] No privacy concerns with camera usage
@@ -223,10 +247,10 @@ pnpm lint
 ## Success Criteria
 
 ✅ Feature is considered complete when:
+
 - All iOS tests pass
 - All Android tests pass
 - Performance is acceptable on low-end devices
 - Error handling is graceful
 - User experience is smooth
 - Documentation is complete
-

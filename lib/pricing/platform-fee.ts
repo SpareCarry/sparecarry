@@ -1,15 +1,15 @@
 /**
  * Dynamic platform fee calculation
- * 
+ *
  * Uses centralized config from config/platformFees.ts
- * First 3 deliveries = $0 platform fee (best-in-class new-user offer)
+ * First delivery = $0 platform fee (attractive new-user offer, sustainable for one-time users)
  */
 
-import { 
-  PLANE_PLATFORM_FEE_PERCENT, 
+import {
+  PLANE_PLATFORM_FEE_PERCENT,
   BOAT_PLATFORM_FEE_PERCENT,
   MIN_PLATFORM_FEE_PERCENT,
-} from '../../config/platformFees';
+} from "../../config/platformFees";
 
 interface PlatformFeeParams {
   method: "plane" | "boat";
@@ -28,8 +28,8 @@ export function calculatePlatformFee({
   isSubscriber,
   isSupporter = false,
 }: PlatformFeeParams): number {
-  // First 3 deliveries = $0 platform fee (best-in-class new-user offer)
-  const isFreeDelivery = userCompletedDeliveries < 3;
+  // First delivery = $0 platform fee (attractive new-user offer, sustainable for one-time users)
+  const isFreeDelivery = userCompletedDeliveries < 1;
   if (isFreeDelivery) {
     return 0;
   }
@@ -45,7 +45,8 @@ export function calculatePlatformFee({
   }
 
   // Base fee by method (from config)
-  const baseFee = method === "plane" ? PLANE_PLATFORM_FEE_PERCENT : BOAT_PLATFORM_FEE_PERCENT;
+  const baseFee =
+    method === "plane" ? PLANE_PLATFORM_FEE_PERCENT : BOAT_PLATFORM_FEE_PERCENT;
 
   // Volume discount: reduce fee based on completed deliveries
   let volumeDiscount = 0;

@@ -3,6 +3,7 @@
 ## Solution Chosen: Option B (Metro Alias)
 
 **Reasoning:**
+
 - Shipping service (`lib/services/shipping.ts`) has deep dependencies on root-level files:
   - `src/constants/shippingFees.ts`
   - `lib/utils/plane-restrictions.ts`
@@ -14,17 +15,20 @@
 ## Changes Made
 
 ### 1. Metro Configuration (`apps/mobile/metro.config.js`)
+
 - ✅ Added `@root-lib` alias pointing to root `lib` folder
 - ✅ Added `@root-src` alias pointing to root `src` folder
 - ✅ Added `lib` and `src` folders to `watchFolders`
 - ✅ Preserved existing monorepo configuration
 
 ### 2. TypeScript Configuration (`apps/mobile/tsconfig.json`)
+
 - ✅ Added `@root-lib` and `@root-lib/*` path mappings
 - ✅ Added `@root-src` and `@root-src/*` path mappings
 - ✅ Ensures TypeScript can resolve the aliases
 
 ### 3. Import Update (`apps/mobile/app/(tabs)/shipping-estimator.tsx`)
+
 - ✅ Changed from: `'../../../../lib/services/shipping'` (fragile relative path)
 - ✅ Changed to: `'@root-lib/services/shipping'` (clean alias)
 
@@ -48,6 +52,7 @@ npx expo start -c
 ```
 
 The bundler should now successfully resolve:
+
 - `@root-lib/services/shipping` → `lib/services/shipping.ts`
 - Internal imports within shipping.ts should resolve correctly
 - No more "Unable to resolve" errors
@@ -60,4 +65,3 @@ The bundler should now successfully resolve:
 - **Entry Shim**: `apps/mobile/index.js` is preserved and working correctly.
 
 - **Monorepo Structure**: This solution maintains the existing structure while making root-level lib accessible to mobile app.
-

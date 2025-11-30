@@ -1,12 +1,12 @@
 /**
  * Verification Hooks
- * 
+ *
  * Handles ID, email, and phone verification
  * Integrates with Stripe Identity for ID verification
  */
 
-import { createClient } from '../supabase/client';
-import type { SupabaseClient } from '@supabase/supabase-js';
+import { createClient } from "../supabase/client";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
 export interface VerificationStatus {
   id_verified: boolean;
@@ -21,7 +21,10 @@ export async function verifyEmail(userId: string): Promise<boolean> {
   const supabase = createClient() as SupabaseClient;
 
   // Check if email is verified in auth.users
-  const { data: { user }, error } = await supabase.auth.getUser();
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser();
 
   if (error || !user) {
     return false;
@@ -32,9 +35,9 @@ export async function verifyEmail(userId: string): Promise<boolean> {
   // Update users table
   if (isVerified) {
     await supabase
-      .from('users')
+      .from("users")
       .update({ email_verified: true } as Record<string, unknown>)
-      .eq('id', userId);
+      .eq("id", userId);
   }
 
   return isVerified;
@@ -43,15 +46,18 @@ export async function verifyEmail(userId: string): Promise<boolean> {
 /**
  * Verify user phone (uses Supabase Auth or manual verification)
  */
-export async function verifyPhone(userId: string, phoneNumber: string): Promise<boolean> {
+export async function verifyPhone(
+  userId: string,
+  phoneNumber: string
+): Promise<boolean> {
   const supabase = createClient() as SupabaseClient;
 
   // In production, this would integrate with SMS verification service
   // For now, we'll mark as verified if phone exists in profile
   const { data: profile, error } = await supabase
-    .from('profiles')
-    .select('phone')
-    .eq('user_id', userId)
+    .from("profiles")
+    .select("phone")
+    .eq("user_id", userId)
     .single();
 
   if (error || !profile || !profile.phone) {
@@ -60,9 +66,9 @@ export async function verifyPhone(userId: string, phoneNumber: string): Promise<
 
   // Update users table
   await supabase
-    .from('users')
+    .from("users")
     .update({ phone_verified: true } as Record<string, unknown>)
-    .eq('id', userId);
+    .eq("id", userId);
 
   return true;
 }
@@ -70,14 +76,16 @@ export async function verifyPhone(userId: string, phoneNumber: string): Promise<
 /**
  * Verify user ID using Stripe Identity (or stub for test mode)
  */
-export async function verifyID(userId: string): Promise<{ verified: boolean; sessionId?: string }> {
+export async function verifyID(
+  userId: string
+): Promise<{ verified: boolean; sessionId?: string }> {
   const supabase = createClient() as SupabaseClient;
 
   // Check if already verified
   const { data: user, error: userError } = await supabase
-    .from('users')
-    .select('id_verified')
-    .eq('id', userId)
+    .from("users")
+    .select("id_verified")
+    .eq("id", userId)
     .single();
 
   if (userError || !user) {
@@ -89,18 +97,19 @@ export async function verifyID(userId: string): Promise<{ verified: boolean; ses
   }
 
   // Check if Stripe Identity is enabled
-  const stripeIdentityEnabled = process.env.NEXT_PUBLIC_ENABLE_STRIPE_IDENTITY !== 'false';
+  const stripeIdentityEnabled =
+    process.env.NEXT_PUBLIC_ENABLE_STRIPE_IDENTITY !== "false";
 
-  if (!stripeIdentityEnabled || process.env.NODE_ENV === 'test') {
+  if (!stripeIdentityEnabled || process.env.NODE_ENV === "test") {
     // Test mode: return stub
-    return { verified: false, sessionId: 'test_session_' + Date.now() };
+    return { verified: false, sessionId: "test_session_" + Date.now() };
   }
 
   // Get user's Stripe customer ID
   const { data: userData, error: dataError } = await supabase
-    .from('users')
-    .select('stripe_customer_id')
-    .eq('id', userId)
+    .from("users")
+    .select("stripe_customer_id")
+    .eq("id", userId)
     .single();
 
   if (dataError || !userData?.stripe_customer_id) {
@@ -109,9 +118,9 @@ export async function verifyID(userId: string): Promise<{ verified: boolean; ses
 
   // Create Stripe Identity verification session
   try {
-    const response = await fetch('/api/verification/create-session', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+    const response = await fetch("/api/verification/create-session", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ userId, customerId: userData.stripe_customer_id }),
     });
 
@@ -122,7 +131,7 @@ export async function verifyID(userId: string): Promise<{ verified: boolean; ses
     const { sessionId } = await response.json();
     return { verified: false, sessionId }; // Not verified yet, session created
   } catch (error) {
-    console.error('Error creating verification session:', error);
+    console.error("Error creating verification session:", error);
     return { verified: false };
   }
 }
@@ -130,13 +139,15 @@ export async function verifyID(userId: string): Promise<{ verified: boolean; ses
 /**
  * Get verification status for a user
  */
-export async function getVerificationStatus(userId: string): Promise<VerificationStatus> {
+export async function getVerificationStatus(
+  userId: string
+): Promise<VerificationStatus> {
   const supabase = createClient() as SupabaseClient;
 
   const { data: user, error } = await supabase
-    .from('users')
-    .select('id_verified, email_verified, phone_verified')
-    .eq('id', userId)
+    .from("users")
+    .select("id_verified, email_verified, phone_verified")
+    .eq("id", userId)
     .single();
 
   if (error || !user) {
@@ -161,15 +172,14 @@ export async function isPremiumMember(userId: string): Promise<boolean> {
   const supabase = createClient() as SupabaseClient;
 
   const { data: user, error } = await supabase
-    .from('users')
-    .select('subscription_status, premium_member')
-    .eq('id', userId)
+    .from("users")
+    .select("subscription_status, premium_member")
+    .eq("id", userId)
     .single();
 
   if (error || !user) {
     return false;
   }
 
-  return user.premium_member || user.subscription_status === 'active';
+  return user.premium_member || user.subscription_status === "active";
 }
-

@@ -1,21 +1,21 @@
 /**
  * useLocation - Universal location hook for web and mobile
- * 
+ *
  * Web: Uses navigator.geolocation
  * Mobile: Uses expo-location
  */
 
-import { useState, useEffect, useCallback } from 'react';
-import { isWeb, isMobile } from '@sparecarry/lib/platform';
+import { useState, useEffect, useCallback } from "react";
+import { isWeb, isMobile } from "@sparecarry/lib/platform";
 
-type ExpoLocationModule = typeof import('expo-location');
-type ExpoLocationSubscription = import('expo-location').LocationSubscription;
+type ExpoLocationModule = typeof import("expo-location");
+type ExpoLocationSubscription = import("expo-location").LocationSubscription;
 
 // Conditional import for expo-location (mobile only)
 let ExpoLocation: ExpoLocationModule | null = null;
-if (isMobile && typeof require !== 'undefined') {
+if (isMobile && typeof require !== "undefined") {
   try {
-    ExpoLocation = require('expo-location');
+    ExpoLocation = require("expo-location");
   } catch (e) {
     // expo-location not available
   }
@@ -50,7 +50,7 @@ export async function getCurrentLocation(): Promise<LocationData> {
   if (isWeb) {
     return new Promise((resolve, reject) => {
       if (!navigator.geolocation) {
-        reject({ code: 1, message: 'Geolocation not supported' });
+        reject({ code: 1, message: "Geolocation not supported" });
         return;
       }
 
@@ -83,11 +83,11 @@ export async function getCurrentLocation(): Promise<LocationData> {
   } else {
     // Mobile: Use expo-location
     if (!ExpoLocation) {
-      throw { code: 1, message: 'expo-location not available' };
+      throw { code: 1, message: "expo-location not available" };
     }
     const { status } = await ExpoLocation.requestForegroundPermissionsAsync();
-    if (status !== 'granted') {
-      throw { code: 1, message: 'Location permission denied' };
+    if (status !== "granted") {
+      throw { code: 1, message: "Location permission denied" };
     }
 
     const location = await ExpoLocation.getCurrentPositionAsync({
@@ -139,7 +139,7 @@ export function useLocation(options: UseLocationOptions = {}) {
     try {
       updateLocation();
     } catch (err) {
-      console.error('❌ [useLocation] updateLocation error:', err);
+      console.error("❌ [useLocation] updateLocation error:", err);
       setError({
         code: 1,
         message: err instanceof Error ? err.message : String(err),
@@ -181,7 +181,7 @@ export function useLocation(options: UseLocationOptions = {}) {
           } else {
             setError({
               code: 1,
-              message: 'Geolocation not supported',
+              message: "Geolocation not supported",
             });
           }
         } else {
@@ -189,7 +189,7 @@ export function useLocation(options: UseLocationOptions = {}) {
           if (ExpoLocation) {
             ExpoLocation.requestForegroundPermissionsAsync()
               .then(({ status }) => {
-                if (status === 'granted') {
+                if (status === "granted") {
                   ExpoLocation.watchPositionAsync(
                     {
                       accuracy: accuracy as any,
@@ -202,7 +202,8 @@ export function useLocation(options: UseLocationOptions = {}) {
                         longitude: location.coords.longitude,
                         accuracy: location.coords.accuracy ?? undefined,
                         altitude: location.coords.altitude ?? null,
-                        altitudeAccuracy: location.coords.altitudeAccuracy ?? null,
+                        altitudeAccuracy:
+                          location.coords.altitudeAccuracy ?? null,
                         heading: location.coords.heading ?? null,
                         speed: location.coords.speed ?? null,
                         timestamp: location.timestamp,
@@ -213,21 +214,28 @@ export function useLocation(options: UseLocationOptions = {}) {
                       subscription = sub;
                     })
                     .catch((err) => {
-                      console.error('❌ [useLocation] watchPositionAsync error:', err);
+                      console.error(
+                        "❌ [useLocation] watchPositionAsync error:",
+                        err
+                      );
                       setError({
                         code: 1,
-                        message: err instanceof Error ? err.message : String(err),
+                        message:
+                          err instanceof Error ? err.message : String(err),
                       });
                     });
                 } else {
                   setError({
                     code: 1,
-                    message: 'Location permission denied',
+                    message: "Location permission denied",
                   });
                 }
               })
               .catch((err) => {
-                console.error('❌ [useLocation] requestForegroundPermissionsAsync error:', err);
+                console.error(
+                  "❌ [useLocation] requestForegroundPermissionsAsync error:",
+                  err
+                );
                 setError({
                   code: 1,
                   message: err instanceof Error ? err.message : String(err),
@@ -236,12 +244,12 @@ export function useLocation(options: UseLocationOptions = {}) {
           } else {
             setError({
               code: 1,
-              message: 'expo-location not available',
+              message: "expo-location not available",
             });
           }
         }
       } catch (err) {
-        console.error('❌ [useLocation] watch setup error:', err);
+        console.error("❌ [useLocation] watch setup error:", err);
         setError({
           code: 1,
           message: err instanceof Error ? err.message : String(err),
@@ -253,11 +261,11 @@ export function useLocation(options: UseLocationOptions = {}) {
           if (watchId !== null && isWeb) {
             navigator.geolocation.clearWatch(watchId);
           }
-        if (subscription) {
-          subscription.remove();
-        }
+          if (subscription) {
+            subscription.remove();
+          }
         } catch (err) {
-          console.error('❌ [useLocation] cleanup error:', err);
+          console.error("❌ [useLocation] cleanup error:", err);
         }
       };
     }
@@ -270,4 +278,3 @@ export function useLocation(options: UseLocationOptions = {}) {
     refetch: updateLocation,
   };
 }
-

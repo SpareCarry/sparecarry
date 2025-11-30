@@ -1,12 +1,12 @@
 /**
  * Authentication Guards
- * 
+ *
  * Server-side authentication validation and guards
  */
 
-import { NextRequest } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
-import { sanitizeError } from './validation';
+import { NextRequest } from "next/server";
+import { createClient } from "@/lib/supabase/server";
+import { sanitizeError } from "./validation";
 
 /**
  * Authenticated user data
@@ -35,7 +35,9 @@ export async function assertAuthenticated(
     } = await supabase.auth.getUser();
 
     if (authError || !user) {
-      const sanitized = sanitizeError(authError || new Error('Not authenticated'));
+      const sanitized = sanitizeError(
+        authError || new Error("Not authenticated")
+      );
       throw new Error(sanitized.message);
     }
 
@@ -46,14 +48,16 @@ export async function assertAuthenticated(
     } = await supabase.auth.getSession();
 
     if (sessionError || !session) {
-      const sanitized = sanitizeError(sessionError || new Error('No active session'));
+      const sanitized = sanitizeError(
+        sessionError || new Error("No active session")
+      );
       throw new Error(sanitized.message);
     }
 
     // Never log tokens - only return safe user data
     return {
       id: user.id,
-      email: user.email || '',
+      email: user.email || "",
       session: {
         access_token: session.access_token, // Used internally, never logged
         refresh_token: session.refresh_token, // Used internally, never logged
@@ -89,7 +93,7 @@ export async function requireUserId(
   const user = await assertAuthenticated(request);
 
   if (user.id !== requiredUserId) {
-    throw new Error('Access denied');
+    throw new Error("Access denied");
   }
 
   return user;
@@ -119,12 +123,16 @@ export async function requirePermission(
 /**
  * Safe logger that never logs sensitive data
  */
-export function safeLog(level: 'info' | 'warn' | 'error', message: string, data?: Record<string, unknown>): void {
+export function safeLog(
+  level: "info" | "warn" | "error",
+  message: string,
+  data?: Record<string, unknown>
+): void {
   const sanitizedData = data ? sanitizeLogData(data) : undefined;
-  
-  if (level === 'error') {
+
+  if (level === "error") {
     console.error(`[${level.toUpperCase()}]`, message, sanitizedData);
-  } else if (level === 'warn') {
+  } else if (level === "warn") {
     console.warn(`[${level.toUpperCase()}]`, message, sanitizedData);
   } else {
     console.log(`[${level.toUpperCase()}]`, message, sanitizedData);
@@ -134,28 +142,34 @@ export function safeLog(level: 'info' | 'warn' | 'error', message: string, data?
 /**
  * Sanitize log data to remove sensitive information
  */
-function sanitizeLogData(data: Record<string, unknown>): Record<string, unknown> {
+function sanitizeLogData(
+  data: Record<string, unknown>
+): Record<string, unknown> {
   const sensitiveKeys = [
-    'password',
-    'token',
-    'jwt',
-    'access_token',
-    'refresh_token',
-    'session',
-    'secret',
-    'key',
-    'authorization',
-    'cookie',
+    "password",
+    "token",
+    "jwt",
+    "access_token",
+    "refresh_token",
+    "session",
+    "secret",
+    "key",
+    "authorization",
+    "cookie",
   ];
 
   const sanitized: Record<string, unknown> = {};
 
   for (const [key, value] of Object.entries(data)) {
     const lowerKey = key.toLowerCase();
-    
+
     if (sensitiveKeys.some((sk) => lowerKey.includes(sk))) {
-      sanitized[key] = '[REDACTED]';
-    } else if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+      sanitized[key] = "[REDACTED]";
+    } else if (
+      typeof value === "object" &&
+      value !== null &&
+      !Array.isArray(value)
+    ) {
       sanitized[key] = sanitizeLogData(value as Record<string, unknown>);
     } else {
       sanitized[key] = value;
@@ -164,4 +178,3 @@ function sanitizeLogData(data: Record<string, unknown>): Record<string, unknown>
 
   return sanitized;
 }
-

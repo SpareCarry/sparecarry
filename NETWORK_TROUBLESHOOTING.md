@@ -85,6 +85,7 @@ gh repo sync
 #### Option C: Use Mobile Hotspot
 
 If on corporate network, try:
+
 1. Connect to mobile hotspot
 2. Try push again
 
@@ -131,5 +132,3 @@ If network issues persist:
 ---
 
 **The commit is safe and ready. Once you have internet connectivity, the push will work.**
-
-

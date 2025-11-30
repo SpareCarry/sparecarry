@@ -4,7 +4,6 @@
  */
 export const Capacitor = {
   isNativePlatform: () => false,
-  getPlatform: () => 'web',
+  getPlatform: () => "web",
   Plugins: {},
 };
-

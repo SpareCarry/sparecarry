@@ -1,9 +1,9 @@
 /**
  * Global Static Country List
- * 
+ *
  * Complete list of all world countries with ISO2 and ISO3 codes.
  * This is a static file for fast, offline access. No external API calls.
- * 
+ *
  * For future scalability:
  * - Can add localized names
  * - Can add continent grouping
@@ -242,4 +242,3 @@ export function getCountryByIso3(code: string): Country | undefined {
     (country) => country.iso3.toLowerCase() === code.toLowerCase()
   );
 }
-

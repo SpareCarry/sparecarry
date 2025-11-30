@@ -5,12 +5,14 @@
 ### Mobile App (Expo)
 
 1. **Enable dev mode:**
+
    ```bash
    # Create apps/mobile/.env
    echo "EXPO_PUBLIC_DEV_MODE=true" > apps/mobile/.env
    ```
 
 2. **Restart dev server:**
+
    ```bash
    pnpm dev:mobile
    ```
@@ -20,12 +22,14 @@
 ### Web App (Next.js)
 
 1. **Enable dev mode:**
+
    ```bash
    # Add to .env.local
    echo "NEXT_PUBLIC_DEV_MODE=true" >> .env.local
    ```
 
 2. **Restart dev server:**
+
    ```bash
    pnpm dev:web
    ```
@@ -52,4 +56,3 @@ echo "EXPO_PUBLIC_DEV_MODE=false" > apps/mobile/.env
 - ✅ Easy to enable/disable via env variable
 
 See `docs/DEV_MODE_SETUP.md` for full documentation.
-

@@ -248,8 +248,8 @@ BEGIN
   -- Get current count from function (more direct, avoids view)
   SELECT total INTO current_count FROM public.get_lifetime_purchase_count();
   
-  -- Return true if under 1000, false otherwise
-  RETURN COALESCE(current_count, 0) < 1000;
+  -- Return true if under 100, false otherwise
+  RETURN COALESCE(current_count, 0) < 100;
 END;
 $$;
 
@@ -272,7 +272,7 @@ BEGIN
   -- Check if limit is still available (use function directly)
   SELECT total INTO current_count FROM public.get_lifetime_purchase_count();
   
-  IF COALESCE(current_count, 0) >= 1000 THEN
+  IF COALESCE(current_count, 0) >= 100 THEN
     -- Limit reached, don't record
     RETURN false;
   END IF;

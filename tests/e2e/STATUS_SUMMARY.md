@@ -3,6 +3,7 @@
 ## Current Status
 
 **All 8 subscription tests are failing** with the same error:
+
 ```
 Error: Page is showing login prompt - user authentication may have failed
 ```
@@ -44,7 +45,7 @@ The session data we're injecting into localStorage doesn't match the exact forma
 ## Alternative Approaches
 
 If localStorage approach doesn't work:
+
 1. Use a test-only environment variable to disable auth
 2. Create a dedicated test route that bypasses auth
 3. Use Playwright's browser context with authenticated cookies
-

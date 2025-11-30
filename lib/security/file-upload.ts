@@ -1,10 +1,14 @@
 /**
  * Secure File Upload Validation
- * 
+ *
  * Provides comprehensive file upload security checks
  */
 
-import { validateFileUpload, ALLOWED_MIME_TYPES, MAX_FILE_SIZE } from './validation';
+import {
+  validateFileUpload,
+  ALLOWED_MIME_TYPES,
+  MAX_FILE_SIZE,
+} from "./validation";
 
 export interface FileUploadOptions {
   allowedMimeTypes?: string[];
@@ -40,18 +44,22 @@ export function validateSecureFileUpload(
   const sanitizedFilename = sanitizeFilename(file.filename);
 
   // Check for path traversal attempts
-  if (file.filename.includes('..') || file.filename.includes('/') || file.filename.includes('\\')) {
+  if (
+    file.filename.includes("..") ||
+    file.filename.includes("/") ||
+    file.filename.includes("\\")
+  ) {
     return {
       valid: false,
-      error: 'Invalid filename: path traversal detected',
+      error: "Invalid filename: path traversal detected",
     };
   }
 
   // Check for null bytes
-  if (file.filename.includes('\0')) {
+  if (file.filename.includes("\0")) {
     return {
       valid: false,
-      error: 'Invalid filename: null byte detected',
+      error: "Invalid filename: null byte detected",
     };
   }
 
@@ -60,7 +68,9 @@ export function validateSecureFileUpload(
     // TODO: Integrate with antivirus scanning service
     // Example: ClamAV, VirusTotal API, etc.
     // For now, this is a placeholder
-    console.warn('[SECURITY] Antivirus scanning is enabled but not implemented');
+    console.warn(
+      "[SECURITY] Antivirus scanning is enabled but not implemented"
+    );
   }
 
   return {
@@ -74,18 +84,18 @@ export function validateSecureFileUpload(
  */
 function sanitizeFilename(filename: string): string {
   // Remove path components
-  let sanitized = filename.split('/').pop() || filename;
-  sanitized = sanitized.split('\\').pop() || sanitized;
+  let sanitized = filename.split("/").pop() || filename;
+  sanitized = sanitized.split("\\").pop() || sanitized;
 
   // Remove null bytes
-  sanitized = sanitized.replace(/\0/g, '');
+  sanitized = sanitized.replace(/\0/g, "");
 
   // Remove control characters
-  sanitized = sanitized.replace(/[\x00-\x1F\x7F]/g, '');
+  sanitized = sanitized.replace(/[\x00-\x1F\x7F]/g, "");
 
   // Limit length
   if (sanitized.length > 255) {
-    const ext = sanitized.split('.').pop();
+    const ext = sanitized.split(".").pop();
     const name = sanitized.substring(0, 255 - (ext ? ext.length + 1 : 0));
     sanitized = ext ? `${name}.${ext}` : name;
   }
@@ -102,33 +112,43 @@ export function detectMimeType(buffer: Buffer, filename: string): string {
 
   // JPEG
   if (header[0] === 0xff && header[1] === 0xd8) {
-    return 'image/jpeg';
+    return "image/jpeg";
   }
 
   // PNG
-  if (header[0] === 0x89 && header[1] === 0x50 && header[2] === 0x4e && header[3] === 0x47) {
-    return 'image/png';
+  if (
+    header[0] === 0x89 &&
+    header[1] === 0x50 &&
+    header[2] === 0x4e &&
+    header[3] === 0x47
+  ) {
+    return "image/png";
   }
 
   // PDF
-  if (header[0] === 0x25 && header[1] === 0x50 && header[2] === 0x44 && header[3] === 0x46) {
-    return 'application/pdf';
+  if (
+    header[0] === 0x25 &&
+    header[1] === 0x50 &&
+    header[2] === 0x44 &&
+    header[3] === 0x46
+  ) {
+    return "application/pdf";
   }
 
   // Fallback to filename extension
-  const ext = filename.split('.').pop()?.toLowerCase();
+  const ext = filename.split(".").pop()?.toLowerCase();
   const mimeMap: Record<string, string> = {
-    jpg: 'image/jpeg',
-    jpeg: 'image/jpeg',
-    png: 'image/png',
-    gif: 'image/gif',
-    webp: 'image/webp',
-    pdf: 'application/pdf',
-    doc: 'application/msword',
-    docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    jpg: "image/jpeg",
+    jpeg: "image/jpeg",
+    png: "image/png",
+    gif: "image/gif",
+    webp: "image/webp",
+    pdf: "application/pdf",
+    doc: "application/msword",
+    docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
   };
 
-  return mimeMap[ext || ''] || 'application/octet-stream';
+  return mimeMap[ext || ""] || "application/octet-stream";
 }
 
 /**
@@ -138,17 +158,19 @@ export const FILE_UPLOAD_PRESETS = {
   image: {
     allowedMimeTypes: ALLOWED_MIME_TYPES.images,
     maxSize: MAX_FILE_SIZE.image,
-    allowedExtensions: ['jpg', 'jpeg', 'png', 'webp', 'gif'],
+    allowedExtensions: ["jpg", "jpeg", "png", "webp", "gif"],
   },
   document: {
-    allowedMimeTypes: [...ALLOWED_MIME_TYPES.documents, ...ALLOWED_MIME_TYPES.spreadsheets],
+    allowedMimeTypes: [
+      ...ALLOWED_MIME_TYPES.documents,
+      ...ALLOWED_MIME_TYPES.spreadsheets,
+    ],
     maxSize: MAX_FILE_SIZE.document,
-    allowedExtensions: ['pdf', 'doc', 'docx', 'xls', 'xlsx'],
+    allowedExtensions: ["pdf", "doc", "docx", "xls", "xlsx"],
   },
   profile: {
     allowedMimeTypes: ALLOWED_MIME_TYPES.images,
     maxSize: MAX_FILE_SIZE.image,
-    allowedExtensions: ['jpg', 'jpeg', 'png'],
+    allowedExtensions: ["jpg", "jpeg", "png"],
   },
 } as const;
-

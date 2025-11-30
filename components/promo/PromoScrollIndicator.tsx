@@ -1,15 +1,15 @@
 /**
  * Promo Scroll Indicator
- * 
+ *
  * Shows "Early Supporter Reward applied!" when user scrolls
  */
 
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import { Sparkles } from 'lucide-react';
-import { getDaysLeft } from '@/utils/getDaysLeft';
-import { cn } from '../../lib/utils';
+import React, { useState, useEffect } from "react";
+import { Sparkles } from "lucide-react";
+import { getDaysLeft } from "@/utils/getDaysLeft";
+import { cn } from "../../lib/utils";
 
 export function PromoScrollIndicator() {
   const [showIndicator, setShowIndicator] = useState(false);
@@ -23,11 +23,11 @@ export function PromoScrollIndicator() {
 
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
-      
+
       // Show indicator when scrolling down
       if (currentScrollY > lastScrollY && currentScrollY > 100) {
         setShowIndicator(true);
-        
+
         // Hide after 3 seconds
         if (scrollTimeout) {
           clearTimeout(scrollTimeout);
@@ -36,14 +36,14 @@ export function PromoScrollIndicator() {
           setShowIndicator(false);
         }, 3000);
       }
-      
+
       lastScrollY = currentScrollY;
     };
 
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    
+    window.addEventListener("scroll", handleScroll, { passive: true });
+
     return () => {
-      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener("scroll", handleScroll);
       if (scrollTimeout) {
         clearTimeout(scrollTimeout);
       }
@@ -55,10 +55,10 @@ export function PromoScrollIndicator() {
   }
 
   return (
-    <div 
+    <div
       className={cn(
-        "fixed top-20 left-1/2 transform -translate-x-1/2 z-50",
-        "bg-teal-600 text-white px-4 py-2 rounded-full shadow-lg",
+        "fixed left-1/2 top-20 z-50 -translate-x-1/2 transform",
+        "rounded-full bg-teal-600 px-4 py-2 text-white shadow-lg",
         "flex items-center gap-2 text-sm font-medium",
         "animate-in fade-in slide-in-from-top-2"
       )}
@@ -70,4 +70,3 @@ export function PromoScrollIndicator() {
     </div>
   );
 }
-

@@ -7,17 +7,20 @@ The Shipping Cost Estimator feature has been fully implemented with all requeste
 ## 📦 What Was Built
 
 ### 1. Data Files (JSON)
+
 - ✅ `assets/data/courierRates.json` - DHL, FedEx, UPS, TNT, USPS pricing
 - ✅ `assets/data/countryCustoms.json` - Duty rates for 16+ countries
 - ✅ `assets/data/countryPresets.json` - Auto-fill dimensions for 11+ countries
 
 ### 2. Utility Functions
+
 - ✅ `src/utils/courierRates.ts` - Courier price calculation (dimensional weight, chargeable weight)
 - ✅ `src/utils/customsRates.ts` - Customs cost calculation
 - ✅ `src/utils/countryPresets.ts` - Country preset helpers
 - ✅ `src/utils/shippingEstimator.ts` - Main estimation logic with SpareCarry comparison
 
 ### 3. UI Components
+
 - ✅ `app/shipping-estimator/page.tsx` - Complete estimator screen with:
   - Country selection (with auto-fill)
   - Dimension/weight inputs
@@ -26,10 +29,12 @@ The Shipping Cost Estimator feature has been fully implemented with all requeste
   - "Create SpareCarry Job" button
 
 ### 4. Integration
+
 - ✅ Updated `components/forms/post-request-form.tsx` - Accepts prefill data from query params
 - ✅ Updated `components/layout/main-layout.tsx` - Added navigation link
 
 ### 5. Testing
+
 - ✅ `tests/e2e/shipping-estimator.spec.ts` - Playwright E2E tests covering:
   - Screen opening
   - Country selection and auto-fill
@@ -42,6 +47,7 @@ The Shipping Cost Estimator feature has been fully implemented with all requeste
 ### Step 1: Verify Files Exist
 
 Check that all files are in place:
+
 ```bash
 # Data files
 ls assets/data/courierRates.json
@@ -68,6 +74,7 @@ pnpm tsc --noEmit
 ```
 
 If you see JSON import errors, ensure `tsconfig.json` has:
+
 ```json
 {
   "compilerOptions": {
@@ -80,6 +87,7 @@ If you see JSON import errors, ensure `tsconfig.json` has:
 ### Step 3: Test the Feature
 
 #### Manual Test:
+
 1. Start dev server: `pnpm dev`
 2. Navigate to: `http://localhost:3000/shipping-estimator`
 3. Select countries (AU → ID)
@@ -89,6 +97,7 @@ If you see JSON import errors, ensure `tsconfig.json` has:
 7. Verify form pre-fills
 
 #### Automated Test:
+
 ```bash
 # Run Playwright tests
 npx playwright test tests/e2e/shipping-estimator.spec.ts
@@ -100,6 +109,7 @@ npx playwright test
 ### Step 4: Verify Navigation
 
 The Shipping Estimator should appear in the main navigation menu. Check:
+
 - Desktop sidebar
 - Mobile bottom navigation
 
@@ -119,6 +129,7 @@ The Shipping Estimator should appear in the main navigation menu. Check:
 ## 🎯 Formulas Implemented
 
 ### Courier Price
+
 ```
 dimensional_weight = (length * width * height) / 5000
 chargeable_weight = max(actual_weight, dimensional_weight)
@@ -126,11 +137,13 @@ price = base_rate + (per_kg_rate * chargeable_weight)
 ```
 
 ### Customs Cost
+
 ```
 customs_cost = declared_value * duty_rate(country) + processing_fee
 ```
 
 ### SpareCarry Prices
+
 ```
 plane_price = 2.0 * weight + 6
 boat_price = 0.7 * weight + 4
@@ -159,21 +172,24 @@ pnpm build
 ### Adjust Pricing Formulas
 
 Edit `src/utils/shippingEstimator.ts`:
+
 ```typescript
 // Modify these functions:
-calculateSpareCarryPlanePrice(weight)
-calculateSpareCarryBoatPrice(weight)
+calculateSpareCarryPlanePrice(weight);
+calculateSpareCarryBoatPrice(weight);
 ```
 
 ### Add More Countries
 
 Edit JSON files:
+
 - `assets/data/countryCustoms.json` - Add country with duty_rate + processing_fee
 - `assets/data/countryPresets.json` - Add country with default dimensions
 
 ### Add More Couriers
 
 Edit `assets/data/courierRates.json`:
+
 ```json
 {
   "NewCourier": {
@@ -188,6 +204,7 @@ Edit `assets/data/courierRates.json`:
 ### JSON Import Errors
 
 If TypeScript complains about JSON imports:
+
 1. Check `tsconfig.json` includes `"resolveJsonModule": true`
 2. Restart TypeScript server
 3. Files use `require()` as fallback for compatibility
@@ -236,4 +253,3 @@ The Shipping Cost Estimator is **fully implemented and ready to use**. All reque
 - ✅ Full documentation
 
 **The feature is production-ready!** 🎉
-

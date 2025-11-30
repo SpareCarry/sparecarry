@@ -1,12 +1,12 @@
 /**
  * Cancellation Reason Modal
- * 
+ *
  * Modal for selecting cancellation reason when canceling a trip, request, or match
  */
 
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -14,18 +14,18 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '../ui/dialog';
-import { Button } from '../ui/button';
-import { Label } from '../ui/label';
-import { Textarea } from '../ui/textarea';
-import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
-import { Loader2 } from 'lucide-react';
-import { createClient } from '../../lib/supabase/client';
+} from "../ui/dialog";
+import { Button } from "../ui/button";
+import { Label } from "../ui/label";
+import { Textarea } from "../ui/textarea";
+import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
+import { Loader2 } from "lucide-react";
+import { createClient } from "../../lib/supabase/client";
 
 export interface CancellationReason {
   id: string;
   label: string;
-  category: 'requester' | 'traveler' | 'external' | 'other';
+  category: "requester" | "traveler" | "external" | "other";
   requires_notes: boolean;
 }
 
@@ -33,7 +33,7 @@ export interface CancellationReasonModalProps {
   open: boolean;
   onClose: () => void;
   onConfirm: (reasonId: string, notes?: string) => Promise<void>;
-  entityType: 'trip' | 'request' | 'match';
+  entityType: "trip" | "request" | "match";
   userId: string;
 }
 
@@ -45,8 +45,8 @@ export function CancellationReasonModal({
   userId,
 }: CancellationReasonModalProps) {
   const [reasons, setReasons] = useState<CancellationReason[]>([]);
-  const [selectedReasonId, setSelectedReasonId] = useState<string>('');
-  const [notes, setNotes] = useState('');
+  const [selectedReasonId, setSelectedReasonId] = useState<string>("");
+  const [notes, setNotes] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingReasons, setIsLoadingReasons] = useState(true);
   const supabase = createClient();
@@ -57,24 +57,24 @@ export function CancellationReasonModal({
       try {
         // Filter reasons by category based on entity type
         let categoryFilter: string[] = [];
-        if (entityType === 'trip') {
-          categoryFilter = ['traveler', 'external', 'other'];
-        } else if (entityType === 'request') {
-          categoryFilter = ['requester', 'external', 'other'];
+        if (entityType === "trip") {
+          categoryFilter = ["traveler", "external", "other"];
+        } else if (entityType === "request") {
+          categoryFilter = ["requester", "external", "other"];
         } else {
-          categoryFilter = ['requester', 'traveler', 'external', 'other'];
+          categoryFilter = ["requester", "traveler", "external", "other"];
         }
 
         const { data, error } = await supabase
-          .from('cancellation_reasons')
-          .select('*')
-          .in('category', categoryFilter)
-          .order('display_order');
+          .from("cancellation_reasons")
+          .select("*")
+          .in("category", categoryFilter)
+          .order("display_order");
 
         if (error) throw error;
         setReasons(data || []);
       } catch (error) {
-        console.error('Error loading cancellation reasons:', error);
+        console.error("Error loading cancellation reasons:", error);
       } finally {
         setIsLoadingReasons(false);
       }
@@ -85,7 +85,7 @@ export function CancellationReasonModal({
     }
   }, [open, entityType, supabase]);
 
-  const selectedReason = reasons.find(r => r.id === selectedReasonId);
+  const selectedReason = reasons.find((r) => r.id === selectedReasonId);
   const requiresNotes = selectedReason?.requires_notes || false;
 
   const handleConfirm = async () => {
@@ -96,11 +96,11 @@ export function CancellationReasonModal({
     try {
       await onConfirm(selectedReasonId, notes.trim() || undefined);
       // Reset form
-      setSelectedReasonId('');
-      setNotes('');
+      setSelectedReasonId("");
+      setNotes("");
       onClose();
     } catch (error) {
-      console.error('Error confirming cancellation:', error);
+      console.error("Error confirming cancellation:", error);
     } finally {
       setIsLoading(false);
     }
@@ -112,7 +112,8 @@ export function CancellationReasonModal({
         <DialogHeader>
           <DialogTitle>Cancel {entityType}</DialogTitle>
           <DialogDescription>
-            Please select a reason for cancellation. This helps us improve the platform.
+            Please select a reason for cancellation. This helps us improve the
+            platform.
           </DialogDescription>
         </DialogHeader>
 
@@ -123,10 +124,17 @@ export function CancellationReasonModal({
         ) : (
           <>
             <div className="space-y-4 py-4">
-              <RadioGroup value={selectedReasonId} onValueChange={setSelectedReasonId}>
+              <RadioGroup
+                value={selectedReasonId}
+                onValueChange={setSelectedReasonId}
+              >
                 {reasons.map((reason) => (
                   <div key={reason.id} className="flex items-start space-x-2">
-                    <RadioGroupItem value={reason.id} id={reason.id} className="mt-1" />
+                    <RadioGroupItem
+                      value={reason.id}
+                      id={reason.id}
+                      className="mt-1"
+                    />
                     <Label
                       htmlFor={reason.id}
                       className="flex-1 cursor-pointer font-normal"
@@ -152,7 +160,9 @@ export function CancellationReasonModal({
 
               {!requiresNotes && selectedReasonId && (
                 <div className="space-y-2">
-                  <Label htmlFor="notes-optional">Additional notes (optional)</Label>
+                  <Label htmlFor="notes-optional">
+                    Additional notes (optional)
+                  </Label>
                   <Textarea
                     id="notes-optional"
                     placeholder="Any additional information..."
@@ -170,15 +180,19 @@ export function CancellationReasonModal({
               </Button>
               <Button
                 onClick={handleConfirm}
-                disabled={isLoading || !selectedReasonId || (requiresNotes && !notes.trim())}
+                disabled={
+                  isLoading ||
+                  !selectedReasonId ||
+                  (requiresNotes && !notes.trim())
+                }
               >
                 {isLoading ? (
                   <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Processing...
                   </>
                 ) : (
-                  'Confirm Cancellation'
+                  "Confirm Cancellation"
                 )}
               </Button>
             </DialogFooter>
@@ -188,4 +202,3 @@ export function CancellationReasonModal({
     </Dialog>
   );
 }
-

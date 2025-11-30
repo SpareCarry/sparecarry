@@ -1,6 +1,7 @@
 # Quick SSH Setup for GitHub
 
 ## Problem
+
 Your Personal Access Token doesn't have `workflow` scope. SSH bypasses this limitation.
 
 ## Quick Setup (3 Steps)
@@ -64,4 +65,3 @@ SSH doesn't require managing PAT scopes. Once set up, you can push workflow file
 ---
 
 **Alternative**: If you prefer to keep using HTTPS, update your PAT at https://github.com/settings/tokens and add the `workflow` scope.
-

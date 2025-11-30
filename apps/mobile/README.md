@@ -7,11 +7,13 @@ React Native mobile app built with Expo.
 ### Dev Client (Recommended)
 
 1. **Install dependencies:**
+
    ```bash
    pnpm install
    ```
 
 2. **Build and install Dev Client (one-time per device):**
+
    ```bash
    # Android
    pnpm build:dev:android
@@ -21,6 +23,7 @@ React Native mobile app built with Expo.
    ```
 
 3. **Start development server (Dev Client):**
+
    ```bash
    pnpm dev:mobile
    ```
@@ -35,6 +38,7 @@ React Native mobile app built with Expo.
 You can still use Expo Go for very basic testing, but some native features (camera, auto-measure, etc.) may be limited or unstable.
 
 1. **Start development server:**
+
    ```bash
    pnpm start
    ```
@@ -49,11 +53,13 @@ You can still use Expo Go for very basic testing, but some native features (came
 For testing camera, sensors, and other native features without using a Dev Client:
 
 1. **Prebuild native code:**
+
    ```bash
    pnpm prebuild
    ```
 
 2. **Run on device:**
+
    ```bash
    # Android
    pnpm android
@@ -65,6 +71,7 @@ For testing camera, sensors, and other native features without using a Dev Clien
 ## Testing Auto-Measure Feature
 
 ### Prerequisites
+
 - Development build or production build (Expo Go has limited camera access)
 - Camera permission granted
 - Good lighting
@@ -144,4 +151,3 @@ See `docs/MOBILE_BUILD_AND_TEST.md` for detailed troubleshooting.
 
 - Full guide: `docs/MOBILE_BUILD_AND_TEST.md`
 - Auto-Measure docs: `docs/AUTO_MEASURE_ENHANCED_SUMMARY.md`
-

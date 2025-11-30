@@ -1,6 +1,6 @@
 /**
  * Location System Configuration
- * 
+ *
  * Centralized configuration for location features, marina filtering, and API behavior.
  * Edit these values to customize behavior without changing implementation code.
  */
@@ -8,22 +8,22 @@
 export const LOCATION_CONFIG = {
   // Keywords used for client-side marina/port detection
   MARINA_KEYWORDS: [
-    'marina',
-    'marinas',
-    'harbour',
-    'harbor',
-    'port',
-    'pier',
-    'dock',
-    'berth',
-    'slip',
-    'boat',
-    'marina bay',
-    'yacht club',
-    'yacht harbor',
-    'boating',
-    'wharf',
-    'quay',
+    "marina",
+    "marinas",
+    "harbour",
+    "harbor",
+    "port",
+    "pier",
+    "dock",
+    "berth",
+    "slip",
+    "boat",
+    "marina bay",
+    "yacht club",
+    "yacht harbor",
+    "boating",
+    "wharf",
+    "quay",
   ],
 
   // Default autocomplete result limit
@@ -47,4 +47,3 @@ export const LOCATION_CONFIG = {
   // Bounding box bias radius in degrees (approximate km conversion: 1 degree ≈ 111 km)
   DEFAULT_BBOX_RADIUS: 0.5, // ~55km radius
 } as const;
-

@@ -12,16 +12,20 @@ module.exports = (phase) => {
   // Only enable the Sentry webpack plugin when we have BOTH a DSN and a valid auth
   // token, and the skip flag is not set. This prevents Vercel builds from failing
   // with "Invalid token" when SENTRY_AUTH_TOKEN is missing or placeholder.
-  const hasSentryAuth = !!process.env.SENTRY_AUTH_TOKEN && 
-                        process.env.SENTRY_AUTH_TOKEN !== "your_sentry_auth_token_here" &&
-                        process.env.SENTRY_AUTH_TOKEN.trim().length > 0;
+  const hasSentryAuth =
+    !!process.env.SENTRY_AUTH_TOKEN &&
+    process.env.SENTRY_AUTH_TOKEN !== "your_sentry_auth_token_here" &&
+    process.env.SENTRY_AUTH_TOKEN.trim().length > 0;
   const skipSentry = process.env.SENTRY_SKIP_AUTO_RELEASE === "true";
   // Only enable webpack plugin if we have valid auth - this prevents 401 errors during build
-  const enableSentryWebpackPlugin = SENTRY_DSN.length > 0 && hasSentryAuth && !skipSentry;
+  const enableSentryWebpackPlugin =
+    SENTRY_DSN.length > 0 && hasSentryAuth && !skipSentry;
 
   const nextConfig = {
     reactStrictMode: true,
     experimental: {},
+    // Security: Remove X-Powered-By header (security headers applied in middleware)
+    poweredByHeader: false,
     // Enable detailed error logging in development
     logging: {
       fetches: {
@@ -37,16 +41,16 @@ module.exports = (phase) => {
       // Add better error logging in development
       if (dev) {
         config.infrastructureLogging = {
-          level: 'verbose',
+          level: "verbose",
         };
       }
       // Add aliases for root-level folders (matches Metro config for mobile)
       config.resolve.alias = {
         ...config.resolve.alias,
-        '@root-lib': require('path').resolve(__dirname, 'lib'),
-        '@root-src': require('path').resolve(__dirname, 'src'),
-        '@root-config': require('path').resolve(__dirname, 'config'),
-        '@root-utils': require('path').resolve(__dirname, 'utils'),
+        "@root-lib": require("path").resolve(__dirname, "lib"),
+        "@root-src": require("path").resolve(__dirname, "src"),
+        "@root-config": require("path").resolve(__dirname, "config"),
+        "@root-utils": require("path").resolve(__dirname, "utils"),
       };
       return config;
     },
@@ -62,12 +66,20 @@ module.exports = (phase) => {
   if (!enableSentryWebpackPlugin) {
     if (phase === PHASE_PRODUCTION_BUILD) {
       if (!SENTRY_DSN || SENTRY_DSN.length === 0) {
-        console.warn("[Sentry] NEXT_PUBLIC_SENTRY_DSN is not set. Skipping Sentry webpack plugins.");
+        console.warn(
+          "[Sentry] NEXT_PUBLIC_SENTRY_DSN is not set. Skipping Sentry webpack plugins."
+        );
       } else if (!hasSentryAuth) {
-        console.warn("[Sentry] SENTRY_AUTH_TOKEN is missing or invalid. Skipping Sentry webpack plugins to avoid build failures.");
-        console.warn("[Sentry] Error tracking will still work, but source maps and releases will be disabled.");
+        console.warn(
+          "[Sentry] SENTRY_AUTH_TOKEN is missing or invalid. Skipping Sentry webpack plugins to avoid build failures."
+        );
+        console.warn(
+          "[Sentry] Error tracking will still work, but source maps and releases will be disabled."
+        );
       } else if (skipSentry) {
-        console.warn("[Sentry] SENTRY_SKIP_AUTO_RELEASE is set. Skipping Sentry webpack plugins.");
+        console.warn(
+          "[Sentry] SENTRY_SKIP_AUTO_RELEASE is set. Skipping Sentry webpack plugins."
+        );
       }
     }
     return nextConfig;

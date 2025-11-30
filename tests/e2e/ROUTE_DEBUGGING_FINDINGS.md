@@ -23,17 +23,19 @@ After extensive debugging, we've discovered:
 ## Test Results
 
 ### ✅ Manual Fetch Test (PASSING)
+
 ```typescript
 // This test PASSES - manual fetch IS intercepted
 const response = await page.evaluate(async (url) => {
   return await fetch(url); // Routes intercept this correctly
-}, supabaseUrl + '/auth/v1/user');
+}, supabaseUrl + "/auth/v1/user");
 ```
 
 ### ❌ Profile Page Navigation Test (FAILING)
+
 ```typescript
 // This test FAILS - no routes are triggered
-await page.goto('/home/profile'); // No Supabase requests are made!
+await page.goto("/home/profile"); // No Supabase requests are made!
 ```
 
 ## Next Steps
@@ -79,14 +81,14 @@ Instead of mocking network requests, we could:
 await page.addInitScript((userData) => {
   // Clear localStorage to force network requests
   localStorage.clear();
-  
+
   // OR set expired session data that forces refresh
   const expiredSession = {
-    access_token: 'expired-token',
+    access_token: "expired-token",
     expires_at: Math.floor(Date.now() / 1000) - 1000, // Expired 1000 seconds ago
     user: userData,
   };
-  localStorage.setItem('sb-auth-token', JSON.stringify(expiredSession));
+  localStorage.setItem("sb-auth-token", JSON.stringify(expiredSession));
 }, supabaseUser);
 ```
 
@@ -96,7 +98,7 @@ await page.addInitScript((userData) => {
 await page.addInitScript((userData) => {
   // Override Supabase client creation
   window.__MOCK_SUPABASE_USER__ = userData;
-  
+
   // Monkey-patch getUser if possible
   // This is more complex but more reliable
 }, supabaseUser);
@@ -118,4 +120,3 @@ npx playwright test tests/e2e/debug/route-interception.spec.ts
 # Run subscription flow test with verbose logging
 npx playwright test tests/e2e/subscription-flow.spec.ts:165 --project=chromium --reporter=line
 ```
-

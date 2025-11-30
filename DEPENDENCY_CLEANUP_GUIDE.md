@@ -12,6 +12,7 @@
 ### 1. ✅ Removed Sentry from Dependencies
 
 **Changes Made**:
+
 - Removed `@sentry/nextjs` from `package.json` dependencies
 - Removed `@sentry/cli` from `pnpm.onlyBuiltDependencies`
 - Made all Sentry imports optional/dynamic
@@ -21,12 +22,14 @@
 ### 2. ✅ Updated Next.js Version
 
 **Changes Made**:
+
 - Updated `next` from `14.1.0` to `14.2.5` (as per your context)
 - Updated `eslint-config-next` to `14.2.5`
 
 ### 3. ✅ Made Sentry Imports Optional
 
 **Files Modified**:
+
 - `sentry.client.config.ts` - Now uses dynamic import with client-side check
 - `sentry.server.config.ts` - Now uses dynamic import
 - `sentry.edge.config.ts` - Now uses dynamic import
@@ -38,6 +41,7 @@
 ### 4. ✅ Verified React & TailwindCSS Versions
 
 **Current Versions**:
+
 - `react`: `18.2.0` ✅
 - `react-dom`: `18.2.0` ✅
 - `tailwindcss`: `3.4.18` ✅
@@ -48,6 +52,7 @@ All versions are compatible.
 ### 5. ✅ Fixed Next.js Config
 
 **Changes Made**:
+
 - Removed Sentry from webpack externals (no longer needed)
 - Kept Capacitor externals (still needed)
 
@@ -56,11 +61,13 @@ All versions are compatible.
 ### Step 1: Clean Dependencies
 
 **Option A: Use PowerShell Script (Recommended)**
+
 ```powershell
 .\scripts\clean-dependencies.ps1
 ```
 
 **Option B: Manual Cleanup**
+
 ```powershell
 # Stop any running dev servers
 Get-Process | Where-Object {$_.ProcessName -like "*node*"} | Stop-Process -Force -ErrorAction SilentlyContinue
@@ -99,11 +106,13 @@ The dev server should start without errors.
 If you want to use Sentry later:
 
 1. **Install Sentry**:
+
    ```powershell
    npx pnpm add @sentry/nextjs
    ```
 
 2. **Add DSN to `.env.local`**:
+
    ```env
    NEXT_PUBLIC_SENTRY_DSN=https://xxxxx@xxxxx.ingest.sentry.io/xxxxx
    ```
@@ -120,12 +129,14 @@ Sentry will automatically initialize if DSN is provided.
 ### Issue: `pnpm dev` still shows errors
 
 **Solution**:
+
 1. Clear `.next` cache: `Remove-Item -Recurse -Force .next`
 2. Restart dev server: `npx pnpm dev`
 
 ### Issue: Styling still broken
 
 **Solution**:
+
 1. Verify `tailwind.config.ts` is correct (already verified ✅)
 2. Check `postcss.config.mjs` is correct (already verified ✅)
 3. Ensure `app/globals.css` imports Tailwind
@@ -134,6 +145,7 @@ Sentry will automatically initialize if DSN is provided.
 ### Issue: Module not found errors
 
 **Solution**:
+
 1. Run: `npx pnpm install --force`
 2. Clear cache: `Remove-Item -Recurse -Force .next`
 3. Restart dev server
@@ -141,6 +153,7 @@ Sentry will automatically initialize if DSN is provided.
 ## Files Changed
 
 ### Modified
+
 - `package.json` - Removed Sentry, updated Next.js
 - `sentry.client.config.ts` - Made optional with dynamic import
 - `sentry.server.config.ts` - Made optional with dynamic import
@@ -149,10 +162,12 @@ Sentry will automatically initialize if DSN is provided.
 - `next.config.mjs` - Removed Sentry from webpack externals
 
 ### Created
+
 - `scripts/clean-dependencies.ps1` - Cleanup script
 - `DEPENDENCY_CLEANUP_GUIDE.md` - This guide
 
 ### Verified (No Changes Needed)
+
 - `tailwind.config.ts` ✅
 - `postcss.config.mjs` ✅
 - `lib/logger/index.ts` ✅ (already uses dynamic imports)
@@ -177,4 +192,3 @@ After cleanup and reinstall:
 ---
 
 **Status**: ✅ All fixes applied. Ready for clean reinstall.
-

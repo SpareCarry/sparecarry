@@ -25,6 +25,7 @@
 ## 📋 Deployment Checklist
 
 ### iOS
+
 - [x] Build completed
 - [x] Sync completed
 - [ ] Signing configured
@@ -35,6 +36,7 @@
 - [ ] Submitted to App Store
 
 ### Android
+
 - [x] Build completed
 - [x] Sync completed
 - [ ] Firebase setup
@@ -49,7 +51,7 @@
 ## 🎯 Next Actions
 
 1. ✅ **Build & Sync**: Complete
-2. ⚠️ **Open Projects**: 
+2. ⚠️ **Open Projects**:
    - iOS: `npx cap open ios` (macOS only)
    - Android: `npx cap open android`
 3. ⚠️ **Configure Signing**:
@@ -85,4 +87,4 @@
 
 ---
 
-*All automation steps complete. Export issue resolved. Ready for production deployment after signing configuration.*
+_All automation steps complete. Export issue resolved. Ready for production deployment after signing configuration._

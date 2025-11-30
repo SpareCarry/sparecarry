@@ -1,6 +1,6 @@
 /**
  * Unleash Feature Flag Client
- * 
+ *
  * Supports both web and mobile (Capacitor) platforms
  * Falls back to safe-off values if service is unreachable
  */
@@ -29,15 +29,15 @@ class UnleashClient {
   private flags: Map<string, FeatureFlag> = new Map();
   private refreshInterval?: ReturnType<typeof setInterval>;
   private isInitialized = false;
-  private cacheKey = 'sparecarry_feature_flags';
+  private cacheKey = "sparecarry_feature_flags";
   private lastFetchTime = 0;
   private fetchPromise?: Promise<void>;
 
   constructor(config: UnleashConfig) {
     this.config = {
       refreshInterval: 30000, // 30 seconds
-      appName: 'sparecarry',
-      environment: 'production',
+      appName: "sparecarry",
+      environment: "production",
       ...config,
     };
   }
@@ -45,7 +45,10 @@ class UnleashClient {
   /**
    * Initialize the client
    */
-  async initialize(userId?: string, context?: Record<string, unknown>): Promise<void> {
+  async initialize(
+    userId?: string,
+    context?: Record<string, unknown>
+  ): Promise<void> {
     if (this.isInitialized) {
       return;
     }
@@ -60,7 +63,7 @@ class UnleashClient {
     if (this.config.refreshInterval && this.config.refreshInterval > 0) {
       this.refreshInterval = setInterval(() => {
         this.fetchFlags(userId, context).catch((error) => {
-          console.warn('[FeatureFlags] Failed to refresh flags:', error);
+          console.warn("[FeatureFlags] Failed to refresh flags:", error);
         });
       }, this.config.refreshInterval);
     }
@@ -71,7 +74,10 @@ class UnleashClient {
   /**
    * Fetch flags from Unleash server
    */
-  private async fetchFlags(userId?: string, context?: Record<string, unknown>): Promise<void> {
+  private async fetchFlags(
+    userId?: string,
+    context?: Record<string, unknown>
+  ): Promise<void> {
     // Prevent concurrent fetches
     if (this.fetchPromise) {
       return this.fetchPromise;
@@ -81,10 +87,10 @@ class UnleashClient {
       try {
         const url = this.buildFetchUrl(userId, context);
         const response = await fetch(url, {
-          method: 'GET',
+          method: "GET",
           headers: {
-            'Authorization': this.config.clientKey,
-            'Content-Type': 'application/json',
+            Authorization: this.config.clientKey,
+            "Content-Type": "application/json",
           },
           // Timeout after 5 seconds
           signal: AbortSignal.timeout(5000),
@@ -99,7 +105,7 @@ class UnleashClient {
         this.lastFetchTime = Date.now();
         this.saveCachedFlags();
       } catch (error) {
-        console.warn('[FeatureFlags] Failed to fetch flags:', error);
+        console.warn("[FeatureFlags] Failed to fetch flags:", error);
         // Keep using cached flags or defaults
         if (this.flags.size === 0) {
           this.loadCachedFlags();
@@ -115,11 +121,14 @@ class UnleashClient {
   /**
    * Build fetch URL for Unleash Proxy
    */
-  private buildFetchUrl(userId?: string, context?: Record<string, unknown>): string {
+  private buildFetchUrl(
+    userId?: string,
+    context?: Record<string, unknown>
+  ): string {
     const params = new URLSearchParams();
 
     if (userId) {
-      params.append('userId', userId);
+      params.append("userId", userId);
     }
 
     if (context) {
@@ -137,7 +146,9 @@ class UnleashClient {
   /**
    * Parse flags from Unleash response
    */
-  private parseFlags(data: { toggles?: Array<{ name: string; enabled: boolean; variant?: string }> }): void {
+  private parseFlags(data: {
+    toggles?: Array<{ name: string; enabled: boolean; variant?: string }>;
+  }): void {
     this.flags.clear();
 
     if (data.toggles) {
@@ -177,10 +188,10 @@ class UnleashClient {
    * Check if running on native platform (client-side only)
    */
   private isNativePlatform(): boolean {
-    if (typeof window === 'undefined') {
+    if (typeof window === "undefined") {
       return false; // SSR - always use web storage
     }
-    
+
     // Check for Capacitor in a safe way
     try {
       // Dynamic check for Capacitor without importing at module level
@@ -196,7 +207,7 @@ class UnleashClient {
    */
   private loadCachedFlags(): void {
     // Only run on client-side
-    if (typeof window === 'undefined') {
+    if (typeof window === "undefined") {
       return;
     }
 
@@ -206,7 +217,9 @@ class UnleashClient {
         // Use eval to prevent Next.js from statically analyzing the import
         try {
           // eslint-disable-next-line no-implied-eval
-          const importPromise = new Function('return import("@capacitor/preferences")')() as Promise<any>;
+          const importPromise = new Function(
+            'return import("@capacitor/preferences")'
+          )() as Promise<any>;
           importPromise
             .then((module: any) => {
               const { Preferences } = module;
@@ -235,7 +248,7 @@ class UnleashClient {
         this.loadCachedFlagsFromLocalStorage();
       }
     } catch (error) {
-      console.warn('[FeatureFlags] Failed to load cached flags:', error);
+      console.warn("[FeatureFlags] Failed to load cached flags:", error);
     }
   }
 
@@ -243,7 +256,7 @@ class UnleashClient {
    * Load flags from localStorage (web fallback)
    */
   private loadCachedFlagsFromLocalStorage(): void {
-    if (typeof window === 'undefined') {
+    if (typeof window === "undefined") {
       return;
     }
 
@@ -259,7 +272,7 @@ class UnleashClient {
         }
       }
     } catch (error) {
-      console.warn('[FeatureFlags] Failed to load from localStorage:', error);
+      console.warn("[FeatureFlags] Failed to load from localStorage:", error);
     }
   }
 
@@ -268,7 +281,7 @@ class UnleashClient {
    */
   private saveCachedFlags(): void {
     // Only run on client-side
-    if (typeof window === 'undefined') {
+    if (typeof window === "undefined") {
       return;
     }
 
@@ -284,7 +297,9 @@ class UnleashClient {
         // Use eval to prevent Next.js from statically analyzing the import
         try {
           // eslint-disable-next-line no-implied-eval
-          const importPromise = new Function('return import("@capacitor/preferences")')() as Promise<any>;
+          const importPromise = new Function(
+            'return import("@capacitor/preferences")'
+          )() as Promise<any>;
           importPromise
             .then((module: any) => {
               const { Preferences } = module;
@@ -306,22 +321,25 @@ class UnleashClient {
         this.saveCachedFlagsToLocalStorage(cacheData);
       }
     } catch (error) {
-      console.warn('[FeatureFlags] Failed to save cached flags:', error);
+      console.warn("[FeatureFlags] Failed to save cached flags:", error);
     }
   }
 
   /**
    * Save flags to localStorage (web fallback)
    */
-  private saveCachedFlagsToLocalStorage(cacheData: { flags: FeatureFlag[]; timestamp: number }): void {
-    if (typeof window === 'undefined') {
+  private saveCachedFlagsToLocalStorage(cacheData: {
+    flags: FeatureFlag[];
+    timestamp: number;
+  }): void {
+    if (typeof window === "undefined") {
       return;
     }
 
     try {
       localStorage.setItem(this.cacheKey, JSON.stringify(cacheData));
     } catch (error) {
-      console.warn('[FeatureFlags] Failed to save to localStorage:', error);
+      console.warn("[FeatureFlags] Failed to save to localStorage:", error);
     }
   }
 
@@ -365,12 +383,18 @@ export function initializeUnleash(
 /**
  * Get feature flag value
  */
-export function isFeatureEnabled(flagKey: string, defaultValue?: boolean): boolean {
+export function isFeatureEnabled(
+  flagKey: string,
+  defaultValue?: boolean
+): boolean {
   if (!clientInstance) {
     // Return safe-off default if client not initialized
     return DEFAULT_FLAGS[flagKey] ?? defaultValue ?? false;
   }
-  return clientInstance.isEnabled(flagKey, DEFAULT_FLAGS[flagKey] ?? defaultValue ?? false);
+  return clientInstance.isEnabled(
+    flagKey,
+    DEFAULT_FLAGS[flagKey] ?? defaultValue ?? false
+  );
 }
 
 /**
@@ -402,4 +426,3 @@ export function destroyUnleash(): void {
     clientInstance = null;
   }
 }
-

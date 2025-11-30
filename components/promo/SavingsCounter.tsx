@@ -1,14 +1,14 @@
 /**
  * Animated Savings Counter
- * 
+ *
  * Gently animated counter for savings (low-motion friendly)
  */
 
 "use client";
 
-import React, { useState, useEffect, useMemo } from 'react';
-import { TrendingDown } from 'lucide-react';
-import { cn } from '../../lib/utils';
+import React, { useState, useEffect, useMemo } from "react";
+import { TrendingDown } from "lucide-react";
+import { cn } from "../../lib/utils";
 
 interface SavingsCounterProps {
   savings: number;
@@ -16,11 +16,15 @@ interface SavingsCounterProps {
   animate?: boolean;
 }
 
-export function SavingsCounter({ savings, className, animate = true }: SavingsCounterProps) {
+export function SavingsCounter({
+  savings,
+  className,
+  animate = true,
+}: SavingsCounterProps) {
   const [displayValue, setDisplayValue] = useState(0);
   const prefersReducedMotion = useMemo(() => {
-    if (typeof window === 'undefined') return false;
-    return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (typeof window === "undefined") return false;
+    return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   }, []);
 
   useEffect(() => {
@@ -51,13 +55,19 @@ export function SavingsCounter({ savings, className, animate = true }: SavingsCo
   }, [savings, animate, prefersReducedMotion]);
 
   return (
-    <div className={cn("flex items-center gap-1 text-green-600 font-semibold", className)}>
-      <TrendingDown className={cn(
-        "h-4 w-4",
-        !prefersReducedMotion && animate && "animate-pulse"
-      )} />
+    <div
+      className={cn(
+        "flex items-center gap-1 font-semibold text-green-600",
+        className
+      )}
+    >
+      <TrendingDown
+        className={cn(
+          "h-4 w-4",
+          !prefersReducedMotion && animate && "animate-pulse"
+        )}
+      />
       <span>${displayValue.toFixed(2)} saved</span>
     </div>
   );
 }
-

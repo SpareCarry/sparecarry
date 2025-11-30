@@ -1,23 +1,25 @@
 /**
  * First Delivery Free Promo Card
- * 
+ *
  * Shown after promo period ends for users with no completed deliveries
  */
 
 "use client";
 
-import React from 'react';
-import { Card, CardContent } from '../ui/card';
-import { Gift } from 'lucide-react';
-import { cn } from '../../lib/utils';
+import React from "react";
+import { Card, CardContent } from "../ui/card";
+import { Gift } from "lucide-react";
+import { cn } from "../../lib/utils";
 
 interface FirstDeliveryPromoCardProps {
   className?: string;
 }
 
-export function FirstDeliveryPromoCard({ className }: FirstDeliveryPromoCardProps) {
+export function FirstDeliveryPromoCard({
+  className,
+}: FirstDeliveryPromoCardProps) {
   return (
-    <Card 
+    <Card
       className={cn(
         "border-teal-200 bg-gradient-to-r from-teal-50 via-blue-50 to-teal-50 shadow-sm",
         className
@@ -27,11 +29,11 @@ export function FirstDeliveryPromoCard({ className }: FirstDeliveryPromoCardProp
     >
       <CardContent className="p-4">
         <div className="flex items-start gap-3">
-          <div className="flex-shrink-0 w-12 h-12 bg-teal-100 rounded-full flex items-center justify-center">
+          <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-teal-100">
             <Gift className="h-6 w-6 text-teal-600" />
           </div>
           <div className="flex-1">
-            <h3 className="font-bold text-lg text-slate-900 mb-1">
+            <h3 className="mb-1 text-lg font-bold text-slate-900">
               🎁 Your First Delivery Is Free
             </h3>
             <p className="text-sm text-slate-700">
@@ -43,4 +45,3 @@ export function FirstDeliveryPromoCard({ className }: FirstDeliveryPromoCardProp
     </Card>
   );
 }
-

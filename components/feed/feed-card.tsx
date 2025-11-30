@@ -3,7 +3,14 @@
 import React, { useMemo, useCallback } from "react";
 import { Card, CardContent } from "../ui/card";
 import { Badge } from "../ui/badge";
-import { Plane, Ship, CheckCircle2, Clock, DollarSign, Zap } from "lucide-react";
+import {
+  Plane,
+  Ship,
+  CheckCircle2,
+  Clock,
+  DollarSign,
+  Zap,
+} from "lucide-react";
 import { format, parseISO, differenceInDays, isValid } from "date-fns";
 import { cn } from "../../lib/utils";
 import { VerifiedSailorBadge } from "../badges/verified-sailor-badge";
@@ -48,16 +55,20 @@ interface FeedCardProps {
 
 function FeedCardComponent({ item, onClick }: FeedCardProps) {
   const isTrip = item.type === "trip";
-  
+
   // Memoize expensive date calculations
   const isFast = useMemo(() => {
     if (isTrip) {
       if (item.departure_date && isValid(parseISO(item.departure_date))) {
-        return differenceInDays(parseISO(item.departure_date), new Date()) <= 10;
+        return (
+          differenceInDays(parseISO(item.departure_date), new Date()) <= 10
+        );
       }
     } else {
       if (item.deadline_earliest && isValid(parseISO(item.deadline_earliest))) {
-        return differenceInDays(parseISO(item.deadline_earliest), new Date()) <= 10;
+        return (
+          differenceInDays(parseISO(item.deadline_earliest), new Date()) <= 10
+        );
       }
     }
     return false;
@@ -86,19 +97,31 @@ function FeedCardComponent({ item, onClick }: FeedCardProps) {
       }
     }
     return "Dates TBD";
-  }, [isTrip, item.departure_date, item.eta_window_start, item.eta_window_end, item.deadline_earliest, item.deadline_latest]);
+  }, [
+    isTrip,
+    item.departure_date,
+    item.eta_window_start,
+    item.eta_window_end,
+    item.deadline_earliest,
+    item.deadline_latest,
+  ]);
 
   // Memoize reward/capacity display - use stable values to prevent flickering
   const rewardAmount = item.max_reward ?? 0;
   const spareKg = item.spare_kg ?? 0;
-  
+
   const rewardDisplay = useMemo(() => {
     if (isTrip) {
       return `Spare: ${spareKg}kg`;
     } else {
       return (
         <>
-          Reward: <CurrencyDisplay amount={rewardAmount} showSecondary={false} className="inline" />
+          Reward:{" "}
+          <CurrencyDisplay
+            amount={rewardAmount}
+            showSecondary={false}
+            className="inline"
+          />
         </>
       );
     }
@@ -106,7 +129,7 @@ function FeedCardComponent({ item, onClick }: FeedCardProps) {
 
   return (
     <Card
-      className="cursor-pointer hover:shadow-lg transition-shadow bg-white"
+      className="cursor-pointer bg-white transition-shadow hover:shadow-lg"
       onClick={onClick}
     >
       <CardContent className="p-4">
@@ -114,7 +137,7 @@ function FeedCardComponent({ item, onClick }: FeedCardProps) {
           {/* Icon Badge */}
           <div
             className={cn(
-              "flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center",
+              "flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full",
               isTrip ? "bg-blue-100" : "bg-purple-100"
             )}
           >
@@ -126,10 +149,10 @@ function FeedCardComponent({ item, onClick }: FeedCardProps) {
           </div>
 
           {/* Content */}
-          <div className="flex-1 min-w-0">
-            <div className="flex items-start justify-between gap-2 mb-2">
+          <div className="min-w-0 flex-1">
+            <div className="mb-2 flex items-start justify-between gap-2">
               <div className="flex-1">
-                <div className="flex items-center gap-2 mb-1">
+                <div className="mb-1 flex items-center gap-2">
                   <span className="font-semibold text-slate-900">
                     {item.from_location}
                   </span>
@@ -143,7 +166,7 @@ function FeedCardComponent({ item, onClick }: FeedCardProps) {
                   <span>{dateRange}</span>
                 </div>
               </div>
-              <div className="flex items-center gap-2 flex-wrap justify-end">
+              <div className="flex flex-wrap items-center justify-end gap-2">
                 {/* Match Score Badge */}
                 {item.match_score_breakdown && item.trip_type && (
                   <MatchScoreBadge
@@ -158,17 +181,13 @@ function FeedCardComponent({ item, onClick }: FeedCardProps) {
                   premium_member={item.user_subscribed}
                   size="sm"
                 />
-                {item.user_supporter && (
-                  <SupporterBadge size="sm" />
-                )}
-                {item.user_verified_sailor && (
-                  <VerifiedSailorBadge size="sm" />
-                )}
+                {item.user_supporter && <SupporterBadge size="sm" />}
+                {item.user_verified_sailor && <VerifiedSailorBadge size="sm" />}
               </div>
             </div>
 
             {/* Reward/Capacity */}
-            <div className="flex items-center gap-2 mb-2">
+            <div className="mb-2 flex items-center gap-2">
               <DollarSign className="h-4 w-4 text-slate-400" />
               <span className="text-sm font-medium text-slate-900">
                 {rewardDisplay}
@@ -176,10 +195,10 @@ function FeedCardComponent({ item, onClick }: FeedCardProps) {
             </div>
 
             {/* Badges */}
-            <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex flex-wrap items-center gap-2">
               {item.emergency && (
-                <Badge className="bg-amber-100 text-amber-800 border-amber-200">
-                  <Zap className="h-3 w-3 mr-1" />
+                <Badge className="border-amber-200 bg-amber-100 text-amber-800">
+                  <Zap className="mr-1 h-3 w-3" />
                   Emergency
                 </Badge>
               )}
@@ -187,11 +206,13 @@ function FeedCardComponent({ item, onClick }: FeedCardProps) {
                 variant={isFast ? "default" : "secondary"}
                 className={cn(
                   isFast
-                    ? "bg-teal-100 text-teal-800 border-teal-200"
-                    : "bg-slate-100 text-slate-800 border-slate-200"
+                    ? "border-teal-200 bg-teal-100 text-teal-800"
+                    : "border-slate-200 bg-slate-100 text-slate-800"
                 )}
               >
-                {isFast ? "Fast (3–10 days)" : "Cheap (2–8 weeks, zero customs)"}
+                {isFast
+                  ? "Fast (3–10 days)"
+                  : "Cheap (2–8 weeks, zero customs)"}
               </Badge>
               {isTrip && (
                 <Badge variant="outline" className="text-xs">
@@ -208,36 +229,37 @@ function FeedCardComponent({ item, onClick }: FeedCardProps) {
 
 // Optimized with React.memo to prevent unnecessary re-renders
 // Return true if props are equal (should NOT re-render), false if different (SHOULD re-render)
-export const FeedCard = React.memo(FeedCardComponent, (prevProps, nextProps) => {
-  // If IDs are different, we need to re-render
-  if (prevProps.item.id !== nextProps.item.id) return false;
-  if (prevProps.onClick !== nextProps.onClick) return false;
-  
-  // Compare key properties that affect rendering
-  const prev = prevProps.item;
-  const next = nextProps.item;
-  
-  // Return true if props are equal (skip re-render), false if different (re-render)
-  const propsEqual = (
-    prev.type === next.type &&
-    prev.from_location === next.from_location &&
-    prev.to_location === next.to_location &&
-    prev.departure_date === next.departure_date &&
-    prev.eta_window_start === next.eta_window_start &&
-    prev.eta_window_end === next.eta_window_end &&
-    prev.deadline_earliest === next.deadline_earliest &&
-    prev.deadline_latest === next.deadline_latest &&
-    prev.max_reward === next.max_reward &&
-    prev.spare_kg === next.spare_kg &&
-    prev.spare_volume_liters === next.spare_volume_liters &&
-    prev.user_id === next.user_id &&
-    prev.user_verified_sailor === next.user_verified_sailor &&
-    prev.user_verified_identity === next.user_verified_identity &&
-    prev.user_subscribed === next.user_subscribed &&
-    prev.user_supporter === next.user_supporter &&
-    prev.emergency === next.emergency
-  );
-  
-  return propsEqual; // true = skip re-render, false = re-render
-});
+export const FeedCard = React.memo(
+  FeedCardComponent,
+  (prevProps, nextProps) => {
+    // If IDs are different, we need to re-render
+    if (prevProps.item.id !== nextProps.item.id) return false;
+    if (prevProps.onClick !== nextProps.onClick) return false;
 
+    // Compare key properties that affect rendering
+    const prev = prevProps.item;
+    const next = nextProps.item;
+
+    // Return true if props are equal (skip re-render), false if different (re-render)
+    const propsEqual =
+      prev.type === next.type &&
+      prev.from_location === next.from_location &&
+      prev.to_location === next.to_location &&
+      prev.departure_date === next.departure_date &&
+      prev.eta_window_start === next.eta_window_start &&
+      prev.eta_window_end === next.eta_window_end &&
+      prev.deadline_earliest === next.deadline_earliest &&
+      prev.deadline_latest === next.deadline_latest &&
+      prev.max_reward === next.max_reward &&
+      prev.spare_kg === next.spare_kg &&
+      prev.spare_volume_liters === next.spare_volume_liters &&
+      prev.user_id === next.user_id &&
+      prev.user_verified_sailor === next.user_verified_sailor &&
+      prev.user_verified_identity === next.user_verified_identity &&
+      prev.user_subscribed === next.user_subscribed &&
+      prev.user_supporter === next.user_supporter &&
+      prev.emergency === next.emergency;
+
+    return propsEqual; // true = skip re-render, false = re-render
+  }
+);

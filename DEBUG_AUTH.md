@@ -3,9 +3,11 @@
 ## Common Issues with Magic Link Authentication
 
 ### 1. **Callback URL Not Configured in Supabase**
+
 **Problem:** Supabase doesn't allow redirects to unconfigured URLs
 
-**Fix:** 
+**Fix:**
+
 1. Go to Supabase Dashboard → Authentication → URL Configuration
 2. Add your callback URL to "Redirect URLs":
    - Local: `http://localhost:3001/auth/callback`
@@ -13,11 +15,13 @@
 3. Make sure "Site URL" is set correctly
 
 ### 2. **Code Expired or Already Used**
+
 **Problem:** Magic link codes expire after a certain time or can only be used once
 
 **Fix:** Request a new magic link
 
 ### 3. **Cookie Settings**
+
 **Problem:** Cookies not being set properly due to SameSite or Secure settings
 
 **Fix:** Check browser console for cookie errors
@@ -49,4 +53,3 @@
 2. Verify callback URL is in Supabase redirect URLs
 3. Try requesting a fresh magic link
 4. Check browser console for additional errors
-

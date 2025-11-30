@@ -3,7 +3,7 @@
  * In-app messaging system (like Airbnb) to keep deals on-platform
  */
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback } from "react";
 import {
   View,
   Text,
@@ -15,20 +15,20 @@ import {
   KeyboardAvoidingView,
   Platform,
   Alert,
-} from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { createClient } from '@sparecarry/lib/supabase';
-import { useAuth } from '@sparecarry/hooks/useAuth';
-import { MaterialIcons } from '@expo/vector-icons';
-import { format } from 'date-fns';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { RealtimeManager } from '@sparecarry/lib/realtime';
-import { PaymentButtonMobile } from '../../components/chat/PaymentButtonMobile';
-import { DeliveryConfirmationMobile } from '../../components/chat/DeliveryConfirmationMobile';
-import { ConfirmDeliveryButtonMobile } from '../../components/chat/ConfirmDeliveryButtonMobile';
-import { RatingSectionMobile } from '../../components/chat/RatingSectionMobile';
-import { TemplateMessagesMobile } from '../../components/chat/TemplateMessagesMobile';
+} from "react-native";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { createClient } from "@sparecarry/lib/supabase";
+import { useAuth } from "@sparecarry/hooks/useAuth";
+import { MaterialIcons } from "@expo/vector-icons";
+import { format } from "date-fns";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { RealtimeManager } from "@sparecarry/lib/realtime";
+import { PaymentButtonMobile } from "../../components/chat/PaymentButtonMobile";
+import { DeliveryConfirmationMobile } from "../../components/chat/DeliveryConfirmationMobile";
+import { ConfirmDeliveryButtonMobile } from "../../components/chat/ConfirmDeliveryButtonMobile";
+import { RatingSectionMobile } from "../../components/chat/RatingSectionMobile";
+import { TemplateMessagesMobile } from "../../components/chat/TemplateMessagesMobile";
 
 interface Message {
   id: string;
@@ -57,11 +57,11 @@ export default function ChatScreen() {
   const { user } = useAuth();
   const supabase = createClient();
   const queryClient = useQueryClient();
-  
-  const [message, setMessage] = useState('');
+
+  const [message, setMessage] = useState("");
   const [sending, setSending] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
-  const [disputeReason, setDisputeReason] = useState('');
+  const [disputeReason, setDisputeReason] = useState("");
   const [showDisputeForm, setShowDisputeForm] = useState(false);
 
   // Initialize RealtimeManager
@@ -71,12 +71,12 @@ export default function ChatScreen() {
 
   // Fetch match details
   const { data: match } = useQuery<Match>({
-    queryKey: ['match', matchId],
+    queryKey: ["match", matchId],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('matches')
-        .select('*, trips(*), requests(*)')
-        .eq('id', matchId)
+        .from("matches")
+        .select("*, trips(*), requests(*)")
+        .eq("id", matchId)
         .single();
 
       if (error) throw error;
@@ -94,22 +94,25 @@ export default function ChatScreen() {
       : null;
 
   // Fetch conversation and messages
-  const { data: conversation } = useQuery<{ id: string; messages: Message[] } | null>({
-    queryKey: ['conversation', matchId],
+  const { data: conversation } = useQuery<{
+    id: string;
+    messages: Message[];
+  } | null>({
+    queryKey: ["conversation", matchId],
     queryFn: async () => {
       const { data: conv } = await supabase
-        .from('conversations')
-        .select('id')
-        .eq('match_id', matchId)
+        .from("conversations")
+        .select("id")
+        .eq("match_id", matchId)
         .maybeSingle();
 
       if (!conv) return null;
 
       const { data: messages } = await supabase
-        .from('messages')
-        .select('*, sender:profiles!messages_sender_id_fkey(*)')
-        .eq('conversation_id', conv.id)
-        .order('created_at', { ascending: true });
+        .from("messages")
+        .select("*, sender:profiles!messages_sender_id_fkey(*)")
+        .eq("conversation_id", conv.id)
+        .order("created_at", { ascending: true });
 
       return { ...conv, messages: messages || [] };
     },
@@ -122,13 +125,13 @@ export default function ChatScreen() {
     if (!conversation?.id || !matchId) return;
 
     const handleRealtime = () => {
-      queryClient.invalidateQueries({ queryKey: ['conversation', matchId] });
+      queryClient.invalidateQueries({ queryKey: ["conversation", matchId] });
     };
 
     const channelName = RealtimeManager.listen(
       {
-        table: 'messages',
-        event: 'INSERT',
+        table: "messages",
+        event: "INSERT",
         filter: `conversation_id=eq.${conversation.id}`,
       },
       handleRealtime,
@@ -143,10 +146,10 @@ export default function ChatScreen() {
   // Send message mutation
   const sendMessageMutation = useMutation({
     mutationFn: async (content: string) => {
-      if (!conversation) throw new Error('No conversation found');
+      if (!conversation) throw new Error("No conversation found");
 
       const { data, error } = await supabase
-        .from('messages')
+        .from("messages")
         .insert({
           conversation_id: conversation.id,
           sender_id: user!.id,
@@ -159,8 +162,8 @@ export default function ChatScreen() {
       return data as Message;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['conversation', matchId] });
-      setMessage('');
+      queryClient.invalidateQueries({ queryKey: ["conversation", matchId] });
+      setMessage("");
       // Scroll to bottom
       setTimeout(() => {
         scrollViewRef.current?.scrollToEnd({ animated: true });
@@ -172,28 +175,34 @@ export default function ChatScreen() {
   const openDisputeMutation = useMutation({
     mutationFn: async (reason: string) => {
       if (!reason.trim()) {
-        throw new Error('Please describe what went wrong.');
+        throw new Error("Please describe what went wrong.");
       }
 
-      if (!user) throw new Error('Not authenticated');
+      if (!user) throw new Error("Not authenticated");
 
-      const { error } = await supabase.from('disputes').insert({
+      const { error } = await supabase.from("disputes").insert({
         match_id: matchId,
         opened_by: user.id,
         reason: reason.trim(),
-        status: 'open',
+        status: "open",
       });
 
       if (error) throw error;
     },
     onSuccess: () => {
-      setDisputeReason('');
+      setDisputeReason("");
       setShowDisputeForm(false);
-      Alert.alert('Success', 'Dispute submitted. Our support team will reach out shortly.');
-      queryClient.invalidateQueries({ queryKey: ['match', matchId] });
+      Alert.alert(
+        "Success",
+        "Dispute submitted. Our support team will reach out shortly."
+      );
+      queryClient.invalidateQueries({ queryKey: ["match", matchId] });
     },
     onError: (error: any) => {
-      Alert.alert('Error', error.message || 'Unable to submit dispute. Please try again.');
+      Alert.alert(
+        "Error",
+        error.message || "Unable to submit dispute. Please try again."
+      );
     },
   });
 
@@ -204,7 +213,7 @@ export default function ChatScreen() {
     try {
       await sendMessageMutation.mutateAsync(message.trim());
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'Failed to send message');
+      Alert.alert("Error", error.message || "Failed to send message");
     } finally {
       setSending(false);
     }
@@ -212,7 +221,7 @@ export default function ChatScreen() {
 
   const handleDisputeSubmit = () => {
     if (!disputeReason.trim()) {
-      Alert.alert('Error', 'Please describe what went wrong.');
+      Alert.alert("Error", "Please describe what went wrong.");
       return;
     }
     openDisputeMutation.mutate(disputeReason);
@@ -239,21 +248,32 @@ export default function ChatScreen() {
   }
 
   const trip = Array.isArray(match.trips) ? match.trips[0] : match.trips;
-  const request = Array.isArray(match.requests) ? match.requests[0] : match.requests;
+  const request = Array.isArray(match.requests)
+    ? match.requests[0]
+    : match.requests;
   const isRequester = request?.user_id === user?.id;
-  const canPay = isRequester && (match.status === 'chatting' || match.status === 'pending');
-  const canOpenDispute = ['escrow_paid', 'delivered', 'completed', 'disputed'].includes(match.status);
+  const canPay =
+    isRequester && (match.status === "chatting" || match.status === "pending");
+  const canOpenDispute = [
+    "escrow_paid",
+    "delivered",
+    "completed",
+    "disputed",
+  ].includes(match.status);
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top']}>
+    <SafeAreaView style={styles.safeArea} edges={["top"]}>
       <KeyboardAvoidingView
         style={styles.container}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
       >
         {/* Header */}
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+          <TouchableOpacity
+            onPress={() => router.back()}
+            style={styles.backButton}
+          >
             <MaterialIcons name="arrow-back" size={24} color="#333" />
           </TouchableOpacity>
           <View style={styles.headerContent}>
@@ -263,7 +283,7 @@ export default function ChatScreen() {
                 : `${request?.from_location} → ${request?.to_location}`}
             </Text>
             <Text style={styles.headerSubtitle}>
-              {isRequester ? 'Traveler' : 'Requester'}
+              {isRequester ? "Traveler" : "Requester"}
             </Text>
           </View>
           <View style={styles.headerSpacer} />
@@ -280,7 +300,10 @@ export default function ChatScreen() {
             return (
               <View
                 key={msg.id}
-                style={[styles.messageWrapper, isOwn && styles.messageWrapperOwn]}
+                style={[
+                  styles.messageWrapper,
+                  isOwn && styles.messageWrapperOwn,
+                ]}
               >
                 <View
                   style={[
@@ -302,7 +325,7 @@ export default function ChatScreen() {
                       isOwn ? styles.messageTimeOwn : styles.messageTimeOther,
                     ]}
                   >
-                    {format(new Date(msg.created_at), 'HH:mm')}
+                    {format(new Date(msg.created_at), "HH:mm")}
                   </Text>
                 </View>
               </View>
@@ -311,27 +334,25 @@ export default function ChatScreen() {
         </ScrollView>
 
         {/* Payment Button (Requester only) */}
-        {canPay && (
-          <PaymentButtonMobile match={match} matchId={matchId} />
-        )}
+        {canPay && <PaymentButtonMobile match={match} matchId={matchId} />}
 
         {/* Delivery Confirmation (Traveler) */}
-        {!isRequester && match.status === 'escrow_paid' && (
+        {!isRequester && match.status === "escrow_paid" && (
           <DeliveryConfirmationMobile matchId={matchId} />
         )}
 
         {/* Confirm Delivery Button (Requester) */}
-        {isRequester && match.status === 'delivered' && (
+        {isRequester && match.status === "delivered" && (
           <ConfirmDeliveryButtonMobile matchId={matchId} />
         )}
 
         {/* Rating Section */}
-        {match.status === 'completed' && otherUserId && (
+        {match.status === "completed" && otherUserId && (
           <RatingSectionMobile matchId={matchId} otherUserId={otherUserId} />
         )}
 
         {/* Template Messages */}
-        {(match.status === 'pending' || match.status === 'chatting') && (
+        {(match.status === "pending" || match.status === "chatting") && (
           <TemplateMessagesMobile
             match={match}
             isRequester={isRequester}
@@ -359,7 +380,7 @@ export default function ChatScreen() {
                     style={styles.disputeButtonCancel}
                     onPress={() => {
                       setShowDisputeForm(false);
-                      setDisputeReason('');
+                      setDisputeReason("");
                     }}
                   >
                     <Text style={styles.disputeButtonCancelText}>Cancel</Text>
@@ -383,14 +404,16 @@ export default function ChatScreen() {
                 onPress={() => setShowDisputeForm(true)}
               >
                 <MaterialIcons name="help-outline" size={20} color="#14b8a6" />
-                <Text style={styles.disputeButtonText}>Need help? Open dispute</Text>
+                <Text style={styles.disputeButtonText}>
+                  Need help? Open dispute
+                </Text>
               </TouchableOpacity>
             )}
           </View>
         )}
 
         {/* Message Input */}
-        {(match.status === 'chatting' || match.status === 'pending') && (
+        {(match.status === "chatting" || match.status === "pending") && (
           <View style={styles.inputContainer}>
             <TextInput
               style={styles.input}
@@ -402,7 +425,10 @@ export default function ChatScreen() {
               maxLength={2000}
             />
             <TouchableOpacity
-              style={[styles.sendButton, (!message.trim() || sending) && styles.sendButtonDisabled]}
+              style={[
+                styles.sendButton,
+                (!message.trim() || sending) && styles.sendButtonDisabled,
+              ]}
               onPress={handleSend}
               disabled={!message.trim() || sending}
             >
@@ -422,27 +448,27 @@ export default function ChatScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#f9fafb',
+    backgroundColor: "#f9fafb",
   },
   container: {
     flex: 1,
   },
   centerContainer: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   loadingText: {
     marginTop: 12,
     fontSize: 16,
-    color: '#666',
+    color: "#666",
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#fff',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#fff",
     borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
+    borderBottomColor: "#e5e7eb",
     paddingHorizontal: 16,
     paddingVertical: 12,
   },
@@ -452,16 +478,16 @@ const styles = StyleSheet.create({
   },
   headerContent: {
     flex: 1,
-    alignItems: 'center',
+    alignItems: "center",
   },
   headerTitle: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
+    fontWeight: "600",
+    color: "#333",
   },
   headerSubtitle: {
     fontSize: 12,
-    color: '#666',
+    color: "#666",
     marginTop: 2,
   },
   headerSpacer: {
@@ -476,99 +502,99 @@ const styles = StyleSheet.create({
   },
   messageWrapper: {
     marginBottom: 12,
-    maxWidth: '80%',
+    maxWidth: "80%",
   },
   messageWrapperOwn: {
-    alignSelf: 'flex-end',
+    alignSelf: "flex-end",
   },
   messageBubble: {
     borderRadius: 16,
     padding: 12,
   },
   messageBubbleOwn: {
-    backgroundColor: '#14b8a6',
+    backgroundColor: "#14b8a6",
   },
   messageBubbleOther: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderWidth: 1,
-    borderColor: '#e5e7eb',
+    borderColor: "#e5e7eb",
   },
   messageText: {
     fontSize: 15,
     lineHeight: 20,
   },
   messageTextOwn: {
-    color: '#fff',
+    color: "#fff",
   },
   messageTextOther: {
-    color: '#333',
+    color: "#333",
   },
   messageTime: {
     fontSize: 11,
     marginTop: 4,
   },
   messageTimeOwn: {
-    color: 'rgba(255, 255, 255, 0.7)',
+    color: "rgba(255, 255, 255, 0.7)",
   },
   messageTimeOther: {
-    color: '#666',
+    color: "#666",
   },
   actionSection: {
     padding: 16,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderTopWidth: 1,
-    borderTopColor: '#e5e7eb',
+    borderTopColor: "#e5e7eb",
   },
   paymentButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     gap: 8,
-    backgroundColor: '#14b8a6',
+    backgroundColor: "#14b8a6",
     borderRadius: 8,
     padding: 16,
   },
   paymentButtonText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   disputeButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     gap: 8,
-    backgroundColor: '#f0fdfa',
+    backgroundColor: "#f0fdfa",
     borderRadius: 8,
     padding: 12,
     borderWidth: 1,
-    borderColor: '#14b8a6',
+    borderColor: "#14b8a6",
   },
   disputeButtonText: {
-    color: '#14b8a6',
+    color: "#14b8a6",
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   disputeForm: {
     gap: 12,
   },
   disputeFormTitle: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
+    fontWeight: "600",
+    color: "#333",
   },
   disputeInput: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderWidth: 1,
-    borderColor: '#e5e7eb',
+    borderColor: "#e5e7eb",
     borderRadius: 8,
     padding: 12,
     fontSize: 14,
-    color: '#333',
+    color: "#333",
     minHeight: 100,
   },
   disputeButtons: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 12,
   },
   disputeButtonCancel: {
@@ -576,55 +602,54 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#e5e7eb',
-    alignItems: 'center',
+    borderColor: "#e5e7eb",
+    alignItems: "center",
   },
   disputeButtonCancelText: {
-    color: '#666',
+    color: "#666",
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   disputeButtonSubmit: {
     flex: 1,
     padding: 12,
     borderRadius: 8,
-    backgroundColor: '#14b8a6',
-    alignItems: 'center',
+    backgroundColor: "#14b8a6",
+    alignItems: "center",
   },
   disputeButtonSubmitText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    backgroundColor: '#fff',
+    flexDirection: "row",
+    alignItems: "flex-end",
+    backgroundColor: "#fff",
     borderTopWidth: 1,
-    borderTopColor: '#e5e7eb',
+    borderTopColor: "#e5e7eb",
     padding: 12,
     gap: 8,
   },
   input: {
     flex: 1,
-    backgroundColor: '#f9fafb',
+    backgroundColor: "#f9fafb",
     borderRadius: 20,
     paddingHorizontal: 16,
     paddingVertical: 10,
     fontSize: 15,
-    color: '#333',
+    color: "#333",
     maxHeight: 100,
   },
   sendButton: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: '#14b8a6',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "#14b8a6",
+    alignItems: "center",
+    justifyContent: "center",
   },
   sendButtonDisabled: {
     opacity: 0.5,
   },
 });
-

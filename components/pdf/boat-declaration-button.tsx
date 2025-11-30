@@ -2,7 +2,10 @@
 
 import { Button } from "../ui/button";
 import { Download, FileText } from "lucide-react";
-import { generateBoatDeclarationPDF, type BoatDeclarationData } from "../../lib/pdf/boat-declaration";
+import {
+  generateBoatDeclarationPDF,
+  type BoatDeclarationData,
+} from "../../lib/pdf/boat-declaration";
 import { useState } from "react";
 import { createClient } from "../../lib/supabase/client";
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -16,7 +19,10 @@ interface BoatDeclarationButtonProps {
 
 type MatchDeclaration = {
   trips: {
-    profiles?: Array<{ boat_name?: string | null }> | { boat_name?: string | null } | null;
+    profiles?:
+      | Array<{ boat_name?: string | null }>
+      | { boat_name?: string | null }
+      | null;
     users?: { email?: string | null } | null;
     from_location: string;
     to_location: string;
@@ -84,7 +90,9 @@ export function BoatDeclarationButton({ matchId }: BoatDeclarationButtonProps) {
     try {
       const trip = match.trips;
       const request = match.requests;
-      const profile = Array.isArray(trip.profiles) ? trip.profiles[0] : trip.profiles;
+      const profile = Array.isArray(trip.profiles)
+        ? trip.profiles[0]
+        : trip.profiles;
 
       // Parse dimensions if available
       let dimensions: { length?: number; width?: number; height?: number } = {};
@@ -150,4 +158,3 @@ export function BoatDeclarationButton({ matchId }: BoatDeclarationButtonProps) {
     </Button>
   );
 }
-

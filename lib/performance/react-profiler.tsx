@@ -1,6 +1,6 @@
 /**
  * React Performance Profiler
- * 
+ *
  * Instruments React components for performance monitoring
  * Tracks render counts, useEffect timing, and Suspense fallback timing
  */
@@ -8,8 +8,13 @@
 /* eslint-disable react-hooks/exhaustive-deps -- callers intentionally control dependency arrays for these perf hooks */
 "use client";
 
-import React, { useEffect, useRef, Profiler, type ProfilerOnRenderCallback } from 'react';
-import { webProfiler } from './web-profiler';
+import React, {
+  useEffect,
+  useRef,
+  Profiler,
+  type ProfilerOnRenderCallback,
+} from "react";
+import { webProfiler } from "./web-profiler";
 
 interface ComponentRenderMetrics {
   componentName: string;
@@ -24,8 +29,9 @@ class ReactProfiler {
   private enabled = true;
 
   constructor() {
-    this.enabled = process.env.NODE_ENV !== 'production' || 
-                   process.env.NEXT_PUBLIC_ENABLE_PERF === 'true';
+    this.enabled =
+      process.env.NODE_ENV !== "production" ||
+      process.env.NEXT_PUBLIC_ENABLE_PERF === "true";
   }
 
   /**
@@ -35,7 +41,7 @@ class ReactProfiler {
     componentName: string,
     renderTime: number,
     metadata?: {
-      phase?: 'mount' | 'update';
+      phase?: "mount" | "update";
       actualDuration?: number;
       baseDuration?: number;
     }
@@ -52,9 +58,11 @@ class ReactProfiler {
 
     existing.renderCount++;
     existing.totalRenderTime += renderTime;
-    existing.averageRenderTime = existing.totalRenderTime / existing.renderCount;
+    existing.averageRenderTime =
+      existing.totalRenderTime / existing.renderCount;
 
-    if (renderTime > 16) { // > 1 frame at 60fps
+    if (renderTime > 16) {
+      // > 1 frame at 60fps
       existing.slowRenders++;
     }
 
@@ -72,7 +80,9 @@ class ReactProfiler {
   /**
    * Get component metrics
    */
-  getComponentMetrics(componentName: string): ComponentRenderMetrics | undefined {
+  getComponentMetrics(
+    componentName: string
+  ): ComponentRenderMetrics | undefined {
     return this.componentMetrics.get(componentName);
   }
 
@@ -115,7 +125,7 @@ export const onRenderCallback: ProfilerOnRenderCallback = (
   commitTime
 ) => {
   reactProfiler.recordRender(id, actualDuration, {
-    phase: phase as 'mount' | 'update',
+    phase: phase as "mount" | "update",
     actualDuration,
     baseDuration,
   });
@@ -123,7 +133,7 @@ export const onRenderCallback: ProfilerOnRenderCallback = (
   webProfiler.recordMetric({
     name: `react-render-${id}`,
     value: actualDuration,
-    unit: 'ms',
+    unit: "ms",
     metadata: {
       phase,
       baseDuration,
@@ -139,7 +149,7 @@ export function useRenderCount(componentName: string): number {
   renderCount.current++;
 
   useEffect(() => {
-    reactProfiler.recordRender(componentName, 0, { phase: 'mount' });
+    reactProfiler.recordRender(componentName, 0, { phase: "mount" });
   }, [componentName]);
 
   return renderCount.current;
@@ -147,7 +157,7 @@ export function useRenderCount(componentName: string): number {
 
 /**
  * Hook to measure useEffect execution time
- * 
+ *
  * Note: This hook intentionally accepts a dynamic dependency array as a parameter.
  * The effect and effectName are intentionally excluded from dependencies as they
  * are meant to be provided by the caller and the deps array controls when the effect runs.
@@ -159,11 +169,11 @@ export function usePerfEffect(
 ): void {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
-    const name = effectName || 'useEffect';
+    const name = effectName || "useEffect";
     webProfiler.mark(name);
-    
+
     const cleanup = effect();
-    
+
     webProfiler.measure(name);
 
     return cleanup;
@@ -172,7 +182,7 @@ export function usePerfEffect(
 
 /**
  * Hook to measure async useEffect execution time
- * 
+ *
  * Note: This hook intentionally accepts a dynamic dependency array as a parameter.
  * The effect and effectName are intentionally excluded from dependencies as they
  * are meant to be provided by the caller and the deps array controls when the effect runs.
@@ -184,9 +194,9 @@ export function usePerfEffectAsync(
 ): void {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
-    const name = effectName || 'useEffect-async';
+    const name = effectName || "useEffect-async";
     webProfiler.mark(name);
-    
+
     effect().then((cleanup) => {
       webProfiler.measure(name);
       return cleanup;
@@ -206,7 +216,7 @@ export function PerformanceProfiler({
   id: string;
   children: React.ReactNode;
 }) {
-  if (!reactProfiler['enabled']) {
+  if (!reactProfiler["enabled"]) {
     return <>{children}</>;
   }
 
@@ -223,10 +233,9 @@ export function PerformanceProfiler({
 export function useSuspenseTiming(suspenseId: string): void {
   useEffect(() => {
     webProfiler.mark(`suspense-${suspenseId}`);
-    
+
     return () => {
       webProfiler.measure(`suspense-${suspenseId}`);
     };
   }, [suspenseId]);
 }
-

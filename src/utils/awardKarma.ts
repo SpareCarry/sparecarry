@@ -1,13 +1,13 @@
 /**
  * Award Karma Points Utility
- * 
+ *
  * Awards karma points to users when deliveries are completed.
  * Called from delivery confirmation flow.
  */
 
-import { createClient } from '../../lib/supabase/client';
-import type { SupabaseClient } from '@supabase/supabase-js';
-import { trackKarmaPointsEarned } from '../../lib/analytics/tracking';
+import { createClient } from "../../lib/supabase/client";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import { trackKarmaPointsEarned } from "../../lib/analytics/tracking";
 
 export interface AwardKarmaInput {
   userId: string;
@@ -20,7 +20,9 @@ export interface AwardKarmaInput {
  * Award karma points to a user
  * Updates the user's karma_points in the database
  */
-export async function awardKarmaPoints(input: AwardKarmaInput): Promise<number> {
+export async function awardKarmaPoints(
+  input: AwardKarmaInput
+): Promise<number> {
   const { userId, karmaPoints } = input;
 
   if (karmaPoints <= 0) {
@@ -32,13 +34,13 @@ export async function awardKarmaPoints(input: AwardKarmaInput): Promise<number> 
 
     // Get current karma points
     const { data: userData, error: fetchError } = await supabase
-      .from('users')
-      .select('karma_points')
-      .eq('id', userId)
+      .from("users")
+      .select("karma_points")
+      .eq("id", userId)
       .single<{ karma_points: number | null }>();
 
     if (fetchError) {
-      console.error('Error fetching user karma:', fetchError);
+      console.error("Error fetching user karma:", fetchError);
       return 0;
     }
 
@@ -47,12 +49,12 @@ export async function awardKarmaPoints(input: AwardKarmaInput): Promise<number> 
 
     // Update karma points
     const { error: updateError } = await supabase
-      .from('users')
+      .from("users")
       .update({ karma_points: newKarma })
-      .eq('id', userId);
+      .eq("id", userId);
 
     if (updateError) {
-      console.error('Error updating karma points:', updateError);
+      console.error("Error updating karma points:", updateError);
       return 0;
     }
 
@@ -61,8 +63,7 @@ export async function awardKarmaPoints(input: AwardKarmaInput): Promise<number> 
 
     return newKarma;
   } catch (error) {
-    console.error('Exception awarding karma points:', error);
+    console.error("Exception awarding karma points:", error);
     return 0;
   }
 }
-

@@ -3,6 +3,7 @@
 ## Testing & Stability ✅
 
 ### E2E Tests
+
 - [x] Restricted items checkbox enforces boat-only transport
 - [x] Premium pricing discounts applied correctly
 - [x] Location selection (autocomplete, map picker, GPS)
@@ -15,6 +16,7 @@
 - [x] Buy & Ship Directly section
 
 ### Edge Cases Tested
+
 - [x] Restricted items → boat-only transport enforcement
 - [x] Emergency pricing: tiered percentages and $15 cap
 - [x] Location selection methods (autocomplete, map, GPS)
@@ -25,12 +27,14 @@
 ## Safety & Liability ✅
 
 ### Disclaimers Present
+
 - [x] **Customs Costs**: "Estimate only. Actual customs/courier costs may vary."
 - [x] **Restricted Items**: "Restricted items cannot be transported by plane due to airline regulations."
 - [x] **Emergency Multiplier**: Tooltip explains tiered percentage and cap
 - [x] **Messaging Safety**: "All communication stays on SpareCarry for safety and protection."
 
 ### Safety Checks
+
 - [x] Restricted items checkbox prevents plane transport
 - [x] Emergency multiplier applies only to feasible scenarios (validated in form)
 - [x] All form validations in place
@@ -39,6 +43,7 @@
 ## Analytics ✅
 
 ### Tracking Implemented
+
 - [x] Post creation frequency
 - [x] Shipping cost estimator usage
 - [x] Messaging interactions
@@ -52,6 +57,7 @@
 - [x] Buy & Ship Directly selections
 
 ### Analytics Table
+
 - [x] `analytics_events` table created
 - [x] RLS policies configured
 - [x] Events batched and flushed automatically
@@ -70,6 +76,7 @@
 ## Test Coverage ✅
 
 ### Test Scripts
+
 - [x] `scripts/run-beta-tests.js` - Comprehensive test runner
 - [x] `scripts/generate-test-coverage-report.js` - Coverage report generator
 - [x] E2E tests for all major flows
@@ -79,6 +86,7 @@
 ## Beta Testing Flow ✅
 
 ### User Journeys Tested
+
 - [x] New user signup → post creation → messaging
 - [x] Shipping estimator → job creation
 - [x] Multi-user messaging scenarios
@@ -87,11 +95,13 @@
 ## Next Steps for Beta Launch
 
 1. **Run Full Test Suite**:
+
    ```bash
    node scripts/run-beta-tests.js
    ```
 
 2. **Generate Coverage Report**:
+
    ```bash
    node scripts/generate-test-coverage-report.js
    ```
@@ -133,4 +143,3 @@ npm run typecheck
 # Full beta test suite
 node scripts/run-beta-tests.js
 ```
-

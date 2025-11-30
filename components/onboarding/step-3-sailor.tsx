@@ -24,7 +24,10 @@ export function OnboardingStep3({ onComplete }: OnboardingStep3Props) {
   const [error, setError] = useState<string | null>(null);
   const supabase = createClient() as SupabaseClient;
 
-  const handleFileUpload = async (file: File, path: string): Promise<string> => {
+  const handleFileUpload = async (
+    file: File,
+    path: string
+  ): Promise<string> => {
     const fileExt = file.name.split(".").pop();
     const fileName = `${Math.random()}.${fileExt}`;
     const filePath = `${path}/${fileName}`;
@@ -92,15 +95,17 @@ export function OnboardingStep3({ onComplete }: OnboardingStep3Props) {
   if (isSailor === null) {
     return (
       <div className="space-y-4">
-        <Card className="bg-teal-50 border-teal-200">
+        <Card className="border-teal-200 bg-teal-50">
           <CardContent className="pt-6">
             <div className="flex items-start gap-4">
-              <Ship className="h-8 w-8 text-teal-600 flex-shrink-0 mt-1" />
+              <Ship className="mt-1 h-8 w-8 flex-shrink-0 text-teal-600" />
               <div>
-                <h3 className="font-semibold text-slate-900 mb-1">Are you a sailor?</h3>
+                <h3 className="mb-1 font-semibold text-slate-900">
+                  Are you a sailor?
+                </h3>
                 <CardDescription>
-                  If you plan to deliver items by boat, you can get verified as a sailor. This is
-                  optional and can be done later.
+                  If you plan to deliver items by boat, you can get verified as
+                  a sailor. This is optional and can be done later.
                 </CardDescription>
               </div>
             </div>
@@ -129,7 +134,9 @@ export function OnboardingStep3({ onComplete }: OnboardingStep3Props) {
   if (!isSailor) {
     return (
       <form onSubmit={handleSubmit} className="space-y-4">
-        <p className="text-slate-600">You can add boat information later in your profile.</p>
+        <p className="text-slate-600">
+          You can add boat information later in your profile.
+        </p>
         <Button
           type="submit"
           className="w-full bg-teal-600 hover:bg-teal-700"
@@ -196,7 +203,7 @@ export function OnboardingStep3({ onComplete }: OnboardingStep3Props) {
               className="bg-white"
             />
             {boatPhoto && (
-              <span className="text-sm text-teal-600 flex items-center gap-1">
+              <span className="flex items-center gap-1 text-sm text-teal-600">
                 <CheckCircle2 className="h-4 w-4" />
                 Selected
               </span>
@@ -218,7 +225,7 @@ export function OnboardingStep3({ onComplete }: OnboardingStep3Props) {
               className="bg-white"
             />
             {boatPapers && (
-              <span className="text-sm text-teal-600 flex items-center gap-1">
+              <span className="flex items-center gap-1 text-sm text-teal-600">
                 <CheckCircle2 className="h-4 w-4" />
                 Selected
               </span>
@@ -229,18 +236,19 @@ export function OnboardingStep3({ onComplete }: OnboardingStep3Props) {
           </p>
         </div>
 
-        <Card className="bg-blue-50 border-blue-200">
+        <Card className="border-blue-200 bg-blue-50">
           <CardContent className="pt-4">
             <p className="text-sm text-blue-800">
-              <strong>Note:</strong> Your sailor verification will be reviewed by our admin team.
-              You&apos;ll receive a &quot;Verified Sailor&quot; badge once approved.
+              <strong>Note:</strong> Your sailor verification will be reviewed
+              by our admin team. You&apos;ll receive a &quot;Verified
+              Sailor&quot; badge once approved.
             </p>
           </CardContent>
         </Card>
       </div>
 
       {error && (
-        <div className="p-3 rounded-md bg-red-50 text-red-800 border border-red-200 text-sm">
+        <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-800">
           {error}
         </div>
       )}
@@ -273,4 +281,3 @@ export function OnboardingStep3({ onComplete }: OnboardingStep3Props) {
     </form>
   );
 }
-

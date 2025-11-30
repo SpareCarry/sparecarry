@@ -4,20 +4,43 @@ import { useState, useEffect } from "react";
 import React from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "../ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "../ui/card";
 import { DollarSign, AlertCircle, Shield } from "lucide-react";
 import { createClient } from "../../lib/supabase/client";
 import { loadStripe } from "@stripe/stripe-js";
-import { Elements, PaymentElement, useElements, useStripe } from "@stripe/react-stripe-js";
+import {
+  Elements,
+  PaymentElement,
+  useElements,
+  useStripe,
+} from "@stripe/react-stripe-js";
 import { useQuery } from "@tanstack/react-query";
 import { calculatePlatformFee } from "../../lib/pricing/platform-fee";
-import { getInsuranceQuote, purchaseInsurance } from "../../lib/insurance/allianz";
+import {
+  getInsuranceQuote,
+  purchaseInsurance,
+} from "../../lib/insurance/allianz";
 import { EarlySupporterPromoCard } from "../promo/EarlySupporterPromoCard";
 import { FirstDeliveryPromoCard } from "../promo/FirstDeliveryPromoCard";
 import { CurrencyDisplay } from "../currency/currency-display";
 import { getPromoCardToShow } from "../../lib/promo/promo-utils";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { useUser } from "../../hooks/useUser";
+import {
+  calculateMaxKarmaUsage,
+  convertKarmaToCredit,
+  formatKarmaPoints,
+  getKarmaPointsExplanation,
+  getKarmaUsageInstructions,
+  KARMA_TO_CREDIT_RATE,
+  MAX_KARMA_PER_DELIVERY,
+} from "../../lib/incentives/karma-conversion";
 
 type UserSubscription = {
   subscription_status?: "active" | "trialing" | "canceled" | "past_due" | null;
@@ -26,7 +49,7 @@ type UserSubscription = {
 type UserHistory = {
   completed_deliveries_count?: number | null;
   average_rating?: number | null;
-  referral_credit_cents?: number | null;
+  karma_points?: number | null;
   supporter_status?: "active" | "inactive" | null;
 };
 
@@ -74,29 +97,25 @@ export function PaymentButton({ match }: PaymentButtonProps) {
     queryKey: ["user-history", user?.id],
     queryFn: async () => {
       if (!user) return null;
-      // Get data from both users and profiles tables
-      const [userResult, profileResult] = await Promise.all([
-        supabase
-          .from("users")
-          .select("completed_deliveries_count, average_rating, supporter_status")
-          .eq("id", user.id)
-          .single(),
-        supabase
-          .from("profiles")
-          .select("referral_credit_cents")
-          .eq("user_id", user.id)
-          .single(),
-      ]);
+      // Get data from users table
+      const { data: userData, error } = await supabase
+        .from("users")
+        .select(
+          "completed_deliveries_count, average_rating, supporter_status, karma_points"
+        )
+        .eq("id", user.id)
+        .single();
 
-      if (userResult.error || profileResult.error) {
+      if (error) {
         return null;
       }
 
       return {
-        completed_deliveries_count: userResult.data?.completed_deliveries_count || null,
-        average_rating: userResult.data?.average_rating || null,
-        referral_credit_cents: profileResult.data?.referral_credit_cents || null,
-        supporter_status: userResult.data?.supporter_status || null,
+        completed_deliveries_count:
+          userData?.completed_deliveries_count || null,
+        average_rating: userData?.average_rating || null,
+        karma_points: userData?.karma_points || null,
+        supporter_status: userData?.supporter_status || null,
       } as UserHistory | null;
     },
     enabled: !!user,
@@ -104,7 +123,7 @@ export function PaymentButton({ match }: PaymentButtonProps) {
 
   const isSupporter = userHistory?.supporter_status === "active";
   const userCompletedDeliveries = userHistory?.completed_deliveries_count || 0;
-  const isFreeDelivery = userCompletedDeliveries < 3;
+  const isFreeDelivery = userCompletedDeliveries < 1;
 
   const trip = match.trips;
   const request = match.requests;
@@ -151,28 +170,37 @@ export function PaymentButton({ match }: PaymentButtonProps) {
         setInsuranceLoading(false);
       });
     }
-  }, [itemCost, request.from_location, request.to_location, insuranceLoading, insuranceQuote]);
+  }, [
+    itemCost,
+    request.from_location,
+    request.to_location,
+    insuranceLoading,
+    insuranceQuote,
+  ]);
 
-  const insuranceCost = insurance && insuranceQuote ? insuranceQuote.premium : 0;
+  const insuranceCost =
+    insurance && insuranceQuote ? insuranceQuote.premium : 0;
 
   const subtotal = reward + itemCost + insuranceCost;
-  const totalBeforeCredits = subtotal + platformFee;
+  const totalBeforeKarma = subtotal + platformFee;
 
-  const availableCredits = (userHistory?.referral_credit_cents || 0) / 100; // Convert cents to dollars
-  const maxCreditsUsable = Math.min(
-    availableCredits,
-    platformFee + reward // Credits can only be used on platform fee or reward
-  );
-  const creditsToUse = useCredits ? maxCreditsUsable : 0;
+  // Karma points conversion (only shown at checkout)
+  const availableKarma = userHistory?.karma_points || 0;
+  const maxKarmaUsable = calculateMaxKarmaUsage(platformFee, availableKarma);
+  const karmaCreditAmount = convertKarmaToCredit(maxKarmaUsable);
+  const karmaToUse = useCredits ? maxKarmaUsable : 0;
+  const creditFromKarma = convertKarmaToCredit(karmaToUse);
 
-  const total = Math.max(0, totalBeforeCredits - creditsToUse);
-  const creditLimitDisplay = Math.max(0, maxCreditsUsable);
+  const total = Math.max(0, totalBeforeKarma - creditFromKarma);
+  const karmaLimitDisplay = maxKarmaUsable;
   const canSubmitPayment = total > 0;
   const formattedPlatformFeePercent = `${(platformFeePercent * 100).toFixed(1)}%`;
 
   // Determine which promo card to show
-  const [promoCardType, setPromoCardType] = useState<'early-supporter' | 'first-delivery' | null>(null);
-  
+  const [promoCardType, setPromoCardType] = useState<
+    "early-supporter" | "first-delivery" | null
+  >(null);
+
   useEffect(() => {
     const checkPromo = async () => {
       if (user?.id) {
@@ -180,19 +208,19 @@ export function PaymentButton({ match }: PaymentButtonProps) {
         setPromoCardType(cardType);
       } else {
         // For anonymous users, only show early supporter if active
-        const { getDaysLeft } = await import('@/utils/getDaysLeft');
+        const { getDaysLeft } = await import("@/utils/getDaysLeft");
         const daysLeft = getDaysLeft();
-        setPromoCardType(daysLeft > 0 ? 'early-supporter' : null);
+        setPromoCardType(daysLeft > 0 ? "early-supporter" : null);
       }
     };
     checkPromo();
   }, [user?.id]);
 
   useEffect(() => {
-    if (maxCreditsUsable <= 0 && useCredits) {
+    if (karmaLimitDisplay <= 0 && useCredits) {
       setUseCredits(false);
     }
-  }, [maxCreditsUsable, useCredits]);
+  }, [karmaLimitDisplay, useCredits]);
 
   const handlePayment = async () => {
     setCreatingIntent(true);
@@ -201,7 +229,11 @@ export function PaymentButton({ match }: PaymentButtonProps) {
     try {
       let insurancePolicyNumber = null;
       if (insurance && insuranceQuote) {
-        const policy = await purchaseInsurance(insuranceQuote, match.id, user!.id);
+        const policy = await purchaseInsurance(
+          insuranceQuote,
+          match.id,
+          user!.id
+        );
         insurancePolicyNumber = policy.policy_number;
       }
 
@@ -210,7 +242,8 @@ export function PaymentButton({ match }: PaymentButtonProps) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           matchId: match.id,
-          useCredits: useCredits && creditsToUse > 0,
+          useKarmaPoints: useCredits && karmaToUse > 0,
+          karmaPointsToUse: useCredits ? karmaToUse : 0,
           insurance:
             insurance && insuranceQuote
               ? {
@@ -241,7 +274,10 @@ export function PaymentButton({ match }: PaymentButtonProps) {
   const handlePaymentSuccess = async (paymentIntentId: string) => {
     await supabase
       .from("matches")
-      .update({ status: "escrow_paid", escrow_payment_intent_id: paymentIntentId })
+      .update({
+        status: "escrow_paid",
+        escrow_payment_intent_id: paymentIntentId,
+      })
       .eq("id", match.id);
     setClientSecret(null);
     router.refresh();
@@ -253,14 +289,14 @@ export function PaymentButton({ match }: PaymentButtonProps) {
   };
 
   return (
-    <div className="bg-white border-t border-slate-200 p-4" data-payment-button>
+    <div className="border-t border-slate-200 bg-white p-4" data-payment-button>
       {/* Promo Cards */}
-      {promoCardType === 'early-supporter' && (
+      {promoCardType === "early-supporter" && (
         <div className="mb-4">
           <EarlySupporterPromoCard />
         </div>
       )}
-      {promoCardType === 'first-delivery' && (
+      {promoCardType === "first-delivery" && (
         <div className="mb-4">
           <FirstDeliveryPromoCard />
         </div>
@@ -268,7 +304,7 @@ export function PaymentButton({ match }: PaymentButtonProps) {
 
       <Button
         onClick={() => setShowDetails(!showDetails)}
-        className="w-full bg-teal-600 hover:bg-teal-700 mb-2"
+        className="mb-2 w-full bg-teal-600 hover:bg-teal-700"
       >
         <DollarSign className="mr-2 h-4 w-4" />
         Proceed to Payment
@@ -300,12 +336,12 @@ export function PaymentButton({ match }: PaymentButtonProps) {
                 <span>
                   Platform Fee ({formattedPlatformFeePercent})
                   {hasActiveSubscription && (
-                    <span className="ml-2 text-xs text-green-600 font-medium">
+                    <span className="ml-2 text-xs font-medium text-green-600">
                       (Pro - waived)
                     </span>
                   )}
                   {isSupporter && (
-                    <span className="ml-2 text-xs text-blue-600 font-medium">
+                    <span className="ml-2 text-xs font-medium text-blue-600">
                       (Supporter perk)
                     </span>
                   )}
@@ -316,19 +352,17 @@ export function PaymentButton({ match }: PaymentButtonProps) {
               </div>
             )}
             {isFreeDelivery && platformFee === 0 && (
-              <div className="flex justify-between text-sm text-teal-600 font-medium">
-                <span>
-                  Platform Fee (waived – first 3) 🎉
-                </span>
+              <div className="flex justify-between text-sm font-medium text-teal-600">
+                <span>Platform Fee (waived – first delivery) 🎉</span>
                 <span>$0.00</span>
               </div>
             )}
             {itemCost > 0 && (
-              <div className="border-t pt-3 mt-3">
-                <div className="flex items-start gap-2 p-3 bg-blue-50 border border-blue-200 rounded-md">
-                  <Shield className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
+              <div className="mt-3 border-t pt-3">
+                <div className="flex items-start gap-2 rounded-md border border-blue-200 bg-blue-50 p-3">
+                  <Shield className="mt-0.5 h-5 w-5 flex-shrink-0 text-blue-600" />
                   <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
+                    <div className="mb-1 flex items-center gap-2">
                       <input
                         type="checkbox"
                         id="insurance"
@@ -337,79 +371,120 @@ export function PaymentButton({ match }: PaymentButtonProps) {
                         className="h-4 w-4"
                         disabled={insuranceLoading}
                       />
-                      <label htmlFor="insurance" className="text-sm font-medium cursor-pointer">
+                      <label
+                        htmlFor="insurance"
+                        className="cursor-pointer text-sm font-medium"
+                      >
                         Allianz Travel Insurance
                       </label>
                       {insuranceQuote && (
-                        <span className="text-sm font-semibold ml-auto">
+                        <span className="ml-auto text-sm font-semibold">
                           ${insuranceQuote.premium.toFixed(2)}
                         </span>
                       )}
                       {insuranceLoading && (
-                        <span className="text-xs text-slate-500 ml-auto">
+                        <span className="ml-auto text-xs text-slate-500">
                           Loading quote...
                         </span>
                       )}
                     </div>
                     {insuranceQuote && (
                       <p className="text-xs text-blue-800">
-                        Coverage: <CurrencyDisplay amount={insuranceQuote.coverage_amount} showSecondary={false} className="inline" /> • 
-                        Protects against loss, damage, and theft during transport
+                        Coverage:{" "}
+                        <CurrencyDisplay
+                          amount={insuranceQuote.coverage_amount}
+                          showSecondary={false}
+                          className="inline"
+                        />{" "}
+                        • Protects against loss, damage, and theft during
+                        transport
                       </p>
                     )}
                   </div>
                 </div>
               </div>
             )}
-            
-            {/* Referral Credits */}
-            {availableCredits > 0 && !hasActiveSubscription && !isSupporter && (
-              <div className="border-t pt-3 mt-3">
-                <div className="flex items-center justify-between mb-2">
+
+            {/* Karma Points */}
+            {availableKarma > 0 && !hasActiveSubscription && !isSupporter && (
+              <div className="mt-3 border-t pt-3">
+                <div className="mb-2 flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <input
                       type="checkbox"
-                      id="useCredits"
+                      id="useKarma"
                       checked={useCredits}
                       onChange={(e) => setUseCredits(e.target.checked)}
                       className="h-4 w-4"
-                      disabled={creditLimitDisplay <= 0}
+                      disabled={karmaLimitDisplay <= 0}
                     />
-                    <label htmlFor="useCredits" className="text-sm font-medium cursor-pointer">
-                      Use up to ${creditLimitDisplay.toFixed(2)} referral credit
+                    <label
+                      htmlFor="useKarma"
+                      className="cursor-pointer text-sm font-medium"
+                    >
+                      Use {formatKarmaPoints(karmaLimitDisplay)} Karma Points
+                      {useCredits && (
+                        <span className="ml-1 text-xs text-slate-500">
+                          (${karmaCreditAmount.toFixed(2)} credit)
+                        </span>
+                      )}
                     </label>
                   </div>
                   {useCredits && (
                     <span className="text-sm font-semibold text-teal-600">
-                      -<CurrencyDisplay amount={creditsToUse} showSecondary={false} />
+                      -
+                      <CurrencyDisplay
+                        amount={creditFromKarma}
+                        showSecondary={false}
+                      />
                     </span>
                   )}
                 </div>
-                {creditLimitDisplay <= 0 ? (
+                {karmaLimitDisplay <= 0 ? (
                   <p className="text-xs text-slate-500">
-                    No eligible fees to apply credits to at the moment.
+                    No eligible fees to apply karma points to at the moment.
                   </p>
                 ) : useCredits ? (
+                  <div className="space-y-1">
+                    <p className="text-xs text-slate-500">
+                      {formatKarmaPoints(karmaToUse)} points = $
+                      {creditFromKarma.toFixed(2)} credit
+                    </p>
+                    <p className="text-xs text-slate-500">
+                      {getKarmaUsageInstructions()}
+                    </p>
+                  </div>
+                ) : (
                   <p className="text-xs text-slate-500">
-                    Credits can only be used on platform fees or rewards
+                    You have {formatKarmaPoints(availableKarma)} Karma Points
+                    available. {getKarmaPointsExplanation()}
                   </p>
-                ) : null}
+                )}
               </div>
             )}
-            
+
             {/* Stripe Fee - always shown separately */}
             {total > 0 && (
               <div className="flex justify-between text-sm text-slate-600">
                 <span>Stripe payment processing fee</span>
                 <span>
-                  <CurrencyDisplay amount={total * 0.029 + 0.30} showSecondary={false} />
+                  <CurrencyDisplay
+                    amount={total * 0.029 + 0.3}
+                    showSecondary={false}
+                  />
                 </span>
               </div>
             )}
-            
-            <div className="border-t pt-2 flex justify-between font-semibold text-lg">
-              <span>Total {isFreeDelivery && platformFee === 0 ? '🎉' : ''}</span>
-              <span className={isFreeDelivery && platformFee === 0 ? 'text-teal-600' : ''}>
+
+            <div className="flex justify-between border-t pt-2 text-lg font-semibold">
+              <span>
+                Total {isFreeDelivery && platformFee === 0 ? "🎉" : ""}
+              </span>
+              <span
+                className={
+                  isFreeDelivery && platformFee === 0 ? "text-teal-600" : ""
+                }
+              >
                 <CurrencyDisplay amount={total} showSecondary={false} />
               </span>
             </div>
@@ -422,10 +497,14 @@ export function PaymentButton({ match }: PaymentButtonProps) {
               <p className="text-xs text-red-600">{checkoutError}</p>
             )}
             {clientSecret ? (
-              <div className="space-y-3 border border-slate-200 rounded-md p-4">
+              <div className="space-y-3 rounded-md border border-slate-200 p-4">
                 <div className="flex items-center justify-between">
                   <p className="text-sm font-medium">Enter payment details</p>
-                  <Button variant="ghost" size="sm" onClick={handleCheckoutClose}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleCheckoutClose}
+                  >
                     Cancel
                   </Button>
                 </div>
@@ -455,7 +534,13 @@ export function PaymentButton({ match }: PaymentButtonProps) {
                   "Preparing checkout..."
                 ) : (
                   <>
-                    Pay <CurrencyDisplay amount={total} showSecondary={false} className="inline" /> & Lock in Escrow
+                    Pay{" "}
+                    <CurrencyDisplay
+                      amount={total}
+                      showSecondary={false}
+                      className="inline"
+                    />{" "}
+                    & Lock in Escrow
                   </>
                 )}
               </Button>
@@ -524,4 +609,3 @@ function CheckoutForm({
     </form>
   );
 }
-

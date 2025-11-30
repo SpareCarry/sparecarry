@@ -4,7 +4,7 @@
 
 interface LogEntry {
   timestamp: string;
-  level: 'error' | 'warn' | 'info' | 'debug';
+  level: "error" | "warn" | "info" | "debug";
   message: string;
   url?: string;
   method?: string;
@@ -22,7 +22,7 @@ class ServerLogger {
     ];
 
     if (entry.url) {
-      parts.push(`URL: ${entry.method || 'GET'} ${entry.url}`);
+      parts.push(`URL: ${entry.method || "GET"} ${entry.url}`);
     }
 
     if (entry.statusCode) {
@@ -40,79 +40,91 @@ class ServerLogger {
       parts.push(`Metadata: ${JSON.stringify(entry.metadata, null, 2)}`);
     }
 
-    return parts.join(' | ');
+    return parts.join(" | ");
   }
 
   private log(entry: LogEntry) {
     const formatted = this.formatLog(entry);
-    
+
     switch (entry.level) {
-      case 'error':
+      case "error":
         console.error(formatted);
         break;
-      case 'warn':
+      case "warn":
         console.warn(formatted);
         break;
-      case 'info':
+      case "info":
         console.info(formatted);
         break;
-      case 'debug':
+      case "debug":
         console.debug(formatted);
         break;
     }
   }
 
-  error(message: string, options?: {
-    url?: string;
-    method?: string;
-    statusCode?: number;
-    error?: Error;
-    metadata?: Record<string, any>;
-  }) {
+  error(
+    message: string,
+    options?: {
+      url?: string;
+      method?: string;
+      statusCode?: number;
+      error?: Error;
+      metadata?: Record<string, any>;
+    }
+  ) {
     this.log({
       timestamp: new Date().toISOString(),
-      level: 'error',
+      level: "error",
       message,
       ...options,
     });
   }
 
-  warn(message: string, options?: {
-    url?: string;
-    method?: string;
-    statusCode?: number;
-    error?: Error;
-    metadata?: Record<string, any>;
-  }) {
+  warn(
+    message: string,
+    options?: {
+      url?: string;
+      method?: string;
+      statusCode?: number;
+      error?: Error;
+      metadata?: Record<string, any>;
+    }
+  ) {
     this.log({
       timestamp: new Date().toISOString(),
-      level: 'warn',
+      level: "warn",
       message,
       ...options,
     });
   }
 
-  info(message: string, options?: {
-    url?: string;
-    method?: string;
-    metadata?: Record<string, any>;
-  }) {
+  info(
+    message: string,
+    options?: {
+      url?: string;
+      method?: string;
+      metadata?: Record<string, any>;
+    }
+  ) {
     this.log({
       timestamp: new Date().toISOString(),
-      level: 'info',
+      level: "info",
       message,
       ...options,
     });
   }
 
-  debug(message: string, options?: {
-    url?: string;
-    method?: string;
-    metadata?: Record<string, any>;
-  }) {
+  debug(
+    message: string,
+    options?: {
+      url?: string;
+      method?: string;
+      metadata?: Record<string, any>;
+    }
+  ) {
     this.log({
       timestamp: new Date().toISOString(),
-      level: 'debug',
+      level: "debug",
       message,
       ...options,
     });
@@ -120,4 +132,3 @@ class ServerLogger {
 }
 
 export const serverLogger = new ServerLogger();
-

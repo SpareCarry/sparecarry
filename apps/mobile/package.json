@@ -20,7 +20,8 @@
     "get-lan-ip": "node scripts/get-lan-ip.js",
     "switch-to-npm": "node scripts/switch-to-npm.js",
     "verify-react": "node scripts/verify-react-version.js",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test:continuous": "cd ../.. && pnpm test:continuous"
   },
   "dependencies": {
     "@expo/config-plugins": "^54.0.2",
@@ -47,6 +48,7 @@
     "expo-image-manipulator": "~14.0.7",
     "expo-image-picker": "~17.0.8",
     "expo-linking": "~8.0.9",
+    "expo-localization": "~17.0.7",
     "expo-location": "~19.0.7",
     "expo-notifications": "~0.32.13",
     "expo-router": "~6.0.15",

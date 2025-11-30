@@ -9,6 +9,7 @@ When your Next.js dev server runs on different ports (3000, 3001, etc.), the mag
 ### Dynamic Port Detection (Already Implemented)
 
 The app now automatically detects which port you're using via `window.location.origin`. This means:
+
 - If server runs on `localhost:3000`, links use `localhost:3000`
 - If server runs on `localhost:3001`, links use `localhost:3001`
 - No code changes needed!
@@ -23,8 +24,9 @@ Since you might use different ports, add **all possible ports** to Supabase:
    - **Authentication** → **URL Configuration**
 
 2. **Add All Ports to Redirect URLs:**
-   
+
    Add these URLs to the "Redirect URLs" list:
+
    ```
    http://localhost:3000/auth/callback
    http://localhost:3001/auth/callback
@@ -34,16 +36,19 @@ Since you might use different ports, add **all possible ports** to Supabase:
    ```
 
 3. **Set Site URL:**
-   
+
    Set to your primary port (or use wildcard if supported):
+
    ```
    http://localhost:3000
    ```
-   
+
    Or if you want to allow any port (if Supabase supports wildcards):
+
    ```
    http://localhost:*
    ```
+
    (Note: Not all Supabase instances support wildcards - add specific ports if needed)
 
 4. **Save Changes**
@@ -51,9 +56,11 @@ Since you might use different ports, add **all possible ports** to Supabase:
 ### Test It
 
 1. **Start your server:**
+
    ```powershell
    pnpm dev
    ```
+
    Note which port it uses (check terminal output)
 
 2. **Request a magic link:**
@@ -94,11 +101,13 @@ Since you might use different ports, add **all possible ports** to Supabase:
 ### Wrong Port in Link
 
 The app now uses `window.location.origin` which automatically detects:
+
 - Current protocol (http/https)
 - Current hostname (localhost, 127.0.0.1, etc.)
 - Current port (3000, 3001, etc.)
 
 **If you still get wrong port:**
+
 1. Refresh the page before requesting link
 2. Make sure you're accessing the app on the correct port
 3. Check browser console for the callback URL being logged
@@ -116,9 +125,9 @@ The app now uses `window.location.origin` which automatically detects:
 ## Production Setup
 
 For production, you'll only need:
+
 ```
 https://your-domain.com/auth/callback
 ```
 
 But for local development, add all the ports you might use!
-

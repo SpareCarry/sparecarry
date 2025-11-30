@@ -2,6 +2,5 @@
  * Badges Module
  */
 
-export * from './types';
-export * from './useBadges';
-
+export * from "./types";
+export * from "./useBadges";

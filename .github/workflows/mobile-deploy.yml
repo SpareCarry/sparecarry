@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       platform:
-        description: 'Platform to deploy'
+        description: "Platform to deploy"
         required: true
         type: choice
         options:
@@ -12,18 +12,18 @@ on:
           - ios
           - both
       track:
-        description: 'Deployment track (beta = TestFlight/Internal, release = App Store/Production)'
+        description: "Deployment track (beta = TestFlight/Internal, release = App Store/Production)"
         required: true
         type: choice
         options:
           - beta
           - release
       version:
-        description: 'Version number (optional, auto-incremented if not provided)'
+        description: "Version number (optional, auto-incremented if not provided)"
         required: false
         type: string
       confirm_production:
-        description: 'Confirm production release (required for release track)'
+        description: "Confirm production release (required for release track)"
         required: false
         type: boolean
         default: false
@@ -41,7 +41,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'pnpm'
+          cache: "pnpm"
 
       - name: Install pnpm
         uses: pnpm/action-setup@v2
@@ -66,8 +66,8 @@ jobs:
       - name: Setup Java
         uses: actions/setup-java@v3
         with:
-          distribution: 'temurin'
-          java-version: '17'
+          distribution: "temurin"
+          java-version: "17"
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v2
@@ -136,7 +136,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'pnpm'
+          cache: "pnpm"
 
       - name: Install pnpm
         uses: pnpm/action-setup@v2
@@ -218,4 +218,3 @@ jobs:
           echo "|----------|--------|" >> $GITHUB_STEP_SUMMARY
           echo "| Android | ${{ needs.deploy-android.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "| iOS | ${{ needs.deploy-ios.result }} |" >> $GITHUB_STEP_SUMMARY
-

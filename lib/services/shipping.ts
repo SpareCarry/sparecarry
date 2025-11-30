@@ -1,9 +1,9 @@
 /**
  * Unified Shipping Service
- * 
+ *
  * Consolidated shipping calculations including courier rates, customs, and SpareCarry pricing.
  * Replaces: src/utils/shippingEstimator.ts + src/utils/courierRates.ts + src/utils/customsRates.ts
- * 
+ *
  * Features:
  * - Caching for repeated calculations
  * - Optimized price calculations
@@ -11,14 +11,14 @@
  * - Platform fee tracking
  */
 
-import { 
-  calculatePlatformFee, 
-  calculateStripeFee, 
+import {
+  calculatePlatformFee,
+  calculateStripeFee,
   calculateNetRevenue,
-  validatePlatformFeeCoversStripe 
-} from '@root-src/constants/shippingFees';
-import { checkPlaneRestrictions } from '../utils/plane-restrictions';
-import { calculateBoatShippingDistance } from '../utils/distance-calculator';
+  validatePlatformFeeCoversStripe,
+} from "@root-src/constants/shippingFees";
+import { checkPlaneRestrictions } from "../utils/plane-restrictions";
+import { calculateBoatShippingDistance } from "../utils/distance-calculator";
 
 // ============================================================================
 // Route Complexity Detection
@@ -39,13 +39,13 @@ export function detectRouteComplexity(
   // Major shipping routes that require special handling or have tolls
   const routeMultipliers: { [key: string]: number } = {
     // Suez Canal routes (Mediterranean ↔ Red Sea/Indian Ocean)
-    'suez': 1.10, // 10% premium (canal tolls, but shorter route)
+    suez: 1.1, // 10% premium (canal tolls, but shorter route)
     // Panama Canal routes (Atlantic ↔ Pacific)
-    'panama': 1.10, // 10% premium (canal tolls, but shorter route)
+    panama: 1.1, // 10% premium (canal tolls, but shorter route)
     // Cape of Good Hope (around South Africa)
-    'cape_good_hope': 1.25, // 25% premium (much longer route)
+    cape_good_hope: 1.25, // 25% premium (much longer route)
     // Cape Horn (around South America)
-    'cape_horn': 1.30, // 30% premium (very long and dangerous route)
+    cape_horn: 1.3, // 30% premium (very long and dangerous route)
   };
 
   // Detect based on countries (simplified detection)
@@ -53,29 +53,130 @@ export function detectRouteComplexity(
   const destUpper = destinationCountry.toUpperCase();
 
   // Suez Canal detection: Mediterranean countries ↔ Red Sea/Indian Ocean countries
-  const mediterraneanCountries = ['EG', 'GR', 'IT', 'ES', 'FR', 'TR', 'CY', 'MT', 'LB', 'SY', 'IL'];
-  const redSeaCountries = ['SA', 'YE', 'ER', 'DJ', 'SD', 'EG'];
-  const indianOceanCountries = ['IN', 'PK', 'BD', 'LK', 'MV', 'MY', 'SG', 'ID', 'TH', 'MM', 'AU', 'NZ'];
-  
-  const isMediterranean = mediterraneanCountries.includes(originUpper) || mediterraneanCountries.includes(destUpper);
-  const isRedSea = redSeaCountries.includes(originUpper) || redSeaCountries.includes(destUpper);
-  const isIndianOcean = indianOceanCountries.includes(originUpper) || indianOceanCountries.includes(destUpper);
-  
-  if ((isMediterranean && (isRedSea || isIndianOcean)) || (isRedSea && isIndianOcean)) {
+  const mediterraneanCountries = [
+    "EG",
+    "GR",
+    "IT",
+    "ES",
+    "FR",
+    "TR",
+    "CY",
+    "MT",
+    "LB",
+    "SY",
+    "IL",
+  ];
+  const redSeaCountries = ["SA", "YE", "ER", "DJ", "SD", "EG"];
+  const indianOceanCountries = [
+    "IN",
+    "PK",
+    "BD",
+    "LK",
+    "MV",
+    "MY",
+    "SG",
+    "ID",
+    "TH",
+    "MM",
+    "AU",
+    "NZ",
+  ];
+
+  const isMediterranean =
+    mediterraneanCountries.includes(originUpper) ||
+    mediterraneanCountries.includes(destUpper);
+  const isRedSea =
+    redSeaCountries.includes(originUpper) ||
+    redSeaCountries.includes(destUpper);
+  const isIndianOcean =
+    indianOceanCountries.includes(originUpper) ||
+    indianOceanCountries.includes(destUpper);
+
+  if (
+    (isMediterranean && (isRedSea || isIndianOcean)) ||
+    (isRedSea && isIndianOcean)
+  ) {
     return routeMultipliers.suez;
   }
 
   // Panama Canal detection: Atlantic countries ↔ Pacific countries
-  const atlanticCountries = ['US', 'CA', 'MX', 'BR', 'AR', 'CO', 'VE', 'PE', 'CL', 'EC', 'PA', 'CR', 'NI', 'HN', 'GT', 'BZ', 'JM', 'CU', 'DO', 'HT', 'BS', 'BB', 'TT'];
-  const pacificCountries = ['US', 'CA', 'MX', 'CL', 'PE', 'EC', 'CO', 'PA', 'CR', 'NI', 'HN', 'GT', 'BZ', 'AU', 'NZ', 'FJ', 'PG', 'NC', 'PH', 'JP', 'CN', 'KR', 'TW', 'HK', 'SG', 'MY', 'ID', 'TH', 'VN', 'KH', 'LA'];
-  
+  const atlanticCountries = [
+    "US",
+    "CA",
+    "MX",
+    "BR",
+    "AR",
+    "CO",
+    "VE",
+    "PE",
+    "CL",
+    "EC",
+    "PA",
+    "CR",
+    "NI",
+    "HN",
+    "GT",
+    "BZ",
+    "JM",
+    "CU",
+    "DO",
+    "HT",
+    "BS",
+    "BB",
+    "TT",
+  ];
+  const pacificCountries = [
+    "US",
+    "CA",
+    "MX",
+    "CL",
+    "PE",
+    "EC",
+    "CO",
+    "PA",
+    "CR",
+    "NI",
+    "HN",
+    "GT",
+    "BZ",
+    "AU",
+    "NZ",
+    "FJ",
+    "PG",
+    "NC",
+    "PH",
+    "JP",
+    "CN",
+    "KR",
+    "TW",
+    "HK",
+    "SG",
+    "MY",
+    "ID",
+    "TH",
+    "VN",
+    "KH",
+    "LA",
+  ];
+
   // Check if route crosses Atlantic-Pacific divide (simplified: both countries in different oceans)
-  const originIsAtlantic = atlanticCountries.includes(originUpper) && !pacificCountries.includes(originUpper);
-  const destIsPacific = pacificCountries.includes(destUpper) && !atlanticCountries.includes(destUpper);
-  const originIsPacific = pacificCountries.includes(originUpper) && !atlanticCountries.includes(originUpper);
-  const destIsAtlantic = atlanticCountries.includes(destUpper) && !pacificCountries.includes(destUpper);
-  
-  if ((originIsAtlantic && destIsPacific) || (originIsPacific && destIsAtlantic)) {
+  const originIsAtlantic =
+    atlanticCountries.includes(originUpper) &&
+    !pacificCountries.includes(originUpper);
+  const destIsPacific =
+    pacificCountries.includes(destUpper) &&
+    !atlanticCountries.includes(destUpper);
+  const originIsPacific =
+    pacificCountries.includes(originUpper) &&
+    !atlanticCountries.includes(originUpper);
+  const destIsAtlantic =
+    atlanticCountries.includes(destUpper) &&
+    !pacificCountries.includes(destUpper);
+
+  if (
+    (originIsAtlantic && destIsPacific) ||
+    (originIsPacific && destIsAtlantic)
+  ) {
     // Check if it's a long route that would use Panama (not just US coast-to-coast)
     if (originLat && destinationLat) {
       const latDiff = Math.abs(originLat - destinationLat);
@@ -90,23 +191,86 @@ export function detectRouteComplexity(
   }
 
   // Cape of Good Hope detection: Europe/Mediterranean ↔ Asia/Australia (long route)
-  const europeCountries = ['GB', 'FR', 'DE', 'IT', 'ES', 'NL', 'BE', 'PT', 'GR', 'IE', 'DK', 'SE', 'NO', 'FI', 'PL', 'CZ', 'AT', 'CH', 'HU', 'RO', 'BG', 'HR', 'SI', 'SK', 'EE', 'LV', 'LT'];
-  const asiaPacificCountries = ['CN', 'JP', 'KR', 'IN', 'AU', 'NZ', 'SG', 'MY', 'TH', 'ID', 'PH', 'VN', 'TW', 'HK'];
-  
-  const isEurope = europeCountries.includes(originUpper) || europeCountries.includes(destUpper);
-  const isAsiaPacific = asiaPacificCountries.includes(originUpper) || asiaPacificCountries.includes(destUpper);
-  
+  const europeCountries = [
+    "GB",
+    "FR",
+    "DE",
+    "IT",
+    "ES",
+    "NL",
+    "BE",
+    "PT",
+    "GR",
+    "IE",
+    "DK",
+    "SE",
+    "NO",
+    "FI",
+    "PL",
+    "CZ",
+    "AT",
+    "CH",
+    "HU",
+    "RO",
+    "BG",
+    "HR",
+    "SI",
+    "SK",
+    "EE",
+    "LV",
+    "LT",
+  ];
+  const asiaPacificCountries = [
+    "CN",
+    "JP",
+    "KR",
+    "IN",
+    "AU",
+    "NZ",
+    "SG",
+    "MY",
+    "TH",
+    "ID",
+    "PH",
+    "VN",
+    "TW",
+    "HK",
+  ];
+
+  const isEurope =
+    europeCountries.includes(originUpper) ||
+    europeCountries.includes(destUpper);
+  const isAsiaPacific =
+    asiaPacificCountries.includes(originUpper) ||
+    asiaPacificCountries.includes(destUpper);
+
   // If route is Europe ↔ Asia/Australia and doesn't use Suez (already checked above)
   if (isEurope && isAsiaPacific && !isMediterranean && !isRedSea) {
     return routeMultipliers.cape_good_hope;
   }
 
   // Cape Horn detection: Atlantic ↔ Pacific (southern route, around South America)
-  const southAmericaCountries = ['AR', 'CL', 'BR', 'PE', 'EC', 'CO', 'VE', 'UY', 'PY', 'BO'];
-  const isSouthAmerica = southAmericaCountries.includes(originUpper) || southAmericaCountries.includes(destUpper);
-  
+  const southAmericaCountries = [
+    "AR",
+    "CL",
+    "BR",
+    "PE",
+    "EC",
+    "CO",
+    "VE",
+    "UY",
+    "PY",
+    "BO",
+  ];
+  const isSouthAmerica =
+    southAmericaCountries.includes(originUpper) ||
+    southAmericaCountries.includes(destUpper);
+
   // If route is around South America (Atlantic ↔ Pacific, southern route)
-  if (isSouthAmerica && ((originIsAtlantic && destIsPacific) || (originIsPacific && destIsAtlantic))) {
+  if (
+    isSouthAmerica &&
+    ((originIsAtlantic && destIsPacific) || (originIsPacific && destIsAtlantic))
+  ) {
     if (originLat && destinationLat) {
       // If both are in southern hemisphere, likely Cape Horn
       if (originLat < -20 && destinationLat < -20) {
@@ -131,14 +295,16 @@ export function calculateUrgencyMultiplier(deadlineDate?: string): number {
   try {
     const deadline = new Date(deadlineDate);
     const now = new Date();
-    const daysUntilDeadline = Math.ceil((deadline.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+    const daysUntilDeadline = Math.ceil(
+      (deadline.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
+    );
 
     if (daysUntilDeadline < 0) {
       return 1.0; // Past deadline, no urgency premium
     }
 
     if (daysUntilDeadline <= 3) {
-      return 1.30; // 30% premium for very urgent (<3 days)
+      return 1.3; // 30% premium for very urgent (<3 days)
     } else if (daysUntilDeadline <= 7) {
       return 1.15; // 15% premium for urgent (<7 days)
     } else if (daysUntilDeadline <= 14) {
@@ -175,6 +341,9 @@ export interface ShippingEstimateInput {
   originLon?: number; // Origin longitude for route detection
   destinationLat?: number; // Destination latitude for route detection
   destinationLon?: number; // Destination longitude for route detection
+  fromLocation?: string; // Full location string (for historical data matching)
+  toLocation?: string; // Full location string (for historical data matching)
+  useMarketData?: boolean; // Whether to use historical market data for adjustments
 }
 
 export interface ShippingEstimateResult {
@@ -209,6 +378,8 @@ export interface ShippingEstimateResult {
   planeRestrictionReason?: string;
   distanceKm?: number; // Straight-line distance
   boatDistanceKm?: number; // Adjusted shipping route distance for boats (accounts for actual shipping routes)
+  courierPriceConfidence?: "high" | "medium" | "low"; // Confidence in courier price estimate
+  marketDataUsed?: boolean; // Whether historical market data was used
 }
 
 export interface CourierRates {
@@ -274,12 +445,12 @@ export interface CustomsCost {
 }
 
 type ShippingZone =
-  | 'domestic'
-  | 'neighboring'
-  | 'regional'
-  | 'international_short'
-  | 'international_long'
-  | 'international_remote';
+  | "domestic"
+  | "neighboring"
+  | "regional"
+  | "international_short"
+  | "international_long"
+  | "international_remote";
 
 // ============================================================================
 // Data Loading (Lazy)
@@ -291,9 +462,9 @@ let customsRatesData: CustomsRates | null = null;
 function loadCourierRates(): CourierRates {
   if (!courierRatesData) {
     try {
-      courierRatesData = require('../../assets/data/courierRates.json');
+      courierRatesData = require("../../assets/data/courierRates.json");
     } catch (error) {
-      console.error('Failed to load courier rates:', error);
+      console.error("Failed to load courier rates:", error);
       courierRatesData = {};
     }
   }
@@ -303,9 +474,9 @@ function loadCourierRates(): CourierRates {
 function loadCustomsRates(): CustomsRates {
   if (!customsRatesData) {
     try {
-      customsRatesData = require('../../assets/data/countryCustoms.json');
+      customsRatesData = require("../../assets/data/countryCustoms.json");
     } catch (error) {
-      console.error('Failed to load customs rates:', error);
+      console.error("Failed to load customs rates:", error);
       customsRatesData = {};
     }
   }
@@ -316,13 +487,20 @@ function loadCustomsRates(): CustomsRates {
 // Courier Rate Functions
 // ============================================================================
 
-export function getCourierRates(courier: string, isInternational: boolean): CourierRateConfig | null {
+export function getCourierRates(
+  courier: string,
+  isInternational: boolean
+): CourierRateConfig | null {
   const rates = loadCourierRates()[courier];
   if (!rates) return null;
 
   return {
-    base_rate: isInternational ? rates.base_rate.international : rates.base_rate.domestic,
-    per_kg_rate: isInternational ? rates.per_kg_rate.international : rates.per_kg_rate.domestic,
+    base_rate: isInternational
+      ? rates.base_rate.international
+      : rates.base_rate.domestic,
+    per_kg_rate: isInternational
+      ? rates.per_kg_rate.international
+      : rates.per_kg_rate.domestic,
     fuel_surcharge_percent: rates.fuel_surcharge_percent,
     zone_multipliers: rates.zone_multipliers,
     weight_tiers: rates.weight_tiers,
@@ -335,41 +513,42 @@ export function getCourierRates(courier: string, isInternational: boolean): Cour
  * Some routes are inherently more expensive regardless of distance
  */
 function getShippingZone(
-  distanceKm: number | undefined, 
+  distanceKm: number | undefined,
   isInternational: boolean,
   originCountry?: string,
   destinationCountry?: string
 ): ShippingZone {
   if (!isInternational || !distanceKm) {
-    return 'domestic';
+    return "domestic";
   }
-  
+
   // Country-specific route adjustments (expensive routes)
   const expensiveRoutes: { [key: string]: boolean } = {
-    'AU-ID': true, // Australia to Indonesia (island routes)
-    'AU-NZ': false, // Australia to New Zealand (neighboring, cheaper)
-    'US-CN': true, // US to China (complex customs)
-    'US-RU': true, // US to Russia (sanctions/complex)
-    'GB-AU': true, // UK to Australia (very long)
-    'GB-NZ': true, // UK to New Zealand (very long)
+    "AU-ID": true, // Australia to Indonesia (island routes)
+    "AU-NZ": false, // Australia to New Zealand (neighboring, cheaper)
+    "US-CN": true, // US to China (complex customs)
+    "US-RU": true, // US to Russia (sanctions/complex)
+    "GB-AU": true, // UK to Australia (very long)
+    "GB-NZ": true, // UK to New Zealand (very long)
   };
-  
-  const routeKey = originCountry && destinationCountry 
-    ? `${originCountry}-${destinationCountry}` 
-    : null;
+
+  const routeKey =
+    originCountry && destinationCountry
+      ? `${originCountry}-${destinationCountry}`
+      : null;
   const isExpensiveRoute = routeKey && expensiveRoutes[routeKey];
-  
+
   // Adjust zone based on distance and route complexity
   if (distanceKm < 500) {
-    return isExpensiveRoute ? 'regional' : 'neighboring';
+    return isExpensiveRoute ? "regional" : "neighboring";
   } else if (distanceKm < 2000) {
-    return isExpensiveRoute ? 'international_short' : 'regional';
+    return isExpensiveRoute ? "international_short" : "regional";
   } else if (distanceKm < 5000) {
-    return isExpensiveRoute ? 'international_long' : 'international_short';
+    return isExpensiveRoute ? "international_long" : "international_short";
   } else if (distanceKm < 10000) {
-    return 'international_long';
+    return "international_long";
   } else {
-    return 'international_remote';
+    return "international_remote";
   }
 }
 
@@ -377,23 +556,26 @@ function getShippingZone(
  * Get weight tier multiplier based on chargeable weight
  * Heavier packages get volume discounts per kg
  */
-function getWeightTierMultiplier(weight: number, weightTiers?: { [key: string]: { multiplier: number } }): number {
+function getWeightTierMultiplier(
+  weight: number,
+  weightTiers?: { [key: string]: { multiplier: number } }
+): number {
   if (!weightTiers) return 1.0;
-  
+
   // Find the appropriate tier
   const tierKeys = Object.keys(weightTiers).sort((a, b) => {
-    const aMax = parseFloat(a.split('-')[1] || '999');
-    const bMax = parseFloat(b.split('-')[1] || '999');
+    const aMax = parseFloat(a.split("-")[1] || "999");
+    const bMax = parseFloat(b.split("-")[1] || "999");
     return aMax - bMax;
   });
-  
+
   for (const tierKey of tierKeys) {
-    const [min, max] = tierKey.split('-').map(parseFloat);
+    const [min, max] = tierKey.split("-").map(parseFloat);
     if (weight >= min && (weight < max || !max)) {
       return weightTiers[tierKey].multiplier;
     }
   }
-  
+
   // Default to highest tier if weight exceeds all
   const lastTier = tierKeys[tierKeys.length - 1];
   return weightTiers[lastTier]?.multiplier || 1.0;
@@ -405,29 +587,29 @@ function getWeightTierMultiplier(weight: number, weightTiers?: { [key: string]: 
  */
 function isRemoteArea(destinationCountry?: string): boolean {
   if (!destinationCountry) return false;
-  
+
   const remoteCountries = [
-    'PF', // French Polynesia
-    'NC', // New Caledonia
-    'FJ', // Fiji
-    'PG', // Papua New Guinea
-    'SB', // Solomon Islands
-    'VU', // Vanuatu
-    'WS', // Samoa
-    'TO', // Tonga
-    'CK', // Cook Islands
-    'NU', // Niue
-    'AS', // American Samoa
-    'GU', // Guam
-    'MP', // Northern Mariana Islands
-    'MH', // Marshall Islands
-    'FM', // Micronesia
-    'PW', // Palau
-    'KI', // Kiribati
-    'TV', // Tuvalu
-    'NR', // Nauru
+    "PF", // French Polynesia
+    "NC", // New Caledonia
+    "FJ", // Fiji
+    "PG", // Papua New Guinea
+    "SB", // Solomon Islands
+    "VU", // Vanuatu
+    "WS", // Samoa
+    "TO", // Tonga
+    "CK", // Cook Islands
+    "NU", // Niue
+    "AS", // American Samoa
+    "GU", // Guam
+    "MP", // Northern Mariana Islands
+    "MH", // Marshall Islands
+    "FM", // Micronesia
+    "PW", // Palau
+    "KI", // Kiribati
+    "TV", // Tuvalu
+    "NR", // Nauru
   ];
-  
+
   return remoteCountries.includes(destinationCountry.toUpperCase());
 }
 
@@ -459,38 +641,55 @@ export function calculateCourierPrice(
   actualWeight: number,
   distanceKm?: number, // Optional distance for zone-based pricing
   originCountry?: string, // Optional origin country for route adjustments
-  destinationCountry?: string // Optional destination country for route adjustments and remote area detection
+  destinationCountry?: string, // Optional destination country for route adjustments and remote area detection
+  marketAdjustment?: number // Optional market-based adjustment multiplier (from historical data)
 ): number | null {
   const rates = getCourierRates(courier, isInternational);
   if (!rates) return null;
 
   const dimensionalWeight = calculateDimensionalWeight(length, width, height);
-  const chargeableWeight = calculateChargeableWeight(actualWeight, dimensionalWeight);
+  const chargeableWeight = calculateChargeableWeight(
+    actualWeight,
+    dimensionalWeight
+  );
 
   // Base price calculation
-  let price = rates.base_rate + (rates.per_kg_rate * chargeableWeight);
-  
+  let price = rates.base_rate + rates.per_kg_rate * chargeableWeight;
+
   // Apply weight tier multiplier (volume discounts for heavier packages)
-  const weightTierMultiplier = getWeightTierMultiplier(chargeableWeight, rates.weight_tiers);
+  const weightTierMultiplier = getWeightTierMultiplier(
+    chargeableWeight,
+    rates.weight_tiers
+  );
   price = price * weightTierMultiplier;
-  
+
   // Apply zone-based multiplier if available
   if (rates.zone_multipliers && distanceKm !== undefined) {
-    const zone = getShippingZone(distanceKm, isInternational, originCountry, destinationCountry);
+    const zone = getShippingZone(
+      distanceKm,
+      isInternational,
+      originCountry,
+      destinationCountry
+    );
     const zoneMultiplier = rates.zone_multipliers[zone] || 1.0;
     price = price * zoneMultiplier;
   }
-  
+
   // Apply remote area surcharge if applicable
   if (isRemoteArea(destinationCountry) && rates.remote_area_surcharge_percent) {
     price = price * (1 + rates.remote_area_surcharge_percent);
   }
-  
+
   // Apply fuel surcharge if available
   if (rates.fuel_surcharge_percent) {
     price = price * (1 + rates.fuel_surcharge_percent);
   }
-  
+
+  // Apply market adjustment if provided (from historical data)
+  if (marketAdjustment && marketAdjustment > 0) {
+    price = price * marketAdjustment;
+  }
+
   return Math.round(price * 100) / 100;
 }
 
@@ -498,8 +697,8 @@ export function calculateCourierPrice(
 // Customs Functions
 // ============================================================================
 
-export function getCustomsRates(countryCode: string): { 
-  duty_rate: number; 
+export function getCustomsRates(countryCode: string): {
+  duty_rate: number;
   tax_rate: number;
   tax_name?: string;
   de_minimis_usd?: number;
@@ -541,7 +740,7 @@ export function calculateCustomsCost(
   return {
     duty: Math.round(duty * 100) / 100,
     tax: Math.round(tax * 100) / 100,
-    taxName: rates.tax_name || 'Tax',
+    taxName: rates.tax_name || "Tax",
     processingFee,
     total: Math.round(total * 100) / 100,
   };
@@ -607,7 +806,7 @@ export function calculateSpareCarryPlaneBasePrice(
   // Planes have less distance impact than boats (planes are fast regardless of distance)
   if (distanceKm && distanceKm > 0) {
     // Smaller distance multiplier for planes (they're fast regardless)
-    const distanceMultiplier = Math.min(1 + (distanceKm / 15000), 1.3); // Max 30% increase (less than boats)
+    const distanceMultiplier = Math.min(1 + distanceKm / 15000, 1.3); // Max 30% increase (less than boats)
     price = price * distanceMultiplier;
   }
 
@@ -676,13 +875,16 @@ export function calculateSpareCarryBoatBasePrice(
   }
 
   // Calculate volume in cubic meters for size-based pricing
-  const volumeM3 = length && width && height ? (length * width * height) / 1000000 : 0;
-  
+  const volumeM3 =
+    length && width && height ? (length * width * height) / 1000000 : 0;
+
   // Size-based premium (for large/extra large items)
   let sizeMultiplier = 1.0;
-  if (volumeM3 > 0.2) { // Extra large (>200L)
+  if (volumeM3 > 0.2) {
+    // Extra large (>200L)
     sizeMultiplier = 1.5; // 50% premium for extra large items
-  } else if (volumeM3 > 0.1) { // Large (100-200L)
+  } else if (volumeM3 > 0.1) {
+    // Large (100-200L)
     sizeMultiplier = 1.2; // 20% premium for large items
   }
 
@@ -707,9 +909,14 @@ export function calculateSpareCarryBoatBasePrice(
   if (category) {
     const categoryLower = category.toLowerCase();
     // Categories that are considered dangerous or require special handling
-    if (categoryLower.includes('battery') || categoryLower.includes('lithium') || 
-        categoryLower.includes('flammable') || categoryLower.includes('chemical') ||
-        categoryLower.includes('fuel') || categoryLower.includes('gas')) {
+    if (
+      categoryLower.includes("battery") ||
+      categoryLower.includes("lithium") ||
+      categoryLower.includes("flammable") ||
+      categoryLower.includes("chemical") ||
+      categoryLower.includes("fuel") ||
+      categoryLower.includes("gas")
+    ) {
       dangerousMultiplier = 1.25; // 25% premium for dangerous goods (reduced from 40%)
     }
   }
@@ -718,9 +925,9 @@ export function calculateSpareCarryBoatBasePrice(
   let valueMultiplier = 1.0;
   if (declaredValue && declaredValue > 0) {
     if (declaredValue >= 5000) {
-      valueMultiplier = 1.20; // 20% premium for items >$5000
+      valueMultiplier = 1.2; // 20% premium for items >$5000
     } else if (declaredValue >= 1000) {
-      valueMultiplier = 1.10; // 10% premium for items >$1000
+      valueMultiplier = 1.1; // 10% premium for items >$1000
     }
   }
 
@@ -753,7 +960,7 @@ export function calculateSpareCarryBoatBasePrice(
       basePricePerKg = 1.6; // Reduced from 2.0
       baseFee = 12; // Reduced from 15
     }
-    
+
     // Distance multiplier - still important but reduced to hit ~50% target
     let distanceMultiplier = 1.0;
     if (distanceKm > 5000) {
@@ -765,25 +972,31 @@ export function calculateSpareCarryBoatBasePrice(
     } else if (distanceKm > 500) {
       distanceMultiplier = 1.1; // 10% premium for medium distances (reduced from 15%)
     }
-    
+
     // Base price calculation with distance
     let price = basePricePerKg * chargeableWeight + baseFee;
     price = price * distanceMultiplier;
-    
+
     // Apply all multipliers, but cap total multiplier to target ~50% of courier price
     // This ensures we stay competitive while still incentivizing travelers
-    const totalMultiplier = sizeMultiplier * weightMultiplier * restrictedMultiplier * dangerousMultiplier * valueMultiplier * fragileMultiplier;
+    const totalMultiplier =
+      sizeMultiplier *
+      weightMultiplier *
+      restrictedMultiplier *
+      dangerousMultiplier *
+      valueMultiplier *
+      fragileMultiplier;
     const cappedMultiplier = Math.min(totalMultiplier, 2.0); // Cap at 2.0x (100% premium max) - reduced to hit ~50% target
     price = price * cappedMultiplier;
-    
+
     // Apply route complexity (separate multiplier, not capped)
     price = price * routeComplexityMultiplier;
-    
+
     // Apply urgency multiplier (separate, not capped)
     if (urgencyMultiplier && urgencyMultiplier > 1.0) {
       price = price * urgencyMultiplier;
     }
-    
+
     return Math.round(price * 100) / 100;
   }
 
@@ -800,26 +1013,36 @@ export function calculateSpareCarryBoatBasePrice(
     const assumedDistanceMultiplier = 1.3; // 30% premium for assumed long distance
     let price = basePricePerKg * chargeableWeight + baseFee;
     price = price * assumedDistanceMultiplier;
-    
+
     // Apply all multipliers with cap
-    const totalMultiplier = sizeMultiplier * weightMultiplier * restrictedMultiplier * dangerousMultiplier * valueMultiplier * fragileMultiplier;
+    const totalMultiplier =
+      sizeMultiplier *
+      weightMultiplier *
+      restrictedMultiplier *
+      dangerousMultiplier *
+      valueMultiplier *
+      fragileMultiplier;
     const cappedMultiplier = Math.min(totalMultiplier, 2.0);
     price = price * cappedMultiplier;
-    
+
     // Apply route complexity (separate multiplier, not capped)
     price = price * routeComplexityMultiplier;
-    
+
     // Apply urgency multiplier (separate, not capped)
     if (urgencyMultiplier && urgencyMultiplier > 1.0) {
       price = price * urgencyMultiplier;
     }
-    
+
     return Math.round(price * 100) / 100;
   }
 
   // This should never be reached, but keep as fallback
   let price = basePricePerKg * chargeableWeight + baseFee;
-  const totalMultiplier = sizeMultiplier * weightMultiplier * restrictedMultiplier * dangerousMultiplier;
+  const totalMultiplier =
+    sizeMultiplier *
+    weightMultiplier *
+    restrictedMultiplier *
+    dangerousMultiplier;
   const cappedMultiplier = Math.min(totalMultiplier, 2.0);
   price = price * cappedMultiplier;
 
@@ -837,7 +1060,16 @@ export function calculateSpareCarryPlanePrice(
   fragile?: boolean,
   urgencyMultiplier?: number
 ): number {
-  const basePrice = calculateSpareCarryPlaneBasePrice(weight, distanceKm, length, width, height, declaredValue, fragile, urgencyMultiplier);
+  const basePrice = calculateSpareCarryPlaneBasePrice(
+    weight,
+    distanceKm,
+    length,
+    width,
+    height,
+    declaredValue,
+    fragile,
+    urgencyMultiplier
+  );
   const platformFee = calculatePlatformFee(basePrice, isPremium);
   const totalPrice = basePrice + platformFee;
   return Math.round(totalPrice * 100) / 100;
@@ -853,7 +1085,15 @@ export function calculateSpareCarryBoatPrice(
   restrictedItems?: boolean,
   category?: string
 ): number {
-  const basePrice = calculateSpareCarryBoatBasePrice(weight, distanceKm, length, width, height, restrictedItems, category);
+  const basePrice = calculateSpareCarryBoatBasePrice(
+    weight,
+    distanceKm,
+    length,
+    width,
+    height,
+    restrictedItems,
+    category
+  );
   const platformFee = calculatePlatformFee(basePrice, isPremium);
   const totalPrice = basePrice + platformFee;
   return Math.round(totalPrice * 100) / 100;
@@ -863,9 +1103,36 @@ export function calculateSpareCarryBoatPrice(
 // Main Estimate Function
 // ============================================================================
 
-export function calculateShippingEstimate(input: ShippingEstimateInput): ShippingEstimateResult | null {
+// Synchronous version (default, for backward compatibility)
+export function calculateShippingEstimate(
+  input: ShippingEstimateInput
+): ShippingEstimateResult | null {
+  return calculateShippingEstimateInternal(input, false);
+}
+
+// Async version with market data support
+export async function calculateShippingEstimateWithMarketData(
+  input: ShippingEstimateInput
+): Promise<ShippingEstimateResult | null> {
+  return calculateShippingEstimateInternal(input, true);
+}
+
+// Internal implementation
+function calculateShippingEstimateInternal(
+  input: ShippingEstimateInput,
+  useMarketData: boolean
+): ShippingEstimateResult | null {
   const isInternational = input.originCountry !== input.destinationCountry;
   const isPremium = input.isPremium ?? false;
+
+  // Market adjustment (not available in sync version, will be added via async enhancement)
+  let marketAdjustment: number | undefined;
+  let courierPriceConfidence: "high" | "medium" | "low" = "low";
+  let marketDataUsed = false;
+
+  // Note: Market data requires async operations
+  // For now, sync version doesn't use market data
+  // UI components can call applyMarketAdjustmentsToCourierPrice separately if needed
 
   // Calculate courier price (with distance, origin, and destination for accurate pricing)
   const courierPrice = calculateCourierPrice(
@@ -877,7 +1144,8 @@ export function calculateShippingEstimate(input: ShippingEstimateInput): Shippin
     input.weight,
     input.distanceKm, // Pass distance for zone-based pricing
     input.originCountry, // Pass origin for route adjustments
-    input.destinationCountry // Pass destination for route adjustments and remote area detection
+    input.destinationCountry, // Pass destination for route adjustments and remote area detection
+    marketAdjustment // Apply market adjustment if available
   );
 
   if (courierPrice === null) {
@@ -889,7 +1157,11 @@ export function calculateShippingEstimate(input: ShippingEstimateInput): Shippin
   let customsCost = 0;
   let customsBreakdown: CustomsCost | null = null;
   if (isInternational && input.declaredValue > 0) {
-    customsBreakdown = calculateCustomsCost(input.destinationCountry, input.declaredValue, courierPrice || 0);
+    customsBreakdown = calculateCustomsCost(
+      input.destinationCountry,
+      input.declaredValue,
+      courierPrice || 0
+    );
     customsCost = customsBreakdown ? customsBreakdown.total : 0;
   }
 
@@ -898,7 +1170,7 @@ export function calculateShippingEstimate(input: ShippingEstimateInput): Shippin
   // Check plane restrictions
   let canTransportByPlane = true;
   let planeRestrictionReason: string | undefined;
-  
+
   if (input.restrictedItems || input.category) {
     const restrictionCheck = checkPlaneRestrictions({
       weight: input.weight,
@@ -921,18 +1193,18 @@ export function calculateShippingEstimate(input: ShippingEstimateInput): Shippin
     // Apply shipping route multiplier for boats
     // Straight-line distance is typically 70-90% of actual shipping route distance
     let routeMultiplier = 1.15; // Default 15% increase for typical routes
-    
+
     // For very long distances (trans-oceanic), routes are more optimized
     if (input.distanceKm > 10000) {
-      routeMultiplier = 1.10; // 10% increase for very long routes
+      routeMultiplier = 1.1; // 10% increase for very long routes
     } else if (input.distanceKm > 5000) {
-      routeMultiplier = 1.20; // 20% increase for long routes (more detours)
+      routeMultiplier = 1.2; // 20% increase for long routes (more detours)
     } else if (input.distanceKm > 2000) {
       routeMultiplier = 1.25; // 25% increase for medium routes (coastal navigation)
     } else if (input.distanceKm < 500) {
-      routeMultiplier = 1.30; // 30% increase for short routes (more coastal navigation)
+      routeMultiplier = 1.3; // 30% increase for short routes (more coastal navigation)
     }
-    
+
     boatDistanceKm = input.distanceKm * routeMultiplier;
   }
 
@@ -977,54 +1249,71 @@ export function calculateShippingEstimate(input: ShippingEstimateInput): Shippin
   );
 
   // Calculate platform fees (baked into final prices)
-  const platformFeePlane = canTransportByPlane ? calculatePlatformFee(planeBasePrice, isPremium) : 0;
+  const platformFeePlane = canTransportByPlane
+    ? calculatePlatformFee(planeBasePrice, isPremium)
+    : 0;
   const platformFeeBoat = calculatePlatformFee(boatBasePrice, isPremium);
 
   // Calculate final SpareCarry prices (base + platform fee)
-  const spareCarryPlanePrice = canTransportByPlane ? planeBasePrice + platformFeePlane : 0;
+  const spareCarryPlanePrice = canTransportByPlane
+    ? planeBasePrice + platformFeePlane
+    : 0;
   const spareCarryBoatPrice = boatBasePrice + platformFeeBoat;
 
   // Calculate Stripe fees internally (for net revenue tracking)
-  const stripeFeePlane = canTransportByPlane ? calculateStripeFee(spareCarryPlanePrice) : 0;
+  const stripeFeePlane = canTransportByPlane
+    ? calculateStripeFee(spareCarryPlanePrice)
+    : 0;
   const stripeFeeBoat = calculateStripeFee(spareCarryBoatPrice);
 
   // Calculate net revenue (platform fee - Stripe fee)
-  const netRevenuePlane = canTransportByPlane ? calculateNetRevenue(platformFeePlane, spareCarryPlanePrice) : 0;
-  const netRevenueBoat = calculateNetRevenue(platformFeeBoat, spareCarryBoatPrice);
+  const netRevenuePlane = canTransportByPlane
+    ? calculateNetRevenue(platformFeePlane, spareCarryPlanePrice)
+    : 0;
+  const netRevenueBoat = calculateNetRevenue(
+    platformFeeBoat,
+    spareCarryBoatPrice
+  );
 
   // Validate that platform fee covers Stripe fee
-  const planeFeeValid = validatePlatformFeeCoversStripe(platformFeePlane, spareCarryPlanePrice);
-  const boatFeeValid = validatePlatformFeeCoversStripe(platformFeeBoat, spareCarryBoatPrice);
-  
+  const planeFeeValid = validatePlatformFeeCoversStripe(
+    platformFeePlane,
+    spareCarryPlanePrice
+  );
+  const boatFeeValid = validatePlatformFeeCoversStripe(
+    platformFeeBoat,
+    spareCarryBoatPrice
+  );
+
   if (!planeFeeValid || !boatFeeValid) {
     // Log warning in development only
-    if (process.env.NODE_ENV === 'development') {
-      console.warn('Platform fee may not fully cover Stripe fees:', {
-        plane: { 
-          platformFee: platformFeePlane, 
-          stripeFee: stripeFeePlane, 
+    if (process.env.NODE_ENV === "development") {
+      console.warn("Platform fee may not fully cover Stripe fees:", {
+        plane: {
+          platformFee: platformFeePlane,
+          stripeFee: stripeFeePlane,
           netRevenue: netRevenuePlane,
-          valid: planeFeeValid 
+          valid: planeFeeValid,
         },
-        boat: { 
-          platformFee: platformFeeBoat, 
-          stripeFee: stripeFeeBoat, 
+        boat: {
+          platformFee: platformFeeBoat,
+          stripeFee: stripeFeeBoat,
           netRevenue: netRevenueBoat,
-          valid: boatFeeValid 
+          valid: boatFeeValid,
         },
       });
     }
   }
 
   // Calculate savings (only if plane transport is allowed)
-  const savingsPlane = canTransportByPlane ? courierTotal - spareCarryPlanePrice : 0;
+  const savingsPlane = canTransportByPlane
+    ? courierTotal - spareCarryPlanePrice
+    : 0;
   const savingsBoat = courierTotal - spareCarryBoatPrice;
-  const savingsPercentagePlane = courierTotal > 0 
-    ? Math.round((savingsPlane / courierTotal) * 100) 
-    : 0;
-  const savingsPercentageBoat = courierTotal > 0 
-    ? Math.round((savingsBoat / courierTotal) * 100) 
-    : 0;
+  const savingsPercentagePlane =
+    courierTotal > 0 ? Math.round((savingsPlane / courierTotal) * 100) : 0;
+  const savingsPercentageBoat =
+    courierTotal > 0 ? Math.round((savingsBoat / courierTotal) * 100) : 0;
 
   // Calculate premium prices (for non-premium users to see what they'd pay as premium)
   let premiumPlanePrice: number | undefined;
@@ -1036,30 +1325,41 @@ export function calculateShippingEstimate(input: ShippingEstimateInput): Shippin
 
   if (!isPremium) {
     // Calculate what prices would be if user were premium
-    const premiumFeePlane = canTransportByPlane ? calculatePlatformFee(planeBasePrice, true) : 0;
+    const premiumFeePlane = canTransportByPlane
+      ? calculatePlatformFee(planeBasePrice, true)
+      : 0;
     const premiumFeeBoat = calculatePlatformFee(boatBasePrice, true);
-    premiumPlanePrice = canTransportByPlane ? planeBasePrice + premiumFeePlane : undefined;
+    premiumPlanePrice = canTransportByPlane
+      ? planeBasePrice + premiumFeePlane
+      : undefined;
     premiumBoatPrice = boatBasePrice + premiumFeeBoat;
-    premiumSavingsPlane = canTransportByPlane && premiumPlanePrice ? courierTotal - premiumPlanePrice : undefined;
+    premiumSavingsPlane =
+      canTransportByPlane && premiumPlanePrice
+        ? courierTotal - premiumPlanePrice
+        : undefined;
     premiumSavingsBoat = courierTotal - premiumBoatPrice;
-    premiumSavingsPercentagePlane = courierTotal > 0 && premiumSavingsPlane !== undefined
-      ? Math.round((premiumSavingsPlane / courierTotal) * 100) 
-      : 0;
-    premiumSavingsPercentageBoat = courierTotal > 0 
-      ? Math.round((premiumSavingsBoat / courierTotal) * 100) 
-      : 0;
+    premiumSavingsPercentagePlane =
+      courierTotal > 0 && premiumSavingsPlane !== undefined
+        ? Math.round((premiumSavingsPlane / courierTotal) * 100)
+        : 0;
+    premiumSavingsPercentageBoat =
+      courierTotal > 0
+        ? Math.round((premiumSavingsBoat / courierTotal) * 100)
+        : 0;
   }
 
   return {
     courierPrice,
     courierTotal,
     customsCost,
-    customsBreakdown: customsBreakdown ? {
-      duty: customsBreakdown.duty,
-      tax: customsBreakdown.tax,
-      taxName: customsBreakdown.taxName,
-      processingFee: customsBreakdown.processingFee,
-    } : undefined,
+    customsBreakdown: customsBreakdown
+      ? {
+          duty: customsBreakdown.duty,
+          tax: customsBreakdown.tax,
+          taxName: customsBreakdown.taxName,
+          processingFee: customsBreakdown.processingFee,
+        }
+      : undefined,
     spareCarryPlanePrice: Math.round(spareCarryPlanePrice * 100) / 100,
     spareCarryBoatPrice: Math.round(spareCarryBoatPrice * 100) / 100,
     savingsPlane: Math.round(savingsPlane * 100) / 100,
@@ -1072,16 +1372,71 @@ export function calculateShippingEstimate(input: ShippingEstimateInput): Shippin
     stripeFeeBoat,
     netRevenuePlane,
     netRevenueBoat,
-    premiumPlanePrice: premiumPlanePrice ? Math.round(premiumPlanePrice * 100) / 100 : undefined,
-    premiumBoatPrice: premiumBoatPrice ? Math.round(premiumBoatPrice * 100) / 100 : undefined,
-    premiumSavingsPlane: premiumSavingsPlane ? Math.round(premiumSavingsPlane * 100) / 100 : undefined,
-    premiumSavingsBoat: premiumSavingsBoat ? Math.round(premiumSavingsBoat * 100) / 100 : undefined,
+    premiumPlanePrice: premiumPlanePrice
+      ? Math.round(premiumPlanePrice * 100) / 100
+      : undefined,
+    premiumBoatPrice: premiumBoatPrice
+      ? Math.round(premiumBoatPrice * 100) / 100
+      : undefined,
+    premiumSavingsPlane: premiumSavingsPlane
+      ? Math.round(premiumSavingsPlane * 100) / 100
+      : undefined,
+    premiumSavingsBoat: premiumSavingsBoat
+      ? Math.round(premiumSavingsBoat * 100) / 100
+      : undefined,
     premiumSavingsPercentagePlane,
     premiumSavingsPercentageBoat,
     canTransportByPlane,
     planeRestrictionReason,
     distanceKm: input.distanceKm, // Return original straight-line distance
-    boatDistanceKm: boatDistanceKm ? Math.round(boatDistanceKm * 100) / 100 : undefined, // Return adjusted boat shipping distance
+    boatDistanceKm: boatDistanceKm
+      ? Math.round(boatDistanceKm * 100) / 100
+      : undefined, // Return adjusted boat shipping distance
+    courierPriceConfidence,
+    marketDataUsed,
   };
 }
 
+/**
+ * Apply market adjustments to courier price (async, called separately)
+ * This can be called from UI components that support async operations
+ */
+export async function applyMarketAdjustmentsToCourierPrice(
+  basePrice: number,
+  fromLocation: string,
+  toLocation: string,
+  category?: string,
+  weightKg?: number
+): Promise<{
+  adjustedPrice: number;
+  confidence: "high" | "medium" | "low";
+  marketDataUsed: boolean;
+}> {
+  try {
+    const { calculateMarketRateAdjustments } =
+      await import("../pricing/market-rates");
+
+    const adjustments = await calculateMarketRateAdjustments(
+      fromLocation,
+      toLocation,
+      category,
+      weightKg
+    );
+
+    if (adjustments.confidence !== "low" && adjustments.dataPoints > 0) {
+      return {
+        adjustedPrice: basePrice * adjustments.routeMultiplier,
+        confidence: adjustments.confidence,
+        marketDataUsed: true,
+      };
+    }
+  } catch (error) {
+    console.warn("[shipping] Market data unavailable:", error);
+  }
+
+  return {
+    adjustedPrice: basePrice,
+    confidence: "low",
+    marketDataUsed: false,
+  };
+}

@@ -16,35 +16,44 @@ This guide explains how to interpret k6 load test results and understand system 
 ### Key Metrics
 
 #### HTTP Request Duration
+
 - **p(95)**: 95th percentile - 95% of requests completed within this time
 - **p(99)**: 99th percentile - 99% of requests completed within this time
 - **avg**: Average response time
 - **min/max**: Minimum and maximum response times
 
 **Example:**
+
 ```
 http_req_duration: p(95)=450ms, p(99)=850ms, avg=200ms
 ```
+
 This means:
+
 - 95% of requests completed in < 450ms
 - 99% of requests completed in < 850ms
 - Average response time was 200ms
 
 #### HTTP Request Failed Rate
+
 - Percentage of requests that failed (non-2xx/3xx status codes)
 - **Target**: < 0.5% (0.005)
 
 **Example:**
+
 ```
 http_req_failed: rate=0.002 (0.2%)
 ```
+
 This means 0.2% of requests failed.
 
 #### Virtual Users (VUs)
+
 - Number of concurrent simulated users
 - Higher VUs = more load
 
 #### Iterations
+
 - Total number of test iterations completed
 - Higher iterations = more throughput
 
@@ -63,23 +72,26 @@ thresholds: {
 
 ### Threshold Interpretation
 
-| Threshold | Meaning | Pass/Fail |
-|-----------|---------|-----------|
-| `p(95)<500` | 95% of requests < 500ms | ✅ Pass if met |
+| Threshold    | Meaning                  | Pass/Fail      |
+| ------------ | ------------------------ | -------------- |
+| `p(95)<500`  | 95% of requests < 500ms  | ✅ Pass if met |
 | `p(99)<1000` | 99% of requests < 1000ms | ✅ Pass if met |
-| `rate<0.005` | Error rate < 0.5% | ✅ Pass if met |
+| `rate<0.005` | Error rate < 0.5%        | ✅ Pass if met |
 
 ### Scenario-Specific Thresholds
 
 **Browse (Read-Only):**
+
 - `p(95)<500ms` - Fast response expected
 - `p(99)<1000ms` - Even outliers should be fast
 
 **Write Operations (Post, Match):**
+
 - `p(95)<1000ms` - Slightly slower acceptable
 - `p(99)<2000ms` - Complex operations may take longer
 
 **Spike Tests:**
+
 - More lenient thresholds during spikes
 - `p(95)<1000ms` - Allow degradation during spikes
 - `rate<0.01` - Allow up to 1% error rate
@@ -93,6 +105,7 @@ thresholds: {
 **Purpose**: Test system behavior under gradually increasing load
 
 **Stages:**
+
 1. 0 → 50 VUs over 2 minutes
 2. 50 → 100 VUs over 5 minutes
 3. 100 → 200 VUs over 10 minutes
@@ -101,11 +114,13 @@ thresholds: {
 6. 100 → 0 VUs over 2 minutes
 
 **What to Look For:**
+
 - Response times should remain stable as load increases
 - Error rate should stay low
 - System should handle peak load (200 VUs) without degradation
 
 **Red Flags:**
+
 - Response times increase significantly during ramp-up
 - Error rate spikes at higher VUs
 - System becomes unresponsive
@@ -115,16 +130,19 @@ thresholds: {
 **Purpose**: Test system stability over extended period
 
 **Stages:**
+
 1. 0 → 100 VUs over 2 minutes
 2. Hold at 100 VUs for 30 minutes
 3. 100 → 0 VUs over 2 minutes
 
 **What to Look For:**
+
 - Consistent performance over time
 - No memory leaks (response times should not degrade)
 - Stable error rate
 
 **Red Flags:**
+
 - Response times gradually increase over time
 - Error rate increases over time
 - System becomes slower after extended load
@@ -134,6 +152,7 @@ thresholds: {
 **Purpose**: Test system behavior under sudden load spikes
 
 **Stages:**
+
 1. 50 VUs (normal load)
 2. 50 → 500 VUs (10x spike) over 1 minute
 3. Hold at 500 VUs for 2 minutes
@@ -141,11 +160,13 @@ thresholds: {
 5. Hold at 50 VUs for 2 minutes
 
 **What to Look For:**
+
 - System should handle spike gracefully
 - Response times may increase but should recover
 - Error rate may increase but should stay < 1%
 
 **Red Flags:**
+
 - System crashes during spike
 - Response times don't recover after spike
 - High error rate (> 5%)
@@ -163,6 +184,7 @@ thresholds: {
 ```
 
 **Interpretation:**
+
 - ✅ All thresholds met
 - ✅ Fast response times
 - ✅ Low error rate
@@ -176,6 +198,7 @@ thresholds: {
 ```
 
 **Interpretation:**
+
 - ⚠️ p95 slightly exceeded threshold
 - ✅ Error rate still acceptable
 - ⚠️ May need optimization or capacity increase
@@ -188,6 +211,7 @@ thresholds: {
 ```
 
 **Interpretation:**
+
 - ❌ Response times too high
 - ❌ Error rate too high
 - ❌ System not meeting performance requirements
@@ -199,21 +223,21 @@ thresholds: {
 
 ### Expected Performance
 
-| Endpoint | p95 Target | p99 Target | Notes |
-|----------|------------|------------|-------|
-| Browse Home | < 500ms | < 1000ms | Static/SSG page |
-| Browse Trips | < 500ms | < 1000ms | API query |
-| Post Request | < 1000ms | < 2000ms | Write operation |
-| Auto-Match | < 2000ms | < 3000ms | Complex operation |
-| Send Message | < 1000ms | < 2000ms | Write + realtime |
+| Endpoint     | p95 Target | p99 Target | Notes             |
+| ------------ | ---------- | ---------- | ----------------- |
+| Browse Home  | < 500ms    | < 1000ms   | Static/SSG page   |
+| Browse Trips | < 500ms    | < 1000ms   | API query         |
+| Post Request | < 1000ms   | < 2000ms   | Write operation   |
+| Auto-Match   | < 2000ms   | < 3000ms   | Complex operation |
+| Send Message | < 1000ms   | < 2000ms   | Write + realtime  |
 
 ### Capacity Targets
 
-| Scenario | Target VUs | Expected Behavior |
-|----------|------------|-------------------|
-| Normal Load | 50-100 | All thresholds met |
-| Peak Load | 200 | Thresholds may be slightly exceeded |
-| Spike | 500 | Degradation acceptable, should recover |
+| Scenario    | Target VUs | Expected Behavior                      |
+| ----------- | ---------- | -------------------------------------- |
+| Normal Load | 50-100     | All thresholds met                     |
+| Peak Load   | 200        | Thresholds may be slightly exceeded    |
+| Spike       | 500        | Degradation acceptable, should recover |
 
 ---
 
@@ -222,16 +246,19 @@ thresholds: {
 ### High Response Times
 
 **Symptoms:**
+
 - p95 > threshold
 - Gradual increase over time
 
 **Possible Causes:**
+
 1. Database query performance
 2. External API latency
 3. Insufficient server resources
 4. Network issues
 
 **Solutions:**
+
 1. Optimize database queries
 2. Add caching
 3. Scale up servers
@@ -240,16 +267,19 @@ thresholds: {
 ### High Error Rate
 
 **Symptoms:**
+
 - Error rate > 0.5%
 - 5xx status codes
 
 **Possible Causes:**
+
 1. Server overload
 2. Database connection pool exhaustion
 3. Memory leaks
 4. Application bugs
 
 **Solutions:**
+
 1. Increase server capacity
 2. Optimize connection pooling
 3. Fix memory leaks
@@ -258,17 +288,20 @@ thresholds: {
 ### System Crashes
 
 **Symptoms:**
+
 - Test fails completely
 - No responses
 - Connection refused
 
 **Possible Causes:**
+
 1. Server out of memory
 2. Database overload
 3. Application crash
 4. Network issues
 
 **Solutions:**
+
 1. Increase server memory
 2. Optimize database
 3. Fix application bugs
@@ -311,6 +344,7 @@ k6-to-html results.json -o report.html
 ```
 
 **Report Includes:**
+
 - Summary statistics
 - Response time distribution
 - Error breakdown
@@ -426,4 +460,3 @@ k6 run script.js --out json=results.json
 ---
 
 **Last Updated**: November 20, 2025
-

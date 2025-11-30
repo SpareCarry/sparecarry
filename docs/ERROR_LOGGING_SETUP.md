@@ -7,30 +7,36 @@ I've set up comprehensive error logging so **all 404s and errors now appear in y
 ## Changes Made
 
 ### 1. **Enhanced Middleware Logging** (`middleware.ts`)
+
 - Logs all requests in development mode
 - Specifically logs 404 errors with full details
 - Logs server errors (500+) with stack traces
 - Shows request duration for performance monitoring
 
 ### 2. **Client-Side 404 Logging** (`app/not-found.tsx`)
+
 - Logs 404s to browser console
 - Sends 404 details to server API for terminal logging
 - Includes URL, pathname, referrer, and user agent
 
 ### 3. **Server Logger** (`lib/logger/server-logger.ts`)
+
 - Centralized logging system
 - Formats errors with timestamps, URLs, status codes
 - Outputs to console (terminal) with structured format
 
 ### 4. **404 Logging API** (`app/api/log-404/route.ts`)
+
 - Receives 404 reports from client
 - Logs them to terminal with full context
 
 ### 5. **Verbose Next.js Config** (`next.config.js`)
+
 - Enabled detailed error logging
 - Added verbose webpack logging in development
 
 ### 6. **Environment Variables** (`.env.local`)
+
 - Added `NEXT_DEBUG=1` for Next.js debug mode
 - Added `NODE_OPTIONS=--trace-warnings` for detailed warnings
 
@@ -61,6 +67,7 @@ For errors, you'll see:
 ### **All Requests Logged in Development**
 
 In development mode, you'll see:
+
 - Every request (GET, POST, etc.)
 - Response status codes
 - Request duration
@@ -69,22 +76,26 @@ In development mode, you'll see:
 ## Testing the Logging
 
 1. **Test 404 logging:**
+
    ```bash
    # Visit a non-existent page in your browser
    http://localhost:3000/this-page-does-not-exist
    ```
-   
+
    You should see in terminal:
+
    ```
    [WARN] 404 Not Found: GET /this-page-does-not-exist
    ```
 
 2. **Test health endpoint:**
+
    ```bash
    curl http://localhost:3000/api/health
    ```
-   
+
    You should see:
+
    ```
    [INFO] Health check requested
    ```
@@ -92,6 +103,7 @@ In development mode, you'll see:
 ## What Information is Logged
 
 For each 404/error, you'll see:
+
 - ✅ **Timestamp** - When it occurred
 - ✅ **URL** - Full URL that failed
 - ✅ **Method** - HTTP method (GET, POST, etc.)
@@ -128,4 +140,3 @@ If you don't see errors in terminal:
 ```
 
 Now you can see all errors in your terminal! 🎉
-

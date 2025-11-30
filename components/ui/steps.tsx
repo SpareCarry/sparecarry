@@ -20,20 +20,18 @@ export function Steps({ currentStep, steps, className }: StepsProps) {
 
           return (
             <React.Fragment key={index}>
-              <div className="flex flex-col items-center flex-1">
+              <div className="flex flex-1 flex-col items-center">
                 <div
                   className={cn(
-                    "flex items-center justify-center w-10 h-10 rounded-full border-2 transition-colors",
-                    isCompleted &&
-                      "bg-teal-600 border-teal-600 text-white",
+                    "flex h-10 w-10 items-center justify-center rounded-full border-2 transition-colors",
+                    isCompleted && "border-teal-600 bg-teal-600 text-white",
                     isCurrent &&
-                      "bg-teal-600 border-teal-600 text-white ring-4 ring-teal-200",
-                    isUpcoming &&
-                      "bg-white border-slate-300 text-slate-400"
+                      "border-teal-600 bg-teal-600 text-white ring-4 ring-teal-200",
+                    isUpcoming && "border-slate-300 bg-white text-slate-400"
                   )}
                 >
                   {isCompleted ? (
-                    <Check className="w-5 h-5" />
+                    <Check className="h-5 w-5" />
                   ) : (
                     <span className="font-semibold">{stepNumber}</span>
                   )}
@@ -50,7 +48,7 @@ export function Steps({ currentStep, steps, className }: StepsProps) {
                     {step.title}
                   </p>
                   {step.description && (
-                    <p className="text-xs text-slate-500 mt-1">
+                    <p className="mt-1 text-xs text-slate-500">
                       {step.description}
                     </p>
                   )}
@@ -59,7 +57,7 @@ export function Steps({ currentStep, steps, className }: StepsProps) {
               {index < steps.length - 1 && (
                 <div
                   className={cn(
-                    "h-0.5 flex-1 mx-2 transition-colors",
+                    "mx-2 h-0.5 flex-1 transition-colors",
                     isCompleted ? "bg-teal-600" : "bg-slate-300"
                   )}
                 />
@@ -71,4 +69,3 @@ export function Steps({ currentStep, steps, className }: StepsProps) {
     </div>
   );
 }
-

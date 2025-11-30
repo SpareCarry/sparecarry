@@ -48,4 +48,3 @@ export function detectPriceProposal(content: string): PriceProposal | null {
 
   return null;
 }
-

@@ -1,4 +1,4 @@
-declare module '@capacitor/core' {
+declare module "@capacitor/core" {
   export const Capacitor: {
     isNativePlatform?: () => boolean;
     platform?: string;
@@ -10,14 +10,20 @@ declare module '@capacitor/core' {
   };
 }
 
-declare module '@capacitor/app' {
+declare module "@capacitor/app" {
   export const App: {
-    addListener: (event: string, callback: (...args: any[]) => void) => Promise<{ remove: () => void }> | { remove: () => void };
-    removeListener?: (event: string, callback: (...args: any[]) => void) => Promise<void> | void;
+    addListener: (
+      event: string,
+      callback: (...args: any[]) => void
+    ) => Promise<{ remove: () => void }> | { remove: () => void };
+    removeListener?: (
+      event: string,
+      callback: (...args: any[]) => void
+    ) => Promise<void> | void;
   };
 }
 
-declare module '@capacitor/preferences' {
+declare module "@capacitor/preferences" {
   export const Preferences: {
     get: (options: { key: string }) => Promise<{ value: string | null }>;
     set: (options: { key: string; value: string }) => Promise<void>;
@@ -26,23 +32,26 @@ declare module '@capacitor/preferences' {
   };
 }
 
-declare module '@capacitor/push-notifications' {
+declare module "@capacitor/push-notifications" {
   export const PushNotifications: {
-    addListener: (event: string, callback: (...args: any[]) => void) => Promise<{ remove: () => void }> | { remove: () => void };
-    requestPermissions: () => Promise<{ receive: 'granted' | 'denied' }>;
+    addListener: (
+      event: string,
+      callback: (...args: any[]) => void
+    ) => Promise<{ remove: () => void }> | { remove: () => void };
+    requestPermissions: () => Promise<{ receive: "granted" | "denied" }>;
     register: () => Promise<void>;
     getDeliveredNotifications?: () => Promise<any>;
   };
 }
 
-declare module '@capacitor/local-notifications' {
+declare module "@capacitor/local-notifications" {
   export const LocalNotifications: {
     schedule: (options: any) => Promise<void>;
-    requestPermissions: () => Promise<{ display: 'granted' | 'denied' }>;
+    requestPermissions: () => Promise<{ display: "granted" | "denied" }>;
   };
 }
 
-declare module '@capacitor/haptics' {
+declare module "@capacitor/haptics" {
   export const Haptics: {
     impact: (options: any) => Promise<void>;
     notification: (options: any) => Promise<void>;
@@ -52,4 +61,3 @@ declare module '@capacitor/haptics' {
   };
   export const ImpactStyle: Record<string, any>;
 }
-

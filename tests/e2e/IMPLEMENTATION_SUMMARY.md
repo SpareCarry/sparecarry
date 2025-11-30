@@ -19,6 +19,7 @@ A comprehensive Playwright E2E testing environment has been created for SpareCar
 - Helper functions to check current mode
 
 **Usage**:
+
 ```bash
 # Fast mode (default)
 npm run test:e2e
@@ -44,13 +45,14 @@ Predefined users for common scenarios:
 - `USER_NEW` - New user for onboarding tests
 
 **Custom User Creation**:
+
 ```typescript
-import { createTestUser } from '../setup/testUserFactory';
+import { createTestUser } from "../setup/testUserFactory";
 
 const customUser = createTestUser({
-  prefix: 'myuser',
-  role: 'requester',
-  subscription: 'monthly',
+  prefix: "myuser",
+  role: "requester",
+  subscription: "monthly",
   lifetimePro: false,
   verifiedSailor: false,
   completedDeliveries: 5,
@@ -70,6 +72,7 @@ Helper functions for fast mode:
 - `switchToUser()` - Switch to different user mid-test (for multi-user scenarios)
 
 **Usage**:
+
 ```typescript
 // Start from home with authenticated user
 await startFromHome(page, USER_A);
@@ -81,17 +84,20 @@ await switchToUser(page, USER_B);
 ### 4. Comprehensive Mock System
 
 **Files**:
+
 - `tests/e2e/helpers/supabase-mocks.ts` - Base Supabase mocks
 - `tests/e2e/helpers/comprehensive-mocks.ts` - Comprehensive feature mocks
 
 **Mocked Endpoints**:
 
 #### Supabase Auth
+
 - `**/auth/v1/otp**` - Magic link sign-in
 - `**/auth/v1/user**` - Get user info
 - `**/auth/v1/token**` - Session refresh
 
 #### Supabase REST API
+
 - `**/rest/v1/users**` - User data
 - `**/rest/v1/profiles**` - User profiles
 - `**/rest/v1/trips**` - Traveler trips
@@ -101,10 +107,12 @@ await switchToUser(page, USER_B);
 - `**/rest/v1/messages**` - Chat messages
 
 #### Stripe
+
 - `**/api/checkout/**` - Checkout session creation
 - `**/api/webhooks/stripe**` - Webhook processing
 
 #### RPC Functions
+
 - `**/rest/v1/rpc/get_lifetime_availability**` - Lifetime subscription availability
 
 ### 5. Shared Test Setup
@@ -120,10 +128,11 @@ Standardized `beforeEach` hook:
 - Helper functions for waiting and cleanup
 
 **Usage**:
+
 ```typescript
 test.beforeEach(async ({ page, context }) => {
   await beforeEachSetup(page, context, {
-    mode: 'fast', // or 'full' or 'auto'
+    mode: "fast", // or 'full' or 'auto'
     user: USER_A, // optional: pre-authenticate specific user
   });
 });
@@ -173,21 +182,21 @@ tests/e2e/
 ✅ **Speed**: Tests run 5-10x faster by skipping auth flows  
 ✅ **Deterministic**: Pre-authenticated sessions are reliable  
 ✅ **CI/CD Ready**: Fast execution for continuous integration  
-✅ **Feature Focused**: Test features without auth complexity  
+✅ **Feature Focused**: Test features without auth complexity
 
 ### Full Auth Mode Benefits
 
 ✅ **Comprehensive**: Real authentication flows  
 ✅ **Auth Testing**: Complete login/signup/magic link testing  
 ✅ **Onboarding**: Test complete user onboarding flows  
-✅ **Real-World**: Tests mirror actual user experience  
+✅ **Real-World**: Tests mirror actual user experience
 
 ### Multi-User Support
 
 ✅ **User Switching**: Switch between users mid-test  
 ✅ **Interaction Testing**: Test user-to-user interactions  
 ✅ **Role-Based**: Different roles with different permissions  
-✅ **Subscription States**: Different subscription tiers  
+✅ **Subscription States**: Different subscription tiers
 
 ## Testing Workflows
 
@@ -216,26 +225,26 @@ tests/e2e/
 ✅ **Payments**: Stripe checkout and webhooks  
 ✅ **Profile Management**: Settings and preferences  
 ✅ **Multi-User**: User interactions and switching  
-✅ **Lifetime Limits**: Early-bird conditions and limits  
+✅ **Lifetime Limits**: Early-bird conditions and limits
 
 ## Usage Examples
 
 ### Fast Mode Test
 
 ```typescript
-import { test, expect } from '@playwright/test';
-import { beforeEachSetup } from '../setup/testSetup';
-import { startFromHome } from '../setup/authSession';
-import { USER_A } from '../setup/testUsers';
+import { test, expect } from "@playwright/test";
+import { beforeEachSetup } from "../setup/testSetup";
+import { startFromHome } from "../setup/authSession";
+import { USER_A } from "../setup/testUsers";
 
-test.describe('My Feature', () => {
+test.describe("My Feature", () => {
   test.beforeEach(async ({ page, context }) => {
     await beforeEachSetup(page, context);
   });
 
-  test('should test feature', async ({ page }) => {
+  test("should test feature", async ({ page }) => {
     await startFromHome(page, USER_A);
-    await expect(page.locator('text=SpareCarry')).toBeVisible();
+    await expect(page.locator("text=SpareCarry")).toBeVisible();
   });
 });
 ```
@@ -243,17 +252,17 @@ test.describe('My Feature', () => {
 ### Multi-User Test
 
 ```typescript
-import { test, expect } from '@playwright/test';
-import { beforeEachSetup } from '../setup/testSetup';
-import { startFromHome, switchToUser } from '../setup/authSession';
-import { USER_A, USER_B } from '../setup/testUsers';
+import { test, expect } from "@playwright/test";
+import { beforeEachSetup } from "../setup/testSetup";
+import { startFromHome, switchToUser } from "../setup/authSession";
+import { USER_A, USER_B } from "../setup/testUsers";
 
-test.describe('Multi-User', () => {
+test.describe("Multi-User", () => {
   test.beforeEach(async ({ page, context }) => {
     await beforeEachSetup(page, context);
   });
 
-  test('should test interaction', async ({ page }) => {
+  test("should test interaction", async ({ page }) => {
     await startFromHome(page, USER_A);
     // Create request as User A
     await switchToUser(page, USER_B);
@@ -265,17 +274,17 @@ test.describe('Multi-User', () => {
 ### Full Auth Mode Test
 
 ```typescript
-import { test, expect } from '@playwright/test';
-import { beforeEachSetup } from '../setup/testSetup';
+import { test, expect } from "@playwright/test";
+import { beforeEachSetup } from "../setup/testSetup";
 
-test.describe('Auth Flow', () => {
+test.describe("Auth Flow", () => {
   test.beforeEach(async ({ page, context }) => {
-    await beforeEachSetup(page, context, { mode: 'full' });
+    await beforeEachSetup(page, context, { mode: "full" });
   });
 
-  test('should login', async ({ page }) => {
-    await page.goto('/login');
-    await page.fill('input[type="email"]', 'test@example.com');
+  test("should login", async ({ page }) => {
+    await page.goto("/login");
+    await page.fill('input[type="email"]', "test@example.com");
     await page.click('button:has-text("Send magic link")');
     // Continue with login flow
   });
@@ -311,7 +320,7 @@ Add to `helpers/comprehensive-mocks.ts`:
 
 ```typescript
 export async function mockNewEndpoint(page: Page) {
-  await page.route('**/api/new-endpoint**', async (route) => {
+  await page.route("**/api/new-endpoint**", async (route) => {
     // Mock logic
   });
 }
@@ -323,9 +332,9 @@ Add to `setup/testUserFactory.ts`:
 
 ```typescript
 export const USER_NEW_TYPE = createTestUser({
-  prefix: 'newtype',
-  role: 'requester',
-  subscription: 'monthly',
+  prefix: "newtype",
+  role: "requester",
+  subscription: "monthly",
 });
 ```
 
@@ -339,4 +348,3 @@ Modify `setup/testSetup.ts` to update shared setup logic.
 - **Examples**: `examples/fast-mode-example.spec.ts`
 - **Quick Start**: `README.md`
 - **Playwright Docs**: https://playwright.dev
-

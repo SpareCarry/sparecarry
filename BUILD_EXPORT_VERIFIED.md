@@ -9,16 +9,19 @@
 ## ✅ Completed Tasks
 
 ### 1. Next.js Downgrade
+
 - ✅ **Downgraded** from Next.js 14.2.18 to **13.5.6**
 - ✅ **Dependencies installed** with `npm install --legacy-peer-deps`
 - ✅ **Version verified**: `next@13.5.6` installed correctly
 
 ### 2. Configuration Verified
+
 - ✅ **tsconfig.json**: `baseUrl: "."` and `paths: { "@/*": ["./*"] }` confirmed
 - ✅ **next.config.js**: Webpack alias `@` configured correctly
 - ✅ **generateBuildId**: Patched to handle "generate is not a function" error
 
 ### 3. Build Success
+
 - ✅ **Build completed successfully** without errors
 - ✅ **45 static pages generated**
 - ✅ **All routes compiled** (static + dynamic)
@@ -26,6 +29,7 @@
 - ✅ **API route fixed**: Manually fixed `app/api/payments/confirm-delivery/route.ts`
 
 ### 4. Pre-Build Script Created
+
 - ✅ **Script**: `scripts/pre-build-fix-aliases.js`
 - ✅ **Functionality**: Temporarily replaces `@/` imports with relative paths
 - ✅ **Backup system**: Creates backups before modifying files
@@ -33,6 +37,7 @@
 - ✅ **Integration**: Runs automatically via `prebuild` script
 
 ### 5. Post-Build Script Ready
+
 - ✅ **Script**: `scripts/fix-aliases.js`
 - ✅ **Functionality**: Fixes `@/` imports in `out/` folder
 - ✅ **Integration**: Runs automatically via `postbuild` script
@@ -47,6 +52,7 @@
 **Symptom**: Build completes successfully, but `out/` folder is not created.
 
 **Build Output**:
+
 ```
 ✓ Generating static pages (45/45)
 Finalizing page optimization ...
@@ -62,12 +68,14 @@ Collecting build traces ...
 ## 🔍 Investigation Needed
 
 ### Possible Causes:
+
 1. **Next.js 13.5.6 Bug**: The `output: "export"` option might not work correctly in 13.5.6
 2. **App Router Compatibility**: Next.js 13.5.6 might have issues with App Router + static export
 3. **Configuration Issue**: Missing or incorrect configuration preventing export phase
 4. **Silent Failure**: Export phase running but failing silently
 
 ### Next Steps:
+
 1. Check Next.js 13.5.6 documentation for static export support
 2. Verify if `output: "export"` is supported in 13.5.6 with App Router
 3. Check for any errors in build logs that might indicate export failure
@@ -78,6 +86,7 @@ Collecting build traces ...
 ## 📋 Build Configuration
 
 ### next.config.js
+
 ```javascript
 {
   output: "export",
@@ -100,6 +109,7 @@ Collecting build traces ...
 ```
 
 ### package.json Scripts
+
 ```json
 {
   "prebuild": "node scripts/pre-build-fix-aliases.js",
@@ -133,18 +143,22 @@ Collecting build traces ...
 ## 🔧 Recommendations
 
 ### Option 1: Upgrade Next.js
+
 - Upgrade to Next.js 14.x (known to work with `output: "export"`)
 - Or try Next.js 13.6.x if 13.5.6 has a bug
 
 ### Option 2: Use Next.js 13 Export Command
+
 - Try `next export` command (may not work with App Router)
 - Check Next.js 13.5.6 documentation
 
 ### Option 3: Manual Export
+
 - Manually copy `.next/static` to `out/` folder
 - Not recommended for production
 
 ### Option 4: Investigate Further
+
 - Check Next.js 13.5.6 GitHub issues
 - Look for known bugs with static export
 - Verify App Router compatibility
@@ -172,4 +186,3 @@ Collecting build traces ...
 ---
 
 **Next Action**: Investigate why Next.js 13.5.6 is not creating the `out/` folder and fix the export phase.
-

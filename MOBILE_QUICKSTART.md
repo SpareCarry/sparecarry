@@ -3,11 +3,13 @@
 ## 🚀 Quick Setup (5 minutes)
 
 ### Prerequisites Check
+
 - ✅ Node.js installed
 - ✅ Next.js app built (`out/` folder exists)
 - ✅ Xcode (macOS) or Android Studio installed
 
 ### Step 1: Build & Sync
+
 ```bash
 # Build Next.js static export
 npm run build
@@ -19,11 +21,13 @@ npx cap sync
 ### Step 2: Open Native Projects
 
 **iOS (macOS only)**:
+
 ```bash
 npx cap open ios
 ```
 
 **Android**:
+
 ```bash
 npx cap open android
 ```
@@ -31,12 +35,14 @@ npx cap open android
 ### Step 3: Configure Signing
 
 **iOS**:
+
 1. In Xcode, select "App" target
 2. Go to "Signing & Capabilities"
 3. Select your Team (Apple Developer Account)
 4. Enable "Push Notifications" capability
 
 **Android**:
+
 1. Create keystore (one-time):
    ```bash
    keytool -genkey -v -keystore carryspace-release.keystore -alias carryspace -keyalg RSA -keysize 2048 -validity 10000
@@ -46,9 +52,11 @@ npx cap open android
 ### Step 4: Test Locally
 
 **iOS Simulator**:
+
 - Run in Xcode (⌘R)
 
 **Android Emulator**:
+
 - Run in Android Studio (▶️)
 
 ## 📱 Push Notifications Setup
@@ -72,12 +80,14 @@ See `lib/notifications/expo-push-service.ts` for integration code.
 ## 🏗️ Building for Production
 
 ### iOS
+
 1. Open in Xcode: `npx cap open ios`
 2. Select "Any iOS Device"
 3. Product → Archive
 4. Distribute to App Store Connect
 
 ### Android
+
 1. Open in Android Studio: `npx cap open android`
 2. Build → Generate Signed Bundle / APK
 3. Select "Android App Bundle"
@@ -86,6 +96,7 @@ See `lib/notifications/expo-push-service.ts` for integration code.
 ## 📚 Full Documentation
 
 For detailed instructions, see:
+
 - **Complete Guide**: `docs/MOBILE_DEPLOYMENT.md`
 - **Capacitor Docs**: https://capacitorjs.com/docs
 - **Expo Push**: https://docs.expo.dev/push-notifications/overview/
@@ -93,17 +104,20 @@ For detailed instructions, see:
 ## 🔧 Troubleshooting
 
 **"out folder not found"**:
+
 ```bash
 npm run build
 ```
 
 **"Module not found"**:
+
 ```bash
 npm install
 npx cap sync
 ```
 
 **Push notifications not working**:
+
 - Check permissions are granted
 - Verify backend is sending correct token format
 - Check device logs for errors
@@ -111,6 +125,7 @@ npx cap sync
 ## ✅ Checklist
 
 Before submitting to stores:
+
 - [ ] App builds successfully
 - [ ] Push notifications tested on real device
 - [ ] Icons and splash screens configured
@@ -121,4 +136,3 @@ Before submitting to stores:
 ---
 
 **Need Help?** See `docs/MOBILE_DEPLOYMENT.md` for complete instructions.
-

@@ -1,11 +1,16 @@
 /**
  * Location Provider Abstraction
- * 
+ *
  * Unified interface for location services. Switch providers by editing lib/geoapify.ts only.
  * All UI components use this abstraction layer.
  */
 
-import { geoapifyAutocomplete, geoapifyReverse, geoapifyForward, GeoapifyPlace } from './geoapify';
+import {
+  geoapifyAutocomplete,
+  geoapifyReverse,
+  geoapifyForward,
+  GeoapifyPlace,
+} from "./geoapify";
 
 export interface Place {
   id?: string;
@@ -18,7 +23,7 @@ export interface Place {
 
 export interface AutocompleteOptions {
   limit?: number;
-  filter?: 'marina' | 'port' | 'any';
+  filter?: "marina" | "port" | "any";
   bbox?: [minLon: number, minLat: number, maxLon: number, maxLat: number];
   allowFallback?: boolean;
 }
@@ -57,4 +62,3 @@ export async function forwardGeocode(name: string): Promise<Place | null> {
 
 // Re-export types for convenience
 export type { GeoapifyPlace as PlaceType };
-

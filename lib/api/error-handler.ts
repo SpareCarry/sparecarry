@@ -1,11 +1,11 @@
 /**
  * API Error Handler
- * 
+ *
  * Standardized error handling for API routes
  */
 
-import { NextResponse } from 'next/server';
-import { logger } from '../logger';
+import { NextResponse } from "next/server";
+import { logger } from "../logger";
 
 export interface ApiError {
   code: string;
@@ -22,7 +22,7 @@ export class ApiErrorResponse extends Error {
     public details?: unknown
   ) {
     super(message);
-    this.name = 'ApiErrorResponse';
+    this.name = "ApiErrorResponse";
   }
 }
 
@@ -31,7 +31,7 @@ export class ApiErrorResponse extends Error {
  */
 export function createErrorResponse(
   error: unknown,
-  defaultMessage: string = 'An error occurred'
+  defaultMessage: string = "An error occurred"
 ): NextResponse {
   let apiError: ApiError;
 
@@ -45,24 +45,29 @@ export function createErrorResponse(
   } else if (error instanceof Error) {
     // Never expose stack traces in production
     apiError = {
-      code: 'INTERNAL_ERROR',
-      message: process.env.NODE_ENV === 'production' ? defaultMessage : error.message,
+      code: "INTERNAL_ERROR",
+      message:
+        process.env.NODE_ENV === "production" ? defaultMessage : error.message,
       statusCode: 500,
     };
   } else {
     apiError = {
-      code: 'UNKNOWN_ERROR',
+      code: "UNKNOWN_ERROR",
       message: defaultMessage,
       statusCode: 500,
     };
   }
 
   // Log error
-  logger.error('API Error', error instanceof Error ? error : new Error(String(error)), {
-    code: apiError.code,
-    statusCode: apiError.statusCode,
-    details: apiError.details,
-  });
+  logger.error(
+    "API Error",
+    error instanceof Error ? error : new Error(String(error)),
+    {
+      code: apiError.code,
+      statusCode: apiError.statusCode,
+      details: apiError.details,
+    }
+  );
 
   const errorPayload: {
     code: string;
@@ -73,7 +78,7 @@ export function createErrorResponse(
     message: apiError.message,
   };
 
-  if (process.env.NODE_ENV === 'development' && apiError.details) {
+  if (process.env.NODE_ENV === "development" && apiError.details) {
     errorPayload.details = apiError.details;
   }
 
@@ -89,10 +94,9 @@ export function createErrorResponse(
 /**
  * Wrap API route handler with error handling
  */
-export function withApiErrorHandler<T extends (...args: any[]) => Promise<NextResponse>>(
-  handler: T,
-  defaultMessage?: string
-): T {
+export function withApiErrorHandler<
+  T extends (...args: any[]) => Promise<NextResponse>,
+>(handler: T, defaultMessage?: string): T {
   return (async (...args: Parameters<T>) => {
     try {
       return await handler(...args);
@@ -107,30 +111,30 @@ export function withApiErrorHandler<T extends (...args: any[]) => Promise<NextRe
  */
 export const ErrorCodes = {
   // Authentication
-  UNAUTHORIZED: 'UNAUTHORIZED',
-  FORBIDDEN: 'FORBIDDEN',
-  INVALID_TOKEN: 'INVALID_TOKEN',
+  UNAUTHORIZED: "UNAUTHORIZED",
+  FORBIDDEN: "FORBIDDEN",
+  INVALID_TOKEN: "INVALID_TOKEN",
 
   // Validation
-  VALIDATION_ERROR: 'VALIDATION_ERROR',
-  INVALID_INPUT: 'INVALID_INPUT',
+  VALIDATION_ERROR: "VALIDATION_ERROR",
+  INVALID_INPUT: "INVALID_INPUT",
 
   // Not Found
-  NOT_FOUND: 'NOT_FOUND',
-  RESOURCE_NOT_FOUND: 'RESOURCE_NOT_FOUND',
+  NOT_FOUND: "NOT_FOUND",
+  RESOURCE_NOT_FOUND: "RESOURCE_NOT_FOUND",
 
   // Rate Limiting
-  RATE_LIMIT_EXCEEDED: 'RATE_LIMIT_EXCEEDED',
+  RATE_LIMIT_EXCEEDED: "RATE_LIMIT_EXCEEDED",
 
   // Server Errors
-  INTERNAL_ERROR: 'INTERNAL_ERROR',
-  DATABASE_ERROR: 'DATABASE_ERROR',
-  EXTERNAL_SERVICE_ERROR: 'EXTERNAL_SERVICE_ERROR',
+  INTERNAL_ERROR: "INTERNAL_ERROR",
+  DATABASE_ERROR: "DATABASE_ERROR",
+  EXTERNAL_SERVICE_ERROR: "EXTERNAL_SERVICE_ERROR",
 
   // Business Logic
-  INSUFFICIENT_PERMISSIONS: 'INSUFFICIENT_PERMISSIONS',
-  INVALID_STATE: 'INVALID_STATE',
-  CONFLICT: 'CONFLICT',
+  INSUFFICIENT_PERMISSIONS: "INSUFFICIENT_PERMISSIONS",
+  INVALID_STATE: "INVALID_STATE",
+  CONFLICT: "CONFLICT",
 } as const;
 
 /**
@@ -144,4 +148,3 @@ export function createApiError(
 ): ApiErrorResponse {
   return new ApiErrorResponse(ErrorCodes[code], message, statusCode, details);
 }
-

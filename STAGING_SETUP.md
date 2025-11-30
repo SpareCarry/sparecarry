@@ -5,6 +5,7 @@ This document describes how to set up and deploy the SpareCarry app to the stagi
 ## Overview
 
 The staging environment is a production-like environment used for:
+
 - Beta testing on iOS TestFlight and Android Play Store Internal Testing
 - Integration testing with real services (Supabase, Stripe, etc.)
 - Performance monitoring and telemetry collection
@@ -22,6 +23,7 @@ cp .env.local.example .env.staging
 ```
 
 Required variables:
+
 - `NEXT_PUBLIC_APP_ENV=staging`
 - `NEXT_PUBLIC_APP_URL=https://staging.sparecarry.com`
 - `NEXT_PUBLIC_SUPABASE_URL` - Staging Supabase project URL
@@ -83,6 +85,7 @@ pnpm mobile:build:staging
 ```
 
 The mobile build scripts will:
+
 1. Build Next.js with staging environment
 2. Validate static export
 3. Inject environment variables into Capacitor config
@@ -93,10 +96,12 @@ The mobile build scripts will:
 ### Automated Deployment (GitHub Actions)
 
 The staging deployment workflow (`.github/workflows/deploy_staging.yml`) runs on:
+
 - Push to `staging` or `develop` branches
 - Manual workflow dispatch
 
 To trigger manually:
+
 1. Go to GitHub Actions
 2. Select "Deploy to Staging"
 3. Click "Run workflow"
@@ -162,6 +167,7 @@ fastlane android beta_staging
 ### Telemetry
 
 Events tracked:
+
 - `user.signup`
 - `user.login`
 - `match.created`
@@ -174,6 +180,7 @@ View telemetry in Sentry breadcrumbs and custom events.
 ## Feature Flags
 
 Staging feature flags (via Unleash):
+
 - `enable_push_notifications` - Enable push notifications
 - `email_notifications` - Enable email notifications
 - `dispute_refund_flow` - Enable dispute/refund flow
@@ -213,4 +220,3 @@ Toggle flags in Unleash dashboard or via API.
 - [ ] Configure production deployment pipeline
 - [ ] Set up monitoring dashboards
 - [ ] Create runbooks for common issues
-

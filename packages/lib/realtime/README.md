@@ -17,8 +17,8 @@ Centralized Supabase Realtime Connection Manager that prevents duplicate connect
 **IMPORTANT**: You must initialize RealtimeManager with a Supabase client before using it.
 
 ```typescript
-import { createClient } from '@sparecarry/lib/supabase';
-import { RealtimeManager } from '@sparecarry/lib/realtime';
+import { createClient } from "@sparecarry/lib/supabase";
+import { RealtimeManager } from "@sparecarry/lib/realtime";
 
 // In your app root (once)
 const supabase = createClient();
@@ -28,15 +28,15 @@ RealtimeManager.setSupabaseClient(supabase);
 ### Using the Hook (Recommended)
 
 ```typescript
-import { useRealtime } from '@sparecarry/hooks';
+import { useRealtime } from "@sparecarry/hooks";
 
 function MyComponent() {
   useRealtime({
-    table: 'messages',
-    event: 'INSERT',
-    filter: 'conversation_id=eq.123',
+    table: "messages",
+    event: "INSERT",
+    filter: "conversation_id=eq.123",
     callback: (payload) => {
-      console.log('New message:', payload);
+      console.log("New message:", payload);
     },
   });
 }
@@ -45,19 +45,19 @@ function MyComponent() {
 ### Direct Usage (Advanced)
 
 ```typescript
-import { RealtimeManager } from '@sparecarry/lib/realtime';
+import { RealtimeManager } from "@sparecarry/lib/realtime";
 
 // Listen to a table
 const channelName = RealtimeManager.listen(
   {
-    table: 'messages',
-    event: 'INSERT',
-    filter: 'conversation_id=eq.123',
+    table: "messages",
+    event: "INSERT",
+    filter: "conversation_id=eq.123",
   },
   (payload) => {
-    console.log('New message:', payload);
+    console.log("New message:", payload);
   },
-  'custom-channel-name' // Optional: custom name for deduplication
+  "custom-channel-name" // Optional: custom name for deduplication
 );
 
 // Remove callback
@@ -107,6 +107,7 @@ This is a hard limit to prevent Supabase quota issues. If you try to create more
 ### What happens if limit is reached?
 
 RealtimeManager will:
+
 1. Log an error with active channel names
 2. Throw an error to prevent creating the channel
 3. Attempt to clean up inactive channels first
@@ -116,7 +117,7 @@ RealtimeManager will:
 ### Enable/Disable Logging
 
 ```typescript
-RealtimeManager.setLogging(true);  // Enable verbose logging
+RealtimeManager.setLogging(true); // Enable verbose logging
 RealtimeManager.setLogging(false); // Disable logging
 ```
 
@@ -131,7 +132,7 @@ console.log(`Active channels: ${count}`);
 
 ```typescript
 const channels = RealtimeManager.getActiveChannels();
-console.log('Active channels:', channels);
+console.log("Active channels:", channels);
 ```
 
 ### Get Debug Info
@@ -167,6 +168,7 @@ window.__REALTIME_MANAGER__.setLogging(true);
 ## Cleanup
 
 RealtimeManager automatically:
+
 - Cleans up inactive channels (5 minutes of no activity)
 - Unsubscribes channels when no callbacks remain
 - Destroys all channels on page unload (web)
@@ -192,8 +194,8 @@ RealtimeManager.destroyAll();
 
 ```typescript
 const channel = supabase
-  .channel('messages')
-  .on('postgres_changes', { table: 'messages' }, (payload) => {
+  .channel("messages")
+  .on("postgres_changes", { table: "messages" }, (payload) => {
     console.log(payload);
   })
   .subscribe();
@@ -204,19 +206,16 @@ const channel = supabase
 ```typescript
 // Option 1: Use hook (recommended)
 useRealtime({
-  table: 'messages',
+  table: "messages",
   callback: (payload) => {
     console.log(payload);
   },
 });
 
 // Option 2: Use RealtimeManager directly
-const channelName = RealtimeManager.listen(
-  { table: 'messages' },
-  (payload) => {
-    console.log(payload);
-  }
-);
+const channelName = RealtimeManager.listen({ table: "messages" }, (payload) => {
+  console.log(payload);
+});
 ```
 
 ## Troubleshooting
@@ -228,6 +227,7 @@ Make sure to call `RealtimeManager.setSupabaseClient(client)` before using `list
 ### "Maximum channel limit reached" error
 
 You have 5 active channels. Options:
+
 1. Remove unused channels
 2. Combine similar channels
 3. Use polling instead of realtime for non-critical updates
@@ -235,7 +235,7 @@ You have 5 active channels. Options:
 ### Channels not cleaning up
 
 Check:
+
 1. Are you calling `remove()` when done?
 2. Are callbacks being removed properly?
 3. Check `getDebugInfo()` to see active channels
-

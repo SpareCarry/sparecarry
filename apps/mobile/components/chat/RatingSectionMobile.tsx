@@ -3,36 +3,48 @@
  * Allows users to rate their delivery experience
  */
 
-import { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Modal, TextInput, ActivityIndicator, Alert } from 'react-native';
-import { MaterialIcons } from '@expo/vector-icons';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { createClient } from '@sparecarry/lib/supabase';
-import { useAuth } from '@sparecarry/hooks/useAuth';
+import { useState, useEffect } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Modal,
+  TextInput,
+  ActivityIndicator,
+  Alert,
+} from "react-native";
+import { MaterialIcons } from "@expo/vector-icons";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { createClient } from "@sparecarry/lib/supabase";
+import { useAuth } from "@sparecarry/hooks/useAuth";
 
 interface RatingSectionMobileProps {
   matchId: string;
   otherUserId?: string;
 }
 
-export function RatingSectionMobile({ matchId, otherUserId }: RatingSectionMobileProps) {
+export function RatingSectionMobile({
+  matchId,
+  otherUserId,
+}: RatingSectionMobileProps) {
   const { user } = useAuth();
   const supabase = createClient();
   const queryClient = useQueryClient();
   const [modalOpen, setModalOpen] = useState(false);
   const [rating, setRating] = useState(0);
-  const [comment, setComment] = useState('');
+  const [comment, setComment] = useState("");
   const [loading, setLoading] = useState(false);
 
   const { data: existingRating } = useQuery({
-    queryKey: ['rating', matchId, user?.id],
+    queryKey: ["rating", matchId, user?.id],
     queryFn: async () => {
       if (!user?.id) return null;
       const { data } = await supabase
-        .from('ratings')
-        .select('*')
-        .eq('match_id', matchId)
-        .eq('rater_id', user.id)
+        .from("ratings")
+        .select("*")
+        .eq("match_id", matchId)
+        .eq("rater_id", user.id)
         .maybeSingle();
       return data;
     },
@@ -42,18 +54,18 @@ export function RatingSectionMobile({ matchId, otherUserId }: RatingSectionMobil
   useEffect(() => {
     if (existingRating) {
       setRating(existingRating.rating);
-      setComment(existingRating.comment || '');
+      setComment(existingRating.comment || "");
     }
   }, [existingRating]);
 
   const handleSubmit = async () => {
     if (rating === 0) {
-      Alert.alert('Error', 'Please select a rating');
+      Alert.alert("Error", "Please select a rating");
       return;
     }
 
     if (!otherUserId) {
-      Alert.alert('Error', 'Cannot submit rating');
+      Alert.alert("Error", "Cannot submit rating");
       return;
     }
 
@@ -61,16 +73,16 @@ export function RatingSectionMobile({ matchId, otherUserId }: RatingSectionMobil
     try {
       if (existingRating) {
         const { error } = await supabase
-          .from('ratings')
+          .from("ratings")
           .update({
             rating,
             comment: comment || null,
           })
-          .eq('id', existingRating.id);
+          .eq("id", existingRating.id);
 
         if (error) throw error;
       } else {
-        const { error } = await supabase.from('ratings').insert({
+        const { error } = await supabase.from("ratings").insert({
           match_id: matchId,
           rater_id: user!.id,
           ratee_id: otherUserId,
@@ -81,12 +93,14 @@ export function RatingSectionMobile({ matchId, otherUserId }: RatingSectionMobil
         if (error) throw error;
       }
 
-      queryClient.invalidateQueries({ queryKey: ['rating', matchId, user?.id] });
+      queryClient.invalidateQueries({
+        queryKey: ["rating", matchId, user?.id],
+      });
       setModalOpen(false);
-      Alert.alert('Success', 'Rating submitted!');
+      Alert.alert("Success", "Rating submitted!");
     } catch (error: any) {
-      console.error('Error submitting rating:', error);
-      Alert.alert('Error', error.message || 'Failed to submit rating');
+      console.error("Error submitting rating:", error);
+      Alert.alert("Error", error.message || "Failed to submit rating");
     } finally {
       setLoading(false);
     }
@@ -100,7 +114,9 @@ export function RatingSectionMobile({ matchId, otherUserId }: RatingSectionMobil
           <View style={styles.textContainer}>
             <Text style={styles.title}>Rate this delivery</Text>
             <Text style={styles.subtitle}>
-              {existingRating ? 'Update your feedback anytime.' : 'Share feedback so others know what to expect.'}
+              {existingRating
+                ? "Update your feedback anytime."
+                : "Share feedback so others know what to expect."}
             </Text>
           </View>
         </View>
@@ -110,14 +126,16 @@ export function RatingSectionMobile({ matchId, otherUserId }: RatingSectionMobil
               {[1, 2, 3, 4, 5].map((star) => (
                 <MaterialIcons
                   key={star}
-                  name={star <= existingRating.rating ? 'star' : 'star-border'}
+                  name={star <= existingRating.rating ? "star" : "star-border"}
                   size={16}
                   color="#fbbf24"
                 />
               ))}
             </View>
             {existingRating.comment && (
-              <Text style={styles.existingComment}>{existingRating.comment}</Text>
+              <Text style={styles.existingComment}>
+                {existingRating.comment}
+              </Text>
             )}
           </View>
         )}
@@ -127,7 +145,7 @@ export function RatingSectionMobile({ matchId, otherUserId }: RatingSectionMobil
           disabled={!otherUserId}
         >
           <Text style={styles.buttonText}>
-            {existingRating ? 'Update Rating' : 'Leave a Rating'}
+            {existingRating ? "Update Rating" : "Leave a Rating"}
           </Text>
         </TouchableOpacity>
       </View>
@@ -142,15 +160,17 @@ export function RatingSectionMobile({ matchId, otherUserId }: RatingSectionMobil
               </TouchableOpacity>
             </View>
 
-            <Text style={styles.modalSubtitle}>How was your experience with this delivery?</Text>
+            <Text style={styles.modalSubtitle}>
+              How was your experience with this delivery?
+            </Text>
 
             <View style={styles.starsContainer}>
               {[1, 2, 3, 4, 5].map((star) => (
                 <TouchableOpacity key={star} onPress={() => setRating(star)}>
                   <MaterialIcons
-                    name={star <= rating ? 'star' : 'star-border'}
+                    name={star <= rating ? "star" : "star-border"}
                     size={48}
-                    color={star <= rating ? '#fbbf24' : '#d1d5db'}
+                    color={star <= rating ? "#fbbf24" : "#d1d5db"}
                   />
                 </TouchableOpacity>
               ))}
@@ -175,7 +195,10 @@ export function RatingSectionMobile({ matchId, otherUserId }: RatingSectionMobil
                 <Text style={styles.cancelButtonText}>Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.submitButton, rating === 0 && styles.submitButtonDisabled]}
+                style={[
+                  styles.submitButton,
+                  rating === 0 && styles.submitButtonDisabled,
+                ]}
                 onPress={handleSubmit}
                 disabled={rating === 0 || loading}
               >
@@ -183,7 +206,7 @@ export function RatingSectionMobile({ matchId, otherUserId }: RatingSectionMobil
                   <ActivityIndicator color="#fff" />
                 ) : (
                   <Text style={styles.submitButtonText}>
-                    {existingRating ? 'Update' : 'Submit'}
+                    {existingRating ? "Update" : "Submit"}
                   </Text>
                 )}
               </TouchableOpacity>
@@ -198,13 +221,13 @@ export function RatingSectionMobile({ matchId, otherUserId }: RatingSectionMobil
 const styles = StyleSheet.create({
   container: {
     padding: 16,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderTopWidth: 1,
-    borderTopColor: '#e5e7eb',
+    borderTopColor: "#e5e7eb",
   },
   content: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 12,
     marginBottom: 12,
   },
@@ -213,90 +236,90 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
+    fontWeight: "600",
+    color: "#333",
   },
   subtitle: {
     fontSize: 12,
-    color: '#666',
+    color: "#666",
     marginTop: 2,
   },
   existingRating: {
-    backgroundColor: '#f9fafb',
+    backgroundColor: "#f9fafb",
     borderRadius: 8,
     padding: 12,
     marginBottom: 12,
   },
   stars: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 4,
     marginBottom: 8,
   },
   existingComment: {
     fontSize: 14,
-    color: '#666',
-    fontStyle: 'italic',
+    color: "#666",
+    fontStyle: "italic",
   },
   button: {
-    backgroundColor: '#14b8a6',
+    backgroundColor: "#14b8a6",
     borderRadius: 8,
     padding: 12,
-    alignItems: 'center',
+    alignItems: "center",
   },
   buttonText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "center",
+    alignItems: "center",
     padding: 20,
   },
   modalContent: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderRadius: 16,
     padding: 24,
-    width: '100%',
+    width: "100%",
     maxWidth: 400,
   },
   modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 8,
   },
   modalTitle: {
     fontSize: 20,
-    fontWeight: '600',
-    color: '#333',
+    fontWeight: "600",
+    color: "#333",
   },
   modalSubtitle: {
     fontSize: 14,
-    color: '#666',
+    color: "#666",
     marginBottom: 24,
   },
   starsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
+    flexDirection: "row",
+    justifyContent: "center",
     gap: 8,
     marginBottom: 24,
   },
   commentInput: {
-    backgroundColor: '#f9fafb',
+    backgroundColor: "#f9fafb",
     borderRadius: 8,
     padding: 12,
     fontSize: 14,
-    color: '#333',
+    color: "#333",
     minHeight: 100,
     marginBottom: 24,
     borderWidth: 1,
-    borderColor: '#e5e7eb',
+    borderColor: "#e5e7eb",
   },
   modalButtons: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 12,
   },
   cancelButton: {
@@ -304,28 +327,27 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#e5e7eb',
-    alignItems: 'center',
+    borderColor: "#e5e7eb",
+    alignItems: "center",
   },
   cancelButtonText: {
-    color: '#666',
+    color: "#666",
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   submitButton: {
     flex: 1,
     padding: 12,
     borderRadius: 8,
-    backgroundColor: '#14b8a6',
-    alignItems: 'center',
+    backgroundColor: "#14b8a6",
+    alignItems: "center",
   },
   submitButtonDisabled: {
     opacity: 0.5,
   },
   submitButtonText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: "600",
   },
 });
-

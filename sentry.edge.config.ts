@@ -1,6 +1,6 @@
 /**
  * Sentry Edge Configuration
- * 
+ *
  * Only loaded if NEXT_PUBLIC_SENTRY_DSN is set
  * Uses dynamic import to avoid build issues
  */
@@ -28,4 +28,3 @@ if (SENTRY_DSN && SENTRY_DSN.length > 0) {
 }
 
 export {};
-

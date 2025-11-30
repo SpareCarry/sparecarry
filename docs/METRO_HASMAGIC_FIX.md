@@ -3,6 +3,7 @@
 ## Problem
 
 Getting error:
+
 ```
 Cannot read properties of undefined (reading 'hasMagic')
 ```
@@ -18,11 +19,13 @@ The `hasMagic` property comes from the `glob` package, which Metro uses internal
 ### Solution 1: Simplified Metro Config (Applied)
 
 I've simplified `metro.config.js` to minimal settings:
+
 - Removed all unstable features
 - Minimal watchFolders
 - Basic nodeModulesPaths only
 
 **Try this first:**
+
 ```bash
 # Stop Metro (Ctrl+C)
 pnpm clear-cache
@@ -58,6 +61,7 @@ pnpm start:clear
 As a last resort, pnpm's symlink structure can cause issues with Metro. You could:
 
 1. **Temporarily use npm:**
+
    ```bash
    cd apps/mobile
    npm install
@@ -91,9 +95,11 @@ If none of the above work:
    pnpm list glob
    ```
 3. **Check pnpm version:**
+
    ```bash
    pnpm --version
    ```
+
    (Should be 8.x or 9.x for best compatibility)
 
 4. **Check Expo SDK version:**
@@ -114,4 +120,3 @@ If none of the above work:
 - Avoid unstable Metro features
 - Use stable Expo SDK versions
 - Consider using npm/yarn if pnpm continues to cause issues
-

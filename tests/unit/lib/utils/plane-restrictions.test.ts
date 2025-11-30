@@ -2,12 +2,15 @@
  * Unit tests for plane restriction logic
  */
 
-import { describe, it, expect } from 'vitest';
-import { checkPlaneRestrictions, getPlaneRestrictionDetails } from '../../../../lib/utils/plane-restrictions';
+import { describe, it, expect } from "vitest";
+import {
+  checkPlaneRestrictions,
+  getPlaneRestrictionDetails,
+} from "../../../../lib/utils/plane-restrictions";
 
-describe('Plane Restrictions', () => {
-  describe('checkPlaneRestrictions', () => {
-    it('should allow carry-on sized items', () => {
+describe("Plane Restrictions", () => {
+  describe("checkPlaneRestrictions", () => {
+    it("should allow carry-on sized items", () => {
       const result = checkPlaneRestrictions({
         weight: 5, // kg
         length: 50, // cm
@@ -19,7 +22,7 @@ describe('Plane Restrictions', () => {
       expect(result.reason).toBeUndefined();
     });
 
-    it('should allow checked baggage sized items', () => {
+    it("should allow checked baggage sized items", () => {
       const result = checkPlaneRestrictions({
         weight: 25, // kg
         length: 150, // cm
@@ -30,7 +33,7 @@ describe('Plane Restrictions', () => {
       expect(result.canTransportByPlane).toBe(true);
     });
 
-    it('should allow oversized items (with warning)', () => {
+    it("should allow oversized items (with warning)", () => {
       const result = checkPlaneRestrictions({
         weight: 40, // kg (within oversized limit)
         length: 160, // cm
@@ -40,11 +43,11 @@ describe('Plane Restrictions', () => {
       });
 
       expect(result.canTransportByPlane).toBe(true);
-      expect(result.restrictionType).toBe('oversized');
-      expect(result.reason).toContain('oversized');
+      expect(result.restrictionType).toBe("oversized");
+      expect(result.reason).toContain("oversized");
     });
 
-    it('should reject items with restricted goods', () => {
+    it("should reject items with restricted goods", () => {
       const result = checkPlaneRestrictions({
         weight: 5,
         length: 50,
@@ -54,12 +57,12 @@ describe('Plane Restrictions', () => {
       });
 
       expect(result.canTransportByPlane).toBe(false);
-      expect(result.restrictionType).toBe('dangerous_goods');
-      expect(result.reason).toContain('Restricted items');
-      expect(result.suggestedMethod).toBe('boat');
+      expect(result.restrictionType).toBe("dangerous_goods");
+      expect(result.reason).toContain("Restricted items");
+      expect(result.suggestedMethod).toBe("boat");
     });
 
-    it('should reject items that are too heavy', () => {
+    it("should reject items that are too heavy", () => {
       const result = checkPlaneRestrictions({
         weight: 50, // kg (exceeds 45kg limit)
         length: 100,
@@ -68,12 +71,12 @@ describe('Plane Restrictions', () => {
       });
 
       expect(result.canTransportByPlane).toBe(false);
-      expect(result.restrictionType).toBe('weight');
-      expect(result.reason).toContain('weight');
-      expect(result.suggestedMethod).toBe('boat');
+      expect(result.restrictionType).toBe("weight");
+      expect(result.reason).toContain("weight");
+      expect(result.suggestedMethod).toBe("boat");
     });
 
-    it('should reject items that are too large', () => {
+    it("should reject items that are too large", () => {
       const result = checkPlaneRestrictions({
         weight: 30,
         length: 200, // cm (exceeds 158cm limit)
@@ -83,30 +86,35 @@ describe('Plane Restrictions', () => {
       });
 
       expect(result.canTransportByPlane).toBe(false);
-      expect(result.restrictionType).toBe('size');
-      expect(result.reason).toContain('dimensions');
-      expect(result.suggestedMethod).toBe('boat');
+      expect(result.restrictionType).toBe("size");
+      expect(result.reason).toContain("dimensions");
+      expect(result.suggestedMethod).toBe("boat");
     });
 
-    it('should reject prohibited category items', () => {
+    it("should reject prohibited category items", () => {
       const result = checkPlaneRestrictions({
         weight: 5,
         length: 50,
         width: 35,
         height: 20,
-        category: 'explosives',
+        category: "explosives",
       });
 
       expect(result.canTransportByPlane).toBe(false);
-      expect(result.restrictionType).toBe('category');
-      expect(result.reason).toContain('category');
-      expect(result.suggestedMethod).toBe('boat');
+      expect(result.restrictionType).toBe("category");
+      expect(result.reason).toContain("category");
+      expect(result.suggestedMethod).toBe("boat");
     });
 
-    it('should handle various category restrictions', () => {
-      const prohibitedCategories = ['explosives', 'flammable', 'toxic', 'weapons'];
-      
-      prohibitedCategories.forEach(category => {
+    it("should handle various category restrictions", () => {
+      const prohibitedCategories = [
+        "explosives",
+        "flammable",
+        "toxic",
+        "weapons",
+      ];
+
+      prohibitedCategories.forEach((category) => {
         const result = checkPlaneRestrictions({
           weight: 5,
           length: 50,
@@ -116,13 +124,13 @@ describe('Plane Restrictions', () => {
         });
 
         expect(result.canTransportByPlane).toBe(false);
-        expect(result.restrictionType).toBe('category');
+        expect(result.restrictionType).toBe("category");
       });
     });
   });
 
-  describe('getPlaneRestrictionDetails', () => {
-    it('should correctly identify carry-on fit', () => {
+  describe("getPlaneRestrictionDetails", () => {
+    it("should correctly identify carry-on fit", () => {
       const details = getPlaneRestrictionDetails({
         weight: 5,
         length: 50,
@@ -135,7 +143,7 @@ describe('Plane Restrictions', () => {
       expect(details.fitsOversized).toBe(true);
     });
 
-    it('should correctly identify checked baggage fit', () => {
+    it("should correctly identify checked baggage fit", () => {
       const details = getPlaneRestrictionDetails({
         weight: 25,
         length: 150,
@@ -148,7 +156,7 @@ describe('Plane Restrictions', () => {
       expect(details.fitsOversized).toBe(true);
     });
 
-    it('should correctly identify oversized fit', () => {
+    it("should correctly identify oversized fit", () => {
       const details = getPlaneRestrictionDetails({
         weight: 40,
         length: 160,
@@ -161,7 +169,7 @@ describe('Plane Restrictions', () => {
       expect(details.fitsOversized).toBe(true);
     });
 
-    it('should correctly identify items that exceed all limits', () => {
+    it("should correctly identify items that exceed all limits", () => {
       const details = getPlaneRestrictionDetails({
         weight: 50,
         length: 200,
@@ -176,4 +184,3 @@ describe('Plane Restrictions', () => {
     });
   });
 });
-

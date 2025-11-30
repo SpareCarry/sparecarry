@@ -22,7 +22,7 @@ export function useLifetimeAvailability(): LifetimeAvailabilityResult {
     queryFn: async () => {
       try {
         // Call Supabase RPC function to check availability
-        // This function checks if lifetime_pro count < 1000
+        // This function checks if lifetime_pro count < 100
         const { data: result, error: rpcError } = await supabase.rpc(
           "get_lifetime_availability"
         );
@@ -33,7 +33,7 @@ export function useLifetimeAvailability(): LifetimeAvailabilityResult {
           return false;
         }
 
-        // RPC returns boolean: true if available (< 1000), false if limit reached
+        // RPC returns boolean: true if available (< 100), false if limit reached
         return result === true;
       } catch (error) {
         console.warn("Exception checking lifetime availability:", error);
@@ -53,4 +53,3 @@ export function useLifetimeAvailability(): LifetimeAvailabilityResult {
     error: error instanceof Error ? error : null,
   };
 }
-

@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 services:
   playwright:
@@ -15,4 +15,3 @@ services:
       - NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_123
       - NEXT_PUBLIC_APP_URL=http://localhost:3000
     network_mode: host
-

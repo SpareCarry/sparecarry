@@ -22,6 +22,7 @@ Complete Supabase backend setup has been created for SpareCarry. All migrations,
 **Region**: Asia-Pacific
 
 **Credentials**:
+
 - ✅ Anon/Public Key: Configured in `.env.staging`
 - ✅ Service Role Key: Configured in `.env.staging`
 
@@ -32,6 +33,7 @@ Complete Supabase backend setup has been created for SpareCarry. All migrations,
 ### 1. Initial Schema (`001_initial_schema.sql`)
 
 **Tables Created**:
+
 - ✅ `users` - User profiles with roles
 - ✅ `trips` - Traveler trips (plane/boat)
 - ✅ `requests` - Delivery requests
@@ -41,6 +43,7 @@ Complete Supabase backend setup has been created for SpareCarry. All migrations,
 - ✅ `payments` - Payment records
 
 **Features**:
+
 - ✅ All foreign key constraints
 - ✅ Proper indexes for performance
 - ✅ Updated_at triggers
@@ -51,6 +54,7 @@ Complete Supabase backend setup has been created for SpareCarry. All migrations,
 ### 2. RLS Policies (`002_rls_policies.sql`)
 
 **Security Policies**:
+
 - ✅ Users can only read/update their own profile
 - ✅ Travelers can read requests for associated trips
 - ✅ Matches accessible only by involved users
@@ -63,6 +67,7 @@ Complete Supabase backend setup has been created for SpareCarry. All migrations,
 ### 3. Seed Data (`003_seed_data.sql`)
 
 **Test Data Created**:
+
 - ✅ 5 users (2 travelers, 2 requesters, 1 admin)
 - ✅ 3 trips (mixed plane/boat)
 - ✅ 5 requests (various statuses)
@@ -76,6 +81,7 @@ Complete Supabase backend setup has been created for SpareCarry. All migrations,
 ### 4. Auth Integration (`004_auth_integration.sql`)
 
 **Authentication Features**:
+
 - ✅ Auto-create user profile on signup
 - ✅ Default role assignment ('traveler')
 - ✅ User update synchronization
@@ -143,11 +149,13 @@ bash scripts/setup-supabase.sh
 ### `.env.staging` Created
 
 **Configured Variables**:
+
 - ✅ `NEXT_PUBLIC_SUPABASE_URL` - Project URL
 - ✅ `NEXT_PUBLIC_SUPABASE_ANON_KEY` - Anon key
 - ✅ `SUPABASE_SERVICE_ROLE_KEY` - Service role key
 
 **Still Need Configuration**:
+
 - ⚠️ Stripe keys (test mode)
 - ⚠️ Sentry DSN (optional)
 - ⚠️ Unleash URL (optional)
@@ -178,6 +186,7 @@ After applying migrations, verify:
 ## Test Users
 
 **Created Test Users**:
+
 1. `traveler1@sparecarry.com` - Role: traveler
 2. `traveler2@sparecarry.com` - Role: traveler
 3. `requester1@sparecarry.com` - Role: requester
@@ -193,6 +202,7 @@ After applying migrations, verify:
 **Location**: `supabase/functions/`
 
 **Created Functions**:
+
 - ✅ `get-user` - Get user profile
 - ✅ `create-request` - Create delivery request
 - ✅ `list-requests` - List requests with filters
@@ -216,6 +226,7 @@ After applying migrations, verify:
    - Or use setup script
 
 2. **Deploy Edge Functions**:
+
    ```bash
    supabase functions deploy
    ```
@@ -246,6 +257,7 @@ The app uses Supabase client-side SDK. All API operations go through:
 - **Supabase Server**: `lib/supabase/server.ts`
 
 **No separate API routes needed** - Supabase handles:
+
 - ✅ Authentication
 - ✅ Database queries
 - ✅ Real-time subscriptions
@@ -268,19 +280,23 @@ The app uses Supabase client-side SDK. All API operations go through:
 ### Migration Fails
 
 **Error**: "relation already exists"
+
 - **Solution**: Tables already exist. Drop and recreate, or skip creation.
 
 **Error**: "permission denied"
+
 - **Solution**: Ensure you're using service role key for migrations.
 
 ### RLS Policies Not Working
 
 **Issue**: Can't access data
+
 - **Solution**: Check auth.uid() is set. Verify user is authenticated.
 
 ### Seed Data Missing
 
 **Issue**: Tables empty after migration
+
 - **Solution**: Re-run `003_seed_data.sql` migration.
 
 ---
@@ -297,4 +313,3 @@ All Supabase migrations, RLS policies, seed data, and authentication integration
 
 **Last Updated**: 2024-12-19  
 **Report Version**: 1.0.0
-

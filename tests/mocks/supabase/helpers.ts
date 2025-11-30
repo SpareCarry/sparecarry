@@ -1,32 +1,43 @@
 /**
  * Helper Functions for Mock Supabase
- * 
+ *
  * Convenience functions for common testing operations
  */
 
-import { supabase, seedMockData, resetMockDataStore, addMockData } from './mockClient';
-import { mockAuthState } from './mockAuthState';
-import type { MockUser, MockSession } from './types';
-import type { Trip, Request, Match, Profile, User } from '../../../types/supabase';
+import {
+  supabase,
+  seedMockData,
+  resetMockDataStore,
+  addMockData,
+} from "./mockClient";
+import { mockAuthState } from "./mockAuthState";
+import type { MockUser, MockSession } from "./types";
+import type {
+  Trip,
+  Request,
+  Match,
+  Profile,
+  User,
+} from "../../../types/supabase";
 
 /**
  * Mock user login - sets up authenticated user
  */
 export function mockUserLogin(user?: Partial<MockUser>): MockSession {
   const mockUser: MockUser = {
-    id: user?.id || 'test-user-id',
-    email: user?.email || 'test@example.com',
+    id: user?.id || "test-user-id",
+    email: user?.email || "test@example.com",
     created_at: user?.created_at || new Date().toISOString(),
     app_metadata: user?.app_metadata || {},
     user_metadata: user?.user_metadata || {},
   };
 
   const mockSession: MockSession = {
-    access_token: 'mock-access-token',
-    refresh_token: 'mock-refresh-token',
+    access_token: "mock-access-token",
+    refresh_token: "mock-refresh-token",
     expires_in: 3600,
     expires_at: Math.floor(Date.now() / 1000) + 3600,
-    token_type: 'bearer',
+    token_type: "bearer",
     user: mockUser,
   };
 
@@ -75,27 +86,27 @@ export async function mockSelect<T = unknown>(
     limit?: number;
   }
 ): Promise<T[]> {
-  let query = supabase.from(table).select('*');
+  let query = supabase.from(table).select("*");
 
   if (options?.filters) {
     options.filters.forEach((filter) => {
       switch (filter.operator) {
-        case 'eq':
+        case "eq":
           query = query.eq(filter.column, filter.value);
           break;
-        case 'neq':
+        case "neq":
           query = query.neq(filter.column, filter.value);
           break;
-        case 'gt':
+        case "gt":
           query = query.gt(filter.column, filter.value);
           break;
-        case 'gte':
+        case "gte":
           query = query.gte(filter.column, filter.value);
           break;
-        case 'lt':
+        case "lt":
           query = query.lt(filter.column, filter.value);
           break;
-        case 'lte':
+        case "lte":
           query = query.lte(filter.column, filter.value);
           break;
       }
@@ -103,7 +114,9 @@ export async function mockSelect<T = unknown>(
   }
 
   if (options?.orderBy) {
-    query = query.order(options.orderBy.column, { ascending: options.orderBy.ascending ?? true });
+    query = query.order(options.orderBy.column, {
+      ascending: options.orderBy.ascending ?? true,
+    });
   }
 
   if (options?.limit) {
@@ -147,7 +160,10 @@ export async function mockDelete(
 /**
  * Mock auth events - simulates auth state changes
  */
-export function mockAuthEvents(event: 'SIGNED_IN' | 'SIGNED_OUT', session?: MockSession | null): void {
+export function mockAuthEvents(
+  event: "SIGNED_IN" | "SIGNED_OUT",
+  session?: MockSession | null
+): void {
   mockAuthState.notifyListeners(event, session || null);
 }
 
@@ -161,7 +177,7 @@ export async function mockStorageUpload(
 ): Promise<{ path: string }> {
   const result = await supabase.storage.from(bucket).upload(path, file);
   if (!result.data) {
-    throw new Error('Upload failed');
+    throw new Error("Upload failed");
   }
   return result.data;
 }
@@ -180,10 +196,10 @@ export function seedTestData(): void {
   resetMockDataStore();
 
   // Seed users
-  seedMockData<User>('users', [
+  seedMockData<User>("users", [
     {
-      id: 'user-1',
-      email: 'traveler@example.com',
+      id: "user-1",
+      email: "traveler@example.com",
       created_at: new Date().toISOString(),
       subscription_status: null,
       supporter_status: null,
@@ -193,10 +209,10 @@ export function seedTestData(): void {
       karma_points: 0,
     },
     {
-      id: 'user-2',
-      email: 'requester@example.com',
+      id: "user-2",
+      email: "requester@example.com",
       created_at: new Date().toISOString(),
-      subscription_status: 'active',
+      subscription_status: "active",
       supporter_status: null,
       completed_deliveries_count: 2,
       average_rating: 4.8,
@@ -206,26 +222,26 @@ export function seedTestData(): void {
   ]);
 
   // Seed profiles
-  seedMockData<Profile>('profiles', [
+  seedMockData<Profile>("profiles", [
     {
-      user_id: 'user-1',
-      full_name: 'Test Traveler',
+      user_id: "user-1",
+      full_name: "Test Traveler",
       verified_identity: true,
       verified_sailor: false,
-      stripe_account_id: 'acct_test_123',
-      expo_push_token: 'ExponentPushToken[test-token-1]',
+      stripe_account_id: "acct_test_123",
+      expo_push_token: "ExponentPushToken[test-token-1]",
       push_notifications_enabled: true,
       boat_name: null,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     },
     {
-      user_id: 'user-2',
-      full_name: 'Test Requester',
+      user_id: "user-2",
+      full_name: "Test Requester",
       verified_identity: true,
       verified_sailor: false,
       stripe_account_id: null,
-      expo_push_token: 'ExponentPushToken[test-token-2]',
+      expo_push_token: "ExponentPushToken[test-token-2]",
       push_notifications_enabled: true,
       boat_name: null,
       created_at: new Date().toISOString(),
@@ -234,50 +250,54 @@ export function seedTestData(): void {
   ]);
 
   // Seed trips
-  seedMockData<Trip>('trips', [
+  seedMockData<Trip>("trips", [
     {
-      id: 'trip-1',
-      user_id: 'user-1',
-      type: 'plane',
-      from_location: 'Miami',
-      to_location: 'St. Martin',
-      departure_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+      id: "trip-1",
+      user_id: "user-1",
+      type: "plane",
+      from_location: "Miami",
+      to_location: "St. Martin",
+      departure_date: new Date(
+        Date.now() + 7 * 24 * 60 * 60 * 1000
+      ).toISOString(),
       spare_kg: 20,
-      status: 'active',
+      status: "active",
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     },
   ]);
 
   // Seed requests
-  seedMockData<Request>('requests', [
+  seedMockData<Request>("requests", [
     {
-      id: 'request-1',
-      user_id: 'user-2',
-      title: 'Test Request',
-      from_location: 'Miami',
-      to_location: 'St. Martin',
-      deadline_latest: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
-      preferred_method: 'any',
+      id: "request-1",
+      user_id: "user-2",
+      title: "Test Request",
+      from_location: "Miami",
+      to_location: "St. Martin",
+      deadline_latest: new Date(
+        Date.now() + 14 * 24 * 60 * 60 * 1000
+      ).toISOString(),
+      preferred_method: "any",
       max_reward: 500,
       weight_kg: 10,
       length_cm: 50,
       width_cm: 40,
       height_cm: 30,
       emergency: false,
-      status: 'open',
+      status: "open",
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     },
   ]);
 
   // Seed matches
-  seedMockData<Match>('matches', [
+  seedMockData<Match>("matches", [
     {
-      id: 'match-1',
-      trip_id: 'trip-1',
-      request_id: 'request-1',
-      status: 'pending',
+      id: "match-1",
+      trip_id: "trip-1",
+      request_id: "request-1",
+      status: "pending",
       reward_amount: 500,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
@@ -292,4 +312,3 @@ export function resetAllMocks(): void {
   resetMockDataStore();
   mockAuthState.reset();
 }
-

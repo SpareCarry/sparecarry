@@ -1,8 +1,8 @@
 /**
  * Full Multi-User Flow Test
- * 
+ *
  * Simulates 3 users interacting:
- * 
+ *
  * User A (Requester):
  * - Signs up
  * - Creates delivery request
@@ -10,13 +10,13 @@
  * - Receives message from User B
  * - Responds to message
  * - Marks job complete
- * 
+ *
  * User B (Traveler):
  * - Signs up
  * - Browses feed
  * - Claims User A's request
  * - Messages User A
- * 
+ *
  * User C (Late Traveler):
  * - Signs up
  * - Browses feed
@@ -25,28 +25,52 @@
  */
 
 // @ts-nocheck
-import { test, expect, type Page, type BrowserContext, type Browser } from '@playwright/test';
-import { waitForPageReady, waitForNavigation, signInWithEmail } from '../setup/uiHelpers';
-import { setupSupabaseMocks } from '../helpers/supabase-mocks';
-import { setupUserMocks, mockTrips, mockRequests, mockMatches, mockConversations, mockMessages } from '../setup/supabaseHelpers';
-import { USER_A, USER_B, USER_C, createTestUser } from '../setup/testUsers';
-import type { Trip, Request, Match, Conversation, Message } from '../helpers/types';
+import {
+  test,
+  expect,
+  type Page,
+  type BrowserContext,
+  type Browser,
+} from "@playwright/test";
+import {
+  waitForPageReady,
+  waitForNavigation,
+  signInWithEmail,
+} from "../setup/uiHelpers";
+import { setupSupabaseMocks } from "../helpers/supabase-mocks";
+import {
+  setupUserMocks,
+  mockTrips,
+  mockRequests,
+  mockMatches,
+  mockConversations,
+  mockMessages,
+} from "../setup/supabaseHelpers";
+import { USER_A, USER_B, USER_C, createTestUser } from "../setup/testUsers";
+import type {
+  Trip,
+  Request,
+  Match,
+  Conversation,
+  Message,
+} from "../helpers/types";
 
-test.describe('Full Multi-User Flow', () => {
-  const baseUrl = process.env.PLAYWRIGHT_TEST_BASE_URL || 'http://localhost:3000';
-  
+test.describe("Full Multi-User Flow", () => {
+  const baseUrl =
+    process.env.PLAYWRIGHT_TEST_BASE_URL || "http://localhost:3000";
+
   let userA: typeof USER_A;
   let userB: typeof USER_B;
   let userC: typeof USER_C;
 
   test.beforeEach(() => {
     // Create fresh test users for each test run
-    userA = createTestUser('user-a', 'requester');
-    userB = createTestUser('user-b', 'traveler');
-    userC = createTestUser('user-c', 'traveler');
+    userA = createTestUser("user-a", "requester");
+    userB = createTestUser("user-b", "traveler");
+    userC = createTestUser("user-c", "traveler");
   });
 
-  test('complete multi-user interaction flow', async ({ browser }) => {
+  test("complete multi-user interaction flow", async ({ browser }) => {
     // Create isolated browser contexts for each user
     const contextA = await browser.newContext();
     const contextB = await browser.newContext();
@@ -65,7 +89,7 @@ test.describe('Full Multi-User Flow', () => {
 
       // User A navigates to app and posts a request
       await pageA.goto(`${baseUrl}/home/post-request`, {
-        waitUntil: 'domcontentloaded',
+        waitUntil: "domcontentloaded",
       });
       await waitForPageReady(pageA);
 
@@ -73,29 +97,33 @@ test.describe('Full Multi-User Flow', () => {
       const userARequest: Request = {
         id: `req-${Date.now()}`,
         user_id: userA.id,
-        from_location: 'New York, NY',
-        to_location: 'London, UK',
-        deadline_earliest: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-        deadline_latest: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
+        from_location: "New York, NY",
+        to_location: "London, UK",
+        deadline_earliest: new Date(
+          Date.now() + 7 * 24 * 60 * 60 * 1000
+        ).toISOString(),
+        deadline_latest: new Date(
+          Date.now() + 14 * 24 * 60 * 60 * 1000
+        ).toISOString(),
         max_reward: 200,
-        status: 'open',
+        status: "open",
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       };
 
       // Mock requests POST
-      await pageA.route('**/rest/v1/requests**', async (route: any) => {
-        if (route.request().method() === 'POST') {
+      await pageA.route("**/rest/v1/requests**", async (route: any) => {
+        if (route.request().method() === "POST") {
           await route.fulfill({
             status: 201,
-            contentType: 'application/json',
+            contentType: "application/json",
             body: JSON.stringify([userARequest]),
           });
-        } else if (route.request().method() === 'GET') {
+        } else if (route.request().method() === "GET") {
           await route.fulfill({
             status: 200,
-            contentType: 'application/json',
-            headers: { 'Content-Range': '0-0/1' },
+            contentType: "application/json",
+            headers: { "Content-Range": "0-0/1" },
             body: JSON.stringify([userARequest]),
           });
         } else {
@@ -104,7 +132,7 @@ test.describe('Full Multi-User Flow', () => {
       });
 
       // User A's request is created (simulated)
-      console.log('[TEST] User A created request:', userARequest.id);
+      console.log("[TEST] User A created request:", userARequest.id);
 
       // Wait for User A's request to be created
       await pageA.waitForTimeout(1000);
@@ -121,7 +149,7 @@ test.describe('Full Multi-User Flow', () => {
 
       // User B navigates to home feed
       await pageB.goto(`${baseUrl}/home`, {
-        waitUntil: 'domcontentloaded',
+        waitUntil: "domcontentloaded",
       });
       await waitForPageReady(pageB);
 
@@ -129,9 +157,9 @@ test.describe('Full Multi-User Flow', () => {
       await pageB.waitForTimeout(2000);
 
       // Verify User B can see User A's request in feed
-      const feedContent = await pageB.locator('body').textContent();
+      const feedContent = await pageB.locator("body").textContent();
       expect(feedContent).toBeTruthy();
-      console.log('[TEST] User B viewing feed');
+      console.log("[TEST] User B viewing feed");
 
       // ========================================
       // PHASE 3: User B - Claim Request & Message
@@ -142,9 +170,9 @@ test.describe('Full Multi-User Flow', () => {
       // Create match between User B's trip and User A's request
       const match: Match = {
         id: matchId,
-        trip_id: 'trip-user-b', // User B's trip (would be created in real flow)
+        trip_id: "trip-user-b", // User B's trip (would be created in real flow)
         request_id: userARequest.id,
-        status: 'pending',
+        status: "pending",
         reward_amount: userARequest.max_reward || 200,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
@@ -173,18 +201,18 @@ test.describe('Full Multi-User Flow', () => {
 
       // User B navigates to chat page
       await pageB.goto(`${baseUrl}/home/messages/${matchId}`, {
-        waitUntil: 'domcontentloaded',
+        waitUntil: "domcontentloaded",
       });
       await waitForPageReady(pageB);
 
-      console.log('[TEST] User B viewing chat with User A');
+      console.log("[TEST] User B viewing chat with User A");
 
       // User B sends a message
       const userBMessage: Message = {
         id: `msg-${Date.now()}`,
         conversation_id: conversationId,
         sender_id: userB.id,
-        content: 'Hello! I can help deliver your item.',
+        content: "Hello! I can help deliver your item.",
         created_at: new Date().toISOString(),
       };
 
@@ -202,14 +230,14 @@ test.describe('Full Multi-User Flow', () => {
 
       // User A navigates to chat page
       await pageA.goto(`${baseUrl}/home/messages/${matchId}`, {
-        waitUntil: 'domcontentloaded',
+        waitUntil: "domcontentloaded",
       });
       await waitForPageReady(pageA);
 
-      console.log('[TEST] User A viewing chat with User B');
+      console.log("[TEST] User A viewing chat with User B");
 
       // User A should see User B's message
-      const chatContent = await pageA.locator('body').textContent();
+      const chatContent = await pageA.locator("body").textContent();
       expect(chatContent).toBeTruthy();
 
       // User A sends a response
@@ -217,7 +245,7 @@ test.describe('Full Multi-User Flow', () => {
         id: `msg-${Date.now() + 1}`,
         conversation_id: conversationId,
         sender_id: userA.id,
-        content: 'Great! When are you traveling?',
+        content: "Great! When are you traveling?",
         created_at: new Date().toISOString(),
       };
 
@@ -240,7 +268,7 @@ test.describe('Full Multi-User Flow', () => {
 
       // User C navigates to home feed
       await pageC.goto(`${baseUrl}/home`, {
-        waitUntil: 'domcontentloaded',
+        waitUntil: "domcontentloaded",
       });
       await waitForPageReady(pageC);
 
@@ -248,10 +276,10 @@ test.describe('Full Multi-User Flow', () => {
 
       // User C attempts to view the request (should see it's claimed)
       // The UI should indicate that the request is already matched
-      const feedContentC = await pageC.locator('body').textContent();
+      const feedContentC = await pageC.locator("body").textContent();
       expect(feedContentC).toBeTruthy();
 
-      console.log('[TEST] User C attempting to view already-claimed request');
+      console.log("[TEST] User C attempting to view already-claimed request");
 
       // User C should not be able to create a new match for this request
       // (The app should prevent this - would be handled by backend)
@@ -262,7 +290,7 @@ test.describe('Full Multi-User Flow', () => {
       // Update match status to completed
       const completedMatch: Match = {
         ...match,
-        status: 'completed',
+        status: "completed",
         updated_at: new Date().toISOString(),
       };
 
@@ -271,11 +299,11 @@ test.describe('Full Multi-User Flow', () => {
 
       // User A navigates to chat
       await pageA.goto(`${baseUrl}/home/messages/${matchId}`, {
-        waitUntil: 'domcontentloaded',
+        waitUntil: "domcontentloaded",
       });
       await waitForPageReady(pageA);
 
-      console.log('[TEST] User A marks job as complete');
+      console.log("[TEST] User A marks job as complete");
 
       // Job should be marked complete
       // (UI would show completion status)
@@ -284,12 +312,11 @@ test.describe('Full Multi-User Flow', () => {
       // VERIFICATION
       // ========================================
       // Verify all users can access their respective views
-      expect(await pageA.url()).toContain('/home');
-      expect(await pageB.url()).toContain('/home');
-      expect(await pageC.url()).toContain('/home');
+      expect(await pageA.url()).toContain("/home");
+      expect(await pageB.url()).toContain("/home");
+      expect(await pageC.url()).toContain("/home");
 
-      console.log('[TEST] Multi-user flow completed successfully');
-
+      console.log("[TEST] Multi-user flow completed successfully");
     } finally {
       // Cleanup
       await contextA.close();
@@ -298,4 +325,3 @@ test.describe('Full Multi-User Flow', () => {
     }
   }, 120000); // 2 minute timeout for full flow
 });
-

@@ -5,6 +5,7 @@
 ### Development Mode (Fastest - Use Expo Go)
 
 1. **Start the development server:**
+
    ```bash
    cd apps/mobile
    pnpm start
@@ -28,6 +29,7 @@ For testing native features like camera, sensors, etc., you need a development b
 #### Option 1: Local Development Build
 
 **Android:**
+
 ```bash
 cd apps/mobile
 pnpm prebuild
@@ -36,6 +38,7 @@ pnpm android
 ```
 
 **iOS (macOS only):**
+
 ```bash
 cd apps/mobile
 pnpm prebuild
@@ -46,18 +49,21 @@ pnpm ios
 #### Option 2: EAS Build (Cloud Build)
 
 **Build for Android:**
+
 ```bash
 cd apps/mobile
 eas build --platform android --profile development
 ```
 
 **Build for iOS:**
+
 ```bash
 cd apps/mobile
 eas build --platform ios --profile development
 ```
 
 **Install on device:**
+
 - Download the build from EAS dashboard
 - Install on your device
 - Run `pnpm start` and connect to the build
@@ -65,6 +71,7 @@ eas build --platform ios --profile development
 ## Testing Auto-Measure Feature
 
 ### Prerequisites
+
 - ✅ Camera permission granted
 - ✅ Device has accelerometer (for tilt detection)
 - ✅ Good lighting for object detection
@@ -110,6 +117,7 @@ eas build --platform ios --profile development
 ## Build Commands
 
 ### Development
+
 ```bash
 # Start dev server
 pnpm start
@@ -158,12 +166,14 @@ xcodebuild -workspace SpareCarry.xcworkspace -scheme SpareCarry -configuration R
 ## Testing Checklist
 
 ### Basic Functionality
+
 - [ ] App launches successfully
 - [ ] Navigation works
 - [ ] Forms load correctly
 - [ ] Camera permission requested
 
 ### Auto-Measure Feature
+
 - [ ] Camera opens when tapping "Auto-Fill Dimensions"
 - [ ] Measurement rectangle appears
 - [ ] "Auto-Measure" button works
@@ -173,6 +183,7 @@ xcodebuild -workspace SpareCarry.xcworkspace -scheme SpareCarry -configuration R
 - [ ] Photos appear in gallery
 
 ### Enhanced Features
+
 - [ ] Multi-frame averaging works (3 frames)
 - [ ] Tilt detection works (accelerometer)
 - [ ] Tilt correction improves accuracy
@@ -182,6 +193,7 @@ xcodebuild -workspace SpareCarry.xcworkspace -scheme SpareCarry -configuration R
 - [ ] Progress indicators show correctly
 
 ### Performance
+
 - [ ] Camera preview is smooth
 - [ ] Measurement completes in < 5 seconds
 - [ ] No crashes or freezes
@@ -190,22 +202,26 @@ xcodebuild -workspace SpareCarry.xcworkspace -scheme SpareCarry -configuration R
 ## Troubleshooting
 
 ### Camera Not Opening
+
 - Check camera permission in device settings
 - Verify `expo-camera` is installed
 - Check `app.json` has camera plugin configured
 
 ### Measurement Fails
+
 - Ensure good lighting
 - Ensure object is centered in frame
 - Try different object sizes
 - Check console for errors
 
 ### Prebuild Fails
+
 - Run `node scripts/create-placeholder-assets.js` to create assets
 - Check all dependencies are installed: `pnpm install`
 - Verify `app.json` and `app.config.ts` are valid
 
 ### Build Errors
+
 - Clean build: `pnpm prebuild:clean`
 - Clear cache: `expo start -c`
 - Reinstall dependencies: `rm -rf node_modules && pnpm install`
@@ -213,6 +229,7 @@ xcodebuild -workspace SpareCarry.xcworkspace -scheme SpareCarry -configuration R
 ## Environment Setup
 
 ### Required
+
 - Node.js 18+
 - pnpm 8+
 - Expo CLI (installed via pnpm)
@@ -220,6 +237,7 @@ xcodebuild -workspace SpareCarry.xcworkspace -scheme SpareCarry -configuration R
 - Xcode (for iOS builds, macOS only)
 
 ### Optional
+
 - EAS CLI: `npm install -g eas-cli`
 - Expo Go app on your phone
 
@@ -260,4 +278,3 @@ pnpm prebuild:clean
 - **Production Build**: For app store submission
 
 For Auto-Measure specifically, you'll need a development build or production build since it uses native camera and sensors.
-

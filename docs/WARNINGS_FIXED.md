@@ -9,6 +9,7 @@
 **Solution**: Downgraded `@capacitor/preferences` from `^7.0.2` to `^5.0.0` to match other Capacitor packages.
 
 **File Changed**: `package.json`
+
 ```json
 "@capacitor/preferences": "^5.0.0"  // Changed from ^7.0.2
 ```
@@ -18,6 +19,7 @@
 **Problem**: Some packages in the new workspace packages had outdated versions.
 
 **Solution**: Updated Supabase packages in `packages/lib/package.json`:
+
 - `@supabase/ssr`: `0.1.0` → `0.7.0`
 - `@supabase/supabase-js`: `2.83.0` → `2.84.0`
 
@@ -28,6 +30,7 @@
 **Problem**: Some packages wanted to run build scripts but needed approval.
 
 **Solution**: Created `.npmrc` file with:
+
 ```
 enable-pre-post-scripts=true
 ```
@@ -38,7 +41,7 @@ This allows build scripts to run automatically for packages that need them.
 
 These warnings are informational and don't affect functionality:
 
-1. **Deprecated packages in root package.json**: 
+1. **Deprecated packages in root package.json**:
    - `next-intl@2.22.3` - Can upgrade to 3.0 or stay on 2.22.1
    - `eslint@8.57.1` - Can upgrade to 9.x (but may need config changes)
    - Various subdependencies - Can be updated incrementally
@@ -48,6 +51,7 @@ These warnings are informational and don't affect functionality:
 ## ✅ Verification
 
 After running `pnpm install` again, you should see:
+
 - ✅ No Capacitor peer dependency warnings
 - ✅ Build scripts running automatically (no approval needed)
 - ✅ Updated Supabase packages in workspace
@@ -61,4 +65,3 @@ After running `pnpm install` again, you should see:
    - `pnpm dev:mobile` - Mobile app
 
 All critical warnings have been resolved!
-

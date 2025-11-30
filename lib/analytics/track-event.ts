@@ -52,7 +52,8 @@ export async function trackAnalyticsEvent(
       data: data || {},
       user_id: userId || null,
       platform,
-      user_agent: typeof window !== "undefined" ? window.navigator.userAgent : null,
+      user_agent:
+        typeof window !== "undefined" ? window.navigator.userAgent : null,
     });
 
     // Also send to Google Analytics if available
@@ -69,4 +70,3 @@ export async function trackAnalyticsEvent(
     console.error("Error tracking analytics event:", error);
   }
 }
-

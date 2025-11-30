@@ -147,11 +147,14 @@ export function RatingModal({
             disabled={rating === 0 || loading}
             className="w-full bg-teal-600 hover:bg-teal-700"
           >
-            {loading ? "Submitting..." : existingRating ? "Update Rating" : "Submit Rating"}
+            {loading
+              ? "Submitting..."
+              : existingRating
+                ? "Update Rating"
+                : "Submit Rating"}
           </Button>
         </form>
       </DialogContent>
     </Dialog>
   );
 }
-

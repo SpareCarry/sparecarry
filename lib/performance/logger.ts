@@ -1,14 +1,14 @@
 /**
  * Performance Logger
- * 
+ *
  * Aggregates and logs performance metrics
  * Anonymizes sensitive data and provides structured logging
  */
 
-import { webProfiler } from './web-profiler';
-import { mobileProfiler } from './mobile-profiler';
-import { dbProfiler } from './db-profiler';
-import { reactProfiler } from './react-profiler';
+import { webProfiler } from "./web-profiler";
+import { mobileProfiler } from "./mobile-profiler";
+import { dbProfiler } from "./db-profiler";
+import { reactProfiler } from "./react-profiler";
 
 interface PerformanceReport {
   timestamp: number;
@@ -26,8 +26,9 @@ class PerformanceLogger {
   private reportInterval?: ReturnType<typeof setInterval>;
 
   constructor() {
-    this.enabled = process.env.NODE_ENV !== 'production' || 
-                   process.env.NEXT_PUBLIC_ENABLE_PERF === 'true';
+    this.enabled =
+      process.env.NODE_ENV !== "production" ||
+      process.env.NEXT_PUBLIC_ENABLE_PERF === "true";
   }
 
   /**
@@ -58,9 +59,11 @@ class PerformanceLogger {
     return {
       timestamp: Date.now(),
       web: webProfiler.getSummary(),
-      mobile: typeof window !== 'undefined' && (window as typeof window & { Capacitor?: unknown }).Capacitor
-        ? mobileProfiler.getSummary()
-        : undefined,
+      mobile:
+        typeof window !== "undefined" &&
+        (window as typeof window & { Capacitor?: unknown }).Capacitor
+          ? mobileProfiler.getSummary()
+          : undefined,
       database: dbProfiler.getSummary(),
       react: {
         totalComponents: reactProfiler.getAllMetrics().length,
@@ -76,14 +79,14 @@ class PerformanceLogger {
     if (!this.enabled) return;
 
     const report = this.generateReport();
-    
-    console.group('[Performance Report]');
-    console.log('Web Performance:', report.web);
+
+    console.group("[Performance Report]");
+    console.log("Web Performance:", report.web);
     if (report.mobile) {
-      console.log('Mobile Performance:', report.mobile);
+      console.log("Mobile Performance:", report.mobile);
     }
-    console.log('Database Performance:', report.database);
-    console.log('React Performance:', report.react);
+    console.log("Database Performance:", report.database);
+    console.log("React Performance:", report.react);
     console.groupEnd();
 
     // In production, you might want to send this to a monitoring service
@@ -98,13 +101,13 @@ class PerformanceLogger {
   private async sendToEndpoint(report: PerformanceReport): Promise<void> {
     try {
       await fetch(process.env.NEXT_PUBLIC_PERF_ENDPOINT!, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(report),
       });
     } catch (error) {
       // Silently fail - don't break the app
-      console.debug('[Performance] Failed to send report to endpoint', error);
+      console.debug("[Performance] Failed to send report to endpoint", error);
     }
   }
 
@@ -140,7 +143,6 @@ class PerformanceLogger {
 export const performanceLogger = new PerformanceLogger();
 
 // Auto-start reporting in development
-if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
+if (typeof window !== "undefined" && process.env.NODE_ENV === "development") {
   performanceLogger.startReporting(60000); // Report every minute in dev
 }
-

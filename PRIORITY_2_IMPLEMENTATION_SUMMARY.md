@@ -16,6 +16,7 @@ All Priority 2 items from `FINAL_READINESS_SWEEP.md` have been implemented.
 **Features**:
 
 #### iOS (IPA Validation)
+
 - ✅ **Parse IPA** (unzips and extracts Info.plist)
 - ✅ **Validate Bundle ID**: Checks if ends with `.staging` for staging builds
 - ✅ **Validate Version**: Checks `CFBundleShortVersionString` and `CFBundleVersion`
@@ -27,6 +28,7 @@ All Priority 2 items from `FINAL_READINESS_SWEEP.md` have been implemented.
 - ✅ **Validate Environment Variables**: Checks for embedded config files with staging env vars
 
 #### Android (AAB Validation)
+
 - ✅ **Parse AAB** (unzips and extracts AndroidManifest.xml)
 - ✅ **Validate Package Name**: Checks if ends with `.staging` for staging builds
 - ✅ **Validate Version**: Checks `versionCode` and `versionName`
@@ -34,12 +36,14 @@ All Priority 2 items from `FINAL_READINESS_SWEEP.md` have been implemented.
 - ✅ **Validate Environment Variables**: Notes that env vars should be in BuildConfig (cannot verify without decompiling)
 
 #### General
+
 - ✅ **CLI Arguments**: Accepts `ios` or `android` platform and build file path
 - ✅ **Color-coded Output**: PASS/FAIL with clear reasons
 - ✅ **Summary Report**: Shows counts of passed/warnings/errors
 - ✅ **Exit Codes**: Returns 0 on success, 1 on failure
 
 **Usage**:
+
 ```bash
 # Verify iOS IPA
 pnpm verify:mobile ios path/to/app.ipa
@@ -55,6 +59,7 @@ pnpm verify:mobile android path/to/app.aab
 **File Created**: `scripts/migrate-staging-db.sh`
 
 **Features**:
+
 - ✅ **Runs against STAGING Supabase project** (uses `STAGING_SUPABASE_URL`)
 - ✅ **Pulls full schema** from `supabase/schema.sql`
 - ✅ **Applies migrations in order**:
@@ -72,6 +77,7 @@ pnpm verify:mobile android path/to/app.aab
 - ✅ **Environment variable validation** (checks for required vars)
 
 **Usage**:
+
 ```bash
 # Run migrations
 pnpm db:migrate:staging
@@ -81,6 +87,7 @@ pnpm db:migrate:staging
 ```
 
 **Required Environment Variables**:
+
 - `STAGING_SUPABASE_URL` (or `NEXT_PUBLIC_SUPABASE_URL`)
 - `STAGING_SUPABASE_SERVICE_ROLE_KEY` (or `SUPABASE_SERVICE_ROLE_KEY`)
 - `SUPABASE_DB_PASSWORD` (optional, for direct DB access)
@@ -92,6 +99,7 @@ pnpm db:migrate:staging
 **File Created**: `scripts/seed-staging-data.js`
 
 **Features**:
+
 - ✅ **Creates 5 test users**:
   - 2 travelers (can create trips)
   - 2 requesters (can create requests)
@@ -116,6 +124,7 @@ pnpm db:migrate:staging
 - ✅ **Logs inserted IDs** for verification
 
 **Test User Credentials**:
+
 ```
 Traveler 1: test-traveler1@sparecarry.test / Test123!@#
 Traveler 2: test-traveler2@sparecarry.test / Test123!@#
@@ -125,6 +134,7 @@ Sailor 1: test-sailor1@sparecarry.test / Test123!@#
 ```
 
 **Usage**:
+
 ```bash
 # Seed staging database
 pnpm db:seed:staging
@@ -134,6 +144,7 @@ node scripts/seed-staging-data.js
 ```
 
 **Required Environment Variables**:
+
 - `STAGING_SUPABASE_URL` (or `NEXT_PUBLIC_SUPABASE_URL`)
 - `STAGING_SUPABASE_SERVICE_ROLE_KEY` (or `SUPABASE_SERVICE_ROLE_KEY`)
 
@@ -144,6 +155,7 @@ node scripts/seed-staging-data.js
 **File Created**: `STAGING_DB_SETUP.md`
 
 **Contents**:
+
 - ✅ **Complete setup guide** with step-by-step instructions
 - ✅ **Prerequisites** (tools, access, credentials)
 - ✅ **Initial setup** (creating Supabase project, getting credentials)
@@ -160,6 +172,7 @@ node scripts/seed-staging-data.js
 ## 📝 Files Modified
 
 ### `package.json`
+
 - Added `"verify:mobile": "node scripts/verify-mobile-build.js"`
 - Added `"db:migrate:staging": "bash scripts/migrate-staging-db.sh"`
 - Added `"db:seed:staging": "node scripts/seed-staging-data.js"`
@@ -169,12 +182,14 @@ node scripts/seed-staging-data.js
 ## ✅ Verification
 
 ### TypeScript/JavaScript
+
 - ✅ No linter errors
 - ✅ All imports correct
 - ✅ Type definitions match
 - ✅ Error handling included
 
 ### Scripts
+
 - ✅ All scripts are executable
 - ✅ Proper shebang lines (`#!/usr/bin/env node`, `#!/bin/bash`)
 - ✅ Environment variable validation
@@ -229,4 +244,3 @@ node scripts/seed-staging-data.js
 - ✅ Scripts are executable and tested
 
 **Ready for beta launch!** 🚀
-

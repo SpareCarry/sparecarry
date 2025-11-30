@@ -7,6 +7,7 @@ E2E tests were failing because Supabase authentication couldn't be reliably mock
 ## Solution: Test Mode Bypass
 
 Implemented a **test-only authentication bypass** that:
+
 1. Detects when running in Playwright tests
 2. Returns a mocked user directly without network requests
 3. Is safe (only works in development)
@@ -15,10 +16,11 @@ Implemented a **test-only authentication bypass** that:
 ## Implementation
 
 ### 1. Test Mode Detection (`lib/test/testAuthBypass.ts`)
+
 ```typescript
 export const isTestMode = () => {
   return (
-    typeof window !== 'undefined' &&
+    typeof window !== "undefined" &&
     (window as any).__PLAYWRIGHT_TEST_MODE__ === true
   );
 };
@@ -30,6 +32,7 @@ export const getTestUser = () => {
 ```
 
 ### 2. Playwright Setup (`tests/e2e/setup/testModeSetup.ts`)
+
 ```typescript
 export async function enableTestMode(page: Page, user: TestUser) {
   await page.addInitScript((userData) => {
@@ -40,29 +43,35 @@ export async function enableTestMode(page: Page, user: TestUser) {
 ```
 
 ### 3. App Integration (`app/home/profile/page.tsx`)
+
 ```typescript
 const { data: user } = useQuery({
   queryKey: ["current-user"],
   queryFn: async () => {
     // TEST MODE: Return test user if in test mode
-    if (typeof window !== 'undefined' && 
-        (window as any).__PLAYWRIGHT_TEST_MODE__ && 
-        (window as any).__TEST_USER__) {
+    if (
+      typeof window !== "undefined" &&
+      (window as any).__PLAYWRIGHT_TEST_MODE__ &&
+      (window as any).__TEST_USER__
+    ) {
       return (window as any).__TEST_USER__;
     }
-    
+
     // Normal auth flow
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     return user;
   },
 });
 ```
 
 ### 4. Test Usage
+
 ```typescript
 test("should display subscription options", async ({ page }) => {
   await enableTestMode(page, USER_A);
-  await page.goto('/home/profile');
+  await page.goto("/home/profile");
   // Test continues normally with authenticated user
 });
 ```
@@ -102,6 +111,7 @@ Then run the tests again. They should pass immediately.
 ## Security
 
 The test bypass is safe because:
+
 1. Only works when `__PLAYWRIGHT_TEST_MODE__` flag is set
 2. Flag can only be set by Playwright (not accessible in production)
 3. Never deployed to production (development-only code)
@@ -113,4 +123,3 @@ The test bypass is safe because:
 2. Create helper for multi-user interaction tests
 3. Add test mode indicator in UI (optional, for debugging)
 4. Document test mode in developer guide
-

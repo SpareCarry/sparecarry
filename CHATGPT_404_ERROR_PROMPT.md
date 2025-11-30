@@ -7,10 +7,11 @@ Getting a **red 404 development server error** in Expo Go after fixing React ver
 ## PROJECT CONTEXT
 
 ### Monorepo Structure
+
 - **Package Manager**: pnpm workspaces
 - **Root**: `C:\SpareCarry`
 - **Mobile App**: `apps/mobile` (Expo SDK 54)
-- **Shared Packages**: 
+- **Shared Packages**:
   - `packages/ui` (React Native components)
   - `packages/hooks` (React hooks)
   - `packages/lib` (utilities)
@@ -18,11 +19,13 @@ Getting a **red 404 development server error** in Expo Go after fixing React ver
 ### Recent Fixes Applied
 
 **Problem 1 (FIXED)**: PlatformConstants TurboModuleRegistry error
+
 - **Root Cause**: React 19.1.0 incompatible with Expo SDK 54 (requires React 18.3.1)
 - **Fix Applied**: Downgraded React from 19.1.0 → 18.3.1 across all packages
 - **Status**: ✅ React 18.3.1 now correctly installed in mobile app
 
 **Problem 2 (CURRENT)**: 404 Development Server Error
+
 - **Error**: Red screen showing 404 development server error in Expo Go
 - **When**: After React version fix, when trying to load app
 - **Status**: ❌ Not resolved
@@ -30,6 +33,7 @@ Getting a **red 404 development server error** in Expo Go after fixing React ver
 ## CURRENT CONFIGURATION
 
 ### apps/mobile/package.json
+
 ```json
 {
   "name": "@sparecarry/mobile",
@@ -49,25 +53,23 @@ Getting a **red 404 development server error** in Expo Go after fixing React ver
 ```
 
 ### apps/mobile/metro.config.js
+
 ```javascript
-const { getDefaultConfig } = require('expo/metro-config');
-const path = require('path');
+const { getDefaultConfig } = require("expo/metro-config");
+const path = require("path");
 
 const config = getDefaultConfig(__dirname);
 
 config.projectRoot = __dirname;
 
-const workspaceRoot = path.resolve(__dirname, '../..');
-config.watchFolders = [
-  __dirname,
-  workspaceRoot,
-];
+const workspaceRoot = path.resolve(__dirname, "../..");
+config.watchFolders = [__dirname, workspaceRoot];
 
 config.resolver = {
   ...config.resolver,
   nodeModulesPaths: [
-    path.resolve(__dirname, 'node_modules'),
-    path.resolve(workspaceRoot, 'node_modules'),
+    path.resolve(__dirname, "node_modules"),
+    path.resolve(workspaceRoot, "node_modules"),
   ],
 };
 
@@ -81,22 +83,20 @@ config.transformer = {
   }),
 };
 
-config.resolver.sourceExts = [
-  ...config.resolver.sourceExts,
-  'ts',
-  'tsx',
-];
+config.resolver.sourceExts = [...config.resolver.sourceExts, "ts", "tsx"];
 
 module.exports = config;
 ```
 
 ### apps/mobile/app.config.ts
+
 - Expo SDK 54
 - Uses `expo-router` plugin
 - Has expo-camera, expo-location, expo-notifications plugins
 - jsEngine: 'jsc'
 
 ### Entry Point
+
 - **Main**: `expo-router/entry` (as specified in package.json)
 - **Layout**: `apps/mobile/app/_layout.tsx` exists and exports RootLayout
 
@@ -113,6 +113,7 @@ module.exports = config;
 ## ERROR DETAILS NEEDED
 
 Please help diagnose:
+
 - **What causes 404 development server errors in Expo Go?**
 - **Is this related to the monorepo setup?**
 - **Could it be Metro bundler not finding the entry point?**
@@ -130,6 +131,7 @@ Please help diagnose:
 ## REQUEST
 
 Provide a comprehensive solution that:
+
 1. Diagnoses the exact cause of the 404 error
 2. Fixes the Metro bundler/Expo Router entry point configuration
 3. Ensures workspace packages resolve correctly
@@ -145,4 +147,3 @@ Provide a comprehensive solution that:
 - Using `file:` protocol for workspace dependencies (pnpm monorepo)
 
 Please provide step-by-step fix instructions.
-

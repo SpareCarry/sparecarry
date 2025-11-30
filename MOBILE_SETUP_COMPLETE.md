@@ -5,12 +5,14 @@ Your CarrySpace Next.js app is now configured for iOS and Android deployment usi
 ## 📦 What Was Configured
 
 ### ✅ Capacitor Configuration
+
 - **App Name**: CarrySpace
-- **App ID**: com.carryspace.app  
+- **App ID**: com.carryspace.app
 - **Web Directory**: `out/` (Next.js static export)
 - **Bundled Web Runtime**: false (uses native webview)
 
 ### ✅ iOS Configuration
+
 - ✅ Info.plist updated with CarrySpace branding
 - ✅ Push notification permissions configured
 - ✅ Camera, location, storage permissions set
@@ -18,18 +20,21 @@ Your CarrySpace Next.js app is now configured for iOS and Android deployment usi
 - ✅ Background modes for push notifications
 
 ### ✅ Android Configuration
+
 - ✅ AndroidManifest.xml updated with CarrySpace package
 - ✅ Push notification permissions configured
 - ✅ Camera, location, storage permissions set
 - ✅ Firebase push notification service configured
 
 ### ✅ Push Notifications
+
 - ✅ Capacitor Push Notifications plugin integrated
 - ✅ Expo Push Notification Service integration code provided
 - ✅ Notification handlers setup code ready
 - ✅ Backend API examples included
 
 ### ✅ Documentation Created
+
 - ✅ `docs/MOBILE_DEPLOYMENT.md` - Complete deployment guide
 - ✅ `MOBILE_QUICKSTART.md` - Quick start guide
 - ✅ `README_MOBILE.md` - Full mobile setup documentation
@@ -38,6 +43,7 @@ Your CarrySpace Next.js app is now configured for iOS and Android deployment usi
 ## 🚀 Next Steps
 
 ### 1. Build Your App
+
 ```bash
 npm run build
 ```
@@ -45,6 +51,7 @@ npm run build
 This creates the `out/` folder with your static Next.js export.
 
 ### 2. Sync Capacitor
+
 ```bash
 npm run mobile:setup
 # Or manually:
@@ -57,11 +64,13 @@ This copies web assets from `out/` to iOS and Android projects.
 ### 3. Open Native Projects
 
 **iOS** (macOS only):
+
 ```bash
 npm run mobile:ios
 ```
 
 **Android**:
+
 ```bash
 npm run mobile:android
 ```
@@ -69,17 +78,20 @@ npm run mobile:android
 ### 4. Configure Signing
 
 **iOS**:
+
 - Open in Xcode
 - Select Team in Signing & Capabilities
 - Enable Push Notifications capability
 
 **Android**:
+
 - Create keystore for release builds
 - Configure signing in `android/app/build.gradle`
 
 ### 5. Setup Push Notifications Backend
 
 Choose one:
+
 - **Expo Push Service** (recommended): See `lib/notifications/expo-push-service.ts`
 - **Firebase Cloud Messaging**: Setup Firebase project and download `google-services.json`
 
@@ -157,4 +169,3 @@ Your Next.js static export is now wrapped in Capacitor and ready for iOS and And
 ---
 
 **Happy Deploying! 🚀**
-

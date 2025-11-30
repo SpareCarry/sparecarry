@@ -21,7 +21,7 @@ export function VerifiedCheckBadge({
   return (
     <CheckCircle2
       className={cn(
-        "text-blue-600 fill-blue-600",
+        "fill-blue-600 text-blue-600",
         sizeClasses[size],
         className
       )}
@@ -29,4 +29,3 @@ export function VerifiedCheckBadge({
     />
   );
 }
-

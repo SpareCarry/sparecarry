@@ -46,12 +46,12 @@ export function PayoutsTable() {
       if (error) throw error;
 
       // Filter to first 50 deliveries that need manual payout
-      const completedDeliveries = (data || []).filter(
-        (match: any) => {
-          const delivery = Array.isArray(match.deliveries) ? match.deliveries[0] : match.deliveries;
-          return delivery?.confirmed_at || delivery?.auto_release_at;
-        }
-      );
+      const completedDeliveries = (data || []).filter((match: any) => {
+        const delivery = Array.isArray(match.deliveries)
+          ? match.deliveries[0]
+          : match.deliveries;
+        return delivery?.confirmed_at || delivery?.auto_release_at;
+      });
 
       return completedDeliveries.slice(0, FIRST_50_DELIVERIES);
     },
@@ -99,12 +99,19 @@ export function PayoutsTable() {
   }
 
   const needsManualPayout = (payout: any) => {
-    const delivery = Array.isArray(payout.deliveries) ? payout.deliveries[0] : payout.deliveries;
-    const tripProfiles = Array.isArray(payout.trips?.profiles) ? payout.trips.profiles : (payout.trips?.profiles ? [payout.trips.profiles] : []);
+    const delivery = Array.isArray(payout.deliveries)
+      ? payout.deliveries[0]
+      : payout.deliveries;
+    const tripProfiles = Array.isArray(payout.trips?.profiles)
+      ? payout.trips.profiles
+      : payout.trips?.profiles
+        ? [payout.trips.profiles]
+        : [];
     const hasStripeAccount = !!tripProfiles[0]?.stripe_account_id;
     const isCompleted = payout.status === "completed";
-    const hasConfirmation = !!delivery?.confirmed_at || !!delivery?.auto_release_at;
-    
+    const hasConfirmation =
+      !!delivery?.confirmed_at || !!delivery?.auto_release_at;
+
     // Check if this is in the first 50 deliveries
     const deliveryIndex = payouts?.indexOf(payout) ?? -1;
     const isFirst50 = deliveryIndex < FIRST_50_DELIVERIES;
@@ -115,17 +122,18 @@ export function PayoutsTable() {
   return (
     <div className="space-y-4">
       {/* Info Banner */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+      <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
         <p className="text-sm text-blue-800">
-          <strong>Manual Payouts:</strong> The first {FIRST_50_DELIVERIES} deliveries require
-          manual Stripe transfers. After that, payouts will be automated.
+          <strong>Manual Payouts:</strong> The first {FIRST_50_DELIVERIES}{" "}
+          deliveries require manual Stripe transfers. After that, payouts will
+          be automated.
         </p>
       </div>
 
       {/* Search */}
       <div className="flex items-center gap-2">
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
+        <div className="relative max-w-md flex-1">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform text-slate-400" />
           <Input
             placeholder="Search payouts..."
             value={searchQuery}
@@ -136,7 +144,7 @@ export function PayoutsTable() {
       </div>
 
       {/* Table */}
-      <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
+      <div className="overflow-hidden rounded-lg border border-slate-200 bg-white">
         <Table>
           <TableHeader>
             <TableRow>
@@ -153,8 +161,14 @@ export function PayoutsTable() {
           <TableBody>
             {payouts?.map((payout: any) => {
               const trip = payout.trips;
-              const delivery = Array.isArray(payout.deliveries) ? payout.deliveries[0] : payout.deliveries;
-              const tripProfiles = Array.isArray(trip?.profiles) ? trip.profiles : (trip?.profiles ? [trip.profiles] : []);
+              const delivery = Array.isArray(payout.deliveries)
+                ? payout.deliveries[0]
+                : payout.deliveries;
+              const tripProfiles = Array.isArray(trip?.profiles)
+                ? trip.profiles
+                : trip?.profiles
+                  ? [trip.profiles]
+                  : [];
               const stripeAccountId = tripProfiles[0]?.stripe_account_id;
               const platformFeePercent = trip?.type === "plane" ? 0.18 : 0.15;
               const platformFee = payout.reward_amount * platformFeePercent;
@@ -166,13 +180,18 @@ export function PayoutsTable() {
                 <TableRow key={payout.id}>
                   <TableCell>
                     <div>
-                      <div className="font-medium">Match #{payout.id.slice(0, 8)}</div>
+                      <div className="font-medium">
+                        Match #{payout.id.slice(0, 8)}
+                      </div>
                       <div className="text-xs text-slate-500">
-                        {payout.requests?.from_location} → {payout.requests?.to_location}
+                        {payout.requests?.from_location} →{" "}
+                        {payout.requests?.to_location}
                       </div>
                     </div>
                   </TableCell>
-                  <TableCell className="text-sm">{trip?.users?.email || "—"}</TableCell>
+                  <TableCell className="text-sm">
+                    {trip?.users?.email || "—"}
+                  </TableCell>
                   <TableCell className="font-medium">
                     ${payout.reward_amount?.toLocaleString()}
                   </TableCell>
@@ -185,7 +204,7 @@ export function PayoutsTable() {
                   <TableCell>
                     {payout.status === "completed" ? (
                       <Badge className="bg-green-100 text-green-800">
-                        <CheckCircle2 className="h-3 w-3 mr-1" />
+                        <CheckCircle2 className="mr-1 h-3 w-3" />
                         Completed
                       </Badge>
                     ) : (
@@ -196,8 +215,11 @@ export function PayoutsTable() {
                     {delivery?.confirmed_at
                       ? format(new Date(delivery.confirmed_at), "MMM d, yyyy")
                       : delivery?.auto_release_at
-                      ? format(new Date(delivery.auto_release_at), "MMM d, yyyy") + " (auto)"
-                      : "—"}
+                        ? format(
+                            new Date(delivery.auto_release_at),
+                            "MMM d, yyyy"
+                          ) + " (auto)"
+                        : "—"}
                   </TableCell>
                   <TableCell>
                     {requiresManualPayout && stripeAccountId ? (
@@ -217,13 +239,15 @@ export function PayoutsTable() {
                           <Loader2 className="h-4 w-4 animate-spin" />
                         ) : (
                           <>
-                            <DollarSign className="h-4 w-4 mr-1" />
+                            <DollarSign className="mr-1 h-4 w-4" />
                             Process Payout
                           </>
                         )}
                       </Button>
                     ) : !stripeAccountId ? (
-                      <span className="text-xs text-slate-400">No Stripe account</span>
+                      <span className="text-xs text-slate-400">
+                        No Stripe account
+                      </span>
                     ) : (
                       <Badge variant="outline" className="text-green-600">
                         Automated
@@ -238,9 +262,8 @@ export function PayoutsTable() {
       </div>
 
       {payouts?.length === 0 && (
-        <div className="text-center py-12 text-slate-500">No payouts found</div>
+        <div className="py-12 text-center text-slate-500">No payouts found</div>
       )}
     </div>
   );
 }
-

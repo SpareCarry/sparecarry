@@ -1,25 +1,27 @@
-const fs = require('fs');
+const fs = require("fs");
 
 try {
-  const data = JSON.parse(fs.readFileSync('test-results-playwright.json', 'utf8'));
+  const data = JSON.parse(
+    fs.readFileSync("test-results-playwright.json", "utf8")
+  );
   let passed = 0;
   let failed = 0;
   const failures = [];
 
   function countTests(suites) {
-    suites.forEach(suite => {
+    suites.forEach((suite) => {
       if (suite.specs) {
-        suite.specs.forEach(spec => {
-          spec.tests.forEach(test => {
-            test.results.forEach(result => {
-              if (result.status === 'passed') {
+        suite.specs.forEach((spec) => {
+          spec.tests.forEach((test) => {
+            test.results.forEach((result) => {
+              if (result.status === "passed") {
                 passed++;
-              } else if (result.status === 'failed') {
+              } else if (result.status === "failed") {
                 failed++;
                 failures.push({
                   file: suite.file,
                   title: spec.title,
-                  error: result.error?.message || 'Unknown error'
+                  error: result.error?.message || "Unknown error",
                 });
               }
             });
@@ -32,12 +34,14 @@ try {
 
   countTests(data.suites);
 
-  console.log('\n=== Test Results Summary ===');
+  console.log("\n=== Test Results Summary ===");
   console.log(`Passed: ${passed}`);
   console.log(`Failed: ${failed}`);
   console.log(`Total: ${passed + failed}`);
-  console.log(`\nSuccess Rate: ${((passed / (passed + failed)) * 100).toFixed(1)}%`);
-  
+  console.log(
+    `\nSuccess Rate: ${((passed / (passed + failed)) * 100).toFixed(1)}%`
+  );
+
   if (failed > 0) {
     console.log(`\n=== Failed Tests (${failed}) ===`);
     failures.slice(0, 10).forEach((f, i) => {
@@ -49,7 +53,6 @@ try {
     }
   }
 } catch (error) {
-  console.error('Error reading test results:', error.message);
-  console.log('Run tests first to generate test-results-playwright.json');
+  console.error("Error reading test results:", error.message);
+  console.log("Run tests first to generate test-results-playwright.json");
 }
-

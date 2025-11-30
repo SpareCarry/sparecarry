@@ -1,25 +1,31 @@
 # 404 Error Fix Applied
 
 ## Problem
+
 Getting 404 error when trying to launch the app, even with tunnel mode.
 
 ## Root Cause
+
 The Expo Router Stack wasn't properly configured to handle the root route. The `index.tsx` file was redirecting, but the Stack didn't have the `index` screen registered, causing a routing conflict.
 
 ## Fixes Applied
 
 ### 1. Cleaned up `app/index.tsx`
+
 - Removed unused `StyleSheet` import and code
 - Kept simple `Redirect` component
 
 ### 2. Updated `app/_layout.tsx` Stack Configuration
+
 - Added `index` screen to Stack explicitly
 - Added `initialRouteName="(tabs)"` to ensure proper initial route
 - Added missing routes: `messages/[matchId]`, `subscription`, `support`
 - Set default `screenOptions` for consistent header behavior
 
 ### 3. Route Registration
+
 All routes are now explicitly registered in the Stack:
+
 - `index` - Root route (redirects to tabs)
 - `(tabs)` - Main tab navigation
 - `auth` - Authentication screens
@@ -33,11 +39,13 @@ All routes are now explicitly registered in the Stack:
 ## Testing
 
 1. **Clear cache and restart**:
+
    ```bash
    pnpm start:clear
    ```
 
 2. **Or use tunnel mode**:
+
    ```bash
    pnpm start:tunnel
    ```
@@ -61,6 +69,7 @@ All routes are now explicitly registered in the Stack:
    - `app/_layout.tsx` ✅
 
 3. **Clear all caches**:
+
    ```bash
    pnpm clear-cache
    rm -rf .expo
@@ -73,9 +82,9 @@ All routes are now explicitly registered in the Stack:
 ## Expected Behavior
 
 When working correctly:
+
 - Metro starts without errors
 - QR code is displayed
 - Scanning QR code connects successfully
 - App loads and shows home screen (tabs)
 - No 404 errors in Metro terminal or on device
-

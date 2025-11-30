@@ -1,6 +1,6 @@
 /**
  * Rate Limiting
- * 
+ *
  * Lightweight in-memory rate limiter for API routes
  * Uses per-IP tracking with sliding window
  */
@@ -14,17 +14,27 @@ class RateLimiter {
   private store: Map<string, RateLimitEntry> = new Map();
   private cleanupInterval: ReturnType<typeof setInterval>;
 
-  constructor(private windowMs: number = 60 * 1000, private maxRequests: number = 100) {
+  constructor(
+    private windowMs: number = 60 * 1000,
+    private maxRequests: number = 100
+  ) {
     // Cleanup expired entries every 5 minutes
-    this.cleanupInterval = setInterval(() => {
-      this.cleanup();
-    }, 5 * 60 * 1000);
+    this.cleanupInterval = setInterval(
+      () => {
+        this.cleanup();
+      },
+      5 * 60 * 1000
+    );
   }
 
   /**
    * Check if request should be rate limited
    */
-  check(identifier: string): { allowed: boolean; remaining: number; resetTime: number } {
+  check(identifier: string): {
+    allowed: boolean;
+    remaining: number;
+    resetTime: number;
+  } {
     const now = Date.now();
     const entry = this.store.get(identifier);
 
@@ -107,11 +117,12 @@ export const uploadRateLimiter = new RateLimiter(60 * 1000, 10); // 10 uploads p
  */
 export function getClientIdentifier(request: Request): string {
   // Try to get IP from various headers (behind proxy)
-  const forwarded = request.headers.get('x-forwarded-for');
-  const realIp = request.headers.get('x-real-ip');
-  const cfConnectingIp = request.headers.get('cf-connecting-ip');
+  const forwarded = request.headers.get("x-forwarded-for");
+  const realIp = request.headers.get("x-real-ip");
+  const cfConnectingIp = request.headers.get("cf-connecting-ip");
 
-  const ip = forwarded?.split(',')[0]?.trim() || realIp || cfConnectingIp || 'unknown';
+  const ip =
+    forwarded?.split(",")[0]?.trim() || realIp || cfConnectingIp || "unknown";
 
   // In production, you might want to hash the IP for privacy
   return ip;
@@ -128,15 +139,15 @@ export async function rateLimit(
   const result = limiter.check(identifier);
 
   const headers = new Headers();
-  headers.set('X-RateLimit-Limit', limiter['maxRequests'].toString());
-  headers.set('X-RateLimit-Remaining', result.remaining.toString());
-  headers.set('X-RateLimit-Reset', new Date(result.resetTime).toISOString());
+  headers.set("X-RateLimit-Limit", limiter["maxRequests"].toString());
+  headers.set("X-RateLimit-Remaining", result.remaining.toString());
+  headers.set("X-RateLimit-Reset", new Date(result.resetTime).toISOString());
 
   if (!result.allowed) {
     return {
       allowed: false,
       headers,
-      error: 'Rate limit exceeded. Please try again later.',
+      error: "Rate limit exceeded. Please try again later.",
     };
   }
 
@@ -145,4 +156,3 @@ export async function rateLimit(
     headers,
   };
 }
-

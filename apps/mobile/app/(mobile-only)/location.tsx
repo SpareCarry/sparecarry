@@ -3,11 +3,14 @@
  * Shows current location using GPS
  */
 
-import { View, Text, StyleSheet } from 'react-native';
-import { useLocation } from '@sparecarry/hooks';
+import { View, Text, StyleSheet } from "react-native";
+import { useLocation } from "@sparecarry/hooks";
 
 export default function LocationScreen() {
-  const { location, loading, error, refetch } = useLocation({ enabled: true, watch: true });
+  const { location, loading, error, refetch } = useLocation({
+    enabled: true,
+    watch: true,
+  });
 
   return (
     <View style={styles.container}>
@@ -35,32 +38,31 @@ export default function LocationScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     padding: 20,
   },
   title: {
     fontSize: 24,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 20,
   },
   error: {
-    color: '#ef4444',
+    color: "#ef4444",
     marginTop: 10,
   },
   locationInfo: {
     marginTop: 20,
-    alignItems: 'center',
+    alignItems: "center",
   },
   label: {
     fontSize: 14,
-    color: '#666',
+    color: "#666",
     marginTop: 10,
   },
   value: {
     fontSize: 18,
-    fontWeight: 'bold',
-    color: '#14b8a6',
+    fontWeight: "bold",
+    color: "#14b8a6",
   },
 });
-

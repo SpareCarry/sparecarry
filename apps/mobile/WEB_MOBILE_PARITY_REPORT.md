@@ -3,6 +3,7 @@
 ## ✅ Features Available on Both Platforms
 
 ### Core Features
+
 - ✅ **Post Request** - Full form with all fields
 - ✅ **Post Trip** - Full form with all fields
 - ✅ **Browse/Feed** - Infinite scroll feed with trips and requests
@@ -16,12 +17,14 @@
 - ✅ **GPS Location** - Mobile native, web browser geolocation
 
 ### Authentication
+
 - ✅ **Email/Password** - Both platforms
 - ✅ **Magic Link** - Both platforms
 - ✅ **Google OAuth** - Both platforms
 - ✅ **Apple Sign In** - Both platforms (mobile native, web via OAuth)
 
 ### Form Features
+
 - ✅ **Inline Validation** - Real-time validation on both
 - ✅ **Quick Dimension Presets** - Small/Medium/Large buttons
 - ✅ **Weight Estimation** - From dimensions
@@ -134,22 +137,27 @@
 ## 🔄 Differences in Implementation
 
 ### Messaging
+
 - **Web**: Full in-app chat with Supabase Realtime
 - **Mobile**: WhatsApp deep linking (no in-app chat yet)
 
 ### Navigation
+
 - **Web**: Sidebar navigation with links
 - **Mobile**: Bottom tab bar navigation
 
 ### Shipping Estimator
+
 - **Web**: More advanced with size tiers, transport method selection, fragile items, deadline dates
 - **Mobile**: Simplified version with core functionality (can be enhanced)
 
 ### Feed Detail
+
 - **Web**: Modal overlay with full details
 - **Mobile**: Separate screen with WhatsApp integration
 
 ### Profile
+
 - **Web**: Full profile with subscription management
 - **Mobile**: Basic profile (subscription management coming soon)
 
@@ -209,4 +217,3 @@
 3. **Priority 3**: Add subscription management page
 4. **Priority 4**: Add support/disputes functionality
 5. **Priority 5**: Enhance shipping estimator with web features
-

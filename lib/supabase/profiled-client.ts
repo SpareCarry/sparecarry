@@ -1,13 +1,13 @@
 /**
  * Profiled Supabase Client
- * 
+ *
  * Wraps Supabase client with performance profiling
  * Automatically tracks all database queries
  */
 
-import { createClient as createSupabaseClient } from '@supabase/supabase-js';
-import { profileQuery } from '../performance/db-profiler';
-import type { SupabaseClient } from '@supabase/supabase-js';
+import { createClient as createSupabaseClient } from "@supabase/supabase-js";
+import { profileQuery } from "../performance/db-profiler";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
 /**
  * Create a profiled Supabase client
@@ -21,10 +21,10 @@ export function createProfiledClient(
 
   // Wrap the from() method to profile all queries
   const originalFrom = client.from.bind(client);
-  
-  client.from = function(table: string) {
+
+  client.from = function (table: string) {
     const queryBuilder = originalFrom(table);
-    
+
     // Wrap common query methods
     const originalSelect = queryBuilder.select.bind(queryBuilder);
     const originalInsert = queryBuilder.insert.bind(queryBuilder);
@@ -33,34 +33,34 @@ export function createProfiledClient(
     const originalUpsert = queryBuilder.upsert?.bind(queryBuilder);
 
     // Wrap select
-    queryBuilder.select = function(columns?: string) {
+    queryBuilder.select = function (columns?: string) {
       const result = originalSelect(columns);
-      return wrapQueryBuilder(result, table, 'select');
+      return wrapQueryBuilder(result, table, "select");
     };
 
     // Wrap insert
-    queryBuilder.insert = function(values: any) {
+    queryBuilder.insert = function (values: any) {
       const result = originalInsert(values);
-      return wrapQueryBuilder(result, table, 'insert');
+      return wrapQueryBuilder(result, table, "insert");
     };
 
     // Wrap update
-    queryBuilder.update = function(values: any) {
+    queryBuilder.update = function (values: any) {
       const result = originalUpdate(values);
-      return wrapQueryBuilder(result, table, 'update');
+      return wrapQueryBuilder(result, table, "update");
     };
 
     // Wrap delete
-    queryBuilder.delete = function() {
+    queryBuilder.delete = function () {
       const result = originalDelete();
-      return wrapQueryBuilder(result, table, 'delete');
+      return wrapQueryBuilder(result, table, "delete");
     };
 
     // Wrap upsert if available
     if (originalUpsert) {
-      queryBuilder.upsert = function(values: any) {
+      queryBuilder.upsert = function (values: any) {
         const result = originalUpsert(values);
-        return wrapQueryBuilder(result, table, 'upsert');
+        return wrapQueryBuilder(result, table, "upsert");
       };
     }
 
@@ -81,7 +81,7 @@ function wrapQueryBuilder<T>(
   // Wrap then() method
   const originalThen = builder.then?.bind(builder);
   if (originalThen) {
-    builder.then = async function(callback: any) {
+    builder.then = async function (callback: any) {
       return profileQuery(table, operation, async () => {
         try {
           const result = await originalThen(callback);
@@ -96,7 +96,7 @@ function wrapQueryBuilder<T>(
   // Wrap single() method
   const originalSingle = builder.single?.bind(builder);
   if (originalSingle) {
-    builder.single = async function() {
+    builder.single = async function () {
       return profileQuery(table, `${operation}.single`, async () => {
         try {
           const result = await originalSingle();
@@ -111,7 +111,7 @@ function wrapQueryBuilder<T>(
   // Wrap maybeSingle() method
   const originalMaybeSingle = builder.maybeSingle?.bind(builder);
   if (originalMaybeSingle) {
-    builder.maybeSingle = async function() {
+    builder.maybeSingle = async function () {
       return profileQuery(table, `${operation}.maybeSingle`, async () => {
         try {
           const result = await originalMaybeSingle();
@@ -125,4 +125,3 @@ function wrapQueryBuilder<T>(
 
   return builder;
 }
-

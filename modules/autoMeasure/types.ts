@@ -4,7 +4,7 @@
 
 export interface Dimensions {
   length: number; // in cm
-  width: number;  // in cm
+  width: number; // in cm
   height: number; // in cm
 }
 
@@ -35,17 +35,17 @@ export interface CapturedPhoto {
   timestamp: number;
   confidence: number;
   isAutoMeasure: boolean;
-  photoType?: 'main' | 'side' | 'reference';
+  photoType?: "main" | "side" | "reference";
 }
 
 export interface TiltData {
   pitch: number; // Rotation around X-axis (forward/backward tilt)
-  roll: number;  // Rotation around Y-axis (left/right tilt)
-  yaw: number;   // Rotation around Z-axis (rotation)
+  roll: number; // Rotation around Y-axis (left/right tilt)
+  yaw: number; // Rotation around Z-axis (rotation)
 }
 
 export interface ReferenceObject {
-  type: 'credit_card' | 'coin' | 'paper' | 'none';
+  type: "credit_card" | "coin" | "paper" | "none";
   detectedSizePixels?: number;
   knownSizeCm: number; // Credit card: 8.56cm, Coin: 2.4cm, Paper: 21.59cm
   pixelToCmRatio?: number;
@@ -59,4 +59,3 @@ export interface MultiFrameMeasurement {
   referenceObject?: ReferenceObject;
   tiltData?: TiltData;
 }
-

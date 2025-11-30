@@ -12,6 +12,7 @@
 ## Changes Made
 
 ### 1. React Version Downgrade ✅
+
 - **Root `package.json`**: Removed React 19 overrides, set to React 18.3.1
 - **apps/mobile/package.json**: Changed React from 19.1.0 → 18.3.1
 - **packages/ui/package.json**: Changed React from 19.1.0 → 18.3.1
@@ -19,17 +20,20 @@
 - **Type definitions**: Updated @types/react from ~19.1.0 → ~18.2.0
 
 ### 2. React Native Version Consistency ✅
+
 - **Root `package.json`**: Changed react-native from 0.81.5 → 0.76.0 (devDependencies)
 - **apps/mobile/package.json**: Already 0.76.0 ✅
 - **packages/ui/package.json**: Already 0.76.0 ✅
 
 ### 3. Metro Config Enhancement ✅
+
 - Added proper workspace package resolution
 - Configured nodeModulesPaths for monorepo
 - Added TypeScript source extensions
 - Configured transformer for workspace packages
 
 ### 4. Debug Mode Added ✅
+
 - Created `apps/mobile/lib/debug-mode.ts`
 - Logs React/React Native versions
 - Logs module resolutions
@@ -37,6 +41,7 @@
 - Enabled via `EXPO_PUBLIC_DEBUG_MODE=true`
 
 ### 5. EAS Development Build Setup ✅
+
 - Created `apps/mobile/eas.json`
 - Configured development, preview, and production builds
 - Ready for use if Expo Go doesn't work
@@ -44,12 +49,14 @@
 ## Next Steps
 
 1. **Reinstall dependencies** (if pnpm install failed):
+
    ```bash
    cd C:\SpareCarry
    pnpm install
    ```
 
 2. **Clear all caches**:
+
    ```bash
    cd apps/mobile
    pnpm start --clear
@@ -95,6 +102,7 @@
 ## Expected Result
 
 ✅ **Expo Go should now work** because:
+
 - React 18.3.1 matches Expo Go's native binary
 - React Native 0.76.0 is consistent everywhere
 - Metro properly transpiles workspace packages

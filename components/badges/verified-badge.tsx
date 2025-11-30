@@ -23,7 +23,7 @@ export function VerifiedBadge({
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1 rounded-full bg-green-100 text-green-800 font-medium",
+        "inline-flex items-center gap-1 rounded-full bg-green-100 font-medium text-green-800",
         sizeClasses[size],
         className
       )}
@@ -34,4 +34,3 @@ export function VerifiedBadge({
     </span>
   );
 }
-

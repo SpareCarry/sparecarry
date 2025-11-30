@@ -1,6 +1,6 @@
 /**
  * Plane Transport Restrictions
- * 
+ *
  * Checks if an item can be transported by plane based on:
  * - Weight limits (carry-on vs checked baggage)
  * - Size/dimension limits
@@ -9,13 +9,19 @@
  * - Country-specific restrictions
  */
 
-import { checkCountryRestrictions } from './country-restrictions';
+import { checkCountryRestrictions } from "./country-restrictions";
 
 export interface PlaneRestrictionCheck {
   canTransportByPlane: boolean;
   reason?: string;
-  restrictionType?: 'weight' | 'size' | 'dangerous_goods' | 'category' | 'oversized' | 'country';
-  suggestedMethod?: 'boat';
+  restrictionType?:
+    | "weight"
+    | "size"
+    | "dangerous_goods"
+    | "category"
+    | "oversized"
+    | "country";
+  suggestedMethod?: "boat";
 }
 
 export interface ItemSpecs {
@@ -48,43 +54,51 @@ const OVERSIZED_MAX_LINEAR_DIMENSIONS = 320; // cm (some airlines allow oversize
 
 // Categories that cannot be transported by plane
 const PROHIBITED_CATEGORIES = [
-  'explosives',
-  'flammable',
-  'toxic',
-  'radioactive',
-  'corrosive',
-  'weapons',
-  'ammunition',
+  "explosives",
+  "flammable",
+  "toxic",
+  "radioactive",
+  "corrosive",
+  "weapons",
+  "ammunition",
 ];
 
 /**
  * Check if an item can be transported by plane
  */
-export function checkPlaneRestrictions(specs: ItemSpecs): PlaneRestrictionCheck {
+export function checkPlaneRestrictions(
+  specs: ItemSpecs
+): PlaneRestrictionCheck {
   // Check for restricted/dangerous goods
   if (specs.restrictedItems) {
     return {
       canTransportByPlane: false,
-      reason: 'Restricted items (lithium batteries, flammable materials, etc.) cannot be transported by plane due to airline regulations.',
-      restrictionType: 'dangerous_goods',
-      suggestedMethod: 'boat',
+      reason:
+        "Restricted items (lithium batteries, flammable materials, etc.) cannot be transported by plane due to airline regulations.",
+      restrictionType: "dangerous_goods",
+      suggestedMethod: "boat",
     };
   }
 
   // Check country-specific restrictions (check before general category restrictions)
   if (specs.category && (specs.originCountry || specs.destinationCountry)) {
     const countryCheck = checkCountryRestrictions(
-      specs.originCountry || '',
-      specs.destinationCountry || '',
+      specs.originCountry || "",
+      specs.destinationCountry || "",
       specs.category
     );
 
-    if (countryCheck.isRestricted && countryCheck.restrictionType === 'prohibited') {
+    if (
+      countryCheck.isRestricted &&
+      countryCheck.restrictionType === "prohibited"
+    ) {
       return {
         canTransportByPlane: false,
-        reason: countryCheck.reason || `Items in the "${specs.category}" category are prohibited for this route due to country-specific regulations.`,
-        restrictionType: 'country',
-        suggestedMethod: 'boat',
+        reason:
+          countryCheck.reason ||
+          `Items in the "${specs.category}" category are prohibited for this route due to country-specific regulations.`,
+        restrictionType: "country",
+        suggestedMethod: "boat",
       };
     }
   }
@@ -92,16 +106,16 @@ export function checkPlaneRestrictions(specs: ItemSpecs): PlaneRestrictionCheck 
   // Check category restrictions
   if (specs.category) {
     const categoryLower = specs.category.toLowerCase();
-    const isProhibited = PROHIBITED_CATEGORIES.some(prohibited => 
+    const isProhibited = PROHIBITED_CATEGORIES.some((prohibited) =>
       categoryLower.includes(prohibited)
     );
-    
+
     if (isProhibited) {
       return {
         canTransportByPlane: false,
         reason: `Items in the "${specs.category}" category cannot be transported by plane due to safety regulations.`,
-        restrictionType: 'category',
-        suggestedMethod: 'boat',
+        restrictionType: "category",
+        suggestedMethod: "boat",
       };
     }
   }
@@ -110,7 +124,7 @@ export function checkPlaneRestrictions(specs: ItemSpecs): PlaneRestrictionCheck 
   const maxDimension = Math.max(specs.length, specs.width, specs.height);
 
   // Check if it fits in carry-on
-  const fitsCarryOn = 
+  const fitsCarryOn =
     specs.weight <= CARRY_ON_MAX_WEIGHT &&
     specs.length <= CARRY_ON_MAX_LENGTH &&
     specs.width <= CARRY_ON_MAX_WIDTH &&
@@ -124,7 +138,7 @@ export function checkPlaneRestrictions(specs: ItemSpecs): PlaneRestrictionCheck 
   }
 
   // Check if it fits in checked baggage
-  const fitsCheckedBaggage = 
+  const fitsCheckedBaggage =
     specs.weight <= CHECKED_BAGGAGE_MAX_WEIGHT &&
     maxDimension <= CHECKED_BAGGAGE_MAX_LENGTH &&
     linearDimensions <= CHECKED_BAGGAGE_MAX_LINEAR_DIMENSIONS;
@@ -136,15 +150,16 @@ export function checkPlaneRestrictions(specs: ItemSpecs): PlaneRestrictionCheck 
   }
 
   // Check if it fits in oversized/overweight baggage (with extra fees)
-  const fitsOversized = 
+  const fitsOversized =
     specs.weight <= OVERSIZED_MAX_WEIGHT &&
     linearDimensions <= OVERSIZED_MAX_LINEAR_DIMENSIONS;
 
   if (fitsOversized) {
     return {
       canTransportByPlane: true,
-      reason: 'Item exceeds standard checked baggage limits but may be accepted as oversized/overweight baggage (additional airline fees may apply).',
-      restrictionType: 'oversized',
+      reason:
+        "Item exceeds standard checked baggage limits but may be accepted as oversized/overweight baggage (additional airline fees may apply).",
+      restrictionType: "oversized",
     };
   }
 
@@ -153,8 +168,8 @@ export function checkPlaneRestrictions(specs: ItemSpecs): PlaneRestrictionCheck 
     return {
       canTransportByPlane: false,
       reason: `Item weight (${specs.weight}kg) exceeds maximum allowed weight (${OVERSIZED_MAX_WEIGHT}kg) for plane transport.`,
-      restrictionType: 'weight',
-      suggestedMethod: 'boat',
+      restrictionType: "weight",
+      suggestedMethod: "boat",
     };
   }
 
@@ -162,17 +177,17 @@ export function checkPlaneRestrictions(specs: ItemSpecs): PlaneRestrictionCheck 
     return {
       canTransportByPlane: false,
       reason: `Item dimensions (${linearDimensions}cm total) exceed maximum allowed size (${OVERSIZED_MAX_LINEAR_DIMENSIONS}cm) for plane transport.`,
-      restrictionType: 'size',
-      suggestedMethod: 'boat',
+      restrictionType: "size",
+      suggestedMethod: "boat",
     };
   }
 
   // Default: cannot transport by plane
   return {
     canTransportByPlane: false,
-    reason: 'Item exceeds plane transport size and weight limits.',
-    restrictionType: 'size',
-    suggestedMethod: 'boat',
+    reason: "Item exceeds plane transport size and weight limits.",
+    restrictionType: "size",
+    suggestedMethod: "boat",
   };
 }
 
@@ -189,19 +204,19 @@ export function getPlaneRestrictionDetails(specs: ItemSpecs): {
   const linearDimensions = specs.length + specs.width + specs.height;
   const maxDimension = Math.max(specs.length, specs.width, specs.height);
 
-  const fitsCarryOn = 
+  const fitsCarryOn =
     specs.weight <= CARRY_ON_MAX_WEIGHT &&
     specs.length <= CARRY_ON_MAX_LENGTH &&
     specs.width <= CARRY_ON_MAX_WIDTH &&
     specs.height <= CARRY_ON_MAX_HEIGHT &&
     linearDimensions <= CARRY_ON_MAX_LINEAR_DIMENSIONS;
 
-  const fitsCheckedBaggage = 
+  const fitsCheckedBaggage =
     specs.weight <= CHECKED_BAGGAGE_MAX_WEIGHT &&
     maxDimension <= CHECKED_BAGGAGE_MAX_LENGTH &&
     linearDimensions <= CHECKED_BAGGAGE_MAX_LINEAR_DIMENSIONS;
 
-  const fitsOversized = 
+  const fitsOversized =
     specs.weight <= OVERSIZED_MAX_WEIGHT &&
     linearDimensions <= OVERSIZED_MAX_LINEAR_DIMENSIONS;
 
@@ -212,4 +227,3 @@ export function getPlaneRestrictionDetails(specs: ItemSpecs): {
     restrictionMessage: check.reason,
   };
 }
-

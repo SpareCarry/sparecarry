@@ -34,7 +34,7 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const supabase = createClient();
-  
+
   // Use shared hook to prevent duplicate queries
   const { user: currentUser } = useUser();
 
@@ -47,13 +47,13 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
     <div className="min-h-screen bg-slate-50">
       {/* Desktop Sidebar */}
       <aside className="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-64 lg:flex-col lg:bg-slate-900">
-        <div className="flex flex-col flex-grow pt-5 pb-4 overflow-y-auto">
-          <div className="flex items-center flex-shrink-0 px-4">
+        <div className="flex flex-grow flex-col overflow-y-auto pb-4 pt-5">
+          <div className="flex flex-shrink-0 items-center px-4">
             <Link href="/home" className="text-2xl font-bold text-white">
               SpareCarry
             </Link>
           </div>
-          <nav className="mt-8 flex-1 px-2 space-y-1">
+          <nav className="mt-8 flex-1 space-y-1 px-2">
             {navigation.map((item) => {
               const Icon = item.icon;
               const isActive = pathname === item.href;
@@ -62,7 +62,7 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
                   key={item.name}
                   href={item.href}
                   className={cn(
-                    "group flex items-center px-3 py-3 text-sm font-medium rounded-md transition-colors",
+                    "group flex items-center rounded-md px-3 py-3 text-sm font-medium transition-colors",
                     isActive
                       ? "bg-teal-600 text-white"
                       : "text-slate-300 hover:bg-slate-800 hover:text-white"
@@ -71,7 +71,9 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
                   <Icon
                     className={cn(
                       "mr-3 h-5 w-5 flex-shrink-0",
-                      isActive ? "text-white" : "text-slate-400 group-hover:text-white"
+                      isActive
+                        ? "text-white"
+                        : "text-slate-400 group-hover:text-white"
                     )}
                   />
                   {item.name}
@@ -89,7 +91,7 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
             <Button
               onClick={handleSignOut}
               variant="outline"
-              className="w-full text-slate-300 border-slate-700 hover:bg-slate-800"
+              className="w-full border-slate-700 text-slate-300 hover:bg-slate-800"
             >
               Sign Out
             </Button>
@@ -100,10 +102,13 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
       {/* Mobile Sidebar */}
       {sidebarOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">
-          <div className="fixed inset-0 bg-black bg-opacity-50 z-50" onClick={() => setSidebarOpen(false)} />
-          <div className="fixed inset-y-0 left-0 w-64 bg-slate-900 z-[55]">
-            <div className="flex flex-col h-full">
-              <div className="flex items-center justify-between px-4 py-4 border-b border-slate-800">
+          <div
+            className="fixed inset-0 z-50 bg-black bg-opacity-50"
+            onClick={() => setSidebarOpen(false)}
+          />
+          <div className="fixed inset-y-0 left-0 z-[55] w-64 bg-slate-900">
+            <div className="flex h-full flex-col">
+              <div className="flex items-center justify-between border-b border-slate-800 px-4 py-4">
                 <span className="text-xl font-bold text-white">SpareCarry</span>
                 <Button
                   variant="ghost"
@@ -115,7 +120,7 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
                   <X className="h-6 w-6" />
                 </Button>
               </div>
-              <nav className="flex-1 px-2 py-4 space-y-1">
+              <nav className="flex-1 space-y-1 px-2 py-4">
                 {navigation.map((item) => {
                   const Icon = item.icon;
                   const isActive = pathname === item.href;
@@ -127,7 +132,7 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
                         setSidebarOpen(false);
                       }}
                       className={cn(
-                        "group flex items-center px-3 py-3 text-sm font-medium rounded-md transition-colors",
+                        "group flex items-center rounded-md px-3 py-3 text-sm font-medium transition-colors",
                         isActive
                           ? "bg-teal-600 text-white"
                           : "text-slate-300 hover:bg-slate-800 hover:text-white"
@@ -136,7 +141,9 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
                       <Icon
                         className={cn(
                           "mr-3 h-5 w-5 flex-shrink-0",
-                          isActive ? "text-white" : "text-slate-400 group-hover:text-white"
+                          isActive
+                            ? "text-white"
+                            : "text-slate-400 group-hover:text-white"
                         )}
                       />
                       {item.name}
@@ -148,7 +155,7 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
                 <Button
                   onClick={handleSignOut}
                   variant="outline"
-                  className="w-full text-slate-300 border-slate-700 hover:bg-slate-800"
+                  className="w-full border-slate-700 text-slate-300 hover:bg-slate-800"
                 >
                   Sign Out
                 </Button>
@@ -161,7 +168,7 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
       {/* Main Content */}
       <div className="lg:pl-64">
         {/* Mobile Header */}
-        <div className="lg:hidden sticky top-0 z-40 bg-white border-b border-slate-200">
+        <div className="sticky top-0 z-40 border-b border-slate-200 bg-white lg:hidden">
           <div className="flex items-center justify-between px-4 py-3">
             <Button
               variant="ghost"
@@ -186,7 +193,7 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
         <main className="pb-20 lg:pb-0">{children}</main>
 
         {/* Mobile Bottom Navigation */}
-        <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 z-40">
+        <nav className="fixed bottom-0 left-0 right-0 z-40 border-t border-slate-200 bg-white lg:hidden">
           <div className="flex items-center justify-around px-2 py-2">
             {navigation.map((item) => {
               const Icon = item.icon;
@@ -196,12 +203,14 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
                   key={item.name}
                   href={item.href}
                   className={cn(
-                    "flex flex-col items-center justify-center px-3 py-2 rounded-lg transition-colors",
+                    "flex flex-col items-center justify-center rounded-lg px-3 py-2 transition-colors",
                     isActive ? "text-teal-600" : "text-slate-500"
                   )}
                 >
-                  <Icon className={cn("h-5 w-5", isActive && "text-teal-600")} />
-                  <span className="text-xs mt-1 font-medium">{item.name}</span>
+                  <Icon
+                    className={cn("h-5 w-5", isActive && "text-teal-600")}
+                  />
+                  <span className="mt-1 text-xs font-medium">{item.name}</span>
                 </Link>
               );
             })}
@@ -211,4 +220,3 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
     </div>
   );
 }
-

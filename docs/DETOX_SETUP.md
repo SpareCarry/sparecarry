@@ -5,12 +5,14 @@ This guide explains how to set up and run Detox end-to-end tests for the SpareCa
 ## Prerequisites
 
 ### Android
+
 - Android SDK installed
 - `ANDROID_HOME` environment variable set
 - Android emulator created (recommended: `Pixel_7_API_33` with API 33)
 - Java Development Kit (JDK) 11 or higher
 
 ### iOS (macOS only)
+
 - Xcode installed
 - iOS Simulator available
 - CocoaPods installed (`sudo gem install cocoapods`)
@@ -18,6 +20,7 @@ This guide explains how to set up and run Detox end-to-end tests for the SpareCa
 ## Installation
 
 1. **Install dependencies**:
+
    ```bash
    pnpm install
    ```
@@ -43,6 +46,7 @@ This guide explains how to set up and run Detox end-to-end tests for the SpareCa
    - Add Detox dependencies to `dependencies` block
 
 3. **Build for testing**:
+
    ```bash
    pnpm e2e:build:android
    ```
@@ -55,6 +59,7 @@ This guide explains how to set up and run Detox end-to-end tests for the SpareCa
 ## iOS Setup
 
 1. **Install CocoaPods dependencies**:
+
    ```bash
    cd ios/App/App
    pod install
@@ -62,6 +67,7 @@ This guide explains how to set up and run Detox end-to-end tests for the SpareCa
    ```
 
 2. **Build for testing**:
+
    ```bash
    pnpm e2e:build:ios
    ```
@@ -88,6 +94,7 @@ Tests are located in the `e2e/` directory:
 ### Detox Config (`detox.config.js`)
 
 The Detox configuration supports:
+
 - **Android**: Debug and release builds
 - **iOS**: Debug and release builds
 - **Devices**: iPhone 15 Pro simulator, Pixel 7 emulator
@@ -95,6 +102,7 @@ The Detox configuration supports:
 ### Jest Config (`e2e/jest.config.js`)
 
 Jest is used as the test runner for Detox. Configuration includes:
+
 - Test timeout: 120 seconds
 - Single worker (required for Detox)
 - Detox-specific reporters and environment
@@ -102,6 +110,7 @@ Jest is used as the test runner for Detox. Configuration includes:
 ## Running Tests
 
 ### Android
+
 ```bash
 # Build and test
 pnpm e2e:build:android
@@ -112,6 +121,7 @@ pnpm e2e:android:ci
 ```
 
 ### iOS
+
 ```bash
 # Build and test
 pnpm e2e:build:ios
@@ -126,9 +136,9 @@ pnpm e2e:ios:ci
 ### Basic Test Structure
 
 ```typescript
-import { device, expect, element, by, waitFor } from 'detox';
+import { device, expect, element, by, waitFor } from "detox";
 
-describe('Feature Name', () => {
+describe("Feature Name", () => {
   beforeAll(async () => {
     await device.launchApp();
   });
@@ -137,14 +147,14 @@ describe('Feature Name', () => {
     await device.reloadReactNative();
   });
 
-  it('should do something', async () => {
-    await waitFor(element(by.id('element-id')))
+  it("should do something", async () => {
+    await waitFor(element(by.id("element-id")))
       .toBeVisible()
       .withTimeout(5000);
-    
-    await element(by.id('element-id')).tap();
-    
-    await expect(element(by.text('Expected Text'))).toBeVisible();
+
+    await element(by.id("element-id")).tap();
+
+    await expect(element(by.text("Expected Text"))).toBeVisible();
   });
 });
 ```
@@ -168,11 +178,13 @@ describe('Feature Name', () => {
 ### Android Issues
 
 **"Emulator not found"**:
+
 - Ensure emulator is created and named correctly
 - Check `ANDROID_HOME` is set
 - Verify emulator is running: `emulator -list-avds`
 
 **"Build failed"**:
+
 - Ensure `android/app/build.gradle` includes Detox configuration
 - Check Java version: `java -version` (should be 11+)
 - Clean build: `cd android && ./gradlew clean`
@@ -180,10 +192,12 @@ describe('Feature Name', () => {
 ### iOS Issues
 
 **"Simulator not found"**:
+
 - List available simulators: `xcrun simctl list devices`
 - Boot simulator manually: `xcrun simctl boot "iPhone 15 Pro"`
 
 **"Build failed"**:
+
 - Ensure CocoaPods are installed: `pod --version`
 - Reinstall pods: `cd ios/App/App && pod install`
 - Clean build folder in Xcode
@@ -191,11 +205,13 @@ describe('Feature Name', () => {
 ### General Issues
 
 **"Tests timeout"**:
+
 - Increase timeout in `detox.config.js`
 - Check device/simulator is responsive
 - Verify app builds successfully
 
 **"Element not found"**:
+
 - Add test IDs to React components: `testID="element-id"`
 - Use accessibility labels: `accessibilityLabel="Label"`
 - Check element is actually rendered (not hidden)
@@ -238,4 +254,3 @@ describe('Feature Name', () => {
 - Integrate with CI/CD pipeline
 - Add visual regression testing
 - Set up test reporting and analytics
-

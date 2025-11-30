@@ -19,7 +19,9 @@ import { format } from "date-fns";
 export function RequestsTripsTable() {
   const supabase = createClient();
   const [searchQuery, setSearchQuery] = useState("");
-  const [filterType, setFilterType] = useState<"all" | "requests" | "trips">("all");
+  const [filterType, setFilterType] = useState<"all" | "requests" | "trips">(
+    "all"
+  );
 
   const { data: requests, isLoading: requestsLoading } = useQuery({
     queryKey: ["admin-requests", searchQuery],
@@ -35,7 +37,9 @@ export function RequestsTripsTable() {
         .order("created_at", { ascending: false });
 
       if (searchQuery) {
-        query = query.or(`title.ilike.%${searchQuery}%,from_location.ilike.%${searchQuery}%,to_location.ilike.%${searchQuery}%`);
+        query = query.or(
+          `title.ilike.%${searchQuery}%,from_location.ilike.%${searchQuery}%,to_location.ilike.%${searchQuery}%`
+        );
       }
 
       const { data, error } = await query;
@@ -59,7 +63,9 @@ export function RequestsTripsTable() {
         .order("created_at", { ascending: false });
 
       if (searchQuery) {
-        query = query.or(`from_location.ilike.%${searchQuery}%,to_location.ilike.%${searchQuery}%`);
+        query = query.or(
+          `from_location.ilike.%${searchQuery}%,to_location.ilike.%${searchQuery}%`
+        );
       }
 
       const { data, error } = await query;
@@ -83,8 +89,8 @@ export function RequestsTripsTable() {
     <div className="space-y-4">
       {/* Filters */}
       <div className="flex items-center gap-4">
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
+        <div className="relative max-w-md flex-1">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform text-slate-400" />
           <Input
             placeholder="Search by title, location..."
             value={searchQuery}
@@ -95,30 +101,30 @@ export function RequestsTripsTable() {
         <div className="flex gap-2">
           <button
             onClick={() => setFilterType("all")}
-            className={`px-4 py-2 rounded-md text-sm ${
+            className={`rounded-md px-4 py-2 text-sm ${
               filterType === "all"
                 ? "bg-teal-600 text-white"
-                : "bg-white border border-slate-200 text-slate-700"
+                : "border border-slate-200 bg-white text-slate-700"
             }`}
           >
             All
           </button>
           <button
             onClick={() => setFilterType("requests")}
-            className={`px-4 py-2 rounded-md text-sm ${
+            className={`rounded-md px-4 py-2 text-sm ${
               filterType === "requests"
                 ? "bg-teal-600 text-white"
-                : "bg-white border border-slate-200 text-slate-700"
+                : "border border-slate-200 bg-white text-slate-700"
             }`}
           >
             Requests
           </button>
           <button
             onClick={() => setFilterType("trips")}
-            className={`px-4 py-2 rounded-md text-sm ${
+            className={`rounded-md px-4 py-2 text-sm ${
               filterType === "trips"
                 ? "bg-teal-600 text-white"
-                : "bg-white border border-slate-200 text-slate-700"
+                : "border border-slate-200 bg-white text-slate-700"
             }`}
           >
             Trips
@@ -128,8 +134,8 @@ export function RequestsTripsTable() {
 
       {/* Requests Table */}
       {(filterType === "all" || filterType === "requests") && (
-        <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
-          <div className="px-4 py-3 border-b border-slate-200 bg-slate-50">
+        <div className="overflow-hidden rounded-lg border border-slate-200 bg-white">
+          <div className="border-b border-slate-200 bg-slate-50 px-4 py-3">
             <h3 className="font-semibold">Requests</h3>
           </div>
           <Table>
@@ -171,8 +177,8 @@ export function RequestsTripsTable() {
 
       {/* Trips Table */}
       {(filterType === "all" || filterType === "trips") && (
-        <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
-          <div className="px-4 py-3 border-b border-slate-200 bg-slate-50">
+        <div className="overflow-hidden rounded-lg border border-slate-200 bg-white">
+          <div className="border-b border-slate-200 bg-slate-50 px-4 py-3">
             <h3 className="font-semibold">Trips</h3>
           </div>
           <Table>
@@ -192,12 +198,12 @@ export function RequestsTripsTable() {
                   <TableCell>
                     {trip.type === "plane" ? (
                       <Badge className="bg-blue-100 text-blue-800">
-                        <Plane className="h-3 w-3 mr-1" />
+                        <Plane className="mr-1 h-3 w-3" />
                         Plane
                       </Badge>
                     ) : (
                       <Badge className="bg-teal-100 text-teal-800">
-                        <Ship className="h-3 w-3 mr-1" />
+                        <Ship className="mr-1 h-3 w-3" />
                         Boat
                       </Badge>
                     )}
@@ -228,11 +234,12 @@ export function RequestsTripsTable() {
         </div>
       )}
 
-      {((filterType === "all" || filterType === "requests") && requests?.length === 0) ||
-      ((filterType === "all" || filterType === "trips") && trips?.length === 0) ? (
-        <div className="text-center py-12 text-slate-500">No data found</div>
+      {((filterType === "all" || filterType === "requests") &&
+        requests?.length === 0) ||
+      ((filterType === "all" || filterType === "trips") &&
+        trips?.length === 0) ? (
+        <div className="py-12 text-center text-slate-500">No data found</div>
       ) : null}
     </div>
   );
 }
-

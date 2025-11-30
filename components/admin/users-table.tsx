@@ -49,7 +49,13 @@ export function UsersTable() {
   });
 
   const verifySailorMutation = useMutation({
-    mutationFn: async ({ userId, verified }: { userId: string; verified: boolean }) => {
+    mutationFn: async ({
+      userId,
+      verified,
+    }: {
+      userId: string;
+      verified: boolean;
+    }) => {
       const { error } = await supabase
         .from("profiles")
         .update({
@@ -76,8 +82,8 @@ export function UsersTable() {
     <div className="space-y-4">
       {/* Search */}
       <div className="flex items-center gap-2">
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
+        <div className="relative max-w-md flex-1">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform text-slate-400" />
           <Input
             placeholder="Search by email or boat name..."
             value={searchQuery}
@@ -88,7 +94,7 @@ export function UsersTable() {
       </div>
 
       {/* Table */}
-      <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
+      <div className="overflow-hidden rounded-lg border border-slate-200 bg-white">
         <Table>
           <TableHeader>
             <TableRow>
@@ -103,7 +109,9 @@ export function UsersTable() {
           </TableHeader>
           <TableBody>
             {users?.map((user: any) => {
-              const profile = Array.isArray(user.profiles) ? user.profiles[0] : user.profiles;
+              const profile = Array.isArray(user.profiles)
+                ? user.profiles[0]
+                : user.profiles;
               const isVerifiedSailor = !!profile?.verified_sailor_at;
               const hasBoatInfo = !!profile?.boat_name;
 
@@ -112,7 +120,9 @@ export function UsersTable() {
                   <TableCell>
                     <div>
                       <div className="font-medium">{user.email}</div>
-                      <div className="text-xs text-slate-500">{user.id.slice(0, 8)}...</div>
+                      <div className="text-xs text-slate-500">
+                        {user.id.slice(0, 8)}...
+                      </div>
                     </div>
                   </TableCell>
                   <TableCell>
@@ -123,17 +133,21 @@ export function UsersTable() {
                       <div>
                         <div className="font-medium">{profile.boat_name}</div>
                         {profile.boat_type && (
-                          <div className="text-xs text-slate-500">{profile.boat_type}</div>
+                          <div className="text-xs text-slate-500">
+                            {profile.boat_type}
+                          </div>
                         )}
                       </div>
                     ) : (
-                      <span className="text-slate-400 text-sm">No boat info</span>
+                      <span className="text-sm text-slate-400">
+                        No boat info
+                      </span>
                     )}
                   </TableCell>
                   <TableCell>
                     {profile?.stripe_identity_verified_at ? (
                       <Badge className="bg-green-100 text-green-800">
-                        <CheckCircle2 className="h-3 w-3 mr-1" />
+                        <CheckCircle2 className="mr-1 h-3 w-3" />
                         Verified
                       </Badge>
                     ) : (
@@ -145,7 +159,7 @@ export function UsersTable() {
                   <TableCell>
                     {isVerifiedSailor ? (
                       <Badge className="bg-teal-100 text-teal-800">
-                        <Ship className="h-3 w-3 mr-1" />
+                        <Ship className="mr-1 h-3 w-3" />
                         Verified Sailor
                       </Badge>
                     ) : hasBoatInfo ? (
@@ -153,7 +167,7 @@ export function UsersTable() {
                         Pending Review
                       </Badge>
                     ) : (
-                      <span className="text-slate-400 text-sm">—</span>
+                      <span className="text-sm text-slate-400">—</span>
                     )}
                   </TableCell>
                   <TableCell className="text-sm text-slate-600">
@@ -164,7 +178,10 @@ export function UsersTable() {
                       <Button
                         size="sm"
                         onClick={() =>
-                          verifySailorMutation.mutate({ userId: user.id, verified: true })
+                          verifySailorMutation.mutate({
+                            userId: user.id,
+                            verified: true,
+                          })
                         }
                         disabled={verifySailorMutation.isPending}
                         className="bg-teal-600 hover:bg-teal-700"
@@ -173,7 +190,7 @@ export function UsersTable() {
                           <Loader2 className="h-4 w-4 animate-spin" />
                         ) : (
                           <>
-                            <CheckCircle2 className="h-4 w-4 mr-1" />
+                            <CheckCircle2 className="mr-1 h-4 w-4" />
                             Verify Sailor
                           </>
                         )}
@@ -184,7 +201,10 @@ export function UsersTable() {
                         size="sm"
                         variant="outline"
                         onClick={() =>
-                          verifySailorMutation.mutate({ userId: user.id, verified: false })
+                          verifySailorMutation.mutate({
+                            userId: user.id,
+                            verified: false,
+                          })
                         }
                         disabled={verifySailorMutation.isPending}
                       >
@@ -192,7 +212,7 @@ export function UsersTable() {
                           <Loader2 className="h-4 w-4 animate-spin" />
                         ) : (
                           <>
-                            <XCircle className="h-4 w-4 mr-1" />
+                            <XCircle className="mr-1 h-4 w-4" />
                             Revoke
                           </>
                         )}
@@ -207,11 +227,8 @@ export function UsersTable() {
       </div>
 
       {users?.length === 0 && (
-        <div className="text-center py-12 text-slate-500">
-          No users found
-        </div>
+        <div className="py-12 text-center text-slate-500">No users found</div>
       )}
     </div>
   );
 }
-

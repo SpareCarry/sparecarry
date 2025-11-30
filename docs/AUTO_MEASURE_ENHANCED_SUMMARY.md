@@ -7,24 +7,28 @@ The Auto-Measure feature has been enhanced with advanced measurement techniques 
 ## New Features
 
 ### 1. Multi-Frame Averaging ✅
+
 - Captures 3 frames automatically
 - Averages measurements for better consistency
 - Reduces variance between measurements
 - Increases confidence with averaging
 
 ### 2. Tilt/Angle Correction ✅
+
 - Uses device accelerometer to detect phone tilt
 - Corrects dimensions for perspective distortion
 - Applies correction factors based on pitch and roll
 - Improves accuracy when phone is tilted
 
 ### 3. Reference Object Calibration ✅
+
 - Detects standard reference objects (credit card, coin, paper)
 - Calculates pixel-to-cm ratio from reference
 - Applies calibration to improve accuracy significantly
 - Optional feature - works without reference (fallback to estimation)
 
 ### 4. Automatic 3-Photo Capture ✅
+
 - **Main Photo**: Front view with measurement overlay
 - **Side Photo**: Second angle for volume estimation
 - **Reference Photo**: Shows reference object (if used)
@@ -33,6 +37,7 @@ The Auto-Measure feature has been enhanced with advanced measurement techniques 
 ## Files Created/Updated
 
 ### New Files
+
 1. **`modules/autoMeasure/useTiltDetection.ts`**
    - Tilt detection using accelerometer
    - Tilt correction calculations
@@ -44,6 +49,7 @@ The Auto-Measure feature has been enhanced with advanced measurement techniques 
    - Pixel-to-cm ratio computation
 
 ### Updated Files
+
 3. **`modules/autoMeasure/types.ts`**
    - Added `TiltData`, `ReferenceObject`, `MultiFrameMeasurement` types
    - Updated `CapturedPhoto` with `photoType`
@@ -79,24 +85,28 @@ The Auto-Measure feature has been enhanced with advanced measurement techniques 
 ## Technical Details
 
 ### Multi-Frame Averaging
+
 - Captures 3 frames sequentially
 - Measures each frame independently
 - Averages dimensions (length, width, height)
 - Increases confidence by 10%
 
 ### Tilt Correction
+
 - Uses accelerometer data (pitch, roll)
 - Calculates correction factor: `1 / cos(angle)`
 - Applies correction to dimensions
 - Clamps corrections to prevent extreme values
 
 ### Reference Object Calibration
+
 - Detects reference object in frame
 - Calculates pixel-to-cm ratio
 - Applies ratio to correct dimensions
 - Increases confidence by 20%
 
 ### Photo Capture Flow
+
 1. Capture main photo → measure → capture with overlay
 2. Capture side photo → measure → capture with overlay
 3. Capture reference photo (if used) → capture with overlay
@@ -140,18 +150,23 @@ The Auto-Measure feature has been enhanced with advanced measurement techniques 
 ## Accuracy Improvements
 
 ### Without Enhancements
+
 - Accuracy: ~20-30% (rough estimates)
 
 ### With Multi-Frame Averaging
+
 - Accuracy: ~25-35% (more consistent)
 
 ### With Tilt Correction
+
 - Accuracy: ~30-40% (when phone is tilted)
 
 ### With Reference Calibration
+
 - Accuracy: ~60-80% (significant improvement)
 
 ### With All Features Combined
+
 - Accuracy: ~70-85% (best accuracy)
 
 ## Known Limitations
@@ -166,6 +181,7 @@ The Auto-Measure feature has been enhanced with advanced measurement techniques 
 See `docs/AUTO_MEASURE_ENHANCED_CHECKLIST.md` for complete testing checklist.
 
 ### Quick Test
+
 1. Run mobile app: `cd apps/mobile && pnpm start`
 2. Navigate to post request form
 3. Tap "Auto-Fill Dimensions (Camera)"
@@ -215,4 +231,3 @@ See `docs/AUTO_MEASURE_ENHANCED_CHECKLIST.md` for complete testing checklist.
 **Status**: ✅ **IMPLEMENTATION COMPLETE - READY FOR TESTING**
 
 **Note**: Requires native rebuild for new dependencies (`expo-sensors`)
-

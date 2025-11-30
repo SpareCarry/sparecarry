@@ -19,6 +19,7 @@ If you're getting errors that environment variables are missing even after impor
 ### Step 2: Check Environment Scope
 
 Make sure variables are set for **ALL environments**:
+
 - ✅ Production
 - ✅ Preview
 - ✅ Development
@@ -37,6 +38,7 @@ If import didn't work, add variables manually:
 ### Step 4: Redeploy
 
 After adding/updating variables:
+
 1. Go to Deployments tab
 2. Click "..." on the latest deployment
 3. Click "Redeploy"
@@ -45,6 +47,7 @@ After adding/updating variables:
 ### Step 5: Verify Values
 
 Double-check the values match exactly what's in `vercel-env-variables.env`:
+
 - No extra spaces
 - No line breaks
 - Complete values (not truncated)
@@ -52,12 +55,15 @@ Double-check the values match exactly what's in `vercel-env-variables.env`:
 ### Common Issues
 
 **Issue**: Variables show in Vercel but build still fails
+
 - **Solution**: Make sure variables are set for **Preview** environment, not just Production
 
 **Issue**: Import says "successful" but variables don't appear
+
 - **Solution**: Refresh the page and check again, or add manually
 
 **Issue**: Some variables work but others don't
+
 - **Solution**: Check for typos in variable names (case-sensitive!)
 
 ### Quick Fix: Set All Required Variables Manually
@@ -74,4 +80,3 @@ RESEND_API_KEY=3dnauYJh_NoHEaVRYikMs4D4i96q4i9MD
 NOTIFICATIONS_EMAIL_FROM=SpareCarry <notifications@sparecarry.com>
 EXPO_ACCESS_TOKEN=WPGnB7vBBa8jcne3iCw_9RBGOUlKjv5Dq-CU_-ru
 ```
-

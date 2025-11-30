@@ -3,19 +3,27 @@
  * Shows trips and requests with infinite scroll
  */
 
-import React, { useState, useCallback, useMemo } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, RefreshControl } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useInfiniteQuery } from '@tanstack/react-query';
-import { createClient } from '@sparecarry/lib/supabase';
-import { useAuth } from '@sparecarry/hooks/useAuth';
-import { MaterialIcons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import { format } from 'date-fns';
+import React, { useState, useCallback, useMemo } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  TouchableOpacity,
+  ActivityIndicator,
+  RefreshControl,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useInfiniteQuery } from "@tanstack/react-query";
+import { createClient } from "@sparecarry/lib/supabase";
+import { useAuth } from "@sparecarry/hooks/useAuth";
+import { MaterialIcons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
+import { format } from "date-fns";
 
 interface FeedItem {
   id: string;
-  type: 'trip' | 'request';
+  type: "trip" | "request";
   from_location: string;
   to_location: string;
   departure_date?: string;
@@ -37,7 +45,10 @@ interface FeedItem {
   emergency?: boolean;
 }
 
-async function fetchFeed(page: number = 0, userId?: string): Promise<{
+async function fetchFeed(
+  page: number = 0,
+  userId?: string
+): Promise<{
   items: FeedItem[];
   hasMore: boolean;
 }> {
@@ -49,27 +60,35 @@ async function fetchFeed(page: number = 0, userId?: string): Promise<{
 
     const [tripsResult, requestsResult] = await Promise.allSettled([
       supabase
-        .from('trips')
-        .select(`
+        .from("trips")
+        .select(
+          `
           *,
           users!trips_user_id_fkey(subscription_status, supporter_status)
-        `)
-        .eq('status', 'active')
-        .order('created_at', { ascending: false })
+        `
+        )
+        .eq("status", "active")
+        .order("created_at", { ascending: false })
         .range(from, to),
       supabase
-        .from('requests')
-        .select(`
+        .from("requests")
+        .select(
+          `
           *,
           users!requests_user_id_fkey(subscription_status, supporter_status)
-        `)
-        .eq('status', 'open')
-        .order('created_at', { ascending: false })
+        `
+        )
+        .eq("status", "open")
+        .order("created_at", { ascending: false })
         .range(from, to),
     ]);
 
-    const trips = tripsResult.status === 'fulfilled' ? tripsResult.value.data || [] : [];
-    const requests = requestsResult.status === 'fulfilled' ? requestsResult.value.data || [] : [];
+    const trips =
+      tripsResult.status === "fulfilled" ? tripsResult.value.data || [] : [];
+    const requests =
+      requestsResult.status === "fulfilled"
+        ? requestsResult.value.data || []
+        : [];
 
     // Fetch profiles for verification badges
     const userIds = [
@@ -82,9 +101,9 @@ async function fetchFeed(page: number = 0, userId?: string): Promise<{
     if (uniqueUserIds.length > 0) {
       try {
         const { data: profiles } = await supabase
-          .from('profiles')
-          .select('user_id, verified_sailor_at, stripe_identity_verified_at')
-          .in('user_id', uniqueUserIds);
+          .from("profiles")
+          .select("user_id, verified_sailor_at, stripe_identity_verified_at")
+          .in("user_id", uniqueUserIds);
 
         profilesMap = new Map(
           (profiles || []).map((p: any) => [
@@ -96,7 +115,7 @@ async function fetchFeed(page: number = 0, userId?: string): Promise<{
           ])
         );
       } catch (error) {
-        console.warn('Error fetching profiles:', error);
+        console.warn("Error fetching profiles:", error);
       }
     }
 
@@ -105,13 +124,15 @@ async function fetchFeed(page: number = 0, userId?: string): Promise<{
       .map((trip: any) => {
         const profile = profilesMap.get(trip.user_id);
         const user = Array.isArray(trip.users) ? trip.users[0] : trip.users;
-        const isSubscriber = user?.subscription_status === 'active' || user?.subscription_status === 'trialing';
-        const isSupporter = user?.supporter_status === 'active';
+        const isSubscriber =
+          user?.subscription_status === "active" ||
+          user?.subscription_status === "trialing";
+        const isSupporter = user?.supporter_status === "active";
         return {
           id: trip.id,
-          type: 'trip' as const,
-          from_location: trip.from_location || '',
-          to_location: trip.to_location || '',
+          type: "trip" as const,
+          from_location: trip.from_location || "",
+          to_location: trip.to_location || "",
           departure_date: trip.departure_date,
           eta_window_start: trip.eta_window_start,
           eta_window_end: trip.eta_window_end,
@@ -131,14 +152,18 @@ async function fetchFeed(page: number = 0, userId?: string): Promise<{
       .filter((request: any) => request && request.id && request.user_id)
       .map((request: any) => {
         const profile = profilesMap.get(request.user_id);
-        const user = Array.isArray(request.users) ? request.users[0] : request.users;
-        const isSubscriber = user?.subscription_status === 'active' || user?.subscription_status === 'trialing';
-        const isSupporter = user?.supporter_status === 'active';
+        const user = Array.isArray(request.users)
+          ? request.users[0]
+          : request.users;
+        const isSubscriber =
+          user?.subscription_status === "active" ||
+          user?.subscription_status === "trialing";
+        const isSupporter = user?.supporter_status === "active";
         return {
           id: request.id,
-          type: 'request' as const,
-          from_location: request.from_location || '',
-          to_location: request.to_location || '',
+          type: "request" as const,
+          from_location: request.from_location || "",
+          to_location: request.to_location || "",
           deadline_earliest: request.deadline_earliest,
           deadline_latest: request.deadline_latest,
           max_reward: request.max_reward,
@@ -161,7 +186,9 @@ async function fetchFeed(page: number = 0, userId?: string): Promise<{
       if (a.match_score && b.match_score) {
         return b.match_score - a.match_score;
       }
-      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      return (
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      );
     });
 
     return {
@@ -169,7 +196,7 @@ async function fetchFeed(page: number = 0, userId?: string): Promise<{
       hasMore: allItems.length >= pageSize,
     };
   } catch (error) {
-    console.error('Error in fetchFeed:', error);
+    console.error("Error in fetchFeed:", error);
     return {
       items: [],
       hasMore: false,
@@ -177,81 +204,83 @@ async function fetchFeed(page: number = 0, userId?: string): Promise<{
   }
 }
 
-const FeedItemCard = React.memo(({ item, onPress }: { item: FeedItem; onPress: () => void }) => {
-  const isTrip = item.type === 'trip';
-  const dateStr = isTrip
-    ? item.departure_date
-      ? format(new Date(item.departure_date), 'MMM d, yyyy')
-      : item.eta_window_start
-        ? `${format(new Date(item.eta_window_start), 'MMM d')} - ${format(new Date(item.eta_window_end || item.eta_window_start), 'MMM d')}`
-        : 'Flexible'
-    : item.deadline_latest
-      ? `Deadline: ${format(new Date(item.deadline_latest), 'MMM d, yyyy')}`
-      : 'No deadline';
+const FeedItemCard = React.memo(
+  ({ item, onPress }: { item: FeedItem; onPress: () => void }) => {
+    const isTrip = item.type === "trip";
+    const dateStr = isTrip
+      ? item.departure_date
+        ? format(new Date(item.departure_date), "MMM d, yyyy")
+        : item.eta_window_start
+          ? `${format(new Date(item.eta_window_start), "MMM d")} - ${format(new Date(item.eta_window_end || item.eta_window_start), "MMM d")}`
+          : "Flexible"
+      : item.deadline_latest
+        ? `Deadline: ${format(new Date(item.deadline_latest), "MMM d, yyyy")}`
+        : "No deadline";
 
-  return (
-    <TouchableOpacity style={styles.card} onPress={onPress}>
-      <View style={styles.cardHeader}>
-        <View style={styles.cardHeaderLeft}>
-          <MaterialIcons
-            name={isTrip ? 'flight' : 'inventory-2'}
-            size={24}
-            color="#14b8a6"
-          />
-          <View style={styles.badgeContainer}>
-            {item.user_supporter ? (
-              <View style={[styles.badge, styles.supporterBadge]}>
-                <MaterialIcons name="star" size={12} color="#fff" />
-              </View>
-            ) : null}
-            {item.user_verified_identity ? (
-              <View style={[styles.badge, styles.verifiedBadge]}>
-                <MaterialIcons name="verified" size={12} color="#fff" />
-              </View>
-            ) : null}
-            {item.emergency ? (
-              <View style={[styles.badge, styles.emergencyBadge]}>
-                <MaterialIcons name="flash-on" size={12} color="#fff" />
-              </View>
-            ) : null}
+    return (
+      <TouchableOpacity style={styles.card} onPress={onPress}>
+        <View style={styles.cardHeader}>
+          <View style={styles.cardHeaderLeft}>
+            <MaterialIcons
+              name={isTrip ? "flight" : "inventory-2"}
+              size={24}
+              color="#14b8a6"
+            />
+            <View style={styles.badgeContainer}>
+              {item.user_supporter ? (
+                <View style={[styles.badge, styles.supporterBadge]}>
+                  <MaterialIcons name="star" size={12} color="#fff" />
+                </View>
+              ) : null}
+              {item.user_verified_identity ? (
+                <View style={[styles.badge, styles.verifiedBadge]}>
+                  <MaterialIcons name="verified" size={12} color="#fff" />
+                </View>
+              ) : null}
+              {item.emergency ? (
+                <View style={[styles.badge, styles.emergencyBadge]}>
+                  <MaterialIcons name="flash-on" size={12} color="#fff" />
+                </View>
+              ) : null}
+            </View>
           </View>
+          {item.match_score && item.match_score > 0 ? (
+            <View style={styles.matchScore}>
+              <Text style={styles.matchScoreText}>{item.match_score}</Text>
+            </View>
+          ) : null}
         </View>
-        {item.match_score && item.match_score > 0 ? (
-          <View style={styles.matchScore}>
-            <Text style={styles.matchScoreText}>{item.match_score}</Text>
-          </View>
-        ) : null}
-      </View>
 
-      <View style={styles.cardBody}>
-        <Text style={styles.locationText}>
-          {item.from_location || 'Unknown'} → {item.to_location || 'Unknown'}
-        </Text>
-        <Text style={styles.dateText}>{dateStr || 'No date'}</Text>
+        <View style={styles.cardBody}>
+          <Text style={styles.locationText}>
+            {item.from_location || "Unknown"} → {item.to_location || "Unknown"}
+          </Text>
+          <Text style={styles.dateText}>{dateStr || "No date"}</Text>
 
-        {isTrip ? (
-          <View style={styles.capacityRow}>
-            <Text style={styles.capacityText}>
-              {item.spare_kg ? `${item.spare_kg}kg` : 'Capacity available'}
-            </Text>
-            {item.spare_volume_liters ? (
+          {isTrip ? (
+            <View style={styles.capacityRow}>
               <Text style={styles.capacityText}>
-                {item.spare_volume_liters}L
+                {item.spare_kg ? `${item.spare_kg}kg` : "Capacity available"}
               </Text>
-            ) : null}
-          </View>
-        ) : (
-          <View style={styles.rewardRow}>
-            <MaterialIcons name="attach-money" size={16} color="#14b8a6" />
-            <Text style={styles.rewardText}>
-              ${item.max_reward?.toFixed(0) || '0'}
-            </Text>
-          </View>
-        )}
-      </View>
-    </TouchableOpacity>
-  );
-});
+              {item.spare_volume_liters ? (
+                <Text style={styles.capacityText}>
+                  {item.spare_volume_liters}L
+                </Text>
+              ) : null}
+            </View>
+          ) : (
+            <View style={styles.rewardRow}>
+              <MaterialIcons name="attach-money" size={16} color="#14b8a6" />
+              <Text style={styles.rewardText}>
+                ${item.max_reward?.toFixed(0) || "0"}
+              </Text>
+            </View>
+          )}
+        </View>
+      </TouchableOpacity>
+    );
+  }
+);
 
 export default function BrowseScreen() {
   const router = useRouter();
@@ -270,7 +299,7 @@ export default function BrowseScreen() {
     items: FeedItem[];
     hasMore: boolean;
   }>({
-    queryKey: ['feed', user?.id],
+    queryKey: ["feed", user?.id],
     queryFn: ({ pageParam = 0 }) => fetchFeed(pageParam as number, user?.id),
     getNextPageParam: (lastPage, pages) => {
       return lastPage.hasMore ? pages.length : undefined;
@@ -290,7 +319,7 @@ export default function BrowseScreen() {
     (item: FeedItem) => {
       // Navigate to detail screen
       router.push({
-        pathname: '/feed-detail',
+        pathname: "/feed-detail",
         params: {
           id: item.id,
           type: item.type,
@@ -354,14 +383,17 @@ export default function BrowseScreen() {
         <View style={styles.emptyActions}>
           <TouchableOpacity
             style={styles.emptyActionButton}
-            onPress={() => router.push('/(tabs)/post-request')}
+            onPress={() => router.push("/(tabs)/post-request")}
           >
             <MaterialIcons name="add-circle" size={20} color="#fff" />
             <Text style={styles.emptyActionButtonText}>Post Request</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.emptyActionButton, styles.emptyActionButtonSecondary]}
-            onPress={() => router.push('/(tabs)/post-trip')}
+            style={[
+              styles.emptyActionButton,
+              styles.emptyActionButtonSecondary,
+            ]}
+            onPress={() => router.push("/(tabs)/post-trip")}
           >
             <MaterialIcons name="flight-takeoff" size={20} color="#14b8a6" />
             <Text
@@ -379,7 +411,7 @@ export default function BrowseScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top']}>
+    <SafeAreaView style={styles.safeArea} edges={["top"]}>
       <FlatList
         data={items}
         renderItem={renderItem}
@@ -403,16 +435,16 @@ export default function BrowseScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#f9fafb',
+    backgroundColor: "#f9fafb",
   },
   container: {
     flex: 1,
-    backgroundColor: '#f9fafb',
+    backgroundColor: "#f9fafb",
   },
   centerContainer: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     padding: 20,
   },
   listContent: {
@@ -420,180 +452,180 @@ const styles = StyleSheet.create({
     paddingBottom: 100,
   },
   card: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
   },
   cardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 12,
   },
   cardHeaderLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 8,
   },
   badgeContainer: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 4,
   },
   badge: {
     width: 18,
     height: 18,
     borderRadius: 9,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   supporterBadge: {
-    backgroundColor: '#f59e0b',
+    backgroundColor: "#f59e0b",
   },
   verifiedBadge: {
-    backgroundColor: '#14b8a6',
+    backgroundColor: "#14b8a6",
   },
   emergencyBadge: {
-    backgroundColor: '#ef4444',
+    backgroundColor: "#ef4444",
   },
   matchScore: {
-    backgroundColor: '#14b8a6',
+    backgroundColor: "#14b8a6",
     borderRadius: 12,
     paddingHorizontal: 8,
     paddingVertical: 4,
   },
   matchScoreText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 12,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   cardBody: {
     gap: 8,
   },
   locationText: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
+    fontWeight: "600",
+    color: "#333",
   },
   dateText: {
     fontSize: 14,
-    color: '#666',
+    color: "#666",
   },
   capacityRow: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 12,
     marginTop: 4,
-    flexWrap: 'wrap',
+    flexWrap: "wrap",
   },
   capacityBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 4,
-    backgroundColor: '#e0f7fa',
+    backgroundColor: "#e0f7fa",
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 6,
   },
   capacityText: {
     fontSize: 14,
-    color: '#14b8a6',
-    fontWeight: '500',
+    color: "#14b8a6",
+    fontWeight: "500",
   },
   rewardRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 8,
     marginTop: 4,
-    flexWrap: 'wrap',
+    flexWrap: "wrap",
   },
   rewardText: {
     fontSize: 16,
-    fontWeight: 'bold',
-    color: '#14b8a6',
+    fontWeight: "bold",
+    color: "#14b8a6",
   },
   emergencyTag: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 4,
-    backgroundColor: '#ef4444',
+    backgroundColor: "#ef4444",
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 6,
   },
   emergencyTagText: {
     fontSize: 11,
-    color: '#fff',
-    fontWeight: '600',
+    color: "#fff",
+    fontWeight: "600",
   },
   footer: {
     padding: 20,
-    alignItems: 'center',
+    alignItems: "center",
   },
   loadingText: {
     marginTop: 12,
     fontSize: 16,
-    color: '#666',
+    color: "#666",
   },
   errorText: {
     marginTop: 12,
     fontSize: 16,
-    color: '#ef4444',
-    fontWeight: '600',
+    color: "#ef4444",
+    fontWeight: "600",
   },
   retryButton: {
     marginTop: 16,
-    backgroundColor: '#14b8a6',
+    backgroundColor: "#14b8a6",
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 8,
   },
   retryButtonText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   emptyText: {
     marginTop: 12,
     fontSize: 18,
-    fontWeight: '600',
-    color: '#333',
+    fontWeight: "600",
+    color: "#333",
   },
   emptySubtext: {
     marginTop: 8,
     fontSize: 14,
-    color: '#666',
-    textAlign: 'center',
+    color: "#666",
+    textAlign: "center",
   },
   emptyActions: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 12,
     marginTop: 24,
   },
   emptyActionButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 8,
-    backgroundColor: '#14b8a6',
+    backgroundColor: "#14b8a6",
     paddingHorizontal: 20,
     paddingVertical: 12,
     borderRadius: 8,
   },
   emptyActionButtonSecondary: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderWidth: 1,
-    borderColor: '#14b8a6',
+    borderColor: "#14b8a6",
   },
   emptyActionButtonText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   emptyActionButtonTextSecondary: {
-    color: '#14b8a6',
+    color: "#14b8a6",
   },
 });

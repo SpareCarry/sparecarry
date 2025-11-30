@@ -4,7 +4,10 @@ import { Button } from "../ui/button";
 import { Card, CardContent } from "../ui/card";
 import { ExternalLink, Package, Copy, Check } from "lucide-react";
 import { useState } from "react";
-import { generatePurchaseLink, formatShippingAddress } from "../../lib/affiliate/affiliate-links";
+import {
+  generatePurchaseLink,
+  formatShippingAddress,
+} from "../../lib/affiliate/affiliate-links";
 
 interface PurchaseLinkButtonProps {
   retailer: "west_marine" | "svb" | "amazon";
@@ -35,7 +38,11 @@ export function PurchaseLinkButton({
 }: PurchaseLinkButtonProps) {
   const [copied, setCopied] = useState(false);
 
-  const purchaseLink = generatePurchaseLink(retailer, itemTitle, travelerAddress);
+  const purchaseLink = generatePurchaseLink(
+    retailer,
+    itemTitle,
+    travelerAddress
+  );
   const formattedAddress = travelerAddress
     ? formatShippingAddress(travelerAddress)
     : null;
@@ -58,19 +65,19 @@ export function PurchaseLinkButton({
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h4 className="font-semibold text-slate-900 flex items-center gap-2">
+              <h4 className="flex items-center gap-2 font-semibold text-slate-900">
                 <Package className="h-4 w-4" />
                 Purchase from {retailerNames[retailer]}
               </h4>
-              <p className="text-sm text-slate-600 mt-1">
+              <p className="mt-1 text-sm text-slate-600">
                 Buy and ship directly to your traveler
               </p>
             </div>
           </div>
 
           {travelerAddress && (
-            <div className="p-3 bg-slate-50 border border-slate-200 rounded-md">
-              <div className="flex items-start justify-between mb-2">
+            <div className="rounded-md border border-slate-200 bg-slate-50 p-3">
+              <div className="mb-2 flex items-start justify-between">
                 <p className="text-xs font-medium text-slate-700">
                   Shipping Address:
                 </p>
@@ -83,18 +90,18 @@ export function PurchaseLinkButton({
                 >
                   {copied ? (
                     <>
-                      <Check className="h-3 w-3 mr-1" />
+                      <Check className="mr-1 h-3 w-3" />
                       Copied!
                     </>
                   ) : (
                     <>
-                      <Copy className="h-3 w-3 mr-1" />
+                      <Copy className="mr-1 h-3 w-3" />
                       Copy
                     </>
                   )}
                 </Button>
               </div>
-              <pre className="text-xs text-slate-600 whitespace-pre-wrap font-sans">
+              <pre className="whitespace-pre-wrap font-sans text-xs text-slate-600">
                 {formattedAddress}
               </pre>
             </div>
@@ -109,7 +116,7 @@ export function PurchaseLinkButton({
           </Button>
 
           {!travelerAddress && (
-            <p className="text-xs text-slate-500 text-center">
+            <p className="text-center text-xs text-slate-500">
               Shipping address will be available after traveler confirms match
             </p>
           )}
@@ -118,4 +125,3 @@ export function PurchaseLinkButton({
     </Card>
   );
 }
-

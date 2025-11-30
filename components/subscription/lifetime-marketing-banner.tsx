@@ -50,15 +50,16 @@ export function LifetimeMarketingBanner() {
     queryKey: ["lifetime-remaining-spots-banner"],
     queryFn: async () => {
       try {
-        const { data, error } = await supabase
-          .rpc("get_lifetime_purchase_count");
-        
+        const { data, error } = await supabase.rpc(
+          "get_lifetime_purchase_count"
+        );
+
         if (error) return null;
-        
+
         // Handle both single result and array result
         const result = Array.isArray(data) ? data[0] : data;
         const currentCount = (result as { total?: number })?.total || 0;
-        return Math.max(0, 1000 - currentCount);
+        return Math.max(0, 100 - currentCount);
       } catch {
         return null;
       }
@@ -71,7 +72,12 @@ export function LifetimeMarketingBanner() {
   // - User has lifetime
   // - Not available
   // - More than 150 spots remaining
-  if (profileData?.lifetime_active || !available || !remainingSpots || remainingSpots > 150) {
+  if (
+    profileData?.lifetime_active ||
+    !available ||
+    !remainingSpots ||
+    remainingSpots > 150
+  ) {
     return null;
   }
 
@@ -80,17 +86,18 @@ export function LifetimeMarketingBanner() {
   };
 
   return (
-    <div className="bg-gradient-to-r from-orange-50 via-red-50 to-pink-50 border border-orange-200 rounded-lg p-4 mb-6">
+    <div className="mb-6 rounded-lg border border-orange-200 bg-gradient-to-r from-orange-50 via-red-50 to-pink-50 p-4">
       <div className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-3 flex-1">
+        <div className="flex flex-1 items-center gap-3">
           <div className="flex-shrink-0">
             <Flame className="h-6 w-6 text-orange-600" />
           </div>
           <div className="flex-1">
             <p className="text-sm font-semibold text-slate-900">
-              🔥 Only {remainingSpots} Lifetime {remainingSpots === 1 ? 'spot' : 'spots'} left!
+              🔥 Only {remainingSpots} Lifetime{" "}
+              {remainingSpots === 1 ? "spot" : "spots"} left!
             </p>
-            <p className="text-xs text-slate-600 mt-1">
+            <p className="mt-1 text-xs text-slate-600">
               Become a founding supporter
             </p>
           </div>
@@ -98,7 +105,7 @@ export function LifetimeMarketingBanner() {
         <Button
           onClick={handleClick}
           size="sm"
-          className="bg-gradient-to-r from-blue-600 to-teal-600 hover:from-blue-700 hover:to-teal-700 text-white flex-shrink-0"
+          className="flex-shrink-0 bg-gradient-to-r from-blue-600 to-teal-600 text-white hover:from-blue-700 hover:to-teal-700"
         >
           <Infinity className="mr-1 h-4 w-4" />
           Get Lifetime
@@ -107,4 +114,3 @@ export function LifetimeMarketingBanner() {
     </div>
   );
 }
-

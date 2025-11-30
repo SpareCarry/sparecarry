@@ -2,7 +2,7 @@ import { defineConfig, devices } from "@playwright/test";
 
 /**
  * Playwright Configuration for E2E Tests
- * 
+ *
  * Run tests with:
  * - `npm run test:e2e` - Run all E2E tests
  * - `npm run test:e2e:ui` - Run with Playwright UI
@@ -20,7 +20,7 @@ export default defineConfig({
     ["list"],
   ],
   timeout: 90000, // 90 second timeout per test (increased for slower pages)
-  
+
   use: {
     baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL || "http://localhost:3000",
     trace: "on-first-retry",
@@ -29,7 +29,7 @@ export default defineConfig({
     actionTimeout: 15000, // 15 second timeout for actions (increased)
     navigationTimeout: 45000, // 45 second timeout for navigation (increased)
   },
-  
+
   // Global setup/teardown
   // globalSetup: "./tests/e2e/setup/global-setup.ts",
   // globalTeardown: "./tests/e2e/setup/global-teardown.ts",
@@ -56,7 +56,7 @@ export default defineConfig({
     url: "http://localhost:3000",
     reuseExistingServer: !process.env.CI,
     timeout: 120 * 1000,
-    stdout: 'ignore',
-    stderr: 'pipe',
+    stdout: "ignore",
+    stderr: "pipe",
   },
 });

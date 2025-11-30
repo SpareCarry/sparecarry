@@ -18,26 +18,20 @@ serve(async (req) => {
   try {
     // Only allow POST requests
     if (req.method !== "POST") {
-      return new Response(
-        JSON.stringify({ error: "Method not allowed" }),
-        {
-          headers: { "Content-Type": "application/json" },
-          status: 405,
-        }
-      );
+      return new Response(JSON.stringify({ error: "Method not allowed" }), {
+        headers: { "Content-Type": "application/json" },
+        status: 405,
+      });
     }
 
     // Parse request body
     const { idea_id }: RequestBody = await req.json();
 
     if (!idea_id) {
-      return new Response(
-        JSON.stringify({ error: "idea_id is required" }),
-        {
-          headers: { "Content-Type": "application/json" },
-          status: 400,
-        }
-      );
+      return new Response(JSON.stringify({ error: "idea_id is required" }), {
+        headers: { "Content-Type": "application/json" },
+        status: 400,
+      });
     }
 
     // Create Supabase admin client
@@ -51,24 +45,18 @@ serve(async (req) => {
       .single();
 
     if (ideaError || !idea) {
-      return new Response(
-        JSON.stringify({ error: "Idea not found" }),
-        {
-          headers: { "Content-Type": "application/json" },
-          status: 404,
-        }
-      );
+      return new Response(JSON.stringify({ error: "Idea not found" }), {
+        headers: { "Content-Type": "application/json" },
+        status: 404,
+      });
     }
 
     // Check if already accepted
     if (idea.status === "accepted") {
-      return new Response(
-        JSON.stringify({ error: "Idea already accepted" }),
-        {
-          headers: { "Content-Type": "application/json" },
-          status: 400,
-        }
-      );
+      return new Response(JSON.stringify({ error: "Idea already accepted" }), {
+        headers: { "Content-Type": "application/json" },
+        status: 400,
+      });
     }
 
     // Update idea status to accepted
@@ -112,7 +100,7 @@ serve(async (req) => {
       .select("email")
       .eq("id", idea.user_id)
       .single();
-    
+
     const userEmail = userData?.email || idea.user_id;
 
     // Send push notification if token exists
@@ -139,7 +127,10 @@ serve(async (req) => {
         });
 
         if (!pushResponse.ok) {
-          console.warn("Failed to send push notification:", await pushResponse.text());
+          console.warn(
+            "Failed to send push notification:",
+            await pushResponse.text()
+          );
         }
       } catch (pushError) {
         console.error("Error sending push notification:", pushError);
@@ -150,7 +141,9 @@ serve(async (req) => {
     // Send email notification (fallback)
     // You can integrate with Resend or your email service here
     // For now, we'll just log it
-    console.log(`Would send email to ${userEmail} about accepted idea ${idea_id}`);
+    console.log(
+      `Would send email to ${userEmail} about accepted idea ${idea_id}`
+    );
 
     // Log analytics event
     try {
@@ -184,8 +177,8 @@ serve(async (req) => {
   } catch (error: any) {
     console.error("Error in accept-idea-and-grant-reward:", error);
     return new Response(
-      JSON.stringify({ 
-        error: error.message || "Failed to accept idea and grant reward" 
+      JSON.stringify({
+        error: error.message || "Failed to accept idea and grant reward",
       }),
       {
         headers: { "Content-Type": "application/json" },
@@ -194,4 +187,3 @@ serve(async (req) => {
     );
   }
 });
-

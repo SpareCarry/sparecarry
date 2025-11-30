@@ -24,12 +24,14 @@ This document provides a comprehensive step-by-step testing checklist for the Sp
 ### Prerequisites Checklist
 
 - [ ] **Node.js & pnpm installed**
+
   ```bash
   node --version  # Should be v18+ or v20+
   pnpm --version  # Should be v8+
   ```
 
 - [ ] **Expo CLI installed globally** (optional, but recommended)
+
   ```bash
   npm install -g expo-cli
   ```
@@ -54,11 +56,13 @@ This document provides a comprehensive step-by-step testing checklist for the Sp
 ### Step 1: Check Environment Variables
 
 - [ ] **Navigate to project root**
+
   ```bash
   cd C:\SpareCarry
   ```
 
 - [ ] **Verify `.env` file exists in root**
+
   ```bash
   # Windows PowerShell
   Test-Path .env
@@ -66,17 +70,19 @@ This document provides a comprehensive step-by-step testing checklist for the Sp
   ```
 
 - [ ] **Check required environment variables are set**
+
   ```bash
   # Windows PowerShell
   Get-Content .env | Select-String "SUPABASE"
   ```
-  
+
   Required variables:
   - [ ] `EXPO_PUBLIC_SUPABASE_URL` (or `NEXT_PUBLIC_SUPABASE_URL`)
   - [ ] `EXPO_PUBLIC_SUPABASE_ANON_KEY` (or `NEXT_PUBLIC_SUPABASE_ANON_KEY`)
   - [ ] `EXPO_PUBLIC_EAS_PROJECT_ID` (optional, for push notifications)
 
 - [ ] **Sync environment variables to mobile app**
+
   ```bash
   cd apps/mobile
   pnpm sync-env
@@ -91,12 +97,14 @@ This document provides a comprehensive step-by-step testing checklist for the Sp
 ### Step 2: Install Dependencies
 
 - [ ] **Install root dependencies**
+
   ```bash
   cd C:\SpareCarry
   pnpm install
   ```
 
 - [ ] **Install mobile app dependencies**
+
   ```bash
   cd apps/mobile
   pnpm install
@@ -111,6 +119,7 @@ This document provides a comprehensive step-by-step testing checklist for the Sp
 ### Step 3: Clear Caches
 
 - [ ] **Clear Metro bundler cache**
+
   ```bash
   cd apps/mobile
   pnpm start:clear
@@ -119,6 +128,7 @@ This document provides a comprehensive step-by-step testing checklist for the Sp
   ```
 
 - [ ] **Clear Expo cache** (if issues persist)
+
   ```bash
   expo start --clear
   ```
@@ -136,6 +146,7 @@ This document provides a comprehensive step-by-step testing checklist for the Sp
 ### Step 1: Start Metro Bundler
 
 - [ ] **Start Expo development server**
+
   ```bash
   cd apps/mobile
   pnpm start
@@ -159,6 +170,7 @@ This document provides a comprehensive step-by-step testing checklist for the Sp
 #### Option A: LAN Connection (Recommended for Development)
 
 - [ ] **Get your computer's LAN IP address**
+
   ```bash
   cd apps/mobile
   pnpm get-lan-ip
@@ -180,6 +192,7 @@ This document provides a comprehensive step-by-step testing checklist for the Sp
 #### Option B: Tunnel Connection (For Testing Outside LAN)
 
 - [ ] **Start with tunnel mode**
+
   ```bash
   cd apps/mobile
   expo start --tunnel
@@ -467,6 +480,7 @@ This document provides a comprehensive step-by-step testing checklist for the Sp
 ### Step 1: Test LAN Connection
 
 - [ ] **Verify LAN IP is correct**
+
   ```bash
   pnpm get-lan-ip
   # Should show your computer's local IP
@@ -486,6 +500,7 @@ This document provides a comprehensive step-by-step testing checklist for the Sp
 ### Step 2: Test Tunnel Connection
 
 - [ ] **Start tunnel mode**
+
   ```bash
   expo start --tunnel
   ```
@@ -559,10 +574,12 @@ This document provides a comprehensive step-by-step testing checklist for the Sp
 ### Issue: "Project is incompatible with this version of Expo Go"
 
 **Symptoms:**
+
 - Error message when opening app in Expo Go
 - SDK version mismatch
 
 **Solutions:**
+
 - [ ] Check Expo SDK version in `apps/mobile/package.json`
 - [ ] Update to match Expo Go version (currently SDK 54)
 - [ ] Run `pnpm install` to update dependencies
@@ -571,10 +588,12 @@ This document provides a comprehensive step-by-step testing checklist for the Sp
 ### Issue: "React version mismatch"
 
 **Symptoms:**
+
 - Warning: `react@18.3.1 - expected version: 19.1.0`
 - App may not work correctly
 
 **Solutions:**
+
 - [ ] Verify `apps/mobile/package.json` has `react: "19.1.0"`
 - [ ] Check `metro.config.js` prioritizes local `node_modules`
 - [ ] Remove `workspaceRoot` from `nodeModulesPaths` in Metro config
@@ -583,10 +602,12 @@ This document provides a comprehensive step-by-step testing checklist for the Sp
 ### Issue: "Cannot read properties of undefined (reading 'hasMagic')"
 
 **Symptoms:**
+
 - Metro bundler error
 - App fails to bundle
 
 **Solutions:**
+
 - [ ] Check `metro.config.js` has custom resolver for `expo-router/entry`
 - [ ] Verify `unstable_enablePackageExports = false`
 - [ ] Clear cache: `expo start --clear`
@@ -595,10 +616,12 @@ This document provides a comprehensive step-by-step testing checklist for the Sp
 ### Issue: "404 Page Not Found" on Mobile
 
 **Symptoms:**
+
 - App shows 404 screen
 - Navigation fails
 
 **Solutions:**
+
 - [ ] Check Metro terminal for 404 log (should show route)
 - [ ] Verify route exists in `apps/mobile/app/` directory
 - [ ] Check `_layout.tsx` registers all routes
@@ -607,10 +630,12 @@ This document provides a comprehensive step-by-step testing checklist for the Sp
 ### Issue: "500 Internal Server Error"
 
 **Symptoms:**
+
 - App shows 500 error
 - API calls fail
 
 **Solutions:**
+
 - [ ] Check Metro terminal for error details
 - [ ] Verify Supabase environment variables are set
 - [ ] Check Supabase client initialization logs
@@ -620,10 +645,12 @@ This document provides a comprehensive step-by-step testing checklist for the Sp
 ### Issue: "Supabase client initialization failed"
 
 **Symptoms:**
+
 - Error: `Missing Supabase environment variables`
 - Authentication doesn't work
 
 **Solutions:**
+
 - [ ] Verify `.env` file exists in root
 - [ ] Check `EXPO_PUBLIC_SUPABASE_URL` is set
 - [ ] Check `EXPO_PUBLIC_SUPABASE_ANON_KEY` is set
@@ -633,9 +660,11 @@ This document provides a comprehensive step-by-step testing checklist for the Sp
 ### Issue: "expo-notifications auto-load warning"
 
 **Symptoms:**
+
 - Warning about expo-notifications in Expo Go
 
 **Solutions:**
+
 - [ ] Verify `usePushNotifications` lazy-loads the module
 - [ ] Check hook only loads when needed
 - [ ] Warning is expected in Expo Go (not an error)
@@ -643,10 +672,12 @@ This document provides a comprehensive step-by-step testing checklist for the Sp
 ### Issue: "App shows blank white screen"
 
 **Symptoms:**
+
 - App loads but shows nothing
 - No errors visible
 
 **Solutions:**
+
 - [ ] Check Metro terminal for errors
 - [ ] Verify `_layout.tsx` renders correctly
 - [ ] Check if error boundary caught an error
@@ -656,10 +687,12 @@ This document provides a comprehensive step-by-step testing checklist for the Sp
 ### Issue: "Metro bundler won't start"
 
 **Symptoms:**
+
 - `expo start` fails
 - Port 8081 already in use
 
 **Solutions:**
+
 - [ ] Kill process on port 8081:
   ```bash
   # Windows
@@ -701,9 +734,9 @@ OS Version: ___________
 Expo Go Version: ___________
 
 Issues Found:
-1. 
-2. 
-3. 
+1.
+2.
+3.
 
 Features Tested:
 - [ ] App Startup
@@ -737,4 +770,3 @@ If you encounter issues not covered in this checklist:
 
 **Last Updated:** 2024-12-19
 **Version:** 1.0.0
-

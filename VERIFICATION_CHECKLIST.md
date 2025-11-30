@@ -11,6 +11,7 @@
 ## Verification Steps
 
 ### 1. Check React Resolution Path
+
 ```bash
 cd C:\SpareCarry\apps\mobile
 node -e "console.log('React from:', require.resolve('react'))"
@@ -21,6 +22,7 @@ node -e "console.log('React from:', require.resolve('react'))"
 **If it shows root node_modules**: The fix may need pnpm reinstall
 
 ### 2. Verify pnpm Dependency Tree
+
 ```bash
 cd C:\SpareCarry
 pnpm why react | Select-Object -First 20
@@ -29,12 +31,14 @@ pnpm why react | Select-Object -First 20
 **Expected**: Should show React 18.3.1 resolved consistently
 
 ### 3. Start Metro Bundler
+
 ```bash
 cd C:\SpareCarry\apps\mobile
 npx expo start -c
 ```
 
 **Expected**:
+
 - ✅ Bundling completes successfully
 - ✅ No "Unable to resolve" errors
 - ✅ QR code displays
@@ -42,6 +46,7 @@ npx expo start -c
 ### 4. Check Console Logs (in Metro output)
 
 Look for these log messages:
+
 ```
 === REACT RESOLUTION CHECK ===
 React resolved from: ...apps/mobile/node_modules/react...
@@ -51,12 +56,14 @@ Is React from mobile app node_modules? true
 ```
 
 **If you see**: `⚠️ WARNING: Multiple React instances detected!`
+
 - This means the fix didn't work completely
 - Check Metro config and pnpm overrides
 
 ### 5. Load App in Expo Go
 
 **Expected**:
+
 - ✅ No red error screen
 - ✅ No "Variant Violation" error
 - ✅ App loads and renders
@@ -66,10 +73,12 @@ Is React from mobile app node_modules? true
 ### 6. Test Hook Usage
 
 Navigate to pages that use:
+
 - `@sparecarry/ui` components (LocationInput, etc.)
 - `@sparecarry/hooks` (useAuth, useLocation, etc.)
 
 **Expected**:
+
 - ✅ Components render without errors
 - ✅ Hooks work correctly
 - ✅ No "Invalid hook call" errors
@@ -86,6 +95,7 @@ Navigate to pages that use:
 ## If Issues Persist
 
 1. **Clear all caches**:
+
    ```bash
    cd C:\SpareCarry\apps\mobile
    Remove-Item -Recurse -Force .expo -ErrorAction SilentlyContinue
@@ -94,6 +104,7 @@ Navigate to pages that use:
    ```
 
 2. **Full reinstall**:
+
    ```bash
    cd C:\SpareCarry
    Remove-Item -Recurse -Force node_modules -ErrorAction SilentlyContinue
@@ -109,4 +120,3 @@ Navigate to pages that use:
 4. **Check pnpm overrides**:
    - Verify global `react: 18.3.1` override exists
    - Verify `react-dom: 18.3.1` override exists
-

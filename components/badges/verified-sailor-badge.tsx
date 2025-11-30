@@ -21,7 +21,7 @@ export function VerifiedSailorBadge({
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1 rounded-full bg-blue-100 text-blue-800 font-medium",
+        "inline-flex items-center gap-1 rounded-full bg-blue-100 font-medium text-blue-800",
         sizeClasses[size],
         className
       )}
@@ -32,4 +32,3 @@ export function VerifiedSailorBadge({
     </span>
   );
 }
-

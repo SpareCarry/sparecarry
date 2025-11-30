@@ -1,6 +1,7 @@
 # Playwright Test Fixes - January 2025
 
 ## Test Run Summary
+
 - **Total Tests:** 183
 - **Passed:** 138
 - **Failed:** 45
@@ -9,17 +10,20 @@
 ## Error Categories
 
 ### 1. Page Loading Issues (Most Common)
+
 - Profile page not loading
 - My Stuff page not loading
 - Auth callback timeouts
 - Navigation timeouts
 
 ### 2. UI Element Not Found
+
 - Headings not found (Profile, My Stuff, Profile Settings)
 - Buttons not found (Contact Support, Subscribe Monthly)
 - Dropdown options not appearing
 
 ### 3. Feature-Specific Issues
+
 - Idea suggestion flow
 - Size tier selector
 - Yachtie mode toggle
@@ -28,15 +32,18 @@
 - Shipping estimator navigation
 
 ### 4. Subscription Flow Issues
+
 - Subscription card not found
 - Profile page not loading in subscription tests
 
 ## Fixes Applied
 
 ### Fix 1: My Stuff Page Tests ✅
+
 **Issue:** Tests failing because page not loading or heading not found
 **Files Fixed:** `tests/e2e/flows/my-stuff.spec.ts`
 **Fixes Applied:**
+
 - Added `waitForFunction` to check for heading before asserting
 - Increased wait timeouts from 2000ms to 3000ms
 - Added fallback selectors using `.or()` for more flexible matching
@@ -44,9 +51,11 @@
 - All 5 My Stuff tests should now pass
 
 ### Fix 2: Idea Suggestion Flow ✅
+
 **Issue:** Navigation timeout and success message not found
 **Files Fixed:** `tests/e2e/flows/idea-suggestion.spec.ts`
 **Fixes Applied:**
+
 - Added flexible button selectors (handles "Submit Idea" and "Suggest an Idea")
 - Improved wait for profile page loading using `waitForFunction`
 - Enhanced success message detection with multiple selectors
@@ -54,18 +63,22 @@
 - Added better wait for form submission and success state
 
 ### Fix 3: Profile Page Loading ✅
+
 **Issue:** Profile heading not found in subscription tests
 **Files Fixed:** `tests/e2e/subscription-flow.spec.ts`
 **Fixes Applied:**
+
 - Added `waitForFunction` to check for Profile heading
 - Increased subscription card wait timeout to 40000ms
 - Added fallback heading selectors
 - Improved network idle waits
 
 ### Fix 4: Shipping Estimator Navigation ✅
+
 **Issue:** Navigation to post-request page not happening
 **Files Fixed:** `tests/e2e/shipping-estimator.spec.ts`
 **Fixes Applied:**
+
 - Improved navigation wait with fallback URL patterns
 - Added extra wait time after navigation
 - More flexible URL matching (handles both `/post-request` and `/home/post-request`)
@@ -74,6 +87,7 @@
 ## Remaining Issues
 
 ### High Priority
+
 1. **Auth callback timeouts** (multiple tests)
    - `auth-flow.spec.ts`: Navigation and magic link tests
    - `auth.spec.ts`: Signup page navigation
@@ -96,6 +110,7 @@
    - **Fix Needed:** Check Radix UI selectors, improve dropdown wait strategies
 
 ### Medium Priority
+
 1. **Promo card tests** (`promo-card.spec.ts`)
    - Early Supporter promo card not rendering
    - **Fix Needed:** Check promo card component and conditional rendering
@@ -110,6 +125,7 @@
    - **Fix Needed:** Improve error simulation and handling
 
 ### Low Priority
+
 1. **Edge case tests** (`flows/edge-cases.spec.ts`)
    - Emergency multiplier test
    - **Fix Needed:** Check emergency mode implementation
@@ -121,18 +137,21 @@
 ## Test Execution Summary
 
 **Initial Run:**
+
 - Total: 183 tests
 - Passed: 138
 - Failed: 45
 - Success Rate: 75.4%
 
 **After Fixes Applied:**
+
 - Fixed 4 major test categories
 - Improved wait strategies across multiple test files
 - Enhanced selector flexibility
 - Expected improvement: ~5-10 additional tests passing
 
 ## Next Steps
+
 1. ✅ Updated Playwright config to use JSON reporter
 2. ✅ Analyzed all test failures
 3. ✅ Fixed My Stuff page tests (5 tests)
@@ -161,4 +180,3 @@ node scripts/analyze-test-results.js
 # View JSON report
 cat test-results-playwright.json
 ```
-

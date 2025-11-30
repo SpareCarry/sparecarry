@@ -62,6 +62,7 @@ Helper scripts for building and deploying mobile apps locally.
 ### Android
 
 **Beta (Internal Testing):**
+
 ```bash
 chmod +x scripts/release/android-release.sh
 export GOOGLE_PLAY_JSON_KEY_FILE=/path/to/key.json
@@ -69,6 +70,7 @@ export GOOGLE_PLAY_JSON_KEY_FILE=/path/to/key.json
 ```
 
 **Release (Production):**
+
 ```bash
 ./scripts/release/android-release.sh release
 ```
@@ -76,6 +78,7 @@ export GOOGLE_PLAY_JSON_KEY_FILE=/path/to/key.json
 ### iOS
 
 **Beta (TestFlight):**
+
 ```bash
 chmod +x scripts/release/ios-release.sh
 export APPLE_ID=your-apple-id@example.com
@@ -84,6 +87,7 @@ export APPLE_TEAM_ID=your-team-id
 ```
 
 **Release (App Store):**
+
 ```bash
 ./scripts/release/ios-release.sh release
 ```
@@ -91,10 +95,12 @@ export APPLE_TEAM_ID=your-team-id
 ## Build Artifacts
 
 ### Android
+
 - AAB: `android/app/build/outputs/bundle/release/app-release.aab`
 - APK: `android/app/build/outputs/apk/release/app-release.apk`
 
 ### iOS
+
 - IPA: `ios/App/App/Build/App.ipa`
 - dSYM: `ios/App/App/Build/App.app.dSYM.zip`
 
@@ -103,10 +109,12 @@ export APPLE_TEAM_ID=your-team-id
 ### Android
 
 **Error: Keystore not found**
+
 - Ensure `android/keystore.properties` exists
 - Check that keystore path is correct
 
 **Error: Google Play authentication failed**
+
 - Verify JSON key file path
 - Check service account has correct permissions
 - Ensure JSON key is valid
@@ -114,11 +122,13 @@ export APPLE_TEAM_ID=your-team-id
 ### iOS
 
 **Error: Provisioning profile not found**
+
 - Configure signing in Xcode
 - Ensure provisioning profile is installed
 - Check team ID matches
 
 **Error: App Store Connect authentication failed**
+
 - Verify API key file exists
 - Check Key ID and Issuer ID
 - Ensure API key has correct permissions
@@ -128,14 +138,15 @@ export APPLE_TEAM_ID=your-team-id
 If scripts fail, you can run steps manually:
 
 ### Android
+
 ```bash
 cd android
 fastlane android beta  # or release
 ```
 
 ### iOS
+
 ```bash
 cd ios
 fastlane ios beta  # or release
 ```
-

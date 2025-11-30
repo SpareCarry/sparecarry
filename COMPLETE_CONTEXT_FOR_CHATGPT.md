@@ -3,6 +3,7 @@
 ## PROJECT OVERVIEW
 
 **Monorepo**: SpareCarry (pnpm workspace)
+
 - **Root**: `C:\SpareCarry`
 - **Mobile App**: `apps/mobile` (Expo SDK 54)
 - **Shared Packages**: `packages/ui`, `packages/hooks`, `packages/lib`
@@ -15,6 +16,7 @@
 **Invariant Violation** red error screen in Expo Go when app tries to load.
 
 **Symptoms**:
+
 - Metro bundling succeeds: "Android Bundled 12163ms apps\mobile\index.js (1673 modules)"
 - QR code displays correctly
 - Metro server runs without errors
@@ -26,10 +28,12 @@
 ### Phase 1: React Version Compatibility (FIXED)
 
 **Problem**: PlatformConstants TurboModuleRegistry error
+
 - React 19.1.0 incompatible with Expo SDK 54
 - Expo Go has React 18 baked into native binary
 
 **Fixes Applied**:
+
 1. Downgraded React from 19.1.0 → 18.3.1 across all packages
 2. Updated `apps/mobile/package.json`, `packages/ui/package.json`, `packages/hooks/package.json`
 3. Updated root `package.json` overrides
@@ -40,10 +44,12 @@
 ### Phase 2: Module Resolution (FIXED)
 
 **Problem**: "Unable to resolve ../../../../lib/services/shipping"
+
 - Shipping service in root `lib/` folder, not in workspace packages
 - Metro couldn't resolve root-level imports
 
 **Fixes Applied**:
+
 1. Created `apps/mobile/index.js` entry shim: `import 'expo-router/entry'`
 2. Updated `package.json` main to `"./index.js"`
 3. Added Metro aliases: `@root-lib`, `@root-src`, `@root-config`, `@root-utils`
@@ -58,10 +64,12 @@
 ### Phase 3: Multiple React Instances (ATTEMPTED - STILL FAILING)
 
 **Problem**: Variant/Invariant Violation at runtime
+
 - React resolving from root `node_modules` instead of mobile app's `node_modules`
 - Multiple React instances causing hook registry mismatch
 
 **Diagnostic Results**:
+
 ```
 React resolved from: C:\SpareCarry\node_modules\.pnpm\react@18.3.1\node_modules\react\index.js
 Expected: C:\SpareCarry\apps\mobile\node_modules\react\index.js
@@ -70,6 +78,7 @@ Expected: C:\SpareCarry\apps\mobile\node_modules\react\index.js
 **Fixes Applied**:
 
 1. **Metro Configuration** (`apps/mobile/metro.config.js`):
+
    ```javascript
    extraNodeModules: {
      // Explicitly map React packages to mobile app's node_modules
@@ -80,6 +89,7 @@ Expected: C:\SpareCarry\apps\mobile\node_modules\react\index.js
    ```
 
 2. **pnpm Overrides** (`package.json`):
+
    ```json
    "pnpm": {
      "overrides": {
@@ -106,6 +116,7 @@ Expected: C:\SpareCarry\apps\mobile\node_modules\react\index.js
 ## CURRENT CONFIGURATION
 
 ### apps/mobile/package.json
+
 ```json
 {
   "name": "@sparecarry/mobile",
@@ -126,43 +137,44 @@ Expected: C:\SpareCarry\apps\mobile\node_modules\react\index.js
 ```
 
 ### apps/mobile/metro.config.js
+
 ```javascript
-const { getDefaultConfig } = require('expo/metro-config');
-const path = require('path');
+const { getDefaultConfig } = require("expo/metro-config");
+const path = require("path");
 
 const projectRoot = path.resolve(__dirname);
-const workspaceRoot = path.resolve(projectRoot, '../..');
+const workspaceRoot = path.resolve(projectRoot, "../..");
 
 const config = getDefaultConfig(projectRoot);
 
 config.watchFolders = [
-  path.resolve(workspaceRoot, 'packages'),
-  path.resolve(workspaceRoot, 'node_modules'),
-  path.resolve(workspaceRoot, 'lib'),
-  path.resolve(workspaceRoot, 'src'),
-  path.resolve(workspaceRoot, 'config'),
-  path.resolve(workspaceRoot, 'utils'),
+  path.resolve(workspaceRoot, "packages"),
+  path.resolve(workspaceRoot, "node_modules"),
+  path.resolve(workspaceRoot, "lib"),
+  path.resolve(workspaceRoot, "src"),
+  path.resolve(workspaceRoot, "config"),
+  path.resolve(workspaceRoot, "utils"),
 ];
 
 config.resolver = {
   ...config.resolver,
   nodeModulesPaths: [
-    path.resolve(projectRoot, 'node_modules'),
-    path.resolve(workspaceRoot, 'node_modules'),
+    path.resolve(projectRoot, "node_modules"),
+    path.resolve(workspaceRoot, "node_modules"),
   ],
   // Force React, React-DOM, and React-Native to resolve from mobile app's node_modules
   extraNodeModules: {
-    'react': path.join(projectRoot, 'node_modules', 'react'),
-    'react-dom': path.join(projectRoot, 'node_modules', 'react-dom'),
-    'react-native': path.join(projectRoot, 'node_modules', 'react-native'),
+    react: path.join(projectRoot, "node_modules", "react"),
+    "react-dom": path.join(projectRoot, "node_modules", "react-dom"),
+    "react-native": path.join(projectRoot, "node_modules", "react-native"),
   },
   alias: {
-    '@root-lib': path.resolve(workspaceRoot, 'lib'),
-    '@root-src': path.resolve(workspaceRoot, 'src'),
-    '@root-config': path.resolve(workspaceRoot, 'config'),
-    '@root-utils': path.resolve(workspaceRoot, 'utils'),
+    "@root-lib": path.resolve(workspaceRoot, "lib"),
+    "@root-src": path.resolve(workspaceRoot, "src"),
+    "@root-config": path.resolve(workspaceRoot, "config"),
+    "@root-utils": path.resolve(workspaceRoot, "utils"),
   },
-  sourceExts: [...config.resolver.sourceExts, 'cjs', 'ts', 'tsx'],
+  sourceExts: [...config.resolver.sourceExts, "cjs", "ts", "tsx"],
 };
 
 config.transformer = {
@@ -179,31 +191,34 @@ module.exports = config;
 ```
 
 ### apps/mobile/index.js
+
 ```javascript
 // apps/mobile/index.js
-import 'expo-router/entry';
+import "expo-router/entry";
 ```
 
-### apps/mobile/app/_layout.tsx (partial)
+### apps/mobile/app/\_layout.tsx (partial)
+
 ```typescript
 // Add aggressive logging at module level
-import '../lib/debug-mode';
+import "../lib/debug-mode";
 
 // React resolution diagnostic (temporary)
 try {
-  const reactCheck = require('../debug/checkReact');
-  console.log('React diagnostic loaded:', reactCheck);
+  const reactCheck = require("../debug/checkReact");
+  console.log("React diagnostic loaded:", reactCheck);
 } catch (e) {
-  console.warn('Could not load React diagnostic:', e.message);
+  console.warn("Could not load React diagnostic:", e.message);
 }
 
-import { Stack, useRouter, useSegments } from 'expo-router';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { useEffect } from 'react';
+import { Stack, useRouter, useSegments } from "expo-router";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { useEffect } from "react";
 // ... rest of layout
 ```
 
 ### Root package.json (pnpm section)
+
 ```json
 {
   "pnpm": {
@@ -226,6 +241,7 @@ import { useEffect } from 'react';
 ### Workspace Packages
 
 **packages/ui/package.json**:
+
 ```json
 {
   "peerDependencies": {
@@ -240,6 +256,7 @@ import { useEffect } from 'react';
 ```
 
 **packages/hooks/package.json**:
+
 ```json
 {
   "peerDependencies": {
@@ -326,6 +343,7 @@ A solution that:
 ## ERROR DETAILS NEEDED
 
 To help diagnose, we need:
+
 - Exact error message from Expo Go (screenshot text)
 - Console logs from Metro bundler
 - React resolution path at runtime (from checkReact.js)
@@ -341,4 +359,3 @@ Please provide:
 4. **Verification**: How to confirm the fix works at runtime in Expo Go?
 
 We've tried configuration fixes but the invariant violation persists. We need a deeper solution that addresses the root cause of multiple React instances in the monorepo + Expo Go environment.
-

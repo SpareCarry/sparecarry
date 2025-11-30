@@ -16,6 +16,7 @@ A comprehensive GitHub Actions CI pipeline has been created for SpareCarry that 
 ### File: `.github/workflows/ci.yml`
 
 **Features**:
+
 - Matrix strategy: Node 18/20 × Ubuntu/macOS
 - 6 parallel jobs for maximum efficiency
 - No secrets required - uses mocks
@@ -64,12 +65,14 @@ A comprehensive GitHub Actions CI pipeline has been created for SpareCarry that 
 - **`docker-compose.test.yml`** - Docker Compose configuration
 
 **Features**:
+
 - Based on official Playwright image
 - Includes all dependencies
 - Pre-built Next.js app
 - Consistent test environment
 
 **Usage**:
+
 ```bash
 # Run E2E tests in Docker
 pnpm test:e2e:docker
@@ -91,6 +94,7 @@ docker-compose -f docker-compose.test.yml up
 ### Features
 
 **Mock Client Provides**:
+
 - Authentication methods (getUser, signIn, signOut)
 - Database queries (select, insert, update, delete)
 - Filtering (eq, neq, gt, gte, lt, lte, or)
@@ -98,11 +102,13 @@ docker-compose -f docker-compose.test.yml up
 - Storage operations
 
 **Automatic Activation**:
+
 - Enabled in CI (`CI=true`)
 - Enabled with `SUPABASE_MOCK_MODE=true`
 - Enabled with test Supabase URL
 
 **Data Management**:
+
 - In-memory data store
 - `seedMockData()` - Seed test data
 - `resetMockDataStore()` - Reset between tests
@@ -145,12 +151,14 @@ matrix:
 ```
 
 **Combinations**:
+
 - Node 18 × Ubuntu
 - Node 18 × macOS
 - Node 20 × Ubuntu
 - Node 20 × macOS
 
 **Exclusions**:
+
 - Some combinations excluded for efficiency
 - iOS builds only on macOS
 
@@ -298,31 +306,37 @@ Push/PR
 ## 12. Running Locally ✅
 
 ### Run Tests
+
 ```bash
 pnpm test
 ```
 
 ### Run E2E Tests
+
 ```bash
 pnpm test:e2e
 ```
 
 ### Run in Docker
+
 ```bash
 pnpm test:e2e:docker
 ```
 
 ### Type Checks
+
 ```bash
 pnpm typecheck:all
 ```
 
 ### Build Next.js
+
 ```bash
 pnpm build
 ```
 
 ### Build Mobile
+
 ```bash
 # Android
 pnpm mobile:build
@@ -336,6 +350,7 @@ pnpm mobile:ios
 ## 13. CI Status Badge ✅
 
 Add to README.md:
+
 ```markdown
 ![CI](https://github.com/your-org/sparecarry/workflows/CI/badge.svg)
 ```
@@ -418,4 +433,3 @@ The SpareCarry application now has a **production-ready CI pipeline** that ensur
 
 **Report Generated**: November 20, 2025  
 **Status**: ✅ **COMPLETE**
-

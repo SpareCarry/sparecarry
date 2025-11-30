@@ -2,11 +2,11 @@
 
 /**
  * Generate splash screens for iOS and Android
- * 
+ *
  * Requirements:
  * - ImageMagick installed (brew install imagemagick on Mac)
  * - Source splash: public/splash-source.png (2732x2732px PNG with teal anchor logo centered)
- * 
+ *
  * Usage: node scripts/generate-splash.js
  */
 
@@ -43,7 +43,9 @@ function checkImageMagick() {
     execSync("which convert", { stdio: "ignore" });
     return true;
   } catch {
-    console.error("❌ ImageMagick not found. Install with: brew install imagemagick");
+    console.error(
+      "❌ ImageMagick not found. Install with: brew install imagemagick"
+    );
     return false;
   }
 }
@@ -51,7 +53,9 @@ function checkImageMagick() {
 function checkSourceSplash() {
   if (!fs.existsSync(SOURCE_SPLASH)) {
     console.error(`❌ Source splash not found: ${SOURCE_SPLASH}`);
-    console.error("   Please create a 2732x2732px PNG with your teal anchor logo centered");
+    console.error(
+      "   Please create a 2732x2732px PNG with your teal anchor logo centered"
+    );
     return false;
   }
   return true;
@@ -82,7 +86,10 @@ function main() {
   }
 
   // Create output directories
-  const iosDir = path.join(__dirname, "../ios/App/App/Assets.xcassets/Splash.imageset");
+  const iosDir = path.join(
+    __dirname,
+    "../ios/App/App/Assets.xcassets/Splash.imageset"
+  );
   const androidBaseDir = path.join(__dirname, "../android/app/src/main/res");
 
   // Generate iOS splash screens
@@ -113,4 +120,3 @@ function main() {
 }
 
 main();
-

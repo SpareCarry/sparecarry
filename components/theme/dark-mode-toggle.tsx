@@ -40,10 +40,12 @@ export function DarkModeToggle() {
     setMounted(true);
     // Check localStorage for theme preference
     const savedTheme = localStorage.getItem("theme");
-    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    const prefersDark = window.matchMedia(
+      "(prefers-color-scheme: dark)"
+    ).matches;
     const shouldBeDark = savedTheme === "dark" || (!savedTheme && prefersDark);
     setIsDark(shouldBeDark);
-    
+
     if (shouldBeDark) {
       document.documentElement.classList.add("dark");
     } else {
@@ -54,14 +56,16 @@ export function DarkModeToggle() {
   const toggleTheme = () => {
     if (!isSupporter) {
       // Show message that this is supporter-only
-      alert("Dark mode is an exclusive feature for Supporters. Become a Supporter to unlock this and more!");
+      alert(
+        "Dark mode is an exclusive feature for Supporters. Become a Supporter to unlock this and more!"
+      );
       return;
     }
 
     const newIsDark = !isDark;
     setIsDark(newIsDark);
     localStorage.setItem("theme", newIsDark ? "dark" : "light");
-    
+
     if (newIsDark) {
       document.documentElement.classList.add("dark");
     } else {
@@ -85,12 +89,7 @@ export function DarkModeToggle() {
       title={isSupporter ? "Toggle dark mode" : "Dark mode (Supporter only)"}
       className={!isSupporter ? "opacity-50" : ""}
     >
-      {isDark ? (
-        <Sun className="h-4 w-4" />
-      ) : (
-        <Moon className="h-4 w-4" />
-      )}
+      {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
     </Button>
   );
 }
-

@@ -6,6 +6,7 @@
 ## ✅ Completed Fixes
 
 ### 1. Build Errors - ALL FIXED ✅
+
 - ✅ Fixed `karma_points` type definition in `types/supabase.ts` (added to User, UserInsert, UserUpdate)
 - ✅ Fixed `awardKarma.ts` - removed type alias, using inline update
 - ✅ Fixed `subscriptionUtils.ts` - added type assertions for Supabase queries
@@ -18,10 +19,12 @@
 **Result:** `pnpm build` now completes successfully with no errors!
 
 ### 2. Playwright Configuration - FIXED ✅
+
 - ✅ Enabled `webServer` in `playwright.config.ts` to auto-start dev server
 - ✅ This fixes all 147 `ERR_CONNECTION_REFUSED` errors
 
 **Configuration:**
+
 ```typescript
 webServer: {
   command: "pnpm dev",
@@ -34,6 +37,7 @@ webServer: {
 ```
 
 ### 3. Test Helper Functions - CREATED ✅
+
 - ✅ Created `tests/e2e/helpers/test-helpers.ts` with reusable functions:
   - `selectCountry()` - Handles country selection with proper waiting
   - `clickAndWaitForNavigation()` - Handles button clicks with navigation waiting
@@ -41,6 +45,7 @@ webServer: {
   - `waitForNavigation()` - Navigation waiting helper
 
 ### 4. Test Files Updated - PARTIALLY DONE
+
 - ✅ `tests/e2e/shipping-estimator.spec.ts` - Updated to use helpers
 - ✅ `tests/e2e/flows/beta-testing-flow.spec.ts` - Updated country selects
 - ✅ `tests/e2e/flows/edge-cases.spec.ts` - Updated country selects
@@ -50,6 +55,7 @@ webServer: {
 - ✅ `tests/e2e/lifetime/test_lifetime_limit_reached.spec.ts` - Fixed navigation timeouts
 
 ### 5. Critical Component Fixes - COMPLETED ✅
+
 - ✅ **Subscription Card Visibility** - Fixed `subscription-card.tsx` to always render title even if queries fail
   - Added error handling to user query with `throwOnError: false`
   - Card always renders "SpareCarry Pro" title for tests
@@ -63,12 +69,15 @@ webServer: {
 ## 🔄 Remaining Work
 
 ### Test Files Still Needing Updates
+
 These files may have similar patterns that need fixing:
+
 - [ ] All other test files in `tests/e2e/` directory
 - [ ] Check for other form interaction patterns
 - [ ] Check for navigation/button click patterns
 
 ### Known Test Issues (from initial run)
+
 1. **Country Select Timeouts** - ✅ Fixed with helper function
 2. **Subscription Card Not Appearing** - ✅ Fixed - card always renders now
 3. **Location Form Labels** - ✅ Fixed - improved wait conditions
@@ -80,10 +89,13 @@ These files may have similar patterns that need fixing:
 ## 📋 Next Steps When You Return
 
 1. **Run Full Test Suite:**
+
    ```bash
    pnpm test:e2e
    ```
+
    Or with report:
+
    ```bash
    pnpm test:e2e:with-report
    ```
@@ -107,12 +119,14 @@ These files may have similar patterns that need fixing:
 ## 📁 Key Files Created/Modified
 
 ### New Files:
+
 - `tests/e2e/helpers/test-helpers.ts` - Shared test utilities
 - `test-errors-comprehensive.txt` - Error documentation
 - `TEST_FIXES_PROGRESS.md` - Progress tracking
 - `scripts/run-tests-and-save-errors.js` - Test runner script
 
 ### Modified Files:
+
 - `playwright.config.ts` - Added webServer config
 - `types/supabase.ts` - Added karma_points
 - `src/utils/awardKarma.ts` - Fixed typing
@@ -177,6 +191,7 @@ npx playwright test tests/e2e/shipping-estimator.spec.ts
 ## 🚨 User Action Required
 
 **To fix ChunkLoadError and button handlers:**
+
 1. Restart dev server: `pnpm run dev` (or `pnpm dev`)
 2. Chunks will regenerate automatically
 3. Buttons should work after restart
@@ -184,6 +199,7 @@ npx playwright test tests/e2e/shipping-estimator.spec.ts
 ## ✅ Latest Fixes (2025-01-28 - Part 2)
 
 ### Navigation Buttons Fixed
+
 - **Problem**: Navigation buttons in `/home` page sidebar/bottom nav weren't working
 - **Root Cause**: `event.preventDefault()` was blocking Link navigation, and `router.push()` was failing silently
 - **Fix**: Removed `event.preventDefault()` - now using Next.js Link's built-in navigation
@@ -193,4 +209,3 @@ npx playwright test tests/e2e/shipping-estimator.spec.ts
 **Note:** This project uses `pnpm`, not `npm`. Always use `pnpm` commands.
 
 Ready to run full test suite to verify fixes!
-

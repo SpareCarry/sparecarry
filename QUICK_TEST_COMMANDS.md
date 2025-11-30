@@ -23,7 +23,7 @@ npx tsx scripts/test-all-features.ts
 ✅ **Database Tables** - All tables exist and are queryable  
 ✅ **Matching Algorithm** - Matching logic works  
 ✅ **Payment Intent Creation** - Can create Stripe payment intents  
-✅ **Notification Services** - Expo/Resend configured  
+✅ **Notification Services** - Expo/Resend configured
 
 ## ⚡ Quick Commands
 
@@ -58,4 +58,3 @@ node -e "const { stripe } = require('./lib/stripe/server'); stripe.balance.retri
 # Test API endpoints
 curl http://localhost:3000/api/matches/auto-match -X POST -H "Content-Type: application/json" -d '{"test":true}'
 ```
-

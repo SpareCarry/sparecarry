@@ -187,4 +187,3 @@ export interface ApiErrorResponse {
   code?: string;
   details?: Record<string, unknown>;
 }
-

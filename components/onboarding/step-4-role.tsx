@@ -1,11 +1,21 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "../ui/button";
 import { Card, CardContent } from "../ui/card";
+import { Label } from "../ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
 import { createClient } from "../../lib/supabase/client";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { Loader2, Plane, Ship, Package, Users } from "lucide-react";
+import { CURRENCIES } from "../../lib/utils/currency";
+import { COUNTRIES, COUNTRY_TO_CURRENCY } from "../../lib/utils/countries";
 
 interface OnboardingStep4Props {
   onComplete: () => void;
@@ -44,9 +54,18 @@ const roles = [
 
 export function OnboardingStep4({ onComplete }: OnboardingStep4Props) {
   const [selectedRole, setSelectedRole] = useState<string | null>(null);
+  const [selectedCountry, setSelectedCountry] = useState<string>("");
+  const [selectedCurrency, setSelectedCurrency] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const supabase = createClient() as SupabaseClient;
+
+  // Auto-set currency when country changes
+  useEffect(() => {
+    if (selectedCountry && COUNTRY_TO_CURRENCY[selectedCountry]) {
+      setSelectedCurrency(COUNTRY_TO_CURRENCY[selectedCountry]);
+    }
+  }, [selectedCountry]);
 
   const handleSubmit = async () => {
     if (!selectedRole) {
@@ -72,6 +91,33 @@ export function OnboardingStep4({ onComplete }: OnboardingStep4Props) {
 
       if (updateError) throw updateError;
 
+      // Update profile with country and currency (if provided)
+      if (selectedCountry || selectedCurrency) {
+        const profileUpdates: {
+          country_of_residence?: string;
+          preferred_currency?: string;
+        } = {};
+        if (selectedCountry) {
+          profileUpdates.country_of_residence = selectedCountry;
+        }
+        if (selectedCurrency) {
+          profileUpdates.preferred_currency = selectedCurrency;
+        }
+
+        const { error: profileError } = await supabase
+          .from("profiles")
+          .update(profileUpdates)
+          .eq("user_id", user.id);
+
+        if (profileError) {
+          console.warn(
+            "Failed to update profile with country/currency:",
+            profileError
+          );
+          // Don't block onboarding if this fails
+        }
+      }
+
       onComplete();
     } catch (err) {
       const message =
@@ -85,13 +131,16 @@ export function OnboardingStep4({ onComplete }: OnboardingStep4Props) {
   return (
     <div className="space-y-6">
       <div className="space-y-2">
-        <h3 className="text-lg font-semibold text-slate-900">Choose Your Primary Role</h3>
+        <h3 className="text-lg font-semibold text-slate-900">
+          Choose Your Primary Role
+        </h3>
         <p className="text-slate-600">
-          Select how you&apos;ll primarily use CarrySpace. You can change this later.
+          Select how you&apos;ll primarily use CarrySpace. You can change this
+          later.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         {roles.map((role) => {
           const Icon = role.icon;
           const isSelected = selectedRole === role.id;
@@ -101,7 +150,7 @@ export function OnboardingStep4({ onComplete }: OnboardingStep4Props) {
               key={role.id}
               className={`cursor-pointer transition-all ${
                 isSelected
-                  ? "ring-2 ring-teal-600 border-teal-600"
+                  ? "border-teal-600 ring-2 ring-teal-600"
                   : "border-slate-200 hover:border-slate-300"
               } ${role.color}`}
               onClick={() => setSelectedRole(role.id)}
@@ -109,18 +158,18 @@ export function OnboardingStep4({ onComplete }: OnboardingStep4Props) {
               <CardContent className="pt-6">
                 <div className="flex items-start gap-4">
                   <div
-                    className={`p-2 rounded-lg ${
+                    className={`rounded-lg p-2 ${
                       isSelected ? "bg-teal-600 text-white" : "bg-white/50"
                     }`}
                   >
                     <Icon className="h-6 w-6" />
                   </div>
                   <div className="flex-1">
-                    <h4 className="font-semibold mb-1">{role.title}</h4>
+                    <h4 className="mb-1 font-semibold">{role.title}</h4>
                     <p className="text-sm opacity-80">{role.description}</p>
                   </div>
                   {isSelected && (
-                    <div className="h-5 w-5 rounded-full bg-teal-600 flex items-center justify-center">
+                    <div className="flex h-5 w-5 items-center justify-center rounded-full bg-teal-600">
                       <div className="h-2 w-2 rounded-full bg-white" />
                     </div>
                   )}
@@ -131,8 +180,60 @@ export function OnboardingStep4({ onComplete }: OnboardingStep4Props) {
         })}
       </div>
 
+      {/* Country and Currency Selection (Optional) */}
+      <div className="space-y-4 border-t border-slate-200 pt-4">
+        <div className="space-y-2">
+          <Label htmlFor="country" className="text-sm font-medium">
+            Country of Residence{" "}
+            <span className="font-normal text-slate-400">(Optional)</span>
+          </Label>
+          <p className="text-xs text-slate-500">
+            This helps us show prices in your local currency. You can change
+            this anytime in settings.
+          </p>
+          <Select value={selectedCountry} onValueChange={setSelectedCountry}>
+            <SelectTrigger id="country">
+              <SelectValue placeholder="Select your country" />
+            </SelectTrigger>
+            <SelectContent>
+              {COUNTRIES.map((country) => (
+                <SelectItem key={country.code} value={country.code}>
+                  {country.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {selectedCurrency && (
+          <div className="space-y-2">
+            <Label htmlFor="currency" className="text-sm font-medium">
+              Preferred Currency
+            </Label>
+            <Select
+              value={selectedCurrency}
+              onValueChange={setSelectedCurrency}
+            >
+              <SelectTrigger id="currency">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {Object.values(CURRENCIES).map((currency) => (
+                  <SelectItem key={currency.code} value={currency.code}>
+                    {currency.symbol} {currency.name} ({currency.code})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-slate-500">
+              Auto-selected based on your country. You can change it if needed.
+            </p>
+          </div>
+        )}
+      </div>
+
       {error && (
-        <div className="p-3 rounded-md bg-red-50 text-red-800 border border-red-200 text-sm">
+        <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-800">
           {error}
         </div>
       )}
@@ -154,4 +255,3 @@ export function OnboardingStep4({ onComplete }: OnboardingStep4Props) {
     </div>
   );
 }
-

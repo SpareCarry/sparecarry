@@ -293,4 +293,3 @@ export function generateBoatDeclarationPDF(data: BoatDeclarationData): void {
   printWindow.document.write(htmlContent);
   printWindow.document.close();
 }
-

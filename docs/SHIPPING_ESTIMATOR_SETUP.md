@@ -16,22 +16,26 @@ The Shipping Cost Estimator allows users to compare courier shipping prices with
 ## Files Created
 
 ### Data Files
+
 - `assets/data/courierRates.json` - Courier pricing data
 - `assets/data/countryCustoms.json` - Customs duty rates by country
 - `assets/data/countryPresets.json` - Default dimensions/weight per country
 
 ### Utility Files
+
 - `src/utils/courierRates.ts` - Courier price calculations
 - `src/utils/customsRates.ts` - Customs cost calculations
 - `src/utils/countryPresets.ts` - Country preset helpers
 - `src/utils/shippingEstimator.ts` - Main estimation logic
 
 ### UI Files
+
 - `app/shipping-estimator/page.tsx` - Shipping estimator screen
 - Updated `components/forms/post-request-form.tsx` - Accepts prefill data
 - Updated `components/layout/main-layout.tsx` - Added navigation link
 
 ### Tests
+
 - `tests/e2e/shipping-estimator.spec.ts` - E2E Playwright tests
 
 ## Setup Instructions
@@ -39,6 +43,7 @@ The Shipping Cost Estimator allows users to compare courier shipping prices with
 ### 1. Verify JSON Data Files
 
 Ensure these files exist in your project:
+
 ```
 assets/data/courierRates.json
 assets/data/countryCustoms.json
@@ -48,6 +53,7 @@ assets/data/countryPresets.json
 ### 2. Configure TypeScript (if needed)
 
 If TypeScript complains about importing JSON, ensure `tsconfig.json` includes:
+
 ```json
 {
   "compilerOptions": {
@@ -60,6 +66,7 @@ If TypeScript complains about importing JSON, ensure `tsconfig.json` includes:
 ### 3. Verify Navigation
 
 The shipping estimator should appear in the main navigation menu. Check `components/layout/main-layout.tsx`:
+
 ```typescript
 { name: "Shipping Estimator", href: "/shipping-estimator", icon: Calculator }
 ```
@@ -67,6 +74,7 @@ The shipping estimator should appear in the main navigation menu. Check `compone
 ### 4. Test the Feature
 
 #### Manual Testing:
+
 1. Navigate to `/shipping-estimator`
 2. Select origin country (e.g., "AU")
 3. Select destination country (e.g., "ID") - should auto-fill dimensions
@@ -76,6 +84,7 @@ The shipping estimator should appear in the main navigation menu. Check `compone
 7. Verify job creation form is pre-filled
 
 #### Automated Testing:
+
 ```bash
 # Run Playwright tests
 npx playwright test tests/e2e/shipping-estimator.spec.ts
@@ -113,6 +122,7 @@ npx playwright test
 #### Modify Courier Rates
 
 Edit `assets/data/courierRates.json`:
+
 ```json
 {
   "DHL": {
@@ -125,6 +135,7 @@ Edit `assets/data/courierRates.json`:
 #### Modify Customs Rates
 
 Edit `assets/data/countryCustoms.json`:
+
 ```json
 {
   "AU": { "duty_rate": 0.05, "processing_fee": 15 }
@@ -134,6 +145,7 @@ Edit `assets/data/countryCustoms.json`:
 #### Modify Country Presets
 
 Edit `assets/data/countryPresets.json`:
+
 ```json
 {
   "AU": {
@@ -148,6 +160,7 @@ Edit `assets/data/countryPresets.json`:
 #### Adjust SpareCarry Pricing Formulas
 
 Edit `src/utils/shippingEstimator.ts`:
+
 ```typescript
 // Plane: 2.0 * weight + 6
 export function calculateSpareCarryPlanePrice(weight: number): number {
@@ -192,6 +205,7 @@ boat_price = 0.7 * weight + 4
 Main function to calculate complete shipping estimate.
 
 **Input:**
+
 ```typescript
 {
   originCountry: string;
@@ -206,6 +220,7 @@ Main function to calculate complete shipping estimate.
 ```
 
 **Output:**
+
 ```typescript
 {
   courierPrice: number;
@@ -225,6 +240,7 @@ Main function to calculate complete shipping estimate.
 ### JSON Import Errors
 
 If TypeScript errors on JSON imports:
+
 1. Check `tsconfig.json` has `"resolveJsonModule": true`
 2. Restart TypeScript server in your IDE
 
@@ -278,8 +294,8 @@ npx playwright test tests/e2e/shipping-estimator.spec.ts --debug
 ## Support
 
 For issues or questions:
+
 - Check this documentation
 - Review code comments in utility files
 - Run Playwright tests to verify functionality
 - Check browser console for runtime errors
-

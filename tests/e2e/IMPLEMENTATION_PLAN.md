@@ -25,4 +25,3 @@ The issue is likely **route registration timing**. Routes need to be registered 
 2. Ensure routes are registered before `page.goto()`
 3. Use function matchers (already done)
 4. Add proper CORS headers in route responses
-

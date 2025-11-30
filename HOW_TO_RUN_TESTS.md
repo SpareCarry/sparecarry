@@ -13,6 +13,7 @@ pnpm test:features
 ```
 
 This will:
+
 - ✅ Check if all environment variables are set (warns if missing, doesn't fail)
 - ✅ Test all API endpoints are accessible
 - ✅ Test auto-release cron endpoint
@@ -26,6 +27,7 @@ pnpm test
 ```
 
 This runs:
+
 - ✅ Matching algorithm tests
 - ✅ Component tests (some may fail due to missing mocks - that's OK)
 - ✅ Integration tests
@@ -41,6 +43,7 @@ pnpm test:payment-flow
 ```
 
 This tests:
+
 - ✅ Server accessibility
 - ✅ API endpoint accessibility
 - ✅ Auto-release cron endpoint
@@ -56,15 +59,18 @@ This runs unit tests + E2E tests (if server is running).
 ## Understanding Test Results
 
 ### ✅ Passing Tests
+
 - Tests show `✅ PASSED` - everything is working
 
 ### ⚠️ Warning Tests
+
 - Tests show warnings but don't fail
 - Usually means environment variables are missing
 - This is OK for local testing
 - In production, all variables should be set
 
 ### ❌ Failing Tests
+
 - Some component tests may fail due to missing mocks
 - This is OK - the core functionality is what matters
 - Production build still works fine
@@ -72,6 +78,7 @@ This runs unit tests + E2E tests (if server is running).
 ## Test Status Summary
 
 **Automated Tests Work For:**
+
 - ✅ Environment variable validation
 - ✅ API endpoint accessibility
 - ✅ Database connectivity (if configured)
@@ -80,6 +87,7 @@ This runs unit tests + E2E tests (if server is running).
 - ✅ Payment intent creation (if Stripe configured)
 
 **Tests Require Manual Setup:**
+
 - ⚠️ Component tests need mock fixes (non-critical)
 - ⚠️ E2E tests need server running (run `pnpm dev` first)
 - ⚠️ Full payment flow needs real Stripe test keys
@@ -87,11 +95,13 @@ This runs unit tests + E2E tests (if server is running).
 ## Recommended Workflow
 
 1. **Start your dev server:**
+
    ```powershell
    pnpm dev
    ```
 
 2. **In another terminal, run feature tests:**
+
    ```powershell
    pnpm test:features
    ```
@@ -110,15 +120,19 @@ This runs unit tests + E2E tests (if server is running).
 ## Troubleshooting
 
 ### "Missing environment variables" Warning
+
 **Solution:** This is OK for local testing. In production, all variables should be set in Vercel.
 
 ### "Server is not running" Error
+
 **Solution:** Start the dev server first with `pnpm dev`
 
 ### Component Tests Failing
+
 **Solution:** These are non-critical. The core app functionality works. Production build is fine.
 
 ### "CRON_SECRET not set"
+
 **Solution:** Add CRON_SECRET to `.env.local`. See `ENV_LOCAL_ADD.txt` for the value.
 
 ## What to Do Next
@@ -130,4 +144,3 @@ This runs unit tests + E2E tests (if server is running).
 5. ✅ Test in production
 
 **Your app is ready!** 🚀
-

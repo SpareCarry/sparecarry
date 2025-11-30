@@ -27,7 +27,7 @@ export async function getInsuranceQuote(
 ): Promise<InsuranceQuote> {
   // Placeholder: Calculate premium as 5% of item value, minimum $50
   const basePremium = Math.max(itemValue * 0.05, 50);
-  
+
   // Add route risk factor (placeholder logic)
   const routeRisk = calculateRouteRisk(routeFrom, routeTo);
   const premium = basePremium * routeRisk;
@@ -44,24 +44,18 @@ export async function getInsuranceQuote(
 function calculateRouteRisk(from: string, to: string): number {
   // Placeholder: Simple risk calculation
   // In production, use Allianz API or risk database
-  const highRiskRoutes = [
-    "miami",
-    "panama",
-    "colombia",
-    "venezuela",
-    "haiti",
-  ];
-  
+  const highRiskRoutes = ["miami", "panama", "colombia", "venezuela", "haiti"];
+
   const fromLower = from.toLowerCase();
   const toLower = to.toLowerCase();
-  
+
   if (
     highRiskRoutes.some((r) => fromLower.includes(r)) ||
     highRiskRoutes.some((r) => toLower.includes(r))
   ) {
     return 1.2; // 20% premium increase
   }
-  
+
   return 1.0; // Standard risk
 }
 
@@ -72,7 +66,7 @@ export async function purchaseInsurance(
 ): Promise<InsurancePolicy> {
   // Placeholder: In production, call Allianz API to purchase policy
   const policyNumber = `ALL-${Date.now()}-${matchId.slice(0, 8).toUpperCase()}`;
-  
+
   return {
     policy_number: policyNumber,
     coverage_amount: quote.coverage_amount,
@@ -104,4 +98,3 @@ export async function fileInsuranceClaim(
     status: "submitted",
   };
 }
-

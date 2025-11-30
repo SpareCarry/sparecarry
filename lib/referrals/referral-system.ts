@@ -1,17 +1,18 @@
-// Referral program: $25 credit each way after first PAID delivery (platform_fee > 0)
-// Credits are platform-only (can only be used on fees/rewards, never cashed out)
+// Referral program: 2,000 Karma Points each way after first PAID delivery (platform_fee > 0)
+// Karma points can be converted to credit at checkout (200 points = $1, max $1 per delivery)
 
 import { createClient } from "@supabase/supabase-js";
+import { REFERRAL_KARMA_POINTS } from "../incentives/karma-conversion";
 
 // Lazy initialization to avoid errors during static export build
 function getSupabaseAdmin() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  
+
   if (!supabaseUrl || !supabaseServiceKey) {
     throw new Error("Supabase environment variables are not set");
   }
-  
+
   return createClient(supabaseUrl, supabaseServiceKey);
 }
 
@@ -24,7 +25,7 @@ export function generateReferralCode(userId: string): string {
 
 export async function createReferralCode(userId: string): Promise<string> {
   const code = generateReferralCode(userId);
-  
+
   // Update user with referral code (use admin client for service role)
   const { error } = await getSupabaseAdmin()
     .from("users")
@@ -40,7 +41,7 @@ export async function applyReferralCode(
   referralCode: string
 ): Promise<{ success: boolean; referrerId?: string; error?: string }> {
   const supabaseAdmin = getSupabaseAdmin();
-  
+
   // Find referrer by code (use admin client)
   const { data: referrer, error: findError } = await supabaseAdmin
     .from("users")
@@ -93,12 +94,12 @@ export async function processReferralCredits(
   platformFee: number
 ): Promise<void> {
   const supabaseAdmin = getSupabaseAdmin();
-  
+
   // Only award credits on first PAID delivery (platform_fee > 0)
   if (platformFee <= 0) {
     return; // Free delivery (first 3), no referral credit
   }
-  
+
   // Get user's profile to check completed_deliveries
   const { data: profile } = await supabaseAdmin
     .from("profiles")
@@ -107,14 +108,14 @@ export async function processReferralCredits(
     .single();
 
   // Check if this is user's first PAID delivery
-  // If completed_deliveries = 3, this is their 4th delivery (first paid one)
-  // We check if they just completed their 3rd delivery (meaning this is delivery #4, first paid)
-  const isFirstPaidDelivery = profile && profile.completed_deliveries === 3;
-  
+  // If completed_deliveries = 1, this is their 2nd delivery (first paid one, since first delivery is free)
+  // We check if they just completed their 1st delivery (meaning this is delivery #2, first paid)
+  const isFirstPaidDelivery = profile && profile.completed_deliveries === 1;
+
   if (!isFirstPaidDelivery) {
     return; // Not first paid delivery
   }
-  
+
   // Get user's referred_by
   const { data: user } = await supabaseAdmin
     .from("users")
@@ -146,35 +147,69 @@ export async function processReferralCredits(
       .single();
 
     if (newReferral) {
-      // Award $25 (2500 cents) to both parties using RPC
-      await supabaseAdmin.rpc("add_referral_credit_cents", {
-        user_id: userId,
-        amount_cents: 2500,
-      });
-      
-      await supabaseAdmin.rpc("add_referral_credit_cents", {
-        user_id: user.referred_by,
-        amount_cents: 2500,
-      });
+      // Award 2,000 Karma Points to both parties
+      // Get current karma for referred user
+      const { data: referredUserData } = await supabaseAdmin
+        .from("users")
+        .select("karma_points")
+        .eq("id", userId)
+        .single();
+
+      const referredCurrentKarma =
+        (referredUserData?.karma_points as number) || 0;
+      await supabaseAdmin
+        .from("users")
+        .update({ karma_points: referredCurrentKarma + REFERRAL_KARMA_POINTS })
+        .eq("id", userId);
+
+      // Get current karma for referrer
+      const { data: referrerUserData } = await supabaseAdmin
+        .from("users")
+        .select("karma_points")
+        .eq("id", user.referred_by)
+        .single();
+
+      const referrerCurrentKarma =
+        (referrerUserData?.karma_points as number) || 0;
+      await supabaseAdmin
+        .from("users")
+        .update({ karma_points: referrerCurrentKarma + REFERRAL_KARMA_POINTS })
+        .eq("id", user.referred_by);
     }
     return;
   }
 
-  // Check if credits already awarded for this referral
+  // Check if karma points already awarded for this referral
   if (referral.first_paid_delivery_completed_at) {
-    return; // Credits already awarded
+    return; // Karma points already awarded
   }
 
-  // Award $25 (2500 cents) to both parties using RPC
-  await supabaseAdmin.rpc("add_referral_credit_cents", {
-    user_id: userId,
-    amount_cents: 2500,
-  });
-  
-  await supabaseAdmin.rpc("add_referral_credit_cents", {
-    user_id: user.referred_by,
-    amount_cents: 2500,
-  });
+  // Award 2,000 Karma Points to both parties
+  // Get current karma for referred user
+  const { data: referredUserData } = await supabaseAdmin
+    .from("users")
+    .select("karma_points")
+    .eq("id", userId)
+    .single();
+
+  const referredCurrentKarma = (referredUserData?.karma_points as number) || 0;
+  await supabaseAdmin
+    .from("users")
+    .update({ karma_points: referredCurrentKarma + REFERRAL_KARMA_POINTS })
+    .eq("id", userId);
+
+  // Get current karma for referrer
+  const { data: referrerUserData } = await supabaseAdmin
+    .from("users")
+    .select("karma_points")
+    .eq("id", user.referred_by)
+    .single();
+
+  const referrerCurrentKarma = (referrerUserData?.karma_points as number) || 0;
+  await supabaseAdmin
+    .from("users")
+    .update({ karma_points: referrerCurrentKarma + REFERRAL_KARMA_POINTS })
+    .eq("id", user.referred_by);
 
   // Track first paid delivery completion
   await supabaseAdmin
@@ -192,7 +227,7 @@ export async function getReferralStats(userId: string): Promise<{
   creditsAvailable: number;
 }> {
   const supabaseAdmin = getSupabaseAdmin();
-  
+
   // Get referral_code from users and referral_credit_cents from profiles
   const [userResult, profileResult] = await Promise.all([
     supabaseAdmin
@@ -223,4 +258,3 @@ export async function getReferralStats(userId: string): Promise<{
     creditsAvailable,
   };
 }
-

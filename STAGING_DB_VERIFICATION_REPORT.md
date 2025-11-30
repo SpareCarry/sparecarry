@@ -20,6 +20,7 @@ Staging database migration and seeding scripts are ready and configured. The dat
 **Purpose**: Applies database migrations to the staging Supabase project.
 
 **Features**:
+
 - ✅ Uses Supabase CLI to apply migrations
 - ✅ Applies migrations from `supabase/migrations` directory
 - ✅ Applies schema files in correct order:
@@ -33,11 +34,13 @@ Staging database migration and seeding scripts are ready and configured. The dat
 - ✅ Color-coded output
 
 **Usage**:
+
 ```bash
 pnpm db:migrate:staging
 ```
 
 **Requirements**:
+
 - Supabase CLI installed (`supabase --version`)
 - `SUPABASE_SERVICE_ROLE_KEY` in `.env.staging`
 - `NEXT_PUBLIC_SUPABASE_URL` in `.env.staging`
@@ -54,6 +57,7 @@ pnpm db:migrate:staging
 **Purpose**: Populates staging database with comprehensive test data.
 
 **Features**:
+
 - ✅ Creates 5 test users (travelers, requesters, sailor)
 - ✅ Creates 3 test trips
 - ✅ Creates 5 test requests
@@ -67,6 +71,7 @@ pnpm db:migrate:staging
 - ✅ `--reset` flag support (deletes all data and re-seeds)
 
 **Usage**:
+
 ```bash
 # Seed staging database
 pnpm db:seed:staging
@@ -106,6 +111,7 @@ pnpm db:seed:staging --reset
    - Test-mode payment intent
 
 **Requirements**:
+
 - `SUPABASE_SERVICE_ROLE_KEY` in `.env.staging`
 - `NEXT_PUBLIC_SUPABASE_URL` in `.env.staging`
 - Staging database migrations applied
@@ -121,6 +127,7 @@ pnpm db:seed:staging --reset
 **Purpose**: Rolls back the last applied staging database migration.
 
 **Features**:
+
 - ✅ Detects last migration by timestamp
 - ✅ Confirms with user before execution
 - ✅ Exits safely if no migrations found
@@ -128,6 +135,7 @@ pnpm db:seed:staging --reset
 - ✅ Attempts to auto-generate rollback SQL
 
 **Usage**:
+
 ```bash
 pnpm db:rollback:staging
 ```
@@ -174,6 +182,7 @@ pnpm db:migrate:staging
 ```
 
 **Expected Output**:
+
 - ✅ Migrations applied successfully
 - ✅ Schema created
 - ✅ Storage buckets configured
@@ -187,6 +196,7 @@ pnpm db:seed:staging
 ```
 
 **Expected Output**:
+
 - ✅ 5 users created
 - ✅ 3 trips created
 - ✅ 5 requests created
@@ -198,6 +208,7 @@ pnpm db:seed:staging
 ### 3. Verify Data
 
 Check Supabase dashboard:
+
 - ✅ Users table has 5 records
 - ✅ Trips table has 3 records
 - ✅ Requests table has 5 records
@@ -228,6 +239,7 @@ NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 ## Differences from Production
 
 ### Staging Database:
+
 - ✅ Separate Supabase project
 - ✅ Test data only
 - ✅ Can be reset without impact
@@ -235,6 +247,7 @@ NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 - ✅ Uses staging Sentry DSN
 
 ### Production Database:
+
 - ⚠️ Real user data
 - ⚠️ Cannot be reset
 - ⚠️ Uses live Stripe keys
@@ -247,23 +260,29 @@ NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 ### Migration Fails
 
 **Error**: "Supabase CLI not found"
+
 - **Solution**: Install Supabase CLI: `npm install -g supabase`
 
 **Error**: "Service role key missing"
+
 - **Solution**: Add `SUPABASE_SERVICE_ROLE_KEY` to `.env.staging`
 
 **Error**: "Migration already applied"
+
 - **Solution**: This is normal. Migrations are idempotent.
 
 ### Seeding Fails
 
 **Error**: "Table already has data"
+
 - **Solution**: Use `--reset` flag: `pnpm db:seed:staging --reset`
 
 **Error**: "Service role key missing"
+
 - **Solution**: Add `SUPABASE_SERVICE_ROLE_KEY` to `.env.staging`
 
 **Error**: "Foreign key constraint failed"
+
 - **Solution**: Ensure migrations are applied first: `pnpm db:migrate:staging`
 
 ---
@@ -280,11 +299,13 @@ NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
    - Add `NEXT_PUBLIC_SUPABASE_URL` to `.env.staging`
 
 3. **Run Migrations**:
+
    ```bash
    pnpm db:migrate:staging
    ```
 
 4. **Seed Test Data**:
+
    ```bash
    pnpm db:seed:staging
    ```
@@ -307,4 +328,3 @@ Staging database setup is fully automated and ready for use. All scripts are con
 
 **Last Updated**: 2024-12-19  
 **Report Version**: 1.0.0
-

@@ -8,6 +8,7 @@
 ## ✅ Completed Tasks
 
 ### 1. Removed Old Promo Cards ✅
+
 - **Deleted**: `components/banners/trust-banner.tsx`
 - **Removed references from**:
   - `app/home/page.tsx` - Removed TrustBanner usage
@@ -16,6 +17,7 @@
 - **Removed old promo text**: "Your first delivery is 100% free", "Zero platform fees for everyone until Feb 18, 2026"
 
 ### 2. New Early Supporter Reward Promo Card ✅
+
 - **Created**: `components/promo/EarlySupporterPromoCard.tsx`
 - **Features**:
   - High-conversion design with gradient background
@@ -28,11 +30,13 @@
   - Dismiss logic with 30-day persistence (localStorage + Supabase)
 
 ### 3. Dynamic Countdown Implementation ✅
+
 - **Created**: `utils/getDaysLeft.ts`
 - **Shared helper** used across all countdown logic
 - Updates every minute automatically
 
 ### 4. Platform Fee Config ✅
+
 - **Created**: `config/platformFees.ts`
 - **Centralized config** with:
   - `PLATFORM_FEE_PERCENT` (default 8%)
@@ -47,6 +51,7 @@
   - Payment button - Uses updated pricing logic
 
 ### 5. Backend + Supabase Integration ✅
+
 - **Created**: `supabase/migrations/20250102000001_add_promo_system.sql`
 - **Includes**:
   - `promo_dismissed_until` column in `profiles` table
@@ -56,6 +61,7 @@
 - **Server-side override**: Forces 0% platform fee when `days_left > 0`
 
 ### 6. Pricing Estimator Updates ✅
+
 - **Updated**: `app/shipping-estimator/page.tsx`
 - **Features**:
   - Shows 0% platform fee during promo
@@ -65,6 +71,7 @@
   - Trusted badge during promo period
 
 ### 7. Improved UX for Price Estimator ✅
+
 - **Added**:
   - Clear comparison card layout
   - Trusted badge
@@ -73,6 +80,7 @@
   - Scroll indicator: "Early Supporter Reward applied!"
 
 ### 8. Behavioral Design Improvements ✅
+
 - **Created**:
   - `components/promo/TrustedBadge.tsx` - "Trusted by early users" badge
   - `components/promo/PromoScrollIndicator.tsx` - Micro-copy on scroll
@@ -80,6 +88,7 @@
   - A/B-test ready text wrapper (PROMO_COPY object in EarlySupporterPromoCard)
 
 ### 9. E2E Tests ✅
+
 - **Created**:
   - `tests/e2e/promo-card.spec.ts` - Promo card rendering, dismissal, countdown
   - `tests/e2e/pricing-estimator-promo.spec.ts` - Pricing with promo logic
@@ -89,6 +98,7 @@
   - `tests/unit/utils/getDaysLeft.test.ts` - Countdown utility tests
 
 ### 10. Performance Optimization ✅
+
 - **Combined duplicated pricing logic**:
   - Unified in `lib/pricing/platform-fee.ts`
   - Uses shared `config/platformFees.ts`
@@ -102,6 +112,7 @@
 - **Preload**: Promo card loads efficiently
 
 ### 11. Security Upgrade ✅
+
 - **Created**: `lib/promo/promo-validation.ts`
 - **Zod validation** for all promo data
 - **Typed Supabase RPC** returns
@@ -109,6 +120,7 @@
 - **No confidential data** exposed in promotions
 
 ### 12. Fallback After Promo Ends ✅
+
 - **Created**: `components/promo/FirstDeliveryPromoCard.tsx`
 - **Logic**: After Feb 18, 2026, shows "First Delivery Is Free" for users with 0 completed deliveries
 - **Implemented in**: `lib/promo/promo-utils.ts` → `getPromoCardToShow()`
@@ -118,6 +130,7 @@
 ## Files Created
 
 ### Components
+
 - `components/promo/EarlySupporterPromoCard.tsx` ✅
 - `components/promo/FirstDeliveryPromoCard.tsx` ✅
 - `components/promo/PromoCardWrapper.tsx` ✅
@@ -126,15 +139,18 @@
 - `components/promo/SavingsCounter.tsx` ✅
 
 ### Utilities & Config
+
 - `utils/getDaysLeft.ts` ✅
 - `config/platformFees.ts` ✅
 - `lib/promo/promo-utils.ts` ✅
 - `lib/promo/promo-validation.ts` ✅
 
 ### Database
+
 - `supabase/migrations/20250102000001_add_promo_system.sql` ✅
 
 ### Tests
+
 - `tests/unit/utils/getDaysLeft.test.ts` ✅
 - `tests/e2e/promo-card.spec.ts` ✅
 - `tests/e2e/pricing-estimator-promo.spec.ts` ✅
@@ -144,6 +160,7 @@
 ## Files Modified
 
 ### Updated Files
+
 - `lib/pricing/platform-fee.ts` - Uses config, respects promo period ✅
 - `src/constants/shippingFees.ts` - Uses config, respects promo period ✅
 - `app/home/page.tsx` - Uses PromoCardWrapper ✅
@@ -162,17 +179,20 @@
 ## Performance Summary
 
 ### Bundle Size
+
 - **Removed**: ~2KB (old trust-banner component)
 - **Added**: ~5KB (new promo system)
 - **Net**: +3KB (acceptable for feature value)
 
 ### Runtime Performance
+
 - **Countdown updates**: Every 60 seconds (efficient)
 - **Promo check**: Cached in component state
 - **Dismissal check**: localStorage + Supabase (fast)
 - **Savings animation**: Respects `prefers-reduced-motion`
 
 ### Lighthouse-Style Metrics (Estimated)
+
 - **First Contentful Paint**: No impact (promo loads after initial render)
 - **Time to Interactive**: <50ms impact
 - **Cumulative Layout Shift**: Minimal (promo card has fixed height)
@@ -183,12 +203,14 @@
 ## Security Summary
 
 ### Validation
+
 - ✅ All promo data validated with Zod
 - ✅ Supabase RPC returns typed safe data
 - ✅ Input validation on all functions
 - ✅ No confidential data in promotions
 
 ### Rate Limiting
+
 - Promo dismissal: Handled client-side (localStorage) + Supabase
 - No rate-limiting needed (dismissal is user action)
 
@@ -197,11 +219,13 @@
 ## Testing Summary
 
 ### Unit Tests
+
 - ✅ `getDaysLeft()` utility tests
 - ✅ Platform fee calculation with promo logic
 - ✅ Promo status validation
 
 ### E2E Tests
+
 - ✅ Promo card renders correctly
 - ✅ Promo card hides when expired
 - ✅ Countdown matches real date
@@ -215,12 +239,14 @@
 ## Migration Instructions
 
 ### 1. Run Database Migration
+
 ```sql
 -- In Supabase SQL Editor, run:
 -- supabase/migrations/20250102000001_add_promo_system.sql
 ```
 
 ### 2. Verify Migration
+
 ```sql
 -- Check promotion_status view
 SELECT * FROM public.promotion_status;
@@ -230,6 +256,7 @@ SELECT * FROM public.get_active_promotions();
 ```
 
 ### 3. Test Features
+
 - Navigate to home page → See Early Supporter promo card
 - Navigate to shipping estimator → See trusted badge and promo message
 - Dismiss promo card → Should not reappear for 30 days
@@ -257,4 +284,3 @@ SELECT * FROM public.get_active_promotions();
 **Implementation Complete** ✅  
 **All Requirements Met** ✅  
 **Ready for Production** ✅
-

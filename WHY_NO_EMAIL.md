@@ -5,6 +5,7 @@
 ### 1. **Supabase Email Service Limitations (Most Likely)**
 
 If you're on Supabase's **free tier**, email sending has limitations:
+
 - Limited number of emails per hour/day
 - May delay or block emails if rate limit exceeded
 - Check **Authentication** → **Logs** in Supabase Dashboard for email sending status
@@ -12,6 +13,7 @@ If you're on Supabase's **free tier**, email sending has limitations:
 ### 2. **Email Provider Not Configured**
 
 By default, Supabase uses its own email service. To send emails reliably:
+
 - Configure a custom SMTP provider (Gmail, SendGrid, etc.)
 - Or upgrade to a Supabase plan with better email limits
 
@@ -79,17 +81,20 @@ By default, Supabase uses its own email service. To send emails reliably:
 ### Fix 4: Configure Custom SMTP (For Production)
 
 If emails are critical, configure a custom SMTP:
+
 - Use Resend, SendGrid, or Gmail SMTP
 - Configure in Supabase: **Project Settings** → **Auth** → **Email Templates** → **SMTP Settings**
 
 ## Current Implementation
 
 The app now:
+
 - ✅ Automatically detects which port you're using (`window.location.origin`)
 - ✅ Logs the callback URL to console
 - ✅ Works with any port (3000, 3001, etc.) as long as it's in Supabase settings
 
 **You still need to:**
+
 1. Add the port to Supabase Redirect URLs
 2. Wait for email (may take 1-2 minutes on free tier)
 3. Check spam folder
@@ -111,4 +116,3 @@ The app now:
    - Should redirect to `/auth/callback`
    - Check terminal logs for callback details
    - Should log in and redirect to `/home`
-

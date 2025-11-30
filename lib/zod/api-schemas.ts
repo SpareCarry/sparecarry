@@ -60,10 +60,12 @@ export const createPaymentIntentResponseSchema = z.object({
 export const confirmDeliveryRequestSchema = z.object({
   matchId: z.string().uuid(),
   proofPhotos: z.array(z.string().url()),
-  gpsLocation: z.object({
-    latitude: z.number().min(-90).max(90),
-    longitude: z.number().min(-180).max(180),
-  }).optional(),
+  gpsLocation: z
+    .object({
+      latitude: z.number().min(-90).max(90),
+      longitude: z.number().min(-180).max(180),
+    })
+    .optional(),
 });
 
 // ============================================
@@ -195,24 +197,51 @@ export type CheckMatchRequest = z.infer<typeof checkMatchRequestSchema>;
 export type CheckMatchResponse = z.infer<typeof checkMatchResponseSchema>;
 export type CreateMatchRequest = z.infer<typeof createMatchRequestSchema>;
 export type InsuranceInfo = z.infer<typeof insuranceInfoSchema>;
-export type CreatePaymentIntentRequest = z.infer<typeof createPaymentIntentRequestSchema>;
-export type CreatePaymentIntentResponse = z.infer<typeof createPaymentIntentResponseSchema>;
-export type SendMessageNotificationRequest = z.infer<typeof sendMessageNotificationRequestSchema>;
-export type SendMatchNotificationRequest = z.infer<typeof sendMatchNotificationRequestSchema>;
-export type SendCounterOfferNotificationRequest = z.infer<typeof sendCounterOfferNotificationRequestSchema>;
+export type CreatePaymentIntentRequest = z.infer<
+  typeof createPaymentIntentRequestSchema
+>;
+export type CreatePaymentIntentResponse = z.infer<
+  typeof createPaymentIntentResponseSchema
+>;
+export type SendMessageNotificationRequest = z.infer<
+  typeof sendMessageNotificationRequestSchema
+>;
+export type SendMatchNotificationRequest = z.infer<
+  typeof sendMatchNotificationRequestSchema
+>;
+export type SendCounterOfferNotificationRequest = z.infer<
+  typeof sendCounterOfferNotificationRequestSchema
+>;
 export type RegisterTokenRequest = z.infer<typeof registerTokenRequestSchema>;
 export type CreateCheckoutRequest = z.infer<typeof createCheckoutRequestSchema>;
 export type WaitlistRequest = z.infer<typeof waitlistRequestSchema>;
 export type CreateGroupBuyRequest = z.infer<typeof createGroupBuyRequestSchema>;
 export type JoinGroupBuyRequest = z.infer<typeof joinGroupBuyRequestSchema>;
-export type StripeVerificationRequest = z.infer<typeof stripeVerificationRequestSchema>;
-export type RegisterPushTokenRequest = z.infer<typeof registerPushTokenRequestSchema>;
-export type UpdatePurchaseLinkRequest = z.infer<typeof updatePurchaseLinkRequestSchema>;
-export type CreateSubscriptionCheckoutRequest = z.infer<typeof createSubscriptionCheckoutRequestSchema>;
-export type VerifySupporterPaymentRequest = z.infer<typeof verifySupporterPaymentRequestSchema>;
-export type EmergencyRequestNotificationRequest = z.infer<typeof emergencyRequestNotificationSchema>;
-export type ProcessReferralCreditsRequest = z.infer<typeof processReferralCreditsRequestSchema>;
-export type CreateStripeVerificationRequest = z.infer<typeof createStripeVerificationRequestSchema>;
-export type CheckStripeVerificationRequest = z.infer<typeof checkStripeVerificationRequestSchema>;
+export type StripeVerificationRequest = z.infer<
+  typeof stripeVerificationRequestSchema
+>;
+export type RegisterPushTokenRequest = z.infer<
+  typeof registerPushTokenRequestSchema
+>;
+export type UpdatePurchaseLinkRequest = z.infer<
+  typeof updatePurchaseLinkRequestSchema
+>;
+export type CreateSubscriptionCheckoutRequest = z.infer<
+  typeof createSubscriptionCheckoutRequestSchema
+>;
+export type VerifySupporterPaymentRequest = z.infer<
+  typeof verifySupporterPaymentRequestSchema
+>;
+export type EmergencyRequestNotificationRequest = z.infer<
+  typeof emergencyRequestNotificationSchema
+>;
+export type ProcessReferralCreditsRequest = z.infer<
+  typeof processReferralCreditsRequestSchema
+>;
+export type CreateStripeVerificationRequest = z.infer<
+  typeof createStripeVerificationRequestSchema
+>;
+export type CheckStripeVerificationRequest = z.infer<
+  typeof checkStripeVerificationRequestSchema
+>;
 export type ProcessPayoutRequest = z.infer<typeof processPayoutRequestSchema>;
-

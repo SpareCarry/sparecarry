@@ -9,11 +9,13 @@
 ## Peer Dependency Warnings
 
 You may see warnings like:
+
 ```
 ✕ unmet peer react-dom@"^16.5.1 || ^17.0.0 || ^18.0.0": found 19.1.0
 ```
 
 These are **expected** and **safe to ignore** for now. The app should still work because:
+
 - React 19 is backward compatible with React 18 code
 - Expo SDK 54 officially requires React 19
 - expo-router will likely add React 19 support in a future update
@@ -36,7 +38,7 @@ These are **expected** and **safe to ignore** for now. The app should still work
 ## Testing
 
 The app should work normally. If you encounter any issues:
+
 1. Check if they're related to expo-router specifically
 2. Report them to the Expo team
 3. Consider temporarily using React 18 if critical issues arise (not recommended)
-

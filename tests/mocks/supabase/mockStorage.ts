@@ -2,9 +2,12 @@
  * Mock Supabase Storage Implementation
  */
 
-import type { MockStorage, MockStorageBucket } from './types';
+import type { MockStorage, MockStorageBucket } from "./types";
 
-const mockStorageFiles: Record<string, Record<string, { file: Blob; metadata?: Record<string, unknown> }>> = {};
+const mockStorageFiles: Record<
+  string,
+  Record<string, { file: Blob; metadata?: Record<string, unknown> }>
+> = {};
 
 export function createMockStorage(): MockStorage {
   return {
@@ -18,9 +21,19 @@ function createMockStorageBucket(bucket: string): MockStorageBucket {
   }
 
   return {
-    upload: async (path: string, file: File | Blob, options?: { upsert?: boolean }) => {
+    upload: async (
+      path: string,
+      file: File | Blob,
+      options?: { upsert?: boolean }
+    ) => {
       if (!options?.upsert && mockStorageFiles[bucket][path]) {
-        return { data: null, error: { message: 'File already exists', statusCode: '409' } as unknown as null };
+        return {
+          data: null,
+          error: {
+            message: "File already exists",
+            statusCode: "409",
+          } as unknown as null,
+        };
       }
 
       mockStorageFiles[bucket][path] = {
@@ -38,20 +51,33 @@ function createMockStorageBucket(bucket: string): MockStorageBucket {
     download: async (path: string) => {
       const fileData = mockStorageFiles[bucket]?.[path];
       if (!fileData) {
-        return { data: null, error: { message: 'File not found', statusCode: '404' } as unknown as null };
+        return {
+          data: null,
+          error: {
+            message: "File not found",
+            statusCode: "404",
+          } as unknown as null,
+        };
       }
 
       return { data: fileData.file, error: null };
     },
 
-    list: async (path?: string, options?: { limit?: number; offset?: number }) => {
+    list: async (
+      path?: string,
+      options?: { limit?: number; offset?: number }
+    ) => {
       const files = Object.keys(mockStorageFiles[bucket] || {})
         .filter((filePath) => !path || filePath.startsWith(path))
         .map((filePath) => ({
-          name: filePath.split('/').pop() || filePath,
+          name: filePath.split("/").pop() || filePath,
           id: filePath,
-          updated_at: mockStorageFiles[bucket][filePath]?.metadata?.uploaded_at as string || new Date().toISOString(),
-          created_at: mockStorageFiles[bucket][filePath]?.metadata?.uploaded_at as string || new Date().toISOString(),
+          updated_at:
+            (mockStorageFiles[bucket][filePath]?.metadata
+              ?.uploaded_at as string) || new Date().toISOString(),
+          created_at:
+            (mockStorageFiles[bucket][filePath]?.metadata
+              ?.uploaded_at as string) || new Date().toISOString(),
           last_accessed_at: new Date().toISOString(),
           metadata: mockStorageFiles[bucket][filePath]?.metadata || {},
         }));
@@ -76,7 +102,8 @@ function createMockStorageBucket(bucket: string): MockStorageBucket {
     },
 
     getPublicUrl: (path: string) => {
-      const baseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://test.supabase.co';
+      const baseUrl =
+        process.env.NEXT_PUBLIC_SUPABASE_URL || "https://test.supabase.co";
       return {
         data: {
           publicUrl: `${baseUrl}/storage/v1/object/public/${bucket}/${path}`,
@@ -85,7 +112,8 @@ function createMockStorageBucket(bucket: string): MockStorageBucket {
     },
 
     createSignedUrl: async (path: string, expiresIn: number) => {
-      const baseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://test.supabase.co';
+      const baseUrl =
+        process.env.NEXT_PUBLIC_SUPABASE_URL || "https://test.supabase.co";
       const expiresAt = new Date(Date.now() + expiresIn * 1000).toISOString();
       return {
         data: {
@@ -109,7 +137,8 @@ export function resetMockStorage(): void {
 /**
  * Get mock storage files
  */
-export function getMockStorageFiles(bucket: string): Record<string, { file: Blob; metadata?: Record<string, unknown> }> {
+export function getMockStorageFiles(
+  bucket: string
+): Record<string, { file: Blob; metadata?: Record<string, unknown> }> {
   return mockStorageFiles[bucket] || {};
 }
-

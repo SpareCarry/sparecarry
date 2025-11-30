@@ -15,9 +15,7 @@ declare module "https://esm.sh/@supabase/supabase-js@2" {
     from<TableName extends string>(
       table: TableName
     ): {
-      select(
-        columns?: string
-      ): {
+      select(columns?: string): {
         eq(column: string, value: any): any;
         not(column: string, operator: string, value: any): any;
       };
@@ -30,5 +28,3 @@ declare module "https://esm.sh/@supabase/supabase-js@2" {
     options?: SupabaseClientOptions<SchemaName>
   ): SupabaseClient<SchemaName>;
 }
-
-

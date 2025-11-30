@@ -53,10 +53,10 @@ export function ReferralLeaderboard() {
           {leaderboard.map((entry, index) => (
             <div
               key={entry.userId}
-              className="flex items-center justify-between p-2 rounded-md bg-slate-50"
+              className="flex items-center justify-between rounded-md bg-slate-50 p-2"
             >
               <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-slate-500 w-6">
+                <span className="w-6 text-sm font-medium text-slate-500">
                   #{index + 1}
                 </span>
                 <span className="text-sm font-medium text-slate-900">
@@ -72,11 +72,10 @@ export function ReferralLeaderboard() {
             </div>
           ))}
         </div>
-        <p className="text-xs text-slate-500 mt-3 text-center">
+        <p className="mt-3 text-center text-xs text-slate-500">
           Bragging rights only • No prizes • Updated in real-time
         </p>
       </CardContent>
     </Card>
   );
 }
-

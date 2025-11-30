@@ -3,22 +3,12 @@
     "name": "SpareCarry",
     "slug": "sparecarry",
     "version": "0.1.0",
-    "jsEngine": "jsc",
-    "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "splash": {
-      "image": "./assets/splash.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#14b8a6"
-    },
     "ios": {
-      "supportsTablet": true,
       "bundleIdentifier": "com.sparecarry.app"
     },
     "android": {
-      "package": "com.sparecarry.app",
-      "jsEngine": "jsc"
-    },
-    "plugins": ["expo-router", "expo-dev-client"]
+      "package": "com.sparecarry.app"
+    }
   }
 }

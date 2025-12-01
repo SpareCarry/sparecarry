@@ -1,7 +1,11 @@
 {
   "compilerOptions": {
     "target": "ES2017",
-    "lib": ["dom", "dom.iterable", "esnext"],
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -20,15 +24,33 @@
       }
     ],
     "paths": {
-      "@/*": ["./*"],
-      "@root-lib": ["./lib"],
-      "@root-lib/*": ["./lib/*"],
-      "@root-src": ["./src"],
-      "@root-src/*": ["./src/*"],
-      "@root-config": ["./config"],
-      "@root-config/*": ["./config/*"],
-      "@root-utils": ["./utils"],
-      "@root-utils/*": ["./utils/*"]
+      "@/*": [
+        "./*"
+      ],
+      "@root-lib": [
+        "./lib"
+      ],
+      "@root-lib/*": [
+        "./lib/*"
+      ],
+      "@root-src": [
+        "./src"
+      ],
+      "@root-src/*": [
+        "./src/*"
+      ],
+      "@root-config": [
+        "./config"
+      ],
+      "@root-config/*": [
+        "./config/*"
+      ],
+      "@root-utils": [
+        "./utils"
+      ],
+      "@root-utils/*": [
+        "./utils/*"
+      ]
     }
   },
   "include": [
@@ -72,5 +94,6 @@
     "tests/**/*",
     "vitest.config.ts",
     "playwright.config.ts"
-  ]
+  ],
+  "extends": "expo/tsconfig.base"
 }

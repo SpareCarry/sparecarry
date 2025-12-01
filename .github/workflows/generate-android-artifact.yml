@@ -1,74 +1,32 @@
-name: Generate Android Project Artifact (Isolation Fix v3)
+name: Generate Android Project Artifact (Fix Prebuild)
 
 on:
-  workflow_dispatch:
+  workflow_dispatch: # Allows manual triggering from the GitHub UI
 
 jobs:
   generate_project:
     runs-on: ubuntu-latest
 
     steps:
-      - name: ⬇️ Checkout Repository (Root)
+      - name: ⬇️ Checkout Repository
         uses: actions/checkout@v4
 
-      - name: 📦 Setup pnpm & Node 20
-        uses: pnpm/action-setup@v3
-        with:
-          run_install: false
-
-      - name: ⚙️ Setup Node.js 20
+      - name: ⚙️ Setup Node.js 20 & pnpm
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'pnpm'
 
-      - name: 📥 Install Dependencies (Monorepo Root)
-        # This gives us a working node_modules at the repo root
-        run: pnpm install --frozen-lockfile
-
-      - name: 🚀 Isolate and Run Expo Prebuild (Android)
-        # Fully isolate the mobile app into /tmp, then run prebuild there.
+      - name: 📥 Install Dependencies
         run: |
-          set -e
+          npm install -g pnpm
+          pnpm install --frozen-lockfile
 
-          APP_DIR="/tmp/mobile-app-build"
-          MOBILE_APP_PATH="apps/mobile"
-
-          echo "1. Creating isolated build environment at $APP_DIR"
-          mkdir -p "$APP_DIR"
-
-          echo "Copying mobile app source files..."
-          cp -r "$MOBILE_APP_PATH/"* "$APP_DIR/"
-
-          echo "Copying lockfile for dependency context..."
-          cp pnpm-lock.yaml "$APP_DIR/"
-
-          echo "2. Changing directory and running pnpm install"
-          cd "$APP_DIR"
-
-          # Install dependencies in isolated context; don't enforce root lockfile strictly
-          pnpm install --no-frozen-lockfile
-
-          echo "3. Running Expo Prebuild with forced CI context in $APP_DIR..."
-          CI=1 pnpm exec expo prebuild --platform android --clean
-
-          echo "Checking for generated 'android' folder..."
-          if [ -d "android" ]; then
-            echo "✅ Successfully generated 'android' folder."
-
-            TARGET_ANDROID_DIR="/home/runner/work/sparecarry/sparecarry/$MOBILE_APP_PATH/android"
-            echo "Removing any existing android folder at $TARGET_ANDROID_DIR"
-            rm -rf "$TARGET_ANDROID_DIR"
-
-            echo "Copying new android folder back to $TARGET_ANDROID_DIR"
-            mkdir -p "$(dirname "$TARGET_ANDROID_DIR")"
-            cp -r android "$TARGET_ANDROID_DIR"
-
-            echo "4. Generated Android project copied back to $TARGET_ANDROID_DIR."
-          else
-            echo "❌ ERROR: 'android' folder was not generated. Expo prebuild failed internally."
-            exit 1
-          fi
+      - name: 🧹 Clean & Run Expo Prebuild (on apps/mobile)
+        working-directory: ./apps/mobile
+        run: |
+          # The Windows-bugged prebuild is now run on a safe Linux runner
+          npx expo prebuild --platform android --clean
 
       - name: 📦 Archive Generated Android Project
         uses: actions/upload-artifact@v4
@@ -76,3 +34,5 @@ jobs:
           name: android-project-for-sdk54-fix
           path: apps/mobile/android
           retention-days: 1
+
+

@@ -28,7 +28,7 @@
         "backgroundColor": "#14b8a6"
       },
       "package": "com.sparecarry.app",
-      "jsEngine": "jsc",
+      "jsEngine": "hermes",
       "permissions": [
         "CAMERA",
         "READ_EXTERNAL_STORAGE",

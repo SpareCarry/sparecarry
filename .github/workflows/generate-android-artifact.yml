@@ -1,37 +1,38 @@
 name: Generate Android Project Artifact (Fix Prebuild)
 
 on:
-  workflow_dispatch: # Allows manual triggering from the GitHub UI
+  workflow_dispatch:
 
 jobs:
   generate_project:
     runs-on: ubuntu-latest
-
+    
     steps:
       - name: ⬇️ Checkout Repository
         uses: actions/checkout@v4
+
+      - name: 📦 Setup pnpm
+        # Use the official pnpm action to automatically set the version from package.json
+        uses: pnpm/action-setup@v3 
+        with:
+          run_install: false # We will run install later for better caching control
 
       - name: ⚙️ Setup Node.js 20
         uses: actions/setup-node@v4
         with:
           node-version: '20'
+          cache: 'pnpm' # Cache dependencies for pnpm
 
-      - name: 📥 Install pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 9
-          run_install: false
-
-      - name: 📥 Install Dependencies (pnpm)
+      - name: 📥 Install Dependencies (Monorepo Root)
+        # Run pnpm install from the root (where pnpm-workspace.yaml is)
         run: pnpm install --frozen-lockfile
 
       - name: 🧹 Clean & Run Expo Prebuild (on apps/mobile)
         working-directory: ./apps/mobile
-        run: |
-          # The Windows-bugged prebuild is now run on a safe Linux runner
-          npx expo prebuild --platform android --clean
+        run: npx expo prebuild --platform android --clean
 
       - name: 📦 Archive Generated Android Project
+        # IMPORTANT: Updated to v4 to fix the GitHub deprecation error
         uses: actions/upload-artifact@v4
         with:
           name: android-project-for-sdk54-fix

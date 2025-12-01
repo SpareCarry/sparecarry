@@ -15,24 +15,26 @@ jobs:
         # Use the official pnpm action to automatically set the version from package.json
         uses: pnpm/action-setup@v3 
         with:
-          run_install: false # We will run install later for better caching control
+          run_install: false
 
       - name: ⚙️ Setup Node.js 20
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'pnpm' # Cache dependencies for pnpm
+          cache: 'pnpm'
 
       - name: 📥 Install Dependencies (Monorepo Root)
-        # Run pnpm install from the root (where pnpm-workspace.yaml is)
+        # Runs from root to link all dependencies, including shared packages
         run: pnpm install --frozen-lockfile
 
       - name: 🧹 Clean & Run Expo Prebuild (on apps/mobile)
-        working-directory: ./apps/mobile
-        run: npx expo prebuild --platform android --clean
+        # Use pnpm exec to ensure the command runs in the correct monorepo context.
+        # This is often more reliable than npx in a pnpm monorepo.
+        # We explicitly run the command from the monorepo root, targeting the app.
+        run: pnpm exec expo prebuild --platform android --clean --non-interactive
+        working-directory: ./apps/mobile # Set working directory for the command
 
       - name: 📦 Archive Generated Android Project
-        # IMPORTANT: Updated to v4 to fix the GitHub deprecation error
         uses: actions/upload-artifact@v4
         with:
           name: android-project-for-sdk54-fix

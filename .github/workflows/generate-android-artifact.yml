@@ -6,22 +6,24 @@ on:
 jobs:
   generate_project:
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: ⬇️ Checkout Repository
         uses: actions/checkout@v4
 
-      - name: ⚙️ Setup Node.js 20 & pnpm
+      - name: ⚙️ Setup Node.js 20
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'pnpm'
 
-      - name: 📥 Install Dependencies
-        # Must install pnpm globally first for monorepo use
-        run: |
-          npm install -g pnpm
-          pnpm install --frozen-lockfile
+      - name: 📥 Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+          run_install: false
+
+      - name: 📥 Install Dependencies (pnpm)
+        run: pnpm install --frozen-lockfile
 
       - name: 🧹 Clean & Run Expo Prebuild (on apps/mobile)
         working-directory: ./apps/mobile
@@ -33,6 +35,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: android-project-for-sdk54-fix
-          # Path to the generated directory relative to the repository root
           path: apps/mobile/android
-          retention-days: 1 # Keep the artifact for 1 day to save storage
+          retention-days: 1

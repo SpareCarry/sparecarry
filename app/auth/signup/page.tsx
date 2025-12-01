@@ -15,7 +15,8 @@ import {
 } from "../../../components/ui/card";
 import { createClient } from "../../../lib/supabase/client";
 import { getAuthCallbackUrl } from "../../../lib/supabase/mobile";
-import { Mail, Loader2, Lock } from "lucide-react";
+import { getUserFriendlyErrorMessage } from "../../../lib/utils/auth-errors";
+import { Mail, Loader2, Lock, Eye, EyeOff } from "lucide-react";
 
 function SignupPageContent() {
   const router = useRouter();
@@ -32,7 +33,29 @@ function SignupPageContent() {
     text: string;
   } | null>(null);
   const [authChecked, setAuthChecked] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [passwordMatchError, setPasswordMatchError] = useState<string | null>(null);
+  const [magicLinkCooldown, setMagicLinkCooldown] = useState(0);
   const supabase = createClient();
+
+  // Magic link cooldown timer
+  useEffect(() => {
+    if (magicLinkCooldown <= 0) return;
+    const timer = setInterval(() => {
+      setMagicLinkCooldown((prev) => Math.max(prev - 1, 0));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [magicLinkCooldown]);
+
+  // Real-time password match validation
+  useEffect(() => {
+    if (confirmPassword && password && confirmPassword !== password) {
+      setPasswordMatchError("Passwords don't match");
+    } else {
+      setPasswordMatchError(null);
+    }
+  }, [password, confirmPassword]);
 
   // Get redirect URL from query params
   const redirectTo = searchParams.get("redirect") || "/home";
@@ -115,11 +138,13 @@ function SignupPageContent() {
     e.preventDefault();
     setLoading(true);
     setMessage(null);
+    setPasswordMatchError(null);
 
     if (password !== confirmPassword) {
+      setPasswordMatchError("Passwords don't match");
       setMessage({
         type: "error",
-        text: "Passwords do not match",
+        text: "Passwords don't match. Please check and try again.",
       });
       setLoading(false);
       return;
@@ -175,7 +200,7 @@ function SignupPageContent() {
     } catch (error: any) {
       setMessage({
         type: "error",
-        text: error.message || "Failed to create account",
+        text: getUserFriendlyErrorMessage(error),
       });
       setLoading(false);
     } finally {
@@ -221,12 +246,13 @@ function SignupPageContent() {
 
       setMessage({
         type: "success",
-        text: "Check your email for the magic link!",
+        text: "Check your email for the magic link! Click the link in the email to complete signup. The link will expire in 1 hour.",
       });
+      setMagicLinkCooldown(60); // 60 second cooldown
     } catch (error: any) {
       setMessage({
         type: "error",
-        text: error.message || "Failed to send magic link",
+        text: getUserFriendlyErrorMessage(error),
       });
     } finally {
       setLoading(false);
@@ -256,7 +282,7 @@ function SignupPageContent() {
     } catch (error: any) {
       setMessage({
         type: "error",
-        text: error.message || `Failed to sign in with ${provider}`,
+        text: getUserFriendlyErrorMessage(error),
       });
     } finally {
       // Always reset loading state, even if OAuth redirects (for edge cases)
@@ -324,31 +350,75 @@ function SignupPageContent() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="password">Password</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  autoComplete="new-password"
-                  placeholder="Create a password (min. 6 characters)"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  disabled={loading}
-                  minLength={6}
-                />
+                <div className="relative">
+                  <Input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    autoComplete="new-password"
+                    placeholder="Create a password (min. 6 characters)"
+                    value={password}
+                    onChange={(e) => {
+                      setPassword(e.target.value);
+                      setMessage(null);
+                      setPasswordMatchError(null);
+                    }}
+                    required
+                    disabled={loading}
+                    minLength={6}
+                    className="pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700"
+                    disabled={loading}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
+                  </button>
+                </div>
+                <p className="text-xs text-slate-500">Minimum 6 characters</p>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="confirmPassword">Confirm Password</Label>
-                <Input
-                  id="confirmPassword"
-                  type="password"
-                  autoComplete="new-password"
-                  placeholder="Confirm your password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  required
-                  disabled={loading}
-                  minLength={6}
-                />
+                <div className="relative">
+                  <Input
+                    id="confirmPassword"
+                    type={showConfirmPassword ? "text" : "password"}
+                    autoComplete="new-password"
+                    placeholder="Confirm your password"
+                    value={confirmPassword}
+                    onChange={(e) => {
+                      setConfirmPassword(e.target.value);
+                      setMessage(null);
+                    }}
+                    required
+                    disabled={loading}
+                    minLength={6}
+                    className={`pr-10 ${passwordMatchError ? "border-red-500" : ""}`}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700"
+                    disabled={loading}
+                  >
+                    {showConfirmPassword ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
+                  </button>
+                </div>
+                {passwordMatchError && (
+                  <p className="text-xs text-red-600">{passwordMatchError}</p>
+                )}
+                {confirmPassword && !passwordMatchError && password === confirmPassword && (
+                  <p className="text-xs text-green-600">✓ Passwords match</p>
+                )}
               </div>
 
               <Button
@@ -379,9 +449,12 @@ function SignupPageContent() {
                   autoComplete="email"
                   placeholder="you@example.com"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    setMessage(null);
+                  }}
                   required
-                  disabled={loading}
+                  disabled={loading || magicLinkCooldown > 0}
                 />
               </div>
 
@@ -394,15 +467,28 @@ function SignupPageContent() {
                 </p>
               </div>
 
+              {magicLinkCooldown > 0 && (
+                <div className="rounded-md bg-blue-50 p-3 text-sm text-blue-800">
+                  <p>
+                    Please wait {magicLinkCooldown} seconds before requesting another magic link.
+                  </p>
+                </div>
+              )}
+
               <Button
                 type="submit"
                 className="w-full bg-teal-600 hover:bg-teal-700"
-                disabled={loading}
+                disabled={loading || magicLinkCooldown > 0}
               >
                 {loading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Sending...
+                  </>
+                ) : magicLinkCooldown > 0 ? (
+                  <>
+                    <Mail className="mr-2 h-4 w-4" />
+                    Resend in {magicLinkCooldown}s
                   </>
                 ) : (
                   <>
@@ -411,6 +497,17 @@ function SignupPageContent() {
                   </>
                 )}
               </Button>
+
+              {message?.type === "success" && (
+                <div className="rounded-md bg-blue-50 p-3 text-sm text-blue-800">
+                  <p className="font-medium mb-2">Check your email!</p>
+                  <ul className="list-disc list-inside space-y-1 text-blue-700">
+                    <li>Click the link in the email to complete signup</li>
+                    <li>Check your spam folder if you don&apos;t see it</li>
+                    <li>The link expires in 1 hour</li>
+                  </ul>
+                </div>
+              )}
             </form>
           )}
 

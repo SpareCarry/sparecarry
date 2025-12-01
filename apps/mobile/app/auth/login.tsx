@@ -10,9 +10,10 @@ import {
   Platform,
   ScrollView,
 } from "react-native";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@sparecarry/hooks/useAuth";
 import { router } from "expo-router";
+import { MaterialIcons } from "@expo/vector-icons";
 
 type LoginMethod = "magic" | "password";
 
@@ -21,7 +22,18 @@ export default function LoginScreen() {
   const [password, setPassword] = useState("");
   const [loginMethod, setLoginMethod] = useState<LoginMethod>("magic");
   const [error, setError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
+  const [magicLinkCooldown, setMagicLinkCooldown] = useState(0);
   const { signIn, signInWithOAuth, signInWithMagicLink, loading } = useAuth();
+
+  // Magic link cooldown timer
+  useEffect(() => {
+    if (magicLinkCooldown <= 0) return;
+    const timer = setInterval(() => {
+      setMagicLinkCooldown((prev) => Math.max(prev - 1, 0));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [magicLinkCooldown]);
 
   const validateEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -74,13 +86,12 @@ export default function LoginScreen() {
 
     const { error: magicLinkError } = await signInWithMagicLink(email);
     if (magicLinkError) {
-      setError(
-        magicLinkError.message || "Failed to send magic link. Please try again."
-      );
+      setError(magicLinkError.message || "Failed to send magic link. Please try again.");
     } else {
+      setMagicLinkCooldown(60); // 60 second cooldown
       Alert.alert(
         "Check your email",
-        "We sent you a magic link to log in. Click the link in your email to continue.",
+        "We sent you a magic link to log in. Click the link in your email to continue. The link expires in 1 hour.",
         [{ text: "OK" }]
       );
     }
@@ -178,41 +189,65 @@ export default function LoginScreen() {
         />
 
         {loginMethod === "password" && (
-          <TextInput
-            style={[styles.input, error && !password && styles.inputError]}
-            placeholder="Password"
-            placeholderTextColor="#9ca3af"
-            value={password}
-            onChangeText={(text) => {
-              setPassword(text);
-              setError(null);
-            }}
-            secureTextEntry
-            autoComplete="password"
-            editable={!loading}
-          />
+          <View style={styles.passwordContainer}>
+            <TextInput
+              style={[styles.input, styles.passwordInput, error && !password && styles.inputError]}
+              placeholder="Password"
+              placeholderTextColor="#9ca3af"
+              value={password}
+              onChangeText={(text) => {
+                setPassword(text);
+                setError(null);
+              }}
+              secureTextEntry={!showPassword}
+              autoComplete="password"
+              editable={!loading}
+            />
+            <TouchableOpacity
+              style={styles.eyeButton}
+              onPress={() => setShowPassword(!showPassword)}
+              disabled={loading}
+            >
+              <MaterialIcons
+                name={showPassword ? "visibility-off" : "visibility"}
+                size={20}
+                color="#6b7280"
+              />
+            </TouchableOpacity>
+          </View>
         )}
 
         {loginMethod === "password" ? (
-          <TouchableOpacity
-            style={[styles.button, loading && styles.buttonDisabled]}
-            onPress={handlePasswordLogin}
-            disabled={loading}
-          >
-            {loading ? (
-              <ActivityIndicator color="white" />
-            ) : (
-              <Text style={styles.buttonText}>Sign In</Text>
-            )}
-          </TouchableOpacity>
+          <>
+            <TouchableOpacity
+              style={[styles.button, loading && styles.buttonDisabled]}
+              onPress={handlePasswordLogin}
+              disabled={loading}
+            >
+              {loading ? (
+                <ActivityIndicator color="white" />
+              ) : (
+                <Text style={styles.buttonText}>Sign In</Text>
+              )}
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.linkButton}
+              onPress={() => router.push("/auth/reset-password")}
+              disabled={loading}
+            >
+              <Text style={styles.linkText}>Forgot password?</Text>
+            </TouchableOpacity>
+          </>
         ) : (
           <TouchableOpacity
-            style={[styles.button, loading && styles.buttonDisabled]}
+            style={[styles.button, (loading || magicLinkCooldown > 0) && styles.buttonDisabled]}
             onPress={handleMagicLogin}
-            disabled={loading}
+            disabled={loading || magicLinkCooldown > 0}
           >
             {loading ? (
               <ActivityIndicator color="white" />
+            ) : magicLinkCooldown > 0 ? (
+              <Text style={styles.buttonText}>Resend in {magicLinkCooldown}s</Text>
             ) : (
               <Text style={styles.buttonText}>Send Magic Link</Text>
             )}
@@ -348,6 +383,18 @@ const styles = StyleSheet.create({
     color: "white",
     fontWeight: "bold",
     fontSize: 16,
+  },
+  passwordContainer: {
+    position: "relative",
+  },
+  passwordInput: {
+    paddingRight: 50,
+  },
+  eyeButton: {
+    position: "absolute",
+    right: 12,
+    top: 12,
+    padding: 4,
   },
   dividerContainer: {
     flexDirection: "row",

@@ -76,10 +76,12 @@ export function convertCurrency(
 
 export function formatCurrency(
   amount: number,
-  currency: string = "USD"
+  currency: string = "USD",
+  includeCode?: boolean
 ): string {
   const info = CURRENCIES[currency] || CURRENCIES.USD;
-  return `${info.symbol}${amount.toFixed(2)}`;
+  const formatted = `${info.symbol}${amount.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+  return includeCode ? `${formatted} ${info.code}` : formatted;
 }
 
 export function formatCurrencyWithConversion(
@@ -89,14 +91,14 @@ export function formatCurrencyWithConversion(
 ): { primary: string; secondary: string | null } {
   if (userCurrency === originalCurrency) {
     return {
-      primary: formatCurrency(amount, originalCurrency),
+      primary: formatCurrency(amount, originalCurrency, true), // Include code for primary
       secondary: null,
     };
   }
 
   const converted = convertCurrency(amount, originalCurrency, userCurrency);
   return {
-    primary: formatCurrency(converted, userCurrency),
-    secondary: formatCurrency(amount, originalCurrency),
+    primary: formatCurrency(converted, userCurrency, true), // Include code for primary
+    secondary: formatCurrency(amount, originalCurrency, true), // Include code for secondary
   };
 }

@@ -66,11 +66,11 @@ export default function AutoMeasureScreen() {
       },
     });
 
-    // Store results
+    // Store results - round to whole numbers
     const dimensions = {
-      length_cm: result.dimensions.length,
-      width_cm: result.dimensions.width,
-      height_cm: result.dimensions.height,
+      length_cm: Math.round(result.dimensions.length),
+      width_cm: Math.round(result.dimensions.width),
+      height_cm: Math.round(result.dimensions.height),
     };
 
     // Store in AsyncStorage for React Native
@@ -78,13 +78,13 @@ export default function AutoMeasureScreen() {
       const AsyncStorage =
         require("@react-native-async-storage/async-storage").default;
 
-      // Store dimensions with proper field names
+      // Store dimensions with proper field names (rounded to whole numbers)
       AsyncStorage.setItem(
         "autoMeasureResult",
         JSON.stringify({
-          length_cm: result.dimensions.length,
-          width_cm: result.dimensions.width,
-          height_cm: result.dimensions.height,
+          length_cm: dimensions.length_cm,
+          width_cm: dimensions.width_cm,
+          height_cm: dimensions.height_cm,
         })
       );
 

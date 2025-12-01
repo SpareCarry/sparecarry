@@ -307,6 +307,12 @@ export default function ProfileScreen() {
         queryKey: ["user-imperial-preference", user?.id],
       });
       queryClient.invalidateQueries({ queryKey: ["user-currency", user?.id] });
+      queryClient.invalidateQueries({ queryKey: ["profile", user?.id] });
+      Alert.alert("Success", "Preference updated successfully");
+    },
+    onError: (error: any) => {
+      console.error("Error updating preference:", error);
+      Alert.alert("Error", error.message || "Failed to update preference");
     },
   });
 
@@ -370,6 +376,7 @@ export default function ProfileScreen() {
       if (error) throw error;
 
       queryClient.invalidateQueries({ queryKey: ["profile", user.id] });
+      Alert.alert("Success", "Preference updated successfully");
     } catch (error: any) {
       console.error("Error updating boat travel preference:", error);
       Alert.alert("Error", error.message || "Failed to update preference");

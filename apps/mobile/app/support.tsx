@@ -226,8 +226,8 @@ export default function SupportScreen() {
           subject: subject.trim(),
           message: message.trim(),
           userEmail: user?.email,
-          userId: user?.id,
-          matchId: selectedMatchId,
+          ...(user?.id && { userId: user.id }),
+          ...(selectedMatchId && { matchId: selectedMatchId }),
         }),
         signal: controller.signal,
       }).catch((fetchError) => {

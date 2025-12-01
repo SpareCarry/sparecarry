@@ -18,7 +18,7 @@ const contactSupportSchema = z.object({
     .min(1, "Message is required")
     .max(5000, "Message must be less than 5000 characters"),
   userEmail: z.string().email().optional(),
-  userId: z.string().uuid().optional(),
+  userId: z.string().uuid().nullable().optional(),
   matchId: z.string().uuid().optional(),
 });
 
@@ -160,7 +160,7 @@ ${safeMessage}
         if (ticketData) {
           await supabase.from("support_ticket_messages").insert({
             ticket_id: ticketData.id,
-            user_id: userIdValue,
+            user_id: userIdValue || null,
             message: safeMessage,
             is_from_support: false,
           });

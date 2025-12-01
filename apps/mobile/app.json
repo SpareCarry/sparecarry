@@ -16,7 +16,7 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.sparecarry.app",
       "infoPlist": {
-        "NSCameraUsageDescription": "SpareCarry needs camera access to take photos of items.",
+        "NSCameraUsageDescription": "SpareCarry needs camera access to take photos of items and measure dimensions.",
         "NSLocationWhenInUseUsageDescription": "SpareCarry needs location access to find nearby trips and requests.",
         "NSLocationAlwaysUsageDescription": "SpareCarry needs location access to find nearby trips and requests.",
         "NSPhotoLibraryUsageDescription": "SpareCarry needs photo library access to select images."
@@ -52,7 +52,7 @@
       [
         "expo-camera",
         {
-          "cameraPermission": "SpareCarry needs camera access to take photos of items."
+          "cameraPermission": "SpareCarry needs camera access to take photos of items and measure dimensions."
         }
       ],
       [

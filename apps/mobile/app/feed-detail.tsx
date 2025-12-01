@@ -3,7 +3,7 @@
  * Shows full details of a trip or request with messaging options
  */
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   View,
   Text,
@@ -12,7 +12,6 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Alert,
-  Linking,
 } from "react-native";
 import { useQuery } from "@tanstack/react-query";
 import { createClient } from "@sparecarry/lib/supabase";
@@ -20,7 +19,6 @@ import { useAuth } from "@sparecarry/hooks/useAuth";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { format } from "date-fns";
-import * as LinkingModule from "expo-linking";
 
 interface FeedItem {
   id: string;
@@ -73,26 +71,9 @@ async function fetchItemDetails(
   } as FeedItem;
 }
 
-async function fetchUserPhone(userId: string): Promise<string | null> {
-  const supabase = createClient();
-  const { data, error } = await supabase
-    .from("profiles")
-    .select("phone")
-    .eq("user_id", userId)
-    .single();
-
-  if (error || !data?.phone) {
-    return null;
-  }
-
-  return data.phone;
-}
-
 async function createMatch(
-  requesterId: string,
-  travelerId: string,
-  requestId?: string,
-  tripId?: string
+  tripId: string,
+  requestId: string
 ): Promise<string | null> {
   const supabase = createClient();
 
@@ -100,66 +81,67 @@ async function createMatch(
   const { data: existingMatch } = await supabase
     .from("matches")
     .select("id")
-    .or(
-      `and(requester_id.eq.${requesterId},traveler_id.eq.${travelerId}),and(requester_id.eq.${travelerId},traveler_id.eq.${requesterId})`
-    )
-    .eq("request_id", requestId || "")
-    .eq("trip_id", tripId || "")
-    .single();
+    .eq("trip_id", tripId)
+    .eq("request_id", requestId)
+    .maybeSingle();
 
   if (existingMatch) {
     return existingMatch.id;
   }
 
+  // Get request to get reward amount
+  const { data: request } = await supabase
+    .from("requests")
+    .select("max_reward")
+    .eq("id", requestId)
+    .maybeSingle();
+
   // Create new match
+  const rewardAmount = request?.max_reward || 1; // Minimum 1 to satisfy CHECK constraint
+  
   const { data, error } = await supabase
     .from("matches")
     .insert({
-      requester_id: requesterId,
-      traveler_id: travelerId,
-      request_id: requestId || null,
-      trip_id: tripId || null,
+      trip_id: tripId,
+      request_id: requestId,
       status: "pending",
-      reward_amount: 0, // Will be set later
+      reward_amount: rewardAmount,
     })
     .select()
     .single();
 
   if (error) {
     console.error("Error creating match:", error);
+    console.error("Match data attempted:", { trip_id: tripId, request_id: requestId, reward_amount: rewardAmount });
     return null;
   }
 
-  return data.id;
-}
-
-function openWhatsApp(phone: string, message: string) {
-  // Remove any non-numeric characters except +
-  const cleanPhone = phone.replace(/[^\d+]/g, "");
-
-  // Ensure phone starts with country code
-  let whatsappPhone = cleanPhone;
-  if (!whatsappPhone.startsWith("+")) {
-    // Assume US number if no country code
-    whatsappPhone = `+1${cleanPhone}`;
+  if (!data) {
+    console.error("Match created but no data returned");
+    return null;
   }
 
-  // Encode message for URL
-  const encodedMessage = encodeURIComponent(message);
-  const whatsappUrl = `whatsapp://send?phone=${whatsappPhone}&text=${encodedMessage}`;
+  // Ensure conversation exists (trigger should create it, but ensure it exists)
+  const { data: existingConv } = await supabase
+    .from("conversations")
+    .select("id")
+    .eq("match_id", data.id)
+    .maybeSingle();
 
-  Linking.openURL(whatsappUrl).catch((err) => {
-    console.error("Error opening WhatsApp:", err);
-    // Fallback to web WhatsApp
-    const webUrl = `https://wa.me/${whatsappPhone}?text=${encodedMessage}`;
-    Linking.openURL(webUrl).catch((webErr) => {
-      console.error("Error opening WhatsApp Web:", webErr);
-      Alert.alert(
-        "Error",
-        "Could not open WhatsApp. Please install WhatsApp or use WhatsApp Web."
-      );
-    });
-  });
+  if (!existingConv) {
+    const { error: convError } = await supabase
+      .from("conversations")
+      .insert({
+        match_id: data.id,
+      });
+
+    if (convError) {
+      console.error("Error creating conversation:", convError);
+      // Don't fail - conversation might be created by trigger or may already exist
+    }
+  }
+
+  return data.id;
 }
 
 export default function FeedDetailScreen() {
@@ -171,8 +153,6 @@ export default function FeedDetailScreen() {
   const itemId = params.id as string;
   const itemType = (params.type as "trip" | "request") || "request";
   const [loading, setLoading] = useState(false);
-  const [userPhone, setUserPhone] = useState<string | null>(null);
-  const [loadingPhone, setLoadingPhone] = useState(false);
 
   const { data: item, isLoading } = useQuery<FeedItem | null>({
     queryKey: ["feed-item", itemId, itemType],
@@ -180,21 +160,6 @@ export default function FeedDetailScreen() {
     enabled: !!itemId,
   });
 
-  const { data: profile } = useQuery<{ phone?: string | null } | null>({
-    queryKey: ["user-profile-phone", item?.user_id],
-    queryFn: async () => {
-      if (!item?.user_id) return null;
-      const phone = await fetchUserPhone(item.user_id);
-      return phone ? { phone } : null;
-    },
-    enabled: !!item?.user_id && !userPhone,
-  });
-
-  useEffect(() => {
-    if (profile?.phone) {
-      setUserPhone(profile.phone);
-    }
-  }, [profile]);
 
   const isInvolved = user?.id === item?.user_id;
 
@@ -212,50 +177,124 @@ export default function FeedDetailScreen() {
 
     if (!item) return;
 
-    setLoadingPhone(true);
+    setLoading(true);
     try {
-      let phone = userPhone;
+      // For in-app messaging, we need both a trip and a request to create a match
+      // If user doesn't have one, we'll create a placeholder so they can message
+      
+      let tripId: string | null = null;
+      let requestId: string | null = null;
 
-      if (!phone) {
-        phone = await fetchUserPhone(item.user_id);
-        if (phone) {
-          setUserPhone(phone);
+      if (itemType === "request") {
+        // User clicked on a request - they want to offer their trip
+        requestId = item.id;
+        
+        // Find user's active trip that matches this request
+        const { data: userTrips, error: tripQueryError } = await supabase
+          .from("trips")
+          .select("id")
+          .eq("user_id", user.id)
+          .eq("status", "active")
+          .eq("from_location", item.from_location)
+          .eq("to_location", item.to_location)
+          .limit(1)
+          .maybeSingle();
+
+        if (userTrips) {
+          tripId = userTrips.id;
+        } else {
+          // Create a placeholder trip so user can message
+          // Use the request's preferred method, or default to "plane"
+          const tripType = (item as any).preferred_method === "boat" ? "boat" : "plane";
+          const { data: newTrip, error: tripError } = await supabase
+            .from("trips")
+            .insert({
+              user_id: user.id,
+              type: tripType,
+              from_location: item.from_location,
+              to_location: item.to_location,
+              departure_date: new Date().toISOString().split("T")[0],
+              eta_window_start: new Date().toISOString(),
+              eta_window_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days from now
+              spare_kg: 10, // Placeholder
+              spare_volume_liters: 10, // Placeholder
+              status: "active",
+            })
+            .select()
+            .single();
+
+          if (tripError || !newTrip) {
+            Alert.alert("Error", "Failed to create trip. Please try again.");
+            setLoading(false);
+            return;
+          }
+          tripId = newTrip.id;
+        }
+      } else {
+        // User clicked on a trip - they want to create a request
+        tripId = item.id;
+        
+        // Find user's open request that matches this trip
+        const { data: userRequests, error: requestQueryError } = await supabase
+          .from("requests")
+          .select("id")
+          .eq("user_id", user.id)
+          .eq("status", "open")
+          .eq("from_location", item.from_location)
+          .eq("to_location", item.to_location)
+          .limit(1)
+          .maybeSingle();
+
+        if (userRequests) {
+          requestId = userRequests.id;
+        } else {
+          // Create a placeholder request so user can message
+          const { data: newRequest, error: requestError } = await supabase
+            .from("requests")
+            .insert({
+              user_id: user.id,
+              title: "Delivery Request",
+              from_location: item.from_location,
+              to_location: item.to_location,
+              deadline_latest: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0], // 30 days from now
+              max_reward: 100, // Placeholder
+              weight_kg: 1, // Placeholder
+              status: "open",
+            })
+            .select()
+            .single();
+
+          if (requestError || !newRequest) {
+            Alert.alert("Error", "Failed to create request. Please try again.");
+            setLoading(false);
+            return;
+          }
+          requestId = newRequest.id;
         }
       }
 
-      if (!phone) {
-        Alert.alert(
-          "Phone Not Available",
-          "This user has not provided a phone number. Please contact them through the app or ask them to add their phone number to their profile."
-        );
-        setLoadingPhone(false);
+      if (!tripId || !requestId) {
+        Alert.alert("Error", "Unable to create match. Missing trip or request.");
+        setLoading(false);
         return;
       }
 
-      // Create or get match
-      const requesterId = itemType === "request" ? item.user_id : user.id;
-      const travelerId = itemType === "trip" ? item.user_id : user.id;
-      const requestId = itemType === "request" ? item.id : undefined;
-      const tripId = itemType === "trip" ? item.id : undefined;
-
-      const matchId = await createMatch(
-        requesterId,
-        travelerId,
-        requestId,
-        tripId
-      );
+      const matchId = await createMatch(tripId, requestId);
 
       if (matchId) {
-        // Navigate to in-app chat instead of WhatsApp
+        // Navigate to in-app chat
         router.push(`/messages/${matchId}`);
       } else {
+        console.error("Failed to create match - matchId is null");
         Alert.alert("Error", "Failed to create match. Please try again.");
       }
     } catch (error: any) {
       console.error("Error in handleMessage:", error);
-      Alert.alert("Error", error.message || "Failed to open WhatsApp");
+      const errorMessage = error?.message || error?.error?.message || "Failed to start conversation";
+      console.error("Full error details:", JSON.stringify(error, null, 2));
+      Alert.alert("Error", errorMessage);
     } finally {
-      setLoadingPhone(false);
+      setLoading(false);
     }
   };
 
@@ -429,17 +468,17 @@ export default function FeedDetailScreen() {
           <TouchableOpacity
             style={[
               styles.messageButton,
-              (loading || loadingPhone) && styles.messageButtonDisabled,
+              loading && styles.messageButtonDisabled,
             ]}
             onPress={handleMessage}
-            disabled={loading || loadingPhone}
+            disabled={loading}
           >
-            {loading || loadingPhone ? (
+            {loading ? (
               <ActivityIndicator color="#fff" />
             ) : (
               <>
                 <MaterialIcons name="chat" size={20} color="#fff" />
-                <Text style={styles.messageButtonText}>Message in App</Text>
+                <Text style={styles.messageButtonText}>Message</Text>
               </>
             )}
           </TouchableOpacity>

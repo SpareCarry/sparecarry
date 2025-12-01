@@ -17,6 +17,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@sparecarry/hooks/useAuth";
 import { MaterialIcons } from "@expo/vector-icons";
 import * as Clipboard from "expo-clipboard";
+import { createClient } from "@sparecarry/lib/supabase";
 
 interface ReferralStats {
   referralCode: string | null;
@@ -57,12 +58,47 @@ export function ReferralCardMobile() {
 
         return (await response.json()) as { referralCode: string };
       } catch (error) {
-        console.warn("Error loading referral code:", error);
+        console.warn("API error loading referral code, trying direct DB query:", error);
+      }
+
+      // Fallback: Direct DB query
+      try {
+        const supabase = createClient();
+        const { data, error } = await supabase
+          .from("users")
+          .select("referral_code")
+          .eq("id", user.id)
+          .single();
+
+        if (error && error.code !== "PGRST116") {
+          console.warn("Error fetching referral code from DB:", error);
+          return null;
+        }
+
+        if (data?.referral_code) {
+          return { referralCode: data.referral_code };
+        }
+
+        // If no code exists, generate one (simple format)
+        const newCode = `REF${user.id.slice(0, 8).toUpperCase()}`;
+        const { error: updateError } = await supabase
+          .from("users")
+          .update({ referral_code: newCode })
+          .eq("id", user.id);
+
+        if (updateError) {
+          console.warn("Error creating referral code:", updateError);
+          return null;
+        }
+
+        return { referralCode: newCode };
+      } catch (error) {
+        console.warn("Error in fallback referral code query:", error);
         return null;
       }
     },
     enabled: !!user,
-    retry: false,
+    retry: 1,
   });
 
   const referralCode = referralCodeData?.referralCode;

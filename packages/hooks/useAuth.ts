@@ -7,6 +7,7 @@ import { useState, useEffect } from "react";
 import { createClient } from "@sparecarry/lib/supabase";
 import type { User, Session } from "@supabase/supabase-js";
 import { getAuthCallbackUrl } from "@root-lib/supabase/mobile";
+import { getUserFriendlyErrorMessage } from "../../lib/utils/auth-errors";
 
 // Check dev mode via environment variable.
 // NOTE: For mobile we now require EXPO_PUBLIC_DEV_MODE=true explicitly to avoid
@@ -98,6 +99,9 @@ export function useAuth() {
         error: new Error("Supabase client not available"),
       }),
       signInWithMagicLink: async () => ({
+        error: new Error("Supabase client not available"),
+      }),
+      resetPassword: async () => ({
         error: new Error("Supabase client not available"),
       }),
     };
@@ -225,24 +229,26 @@ export function useAuth() {
       });
 
       if (error) {
+        const friendlyMessage = getUserFriendlyErrorMessage(error);
         setState((prev) => ({
           ...prev,
           loading: false,
-          error: new Error(error.message),
+          error: new Error(friendlyMessage),
         }));
-        return { error };
+        return { error: { ...error, message: friendlyMessage } };
       }
 
       // Magic link flow continues in the browser/app after email click.
       setState((prev) => ({ ...prev, loading: false }));
       return { data, error: null };
     } catch (err: any) {
+      const friendlyMessage = getUserFriendlyErrorMessage(err);
       setState((prev) => ({
         ...prev,
         loading: false,
-        error: new Error(err.message || "Failed to send magic link"),
+        error: new Error(friendlyMessage),
       }));
-      return { error: err };
+      return { error: { ...err, message: friendlyMessage } };
     }
   };
 
@@ -254,12 +260,13 @@ export function useAuth() {
     });
 
     if (error) {
+      const friendlyMessage = getUserFriendlyErrorMessage(error);
       setState((prev) => ({
         ...prev,
         loading: false,
-        error: new Error(error.message),
+        error: new Error(friendlyMessage),
       }));
-      return { error };
+      return { error: { ...error, message: friendlyMessage } };
     }
 
     return { data, error: null };
@@ -353,12 +360,13 @@ export function useAuth() {
     }
 
     if (error) {
+      const friendlyMessage = getUserFriendlyErrorMessage(error);
       setState((prev) => ({
         ...prev,
         loading: false,
-        error: new Error(error.message),
+        error: new Error(friendlyMessage),
       }));
-      return { error };
+      return { error: { ...error, message: friendlyMessage } };
     }
 
     // On React Native / mobile, supabase-js may return a URL instead of navigating.
@@ -432,6 +440,37 @@ export function useAuth() {
     return { data, error: null };
   };
 
+  const resetPassword = async (email: string) => {
+    setState((prev) => ({ ...prev, loading: true, error: null }));
+
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: getAuthCallbackUrl("/auth/reset-password/confirm"),
+      });
+
+      if (error) {
+        const friendlyMessage = getUserFriendlyErrorMessage(error);
+        setState((prev) => ({
+          ...prev,
+          loading: false,
+          error: new Error(friendlyMessage),
+        }));
+        return { error: { ...error, message: friendlyMessage } };
+      }
+
+      setState((prev) => ({ ...prev, loading: false }));
+      return { data: { message: "Password reset email sent" }, error: null };
+    } catch (err: any) {
+      const friendlyMessage = getUserFriendlyErrorMessage(err);
+      setState((prev) => ({
+        ...prev,
+        loading: false,
+        error: new Error(friendlyMessage),
+      }));
+      return { error: { ...err, message: friendlyMessage } };
+    }
+  };
+
   return {
     ...state,
     signIn,
@@ -439,5 +478,6 @@ export function useAuth() {
     signOut,
     signInWithOAuth,
     signInWithMagicLink,
+    resetPassword,
   };
 }

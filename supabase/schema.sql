@@ -124,6 +124,9 @@ CREATE TABLE IF NOT EXISTS public.requests (
   emergency BOOLEAN DEFAULT false, -- Emergency request flag
   purchase_retailer TEXT CHECK (purchase_retailer IN ('west_marine', 'svb', 'amazon', NULL)), -- Preferred retailer for purchase
   purchase_link TEXT, -- Generated affiliate link (updated when match confirmed)
+  restricted_items BOOLEAN DEFAULT false, -- Restricted goods - only boat transport
+  prohibited_items_confirmed BOOLEAN, -- For plane requests only
+  customs_compliance_confirmed BOOLEAN DEFAULT false NOT NULL, -- User acknowledges customs compliance responsibility
   status TEXT DEFAULT 'open' CHECK (status IN ('open', 'matched', 'fulfilled', 'cancelled')),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
@@ -346,93 +349,114 @@ ALTER TABLE public.referrals ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.waitlist ENABLE ROW LEVEL SECURITY;
 
 -- Users policies
+DROP POLICY IF EXISTS "Users can view their own data" ON public.users;
 CREATE POLICY "Users can view their own data"
   ON public.users FOR SELECT
   USING (auth.uid() = id);
 
+DROP POLICY IF EXISTS "Users can update their own data" ON public.users;
 CREATE POLICY "Users can update their own data"
   ON public.users FOR UPDATE
   USING (auth.uid() = id);
 
 -- Profiles policies
+DROP POLICY IF EXISTS "Profiles are viewable by everyone" ON public.profiles;
 CREATE POLICY "Profiles are viewable by everyone"
   ON public.profiles FOR SELECT
   USING (true);
 
+DROP POLICY IF EXISTS "Users can update their own profile" ON public.profiles;
 CREATE POLICY "Users can update their own profile"
   ON public.profiles FOR UPDATE
   USING (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Users can insert their own profile" ON public.profiles;
 CREATE POLICY "Users can insert their own profile"
   ON public.profiles FOR INSERT
   WITH CHECK (auth.uid() = user_id);
 
 -- Trips policies
+DROP POLICY IF EXISTS "Trips are viewable by everyone" ON public.trips;
 CREATE POLICY "Trips are viewable by everyone"
   ON public.trips FOR SELECT
   USING (true);
 
+DROP POLICY IF EXISTS "Users can create their own trips" ON public.trips;
 CREATE POLICY "Users can create their own trips"
   ON public.trips FOR INSERT
   WITH CHECK (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Users can update their own trips" ON public.trips;
 CREATE POLICY "Users can update their own trips"
   ON public.trips FOR UPDATE
   USING (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Users can delete their own trips" ON public.trips;
 CREATE POLICY "Users can delete their own trips"
   ON public.trips FOR DELETE
   USING (auth.uid() = user_id);
 
 -- Requests policies
+DROP POLICY IF EXISTS "Requests are viewable by everyone" ON public.requests;
 CREATE POLICY "Requests are viewable by everyone"
   ON public.requests FOR SELECT
   USING (true);
 
+DROP POLICY IF EXISTS "Users can create their own requests" ON public.requests;
 CREATE POLICY "Users can create their own requests"
   ON public.requests FOR INSERT
   WITH CHECK (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Users can update their own requests" ON public.requests;
 CREATE POLICY "Users can update their own requests"
   ON public.requests FOR UPDATE
   USING (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Users can delete their own requests" ON public.requests;
 CREATE POLICY "Users can delete their own requests"
   ON public.requests FOR DELETE
   USING (auth.uid() = user_id);
 
 -- Referrals policies
+DROP POLICY IF EXISTS "Referrals are viewable by participants" ON public.referrals;
 CREATE POLICY "Referrals are viewable by participants"
   ON public.referrals FOR SELECT
   USING (auth.uid() = referrer_id OR auth.uid() = referred_id);
 
 -- Group buys policies
+DROP POLICY IF EXISTS "Group buys readable by everyone" ON public.group_buys;
 CREATE POLICY "Group buys readable by everyone"
   ON public.group_buys FOR SELECT
   USING (true);
 
+DROP POLICY IF EXISTS "Users can create group buys" ON public.group_buys;
 CREATE POLICY "Users can create group buys"
   ON public.group_buys FOR INSERT
   WITH CHECK (auth.uid() = organizer_id);
 
+DROP POLICY IF EXISTS "Authenticated users can update group buys" ON public.group_buys;
 CREATE POLICY "Authenticated users can update group buys"
   ON public.group_buys FOR UPDATE
   USING (auth.role() = 'authenticated');
 
+DROP POLICY IF EXISTS "Group buys deletable by organizer" ON public.group_buys;
 CREATE POLICY "Group buys deletable by organizer"
   ON public.group_buys FOR DELETE
   USING (auth.uid() = organizer_id);
 
 -- Waitlist policies
+DROP POLICY IF EXISTS "Waitlist readable by everyone" ON public.waitlist;
 CREATE POLICY "Waitlist readable by everyone"
   ON public.waitlist FOR SELECT
   USING (true);
 
+DROP POLICY IF EXISTS "Public can join waitlist" ON public.waitlist;
 CREATE POLICY "Public can join waitlist"
   ON public.waitlist FOR INSERT
   WITH CHECK (true);
 
 -- Matches policies
+DROP POLICY IF EXISTS "Matches are viewable by participants" ON public.matches;
 CREATE POLICY "Matches are viewable by participants"
   ON public.matches FOR SELECT
   USING (
@@ -447,10 +471,12 @@ CREATE POLICY "Matches are viewable by participants"
     )
   );
 
+DROP POLICY IF EXISTS "Matches can be created by system" ON public.matches;
 CREATE POLICY "Matches can be created by system"
   ON public.matches FOR INSERT
   WITH CHECK (true);
 
+DROP POLICY IF EXISTS "Matches can be updated by participants" ON public.matches;
 CREATE POLICY "Matches can be updated by participants"
   ON public.matches FOR UPDATE
   USING (
@@ -466,6 +492,7 @@ CREATE POLICY "Matches can be updated by participants"
   );
 
 -- Conversations policies
+DROP POLICY IF EXISTS "Conversations are viewable by participants" ON public.conversations;
 CREATE POLICY "Conversations are viewable by participants"
   ON public.conversations FOR SELECT
   USING (
@@ -479,6 +506,7 @@ CREATE POLICY "Conversations are viewable by participants"
   );
 
 -- Messages policies
+DROP POLICY IF EXISTS "Messages are viewable by conversation participants" ON public.messages;
 CREATE POLICY "Messages are viewable by conversation participants"
   ON public.messages FOR SELECT
   USING (
@@ -492,6 +520,7 @@ CREATE POLICY "Messages are viewable by conversation participants"
     )
   );
 
+DROP POLICY IF EXISTS "Users can send messages in their conversations" ON public.messages;
 CREATE POLICY "Users can send messages in their conversations"
   ON public.messages FOR INSERT
   WITH CHECK (
@@ -508,6 +537,7 @@ CREATE POLICY "Users can send messages in their conversations"
   );
 
 -- Deliveries policies
+DROP POLICY IF EXISTS "Deliveries are viewable by match participants" ON public.deliveries;
 CREATE POLICY "Deliveries are viewable by match participants"
   ON public.deliveries FOR SELECT
   USING (
@@ -520,6 +550,7 @@ CREATE POLICY "Deliveries are viewable by match participants"
     )
   );
 
+DROP POLICY IF EXISTS "Deliveries can be updated by match participants" ON public.deliveries;
 CREATE POLICY "Deliveries can be updated by match participants"
   ON public.deliveries FOR UPDATE
   USING (
@@ -533,15 +564,18 @@ CREATE POLICY "Deliveries can be updated by match participants"
   );
 
 -- Meetup locations policies (public read)
+DROP POLICY IF EXISTS "Meetup locations are viewable by everyone" ON public.meetup_locations;
 CREATE POLICY "Meetup locations are viewable by everyone"
   ON public.meetup_locations FOR SELECT
   USING (true);
 
 -- Ratings policies
+DROP POLICY IF EXISTS "Ratings are viewable by everyone" ON public.ratings;
 CREATE POLICY "Ratings are viewable by everyone"
   ON public.ratings FOR SELECT
   USING (true);
 
+DROP POLICY IF EXISTS "Users can create ratings for their matches" ON public.ratings;
 CREATE POLICY "Users can create ratings for their matches"
   ON public.ratings FOR INSERT
   WITH CHECK (
@@ -569,32 +603,43 @@ END;
 $$ language 'plpgsql';
 
 -- Triggers for updated_at
+DROP TRIGGER IF EXISTS update_users_updated_at ON public.users;
 CREATE TRIGGER update_users_updated_at BEFORE UPDATE ON public.users
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_profiles_updated_at ON public.profiles;
 CREATE TRIGGER update_profiles_updated_at BEFORE UPDATE ON public.profiles
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_trips_updated_at ON public.trips;
 CREATE TRIGGER update_trips_updated_at BEFORE UPDATE ON public.trips
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_group_buys_updated_at ON public.group_buys;
 CREATE TRIGGER update_group_buys_updated_at BEFORE UPDATE ON public.group_buys
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_requests_updated_at ON public.requests;
 CREATE TRIGGER update_requests_updated_at BEFORE UPDATE ON public.requests
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+DROP TRIGGER IF EXISTS update_referrals_updated_at ON public.referrals;
 CREATE TRIGGER update_referrals_updated_at BEFORE UPDATE ON public.referrals
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_matches_updated_at ON public.matches;
 CREATE TRIGGER update_matches_updated_at BEFORE UPDATE ON public.matches
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_conversations_updated_at ON public.conversations;
 CREATE TRIGGER update_conversations_updated_at BEFORE UPDATE ON public.conversations
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_deliveries_updated_at ON public.deliveries;
 CREATE TRIGGER update_deliveries_updated_at BEFORE UPDATE ON public.deliveries
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_meetup_locations_updated_at ON public.meetup_locations;
 CREATE TRIGGER update_meetup_locations_updated_at BEFORE UPDATE ON public.meetup_locations
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
@@ -613,6 +658,7 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Trigger to create user and profile on auth.users insert
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
@@ -629,6 +675,7 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Trigger to create conversation on match insert
+DROP TRIGGER IF EXISTS on_match_created ON public.matches;
 CREATE TRIGGER on_match_created
   AFTER INSERT ON public.matches
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_match();
@@ -698,6 +745,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- Trigger to update delivery stats
+DROP TRIGGER IF EXISTS update_delivery_stats_trigger ON public.matches;
 CREATE TRIGGER update_delivery_stats_trigger
 AFTER UPDATE ON public.matches
 FOR EACH ROW

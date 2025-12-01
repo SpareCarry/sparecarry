@@ -44,10 +44,18 @@ interface Match {
   id: string;
   status: string;
   reward_amount: number;
-  requester_id: string;
-  traveler_id: string;
-  trips?: any;
-  requests?: any;
+  trip_id: string;
+  request_id: string;
+  trips?: {
+    user_id: string;
+    from_location: string;
+    to_location: string;
+  };
+  requests?: {
+    user_id: string;
+    from_location: string;
+    to_location: string;
+  };
 }
 
 export default function ChatScreen() {
@@ -75,7 +83,7 @@ export default function ChatScreen() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("matches")
-        .select("*, trips(*), requests(*)")
+        .select("*, trips(user_id, from_location, to_location), requests(user_id, from_location, to_location)")
         .eq("id", matchId)
         .single();
 
@@ -86,11 +94,22 @@ export default function ChatScreen() {
     refetchInterval: 2000,
   });
 
+  // Get other user ID from trips/requests
   const otherUserId =
     match && user
-      ? match.traveler_id === user.id
-        ? match.requester_id
-        : match.traveler_id
+      ? (() => {
+          const trip = Array.isArray(match.trips) ? match.trips[0] : match.trips;
+          const request = Array.isArray(match.requests) ? match.requests[0] : match.requests;
+          
+          if (trip?.user_id === user.id) {
+            // Current user is the traveler, other user is the requester
+            return request?.user_id;
+          } else if (request?.user_id === user.id) {
+            // Current user is the requester, other user is the traveler
+            return trip?.user_id;
+          }
+          return null;
+        })()
       : null;
 
   // Fetch conversation and messages
@@ -100,11 +119,29 @@ export default function ChatScreen() {
   } | null>({
     queryKey: ["conversation", matchId],
     queryFn: async () => {
-      const { data: conv } = await supabase
+      // First, ensure conversation exists
+      let { data: conv } = await supabase
         .from("conversations")
         .select("id")
         .eq("match_id", matchId)
         .maybeSingle();
+
+      // If conversation doesn't exist, create it
+      if (!conv) {
+        const { data: newConv, error: convError } = await supabase
+          .from("conversations")
+          .insert({
+            match_id: matchId,
+          })
+          .select()
+          .single();
+
+        if (convError) {
+          console.error("Error creating conversation:", convError);
+          return null;
+        }
+        conv = newConv;
+      }
 
       if (!conv) return null;
 

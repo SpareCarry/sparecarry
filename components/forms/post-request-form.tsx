@@ -69,6 +69,7 @@ import { useUser } from "../../hooks/useUser";
 import { useQuery } from "@tanstack/react-query";
 import {
   detectWeightFromText,
+  detectItemSpecs,
   estimateWeightFromFeel,
   validateWeightDimensions,
   getCategoryWeightRange,
@@ -76,6 +77,7 @@ import {
   type WeightFeel,
   type WeightEstimate,
   type ReferenceItem,
+  type ItemSpecs,
 } from "../../lib/utils/weight-estimation";
 import { Alert, AlertDescription } from "../ui/alert";
 import {
@@ -85,6 +87,7 @@ import {
   TooltipTrigger,
 } from "../ui/tooltip";
 import { PurchaseOptions } from "../purchase/purchase-options";
+import { CurrencyDisplay } from "../currency/currency-display";
 
 const postRequestSchema = z
   .object({
@@ -120,6 +123,7 @@ const postRequestSchema = z
     emergency_days: z.number().optional(), // Days until deadline for emergency
     purchase_retailer: z.enum(["west_marine", "svb", "amazon"]).optional(),
     prohibited_items_confirmed: z.boolean().optional(), // For plane requests only
+    customs_compliance_confirmed: z.boolean().default(false),
   })
   .refine(
     (data) => {
@@ -150,6 +154,17 @@ const postRequestSchema = z
         "You must confirm that your shipment does not contain prohibited items",
       path: ["prohibited_items_confirmed"],
     }
+  )
+  .refine(
+    (data) => {
+      // customs_compliance_confirmed is required for all requests
+      return data.customs_compliance_confirmed === true;
+    },
+    {
+      message:
+        "You must confirm that you understand your customs compliance responsibilities",
+      path: ["customs_compliance_confirmed"],
+    }
   );
 
 type PostRequestFormData = z.infer<typeof postRequestSchema>;
@@ -178,6 +193,7 @@ export function PostRequestForm() {
   const [suggestedPriceRange, setSuggestedPriceRange] = useState<{
     min: number;
     max: number;
+    method?: "plane" | "boat";
   } | null>(null);
   const [priceConfidence, setPriceConfidence] = useState<
     "high" | "medium" | "low"
@@ -185,6 +201,7 @@ export function PostRequestForm() {
   const [priceReasoning, setPriceReasoning] = useState<string>("");
   const [priceDataPoints, setPriceDataPoints] = useState<number>(0);
   const [loadingSuggestedPrice, setLoadingSuggestedPrice] = useState(false);
+  const [cameFromShippingEstimator, setCameFromShippingEstimator] = useState(false);
   const [shippingEstimate, setShippingEstimate] = useState<ReturnType<
     typeof calculateShippingEstimate
   > | null>(null);
@@ -237,6 +254,7 @@ export function PostRequestForm() {
   const toLocation = watch("to_location");
   const deadlineEarliest = watch("deadline_earliest");
   const deadlineLatest = watch("deadline_latest");
+  const [deadlineUrgency, setDeadlineUrgency] = useState<"3" | "7" | "14" | "14+">("14+");
   const boatEtaDays = undefined; // Not used for requests, only trips
   const restrictedItems = watch("restricted_items") || false;
   const emergency = watch("emergency") || false;
@@ -356,38 +374,128 @@ export function PostRequestForm() {
     category,
   ]);
 
-  // Detect weight from text/category
+  // Auto-fill item specs (weight, dimensions, category) from text - updates in real-time
   useEffect(() => {
-    if (!weight && (title || description || category)) {
-      const detected = detectWeightFromText(
+    // Always check for specs, but only auto-fill if fields are empty or if specs changed
+    const hasTitleOrDesc = (title && title.trim()) || (description && description.trim());
+    
+    if (hasTitleOrDesc) {
+      const specs = detectItemSpecs(
         title || "",
         description || "",
         category
       );
-      if (detected) {
-        setDetectedWeight(detected);
+      
+      if (specs) {
+        // Auto-fill weight (always update if detected, even if field has value - user can override)
+        if (!weight || specs.source?.includes("estimated")) {
+          setValue("weight_kg", specs.weight);
+        }
+        
+        // Auto-fill dimensions (always update if detected)
+        if (!length || !width || !height || specs.source?.includes("estimated")) {
+          setValue("length_cm", specs.dimensions.length);
+          setValue("width_cm", specs.dimensions.width);
+          setValue("height_cm", specs.dimensions.height);
+        }
+        
+        // Auto-fill category
+        if (!category && specs.category) {
+          setValue("category", specs.category);
+        }
+        
+        // Show detection message
+        setDetectedWeight({
+          weight: specs.weight,
+          confidence: "high",
+          source: specs.source,
+        });
       } else {
-        setDetectedWeight(null);
+        // Fallback to weight-only detection
+        const detected = detectWeightFromText(
+          title || "",
+          description || "",
+          category
+        );
+        if (detected) {
+          setDetectedWeight(detected);
+        } else {
+          setDetectedWeight(null);
+        }
       }
-    } else if (weight) {
-      // Clear detection if user has entered weight
+    } else if (weight || length || width || height) {
+      // Clear detection if user has entered values
       setDetectedWeight(null);
     }
-  }, [title, description, category, weight]);
+  }, [title, description, category, weight, length, width, height, setValue]);
 
-  // Estimate weight from feel + dimensions
+  // Estimate weight from feel + dimensions (auto-update when dimensions change)
+  const [estimatedWeightFromDimensions, setEstimatedWeightFromDimensions] = useState<number | null>(null);
+  const [weightManuallySet, setWeightManuallySet] = useState(false);
+  const [lastWeightFeel, setLastWeightFeel] = useState<WeightFeel | null>(null);
+  
+  // Store weight feel selection
   useEffect(() => {
-    if (weightFeel && length && width && height && !weight) {
+    if (weightFeel) {
+      setLastWeightFeel(weightFeel);
+      setWeightManuallySet(false); // Reset manual flag when feel changes
+    }
+  }, [weightFeel]);
+  
+  // Auto-update weight when dimensions change (if weight feel is selected)
+  useEffect(() => {
+    const activeWeightFeel = weightFeel || lastWeightFeel;
+    
+    if (activeWeightFeel && length && width && height) {
       const estimated = estimateWeightFromFeel(
         parseFloat(length.toString()) || 0,
         parseFloat(width.toString()) || 0,
         parseFloat(height.toString()) || 0,
-        weightFeel
+        activeWeightFeel
       );
-      // Store in a way that we can show it in UI
-      // We'll handle this in the UI component
+      setEstimatedWeightFromDimensions(estimated);
+      
+      // Auto-update weight if not manually set by user
+      if (!weightManuallySet) {
+        setValue("weight_kg", estimated);
+      }
+    } else {
+      setEstimatedWeightFromDimensions(null);
     }
-  }, [weightFeel, length, width, height, weight]);
+  }, [weightFeel, lastWeightFeel, length, width, height, weightManuallySet, setValue]);
+  
+  // Track when user manually changes weight
+  useEffect(() => {
+    if (weight && (weightFeel || lastWeightFeel)) {
+      // If weight differs significantly from estimate, user likely set it manually
+      if (estimatedWeightFromDimensions && Math.abs(weight - estimatedWeightFromDimensions) > 1) {
+        setWeightManuallySet(true);
+      }
+    }
+  }, [weight, estimatedWeightFromDimensions, weightFeel, lastWeightFeel]);
+
+  // Auto-set to boat if weight/dimensions exceed plane limits
+  useEffect(() => {
+    if (preferredMethod === "plane" && !restrictedItems) {
+      const weightKg = parseFloat(weight?.toString() || "0");
+      const lengthCm = parseFloat(length?.toString() || "0");
+      const widthCm = parseFloat(width?.toString() || "0");
+      const heightCm = parseFloat(height?.toString() || "0");
+      
+      // Plane limits: typically 23-32kg per bag, 158cm total linear dimensions
+      const PLANE_MAX_WEIGHT_KG = 32;
+      const PLANE_MAX_LINEAR_CM = 158; // length + width + height
+      
+      const totalLinear = lengthCm + widthCm + heightCm;
+      const exceedsWeight = weightKg > PLANE_MAX_WEIGHT_KG;
+      const exceedsDimensions = totalLinear > PLANE_MAX_LINEAR_CM;
+      
+      if (exceedsWeight || exceedsDimensions) {
+        setValue("preferred_method", "boat");
+        // Show a brief notification (handled by the UI below)
+      }
+    }
+  }, [weight, length, width, height, preferredMethod, restrictedItems, setValue]);
 
   // Validate weight against dimensions
   useEffect(() => {
@@ -405,47 +513,57 @@ export function PostRequestForm() {
   }, [weight, length, width, height]);
 
   // Update suggested reward based on shipping estimate (quick sync version)
+  // This auto-updates the max_reward input dynamically
   useEffect(() => {
     if (shippingEstimateMemo) {
       setShippingEstimate(shippingEstimateMemo);
 
       // Determine which price to suggest based on preferred method and restrictions
       let suggested = 0;
+      let method: "plane" | "boat" | undefined = undefined;
+      
       if (
         preferredMethod === "plane" &&
         shippingEstimateMemo.canTransportByPlane &&
         shippingEstimateMemo.spareCarryPlanePrice > 0
       ) {
         suggested = shippingEstimateMemo.spareCarryPlanePrice;
+        method = "plane";
       } else if (
         preferredMethod === "boat" &&
         shippingEstimateMemo.spareCarryBoatPrice > 0
       ) {
         suggested = shippingEstimateMemo.spareCarryBoatPrice;
+        method = "boat";
       } else if (preferredMethod === "any") {
         // Use the cheaper option, or boat if plane is not available
         if (
           shippingEstimateMemo.canTransportByPlane &&
           shippingEstimateMemo.spareCarryPlanePrice > 0
         ) {
-          suggested =
-            shippingEstimateMemo.spareCarryBoatPrice > 0
-              ? Math.min(
-                  shippingEstimateMemo.spareCarryPlanePrice,
-                  shippingEstimateMemo.spareCarryBoatPrice
-                )
-              : shippingEstimateMemo.spareCarryPlanePrice;
+          const planePrice = shippingEstimateMemo.spareCarryPlanePrice;
+          const boatPrice = shippingEstimateMemo.spareCarryBoatPrice;
+          if (boatPrice > 0) {
+            suggested = Math.min(planePrice, boatPrice);
+            method = planePrice < boatPrice ? "plane" : "boat";
+          } else {
+            suggested = planePrice;
+            method = "plane";
+          }
         } else {
           suggested = shippingEstimateMemo.spareCarryBoatPrice;
+          method = "boat";
         }
       } else {
         // Fallback to boat if plane is not available
         suggested = shippingEstimateMemo.spareCarryBoatPrice;
+        method = "boat";
       }
 
       if (suggested > 0) {
         setSuggestedReward(Math.round(suggested));
-        setValue("max_reward", Math.round(suggested));
+        // Auto-update the max_reward input field
+        setValue("max_reward", Math.round(suggested), { shouldValidate: false });
       }
     }
   }, [shippingEstimateMemo, preferredMethod, setValue]);
@@ -493,11 +611,20 @@ export function PostRequestForm() {
 
         if (result) {
           setSuggestedReward(Math.round(result.suggestedPrice));
-          setSuggestedPriceRange(result.priceRange);
+          // Only set price range if we came from shipping estimator
+          if (cameFromShippingEstimator && result.priceRange) {
+            setSuggestedPriceRange({
+              ...result.priceRange,
+              method: preferredMethod === "plane" ? "plane" : "boat",
+            });
+          } else {
+            setSuggestedPriceRange(null);
+          }
           setPriceConfidence(result.confidence);
           setPriceReasoning(result.reasoning);
           setPriceDataPoints(result.dataPoints);
-          setValue("max_reward", Math.round(result.suggestedPrice));
+          // Auto-update the max_reward input field dynamically
+          setValue("max_reward", Math.round(result.suggestedPrice), { shouldValidate: false });
         }
       } catch (error) {
         console.warn(
@@ -528,6 +655,8 @@ export function PostRequestForm() {
     distance,
     shippingEstimateMemo?.courierPrice,
     shippingEstimateMemo?.courierTotal,
+    cameFromShippingEstimator,
+    preferredMethod,
     setValue,
     // loadingSuggestedPrice is only set, not read, so it doesn't need to be in deps
   ]);
@@ -625,6 +754,22 @@ export function PostRequestForm() {
   // Moved after useForm hook to ensure setValue is available
   useEffect(() => {
     const prefillParam = searchParams?.get("prefill");
+    const returnTo = searchParams?.get("returnTo");
+
+    // Check if we came from shipping estimator
+    if (returnTo === "post-request" || prefillParam) {
+      setCameFromShippingEstimator(true);
+    }
+
+    // Check sessionStorage for shipping estimator data
+    try {
+      const shippingEstimatorData = sessionStorage.getItem("shippingEstimatorPrefill");
+      if (shippingEstimatorData) {
+        setCameFromShippingEstimator(true);
+      }
+    } catch (e) {
+      // Ignore sessionStorage errors
+    }
 
     // If we've already applied this exact prefill param, don't run again
     if (prefillParam && prefillAppliedRef.current === prefillParam) {
@@ -964,6 +1109,7 @@ export function PostRequestForm() {
             data.preferred_method === "plane"
               ? data.prohibited_items_confirmed || false
               : null,
+          customs_compliance_confirmed: data.customs_compliance_confirmed || false,
           emergency_bonus_percentage: emergencyBonusPercentage,
           emergency_extra_amount: emergencyExtraAmount,
           purchase_retailer: data.purchase_retailer || null,
@@ -1122,6 +1268,91 @@ export function PostRequestForm() {
           }}
         />
 
+        {/* Weight Feel Selector - Prominent placement BEFORE dimensions/weight */}
+        <div className="mb-4 space-y-3 rounded-lg border-2 border-teal-400 bg-gradient-to-br from-teal-50 via-teal-100/70 to-teal-50 p-5 shadow-md">
+          <div className="flex items-center gap-2">
+            <Label htmlFor="weight_feel" className="text-lg font-bold text-teal-900">
+              💡 How heavy does it feel?
+            </Label>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Info className="h-5 w-5 cursor-help text-teal-600 hover:text-teal-700" />
+                </TooltipTrigger>
+                <TooltipContent className="max-w-xs">
+                  <p className="text-sm">
+                    Select how heavy the item feels, and we&apos;ll automatically calculate the weight from your dimensions. 
+                    The weight will update automatically when you change dimensions.
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+          <p className="text-sm font-medium text-teal-800">
+            Don&apos;t know the exact weight? Just tell us how heavy it feels and we&apos;ll estimate it from your dimensions!
+          </p>
+          <Select
+            value={weightFeel || lastWeightFeel || ""}
+            onValueChange={(value) => {
+              setWeightFeel(value as WeightFeel);
+              setWeightManuallySet(false); // Allow auto-update again
+            }}
+          >
+            <SelectTrigger id="weight_feel" className="h-12 bg-white text-base font-semibold shadow-md hover:border-teal-500 focus:border-teal-600">
+              <SelectValue placeholder="Select how heavy it feels..." />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="very_light" className="text-base py-3">
+                🪶 Very Light (like a pillow, foam, fabric)
+              </SelectItem>
+              <SelectItem value="light" className="text-base py-3">
+                📱 Light (like a laptop, electronics, plastic)
+              </SelectItem>
+              <SelectItem value="medium" className="text-base py-3">
+                📦 Medium (like a full backpack, most common items)
+              </SelectItem>
+              <SelectItem value="heavy" className="text-base py-3">
+                🏋️ Heavy (like a toolbox, metal, dense materials)
+              </SelectItem>
+              <SelectItem value="very_heavy" className="text-base py-3">
+                ⚙️ Very Heavy (like a car battery, lead, very dense)
+              </SelectItem>
+            </SelectContent>
+          </Select>
+          {/* Show estimate from feel + dimensions (auto-updates) */}
+          {(weightFeel || lastWeightFeel) && length && width && height && estimatedWeightFromDimensions && (
+            <div className="mt-3 rounded-md border-2 border-teal-400 bg-white p-3 shadow-sm">
+              <p className="text-base font-bold text-teal-900">
+                💡 Estimated: ~{estimatedWeightFromDimensions}kg
+                {weight && Math.abs(weight - estimatedWeightFromDimensions) > 2 && (
+                  <span className="ml-2 text-sm font-normal text-orange-600">
+                    (differs from your input)
+                  </span>
+                )}
+              </p>
+              <p className="mt-1 text-sm text-teal-700">
+                ✨ Weight updates automatically when dimensions change
+                {weightManuallySet && (
+                  <span className="ml-2">
+                    • <button
+                      type="button"
+                      onClick={() => {
+                        setWeightManuallySet(false);
+                        if (lastWeightFeel) {
+                          setWeightFeel(lastWeightFeel);
+                        }
+                      }}
+                      className="font-semibold underline hover:text-teal-900"
+                    >
+                      Re-enable auto-update
+                    </button>
+                  </span>
+                )}
+              </p>
+            </div>
+          )}
+        </div>
+
         <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
           <div className="space-y-2">
             <Label htmlFor="length_cm">Length (cm) *</Label>
@@ -1199,7 +1430,13 @@ export function PostRequestForm() {
               id="weight_kg"
               type="number"
               step="0.1"
-              {...register("weight_kg", { valueAsNumber: true })}
+              {...register("weight_kg", { 
+                valueAsNumber: true,
+                onChange: () => {
+                  // Mark weight as manually set when user types
+                  setWeightManuallySet(true);
+                }
+              })}
               className="bg-white"
             />
             {Number.isFinite(weight) && weight! > 0 && (
@@ -1210,190 +1447,122 @@ export function PostRequestForm() {
             {errors.weight_kg && (
               <p className="text-sm text-red-600">{errors.weight_kg.message}</p>
             )}
+          </div>
+        </div>
 
-            {/* Weight Feel Selector */}
-            {!weight && (
-              <div className="mt-2 space-y-2">
-                <Label htmlFor="weight_feel" className="text-sm text-slate-600">
-                  How heavy does it feel? (optional)
-                </Label>
-                <Select
-                  value={weightFeel || ""}
-                  onValueChange={(value) => setWeightFeel(value as WeightFeel)}
+        {/* Auto-detection suggestion */}
+        {detectedWeight && !weight && (
+          <div className="mt-2 rounded-md border border-blue-200 bg-blue-50 p-3">
+            <div className="flex items-start gap-2">
+              <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0 text-blue-600" />
+              <div className="flex-1">
+                <p className="text-sm text-blue-800">
+                  💡 Detected: ~{detectedWeight.weight}kg (
+                  {detectedWeight.source})
+                </p>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="mt-2"
+                  onClick={() => {
+                    setValue("weight_kg", detectedWeight.weight);
+                    setDetectedWeight(null);
+                  }}
                 >
-                  <SelectTrigger id="weight_feel" className="bg-white">
-                    <SelectValue placeholder="Select weight feel" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="very_light">
-                      🪶 Very Light (like a pillow)
-                    </SelectItem>
-                    <SelectItem value="light">
-                      📱 Light (like a laptop)
-                    </SelectItem>
-                    <SelectItem value="medium">
-                      📦 Medium (like a full backpack)
-                    </SelectItem>
-                    <SelectItem value="heavy">
-                      🏋️ Heavy (like a toolbox)
-                    </SelectItem>
-                    <SelectItem value="very_heavy">
-                      ⚙️ Very Heavy (like a car battery)
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-
-                {/* Show estimate from feel + dimensions */}
-                {weightFeel && length && width && height && (
-                  <div className="rounded-md border border-teal-200 bg-teal-50 p-2">
-                    <p className="text-sm text-teal-800">
-                      💡 Estimated: ~
-                      {estimateWeightFromFeel(
-                        parseFloat(length.toString()) || 0,
-                        parseFloat(width.toString()) || 0,
-                        parseFloat(height.toString()) || 0,
-                        weightFeel
-                      )}
-                      kg
-                    </p>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      className="mt-2"
-                      onClick={() => {
-                        const estimated = estimateWeightFromFeel(
-                          parseFloat(length.toString()) || 0,
-                          parseFloat(width.toString()) || 0,
-                          parseFloat(height.toString()) || 0,
-                          weightFeel
-                        );
-                        setValue("weight_kg", estimated);
-                        setWeightFeel(null);
-                      }}
-                    >
-                      Use this
-                    </Button>
-                  </div>
-                )}
+                  Use {detectedWeight.weight}kg
+                </Button>
               </div>
-            )}
+            </div>
+          </div>
+        )}
 
-            {/* Auto-detection suggestion */}
-            {detectedWeight && !weight && (
-              <div className="mt-2 rounded-md border border-blue-200 bg-blue-50 p-3">
-                <div className="flex items-start gap-2">
-                  <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0 text-blue-600" />
-                  <div className="flex-1">
-                    <p className="text-sm text-blue-800">
-                      💡 Detected: ~{detectedWeight.weight}kg (
-                      {detectedWeight.source})
+        {/* Category hint */}
+        {category &&
+          !weight &&
+          (() => {
+            const range = getCategoryWeightRange(category);
+            if (range) {
+              return (
+                <div className="mt-2 rounded-md border border-slate-200 bg-slate-50 p-2">
+                  <p className="text-xs text-slate-600">
+                    💡 Typical weight for {category}: {range.min}-
+                    {range.max}kg
+                    {range.typical && ` (most are ~${range.typical}kg)`}
+                  </p>
+                </div>
+              );
+            }
+            return null;
+          })()}
+
+        {/* Validation warning */}
+        {weightValidation &&
+          !weightValidation.isValid &&
+          weightValidation.warning && (
+            <Alert variant="destructive" className="mt-2">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription className="text-sm">
+                {weightValidation.warning}
+              </AlertDescription>
+            </Alert>
+          )}
+
+        {/* Reference items */}
+        {!weight && (
+          <div className="mt-2">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="text-xs text-slate-500"
+                    onClick={() =>
+                      setShowReferenceItems(!showReferenceItems)
+                    }
+                  >
+                    <Info className="mr-1 h-3 w-3" />
+                    Compare to similar items
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent className="max-w-xs">
+                  <p className="text-xs">
+                    See examples of similar items with known weights
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+
+            {showReferenceItems && (
+              <div className="mt-2 rounded-md border border-slate-200 bg-slate-50 p-3">
+                <p className="mb-2 text-xs font-semibold text-slate-700">
+                  Similar items:
+                </p>
+                <div className="max-h-40 space-y-1 overflow-y-auto">
+                  {getReferenceItems(category || undefined)
+                    .slice(0, 5)
+                    .map((item, idx) => (
+                      <div
+                        key={idx}
+                        className="flex justify-between text-xs text-slate-600"
+                      >
+                        <span>{item.name}</span>
+                        <span className="font-medium">{item.weight}kg</span>
+                      </div>
+                    ))}
+                  {getReferenceItems(category || undefined).length ===
+                    0 && (
+                    <p className="text-xs text-slate-500">
+                      No reference items for this category
                     </p>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      className="mt-2"
-                      onClick={() => {
-                        setValue("weight_kg", detectedWeight.weight);
-                        setDetectedWeight(null);
-                      }}
-                    >
-                      Use {detectedWeight.weight}kg
-                    </Button>
-                  </div>
+                  )}
                 </div>
               </div>
             )}
-
-            {/* Category hint */}
-            {category &&
-              !weight &&
-              (() => {
-                const range = getCategoryWeightRange(category);
-                if (range) {
-                  return (
-                    <div className="mt-2 rounded-md border border-slate-200 bg-slate-50 p-2">
-                      <p className="text-xs text-slate-600">
-                        💡 Typical weight for {category}: {range.min}-
-                        {range.max}kg
-                        {range.typical && ` (most are ~${range.typical}kg)`}
-                      </p>
-                    </div>
-                  );
-                }
-                return null;
-              })()}
-
-            {/* Validation warning */}
-            {weightValidation &&
-              !weightValidation.isValid &&
-              weightValidation.warning && (
-                <Alert variant="destructive" className="mt-2">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertDescription className="text-sm">
-                    {weightValidation.warning}
-                  </AlertDescription>
-                </Alert>
-              )}
-
-            {/* Reference items */}
-            {!weight && (
-              <div className="mt-2">
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="text-xs text-slate-500"
-                        onClick={() =>
-                          setShowReferenceItems(!showReferenceItems)
-                        }
-                      >
-                        <Info className="mr-1 h-3 w-3" />
-                        Compare to similar items
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent className="max-w-xs">
-                      <p className="text-xs">
-                        See examples of similar items with known weights
-                      </p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-
-                {showReferenceItems && (
-                  <div className="mt-2 rounded-md border border-slate-200 bg-slate-50 p-3">
-                    <p className="mb-2 text-xs font-semibold text-slate-700">
-                      Similar items:
-                    </p>
-                    <div className="max-h-40 space-y-1 overflow-y-auto">
-                      {getReferenceItems(category || undefined)
-                        .slice(0, 5)
-                        .map((item, idx) => (
-                          <div
-                            key={idx}
-                            className="flex justify-between text-xs text-slate-600"
-                          >
-                            <span>{item.name}</span>
-                            <span className="font-medium">{item.weight}kg</span>
-                          </div>
-                        ))}
-                      {getReferenceItems(category || undefined).length ===
-                        0 && (
-                        <p className="text-xs text-slate-500">
-                          No reference items for this category
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
           </div>
-        </div>
+        )}
       </div>
 
       {/* Size Tier Selector */}
@@ -1405,7 +1574,30 @@ export function PostRequestForm() {
 
       {/* Value */}
       <div className="space-y-2">
-        <Label htmlFor="value_usd">Declared Value ($)</Label>
+        <div className="flex items-center gap-2">
+          <Label htmlFor="value_usd">Declared Value ($)</Label>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Info className="h-4 w-4 text-slate-400 hover:text-slate-600" />
+              </TooltipTrigger>
+              <TooltipContent className="max-w-xs">
+                <p className="text-sm">
+                  This value may be used for customs declarations. You are
+                  responsible for accurate declarations. See our{" "}
+                  <Link
+                    href="/terms"
+                    className="underline hover:text-teal-700"
+                    target="_blank"
+                  >
+                    Terms of Service
+                  </Link>{" "}
+                  for details.
+                </p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
         <Input
           id="value_usd"
           type="number"
@@ -1479,96 +1671,198 @@ export function PostRequestForm() {
         />
       </div>
 
-      {/* Deadline */}
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        <div className="space-y-2">
-          <Label htmlFor="deadline_earliest">Earliest Date</Label>
-          <Input
-            id="deadline_earliest"
-            type="date"
-            {...register("deadline_earliest")}
-            className="bg-white"
-          />
+      {/* Deadline Urgency */}
+      <div className="space-y-2">
+        <Label htmlFor="deadline_urgency">How soon do you need this? *</Label>
+        <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
+          <button
+            type="button"
+            onClick={() => setDeadlineUrgency("3")}
+            className={`flex flex-col items-center justify-center gap-1 rounded-lg border-2 p-3 transition-colors ${
+              deadlineUrgency === "3"
+                ? "border-teal-600 bg-teal-50 text-teal-900"
+                : "border-slate-200 bg-white text-slate-700 hover:border-teal-300 hover:bg-teal-50/50"
+            }`}
+          >
+            <Clock className="h-5 w-5" />
+            <span className="text-sm font-medium">Under 3 days</span>
+            <span className="text-xs text-slate-500">+30% premium</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setDeadlineUrgency("7")}
+            className={`flex flex-col items-center justify-center gap-1 rounded-lg border-2 p-3 transition-colors ${
+              deadlineUrgency === "7"
+                ? "border-teal-600 bg-teal-50 text-teal-900"
+                : "border-slate-200 bg-white text-slate-700 hover:border-teal-300 hover:bg-teal-50/50"
+            }`}
+          >
+            <Clock className="h-5 w-5" />
+            <span className="text-sm font-medium">Under 7 days</span>
+            <span className="text-xs text-slate-500">+15% premium</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setDeadlineUrgency("14")}
+            className={`flex flex-col items-center justify-center gap-1 rounded-lg border-2 p-3 transition-colors ${
+              deadlineUrgency === "14"
+                ? "border-teal-600 bg-teal-50 text-teal-900"
+                : "border-slate-200 bg-white text-slate-700 hover:border-teal-300 hover:bg-teal-50/50"
+            }`}
+          >
+            <Clock className="h-5 w-5" />
+            <span className="text-sm font-medium">Under 14 days</span>
+            <span className="text-xs text-slate-500">+5% premium</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setDeadlineUrgency("14+")}
+            className={`flex flex-col items-center justify-center gap-1 rounded-lg border-2 p-3 transition-colors ${
+              deadlineUrgency === "14+"
+                ? "border-teal-600 bg-teal-50 text-teal-900"
+                : "border-slate-200 bg-white text-slate-700 hover:border-teal-300 hover:bg-teal-50/50"
+            }`}
+          >
+            <Clock className="h-5 w-5" />
+            <span className="text-sm font-medium">14+ days</span>
+            <span className="text-xs text-slate-500">No rush</span>
+          </button>
         </div>
-        <div className="space-y-2">
-          <Label htmlFor="deadline_latest">Latest Date *</Label>
-          <Input
-            id="deadline_latest"
-            type="date"
-            {...register("deadline_latest")}
-            min={format(new Date(), "yyyy-MM-dd")}
-            className="bg-white"
-          />
-          {errors.deadline_latest && (
-            <p className="text-sm text-red-600">
-              {errors.deadline_latest.message}
-            </p>
-          )}
-        </div>
+        <p className="text-xs text-slate-500">
+          Urgency affects pricing. Faster delivery = higher reward needed.
+        </p>
+        {/* Hidden inputs for form validation */}
+        <input
+          type="hidden"
+          {...register("deadline_earliest")}
+        />
+        <input
+          type="hidden"
+          {...register("deadline_latest")}
+        />
+        {errors.deadline_latest && (
+          <p className="text-sm text-red-600">
+            {errors.deadline_latest.message}
+          </p>
+        )}
       </div>
 
       {/* Preferred Method */}
       <div className="space-y-2">
         <Label htmlFor="preferred_method">Preferred Method *</Label>
-        <Select
-          value={restrictedItems ? "boat" : preferredMethod}
-          onValueChange={(value) => {
-            if (!restrictedItems) {
-              setValue(
-                "preferred_method",
-                value as "plane" | "boat" | "any" | "quickest" | "best_fit"
-              );
-            }
-          }}
-          disabled={restrictedItems}
-        >
-          <SelectTrigger id="preferred_method" className="bg-white">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="plane" disabled={restrictedItems}>
-              <div className="flex items-center gap-2">
-                <Plane className="h-4 w-4" />
-                Plane only
-                {restrictedItems && (
-                  <span className="ml-2 text-xs text-red-600">
-                    (Not available for restricted items)
-                  </span>
-                )}
-              </div>
-            </SelectItem>
-            <SelectItem value="boat">
-              <div className="flex items-center gap-2">
-                <Ship className="h-4 w-4" />
-                Boat only
-              </div>
-            </SelectItem>
-            <SelectItem value="quickest" disabled={restrictedItems}>
-              <div className="flex items-center gap-2">
-                <Clock className="h-4 w-4" />
-                Quickest
-              </div>
-            </SelectItem>
-            <SelectItem value="best_fit" disabled={restrictedItems}>
-              <div className="flex items-center gap-2">
-                <Target className="h-4 w-4" />
-                Best fit
-              </div>
-            </SelectItem>
-            <SelectItem value="any" disabled={restrictedItems}>
-              <div className="flex items-center gap-2">
-                <DollarSign className="h-4 w-4" />
-                Any (cheapest)
-              </div>
-            </SelectItem>
-          </SelectContent>
-        </Select>
-        {restrictedItems && (
-          <p className="text-xs text-red-600">
-            Restricted items can only be transported by boat. Transport method
-            is set to &quot;Boat only&quot;.
-          </p>
-        )}
+        {(() => {
+          // Check if weight/dimensions exceed plane limits
+          const weightKg = parseFloat(weight?.toString() || "0");
+          const lengthCm = parseFloat(length?.toString() || "0");
+          const widthCm = parseFloat(width?.toString() || "0");
+          const heightCm = parseFloat(height?.toString() || "0");
+          const PLANE_MAX_WEIGHT_KG = 32;
+          const PLANE_MAX_LINEAR_CM = 158;
+          const totalLinear = lengthCm + widthCm + heightCm;
+          const exceedsPlaneLimits = weightKg > PLANE_MAX_WEIGHT_KG || totalLinear > PLANE_MAX_LINEAR_CM;
+          const mustUseBoat = restrictedItems || exceedsPlaneLimits;
+          
+          return (
+            <>
+              <Select
+                value={mustUseBoat ? "boat" : preferredMethod}
+                onValueChange={(value) => {
+                  if (!mustUseBoat) {
+                    // Check again before allowing plane
+                    if (value === "plane" && exceedsPlaneLimits) {
+                      return; // Don't allow plane if exceeds limits
+                    }
+                    setValue(
+                      "preferred_method",
+                      value as "plane" | "boat" | "any" | "quickest" | "best_fit"
+                    );
+                  }
+                }}
+                disabled={mustUseBoat}
+              >
+                <SelectTrigger id="preferred_method" className="bg-white">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="plane" disabled={mustUseBoat}>
+                    <div className="flex items-center gap-2">
+                      <Plane className="h-4 w-4" />
+                      Plane only
+                      {mustUseBoat && (
+                        <span className="ml-2 text-xs text-red-600">
+                          (Not available)
+                        </span>
+                      )}
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="boat">
+                    <div className="flex items-center gap-2">
+                      <Ship className="h-4 w-4" />
+                      Boat only
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="quickest" disabled={mustUseBoat}>
+                    <div className="flex items-center gap-2">
+                      <Clock className="h-4 w-4" />
+                      Quickest
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="best_fit" disabled={mustUseBoat}>
+                    <div className="flex items-center gap-2">
+                      <Target className="h-4 w-4" />
+                      Best fit
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="any" disabled={mustUseBoat}>
+                    <div className="flex items-center gap-2">
+                      <DollarSign className="h-4 w-4" />
+                      Any (cheapest)
+                    </div>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+              {mustUseBoat && (
+                <div className="mt-2 flex items-start gap-2 rounded-md border border-amber-300 bg-amber-50 p-2">
+                  <Ship className="h-4 w-4 flex-shrink-0 text-amber-600 mt-0.5" />
+                  <div className="flex-1">
+                    <p className="text-xs font-medium text-amber-900">
+                      Transport method set to Boat
+                    </p>
+                    <p className="text-xs text-amber-700 mt-0.5">
+                      {restrictedItems 
+                        ? "Restricted items cannot be transported by plane."
+                        : exceedsPlaneLimits
+                        ? `Item exceeds plane limits (max ${PLANE_MAX_WEIGHT_KG}kg, ${PLANE_MAX_LINEAR_CM}cm total dimensions).`
+                        : ""}
+                    </p>
+                    {exceedsPlaneLimits && (
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Info className="h-3 w-3 text-amber-600 mt-1 cursor-help inline-block" />
+                          </TooltipTrigger>
+                          <TooltipContent className="max-w-xs">
+                            <p className="text-sm">
+                              Airlines typically limit checked baggage to {PLANE_MAX_WEIGHT_KG}kg per bag 
+                              and {PLANE_MAX_LINEAR_CM}cm total linear dimensions (length + width + height). 
+                              Items exceeding these limits must be shipped by boat.
+                            </p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    )}
+                  </div>
+                </div>
+              )}
+              {restrictedItems && (
+                <p className="text-xs text-red-600">
+                  Restricted items can only be transported by boat. Transport method
+                  is set to &quot;Boat only&quot;.
+                </p>
+              )}
+            </>
+          );
+        })()}
       </div>
 
       {/* Category Field - Manual Dropdown */}
@@ -1633,8 +1927,9 @@ export function PostRequestForm() {
           type="checkbox"
           {...register("restricted_items", {
             onChange: (e) => {
-              if (e.target.checked && preferredMethod === "plane") {
+              if (e.target.checked) {
                 setValue("preferred_method", "boat");
+                // Show tooltip/alert explaining why
               }
             },
           })}
@@ -1647,7 +1942,22 @@ export function PostRequestForm() {
           >
             <AlertCircle className="h-4 w-4 text-red-600" />
             This item contains restricted goods (lithium batteries, liquids,
-            flammable items, etc.) → Only transport by boat
+            flammable items, etc.)
+            {restrictedItems && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Info className="h-4 w-4 text-teal-600" />
+                  </TooltipTrigger>
+                  <TooltipContent className="w-80">
+                    <p className="text-sm">
+                      Restricted items cannot be transported by plane due to airline regulations. 
+                      Transport method has been automatically set to &quot;Boat only&quot;.
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
           </Label>
           <div className="mt-1 flex items-start gap-2">
             <p className="flex-1 text-xs text-slate-600">
@@ -1673,12 +1983,11 @@ export function PostRequestForm() {
               </PopoverContent>
             </Popover>
           </div>
-          {restrictedItems && preferredMethod === "plane" && (
-            <div className="mt-2 rounded-md border border-red-300 bg-white p-2">
-              <p className="text-xs text-red-800">
-                <strong>Note:</strong> Transport method has been changed to
-                &quot;Boat only&quot; because restricted items cannot be
-                transported by plane.
+          {restrictedItems && (
+            <div className="mt-2 flex items-center gap-2 rounded-md border border-teal-300 bg-teal-50 p-2">
+              <Ship className="h-4 w-4 text-teal-600" />
+              <p className="text-xs text-teal-800">
+                <strong>Transport method set to Boat:</strong> Restricted items cannot be transported by plane.
               </p>
             </div>
           )}
@@ -1733,9 +2042,14 @@ export function PostRequestForm() {
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <Label htmlFor="max_reward">Max You&apos;re Willing to Pay *</Label>
-            <span className="text-sm font-semibold text-teal-600">
-              ${maxReward?.toLocaleString() || 0}
-            </span>
+            <div className="flex flex-col items-end">
+              <CurrencyDisplay 
+                amount={maxReward || 0} 
+                originalCurrency="USD" 
+                showSecondary={true}
+                className="text-sm font-semibold text-teal-600"
+              />
+            </div>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             {suggestedReward > 0 && (
@@ -1749,17 +2063,44 @@ export function PostRequestForm() {
                   ) : (
                     <>
                       <p className="text-xs text-slate-500">
-                        {suggestedPriceRange ? (
+                        {suggestedPriceRange && cameFromShippingEstimator ? (
                           <>
-                            Suggested: $
-                            {suggestedPriceRange.min.toLocaleString()}-$
-                            {suggestedPriceRange.max.toLocaleString()}
-                            <span className="ml-1">
-                              (median: ${suggestedReward.toLocaleString()})
+                            <span className="font-medium text-teal-700">Suggested range:</span>{" "}
+                            <CurrencyDisplay 
+                              amount={suggestedPriceRange.min} 
+                              originalCurrency="USD" 
+                              showSecondary={false}
+                              className="inline"
+                            />
+                            {" - "}
+                            <CurrencyDisplay 
+                              amount={suggestedPriceRange.max} 
+                              originalCurrency="USD" 
+                              showSecondary={false}
+                              className="inline"
+                            />
+                            {suggestedPriceRange.method && (
+                              <span className="ml-1 text-slate-500">
+                                ({suggestedPriceRange.method === "plane" ? "by plane" : "by boat"})
+                              </span>
+                            )}
+                            <span className="ml-1 text-slate-400">
+                              (most likely to get accepted)
                             </span>
                           </>
                         ) : (
-                          <>Suggested: ${suggestedReward.toLocaleString()}</>
+                          <>
+                            <span className="font-medium text-teal-700">Suggested:</span>{" "}
+                            <CurrencyDisplay 
+                              amount={suggestedReward} 
+                              originalCurrency="USD" 
+                              showSecondary={false}
+                              className="inline"
+                            />
+                            <span className="ml-1 text-slate-400">
+                              (based on similar requests)
+                            </span>
+                          </>
                         )}
                       </p>
                       {priceConfidence !== "low" && (
@@ -2013,19 +2354,41 @@ export function PostRequestForm() {
               Use shipping estimator to suggest price
             </Link>
           </div>
+          <div className="flex items-center gap-4">
+            <Input
+              id="max_reward"
+              type="number"
+              min="50"
+              step="10"
+              {...register("max_reward", { valueAsNumber: true })}
+              className="flex-1 bg-white"
+            />
+            <div className="flex flex-col items-end text-sm font-semibold text-teal-600">
+              <CurrencyDisplay 
+                amount={maxReward || 0} 
+                originalCurrency="USD" 
+                showSecondary={true}
+              />
+            </div>
+          </div>
           <input
-            id="max_reward"
             type="range"
             min="50"
             max="1000"
             step="10"
-            {...register("max_reward", { valueAsNumber: true })}
+            value={maxReward || 50}
+            onChange={(e) => setValue("max_reward", parseFloat(e.target.value))}
             className="w-full"
           />
-          <div className="flex justify-between text-xs text-slate-500">
-            <span>$50</span>
-            <span>$1,000</span>
+          <div className="flex justify-end text-xs text-slate-500">
+            <span>
+              <CurrencyDisplay amount={1000} originalCurrency="USD" showSecondary={false} className="inline" />
+            </span>
           </div>
+          <p className="text-xs text-slate-500">
+            Minimum: <CurrencyDisplay amount={50} originalCurrency="USD" showSecondary={false} className="inline" />. 
+            Higher rewards increase your chances of finding a traveler.
+          </p>
         </div>
       </div>
 
@@ -2121,6 +2484,62 @@ export function PostRequestForm() {
           )}
         </div>
       )}
+
+      {/* Customs Compliance Confirmation - Required for all requests */}
+      <div className="space-y-3 rounded-lg border border-amber-200 bg-amber-50 p-4">
+        <div className="flex items-start gap-2">
+          <input
+            id="customs_compliance_confirmed"
+            type="checkbox"
+            {...register("customs_compliance_confirmed")}
+            className="mt-0.5 h-4 w-4 rounded border-slate-300 text-teal-600 focus:ring-teal-600"
+          />
+          <Label
+            htmlFor="customs_compliance_confirmed"
+            className="flex-1 cursor-pointer"
+          >
+            <span className="font-medium text-amber-900">
+              I understand I am responsible for customs compliance, accurate value
+              declarations, and all duties/taxes
+            </span>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Info className="ml-2 inline h-4 w-4 text-amber-600" />
+                </TooltipTrigger>
+                <TooltipContent className="max-w-xs">
+                  <p className="text-sm">
+                    You are responsible for complying with all import/export laws.
+                    Misdeclaration of values is illegal. SpareCarry is a matching
+                    platform only, not a customs broker. See our{" "}
+                    <Link
+                      href="/terms"
+                      className="underline hover:text-teal-700"
+                      target="_blank"
+                    >
+                      Terms of Service
+                    </Link>{" "}
+                    for details.
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </Label>
+        </div>
+        <div className="flex items-start gap-2 text-sm text-amber-800">
+          <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0 text-amber-600" />
+          <p>
+            You must accurately declare item values and comply with all customs
+            regulations. You are responsible for all duties, taxes, and fees.
+            SpareCarry provides information only, not legal advice.
+          </p>
+        </div>
+        {errors.customs_compliance_confirmed && (
+          <p className="text-sm text-red-600">
+            {errors.customs_compliance_confirmed.message}
+          </p>
+        )}
+      </div>
 
       {/* Submit Button */}
       <Button

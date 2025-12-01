@@ -10,16 +10,29 @@ import {
   Platform,
   ScrollView,
 } from "react-native";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@sparecarry/hooks/useAuth";
 import { router } from "expo-router";
+import { MaterialIcons } from "@expo/vector-icons";
 
 export default function SignupScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [passwordMatchError, setPasswordMatchError] = useState<string | null>(null);
   const { signUp, signInWithOAuth, loading } = useAuth();
+
+  // Real-time password match validation
+  useEffect(() => {
+    if (confirmPassword && password && confirmPassword !== password) {
+      setPasswordMatchError("Passwords don't match");
+    } else {
+      setPasswordMatchError(null);
+    }
+  }, [password, confirmPassword]);
 
   const validateEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -108,35 +121,74 @@ export default function SignupScreen() {
           autoComplete="email"
           editable={!loading}
         />
-        <TextInput
-          style={[styles.input, error && !password && styles.inputError]}
-          placeholder="Password"
-          placeholderTextColor="#9ca3af"
-          value={password}
-          onChangeText={(text) => {
-            setPassword(text);
-            setError(null);
-          }}
-          secureTextEntry
-          autoComplete="password-new"
-          editable={!loading}
-        />
-        <TextInput
-          style={[
-            styles.input,
-            error && password !== confirmPassword && styles.inputError,
-          ]}
-          placeholder="Confirm Password"
-          placeholderTextColor="#9ca3af"
-          value={confirmPassword}
-          onChangeText={(text) => {
-            setConfirmPassword(text);
-            setError(null);
-          }}
-          secureTextEntry
-          autoComplete="password-new"
-          editable={!loading}
-        />
+        <View style={styles.passwordContainer}>
+          <TextInput
+            style={[styles.input, styles.passwordInput, error && !password && styles.inputError]}
+            placeholder="Password (min. 6 characters)"
+            placeholderTextColor="#9ca3af"
+            value={password}
+            onChangeText={(text) => {
+              setPassword(text);
+              setError(null);
+              setPasswordMatchError(null);
+            }}
+            secureTextEntry={!showPassword}
+            autoComplete="password-new"
+            editable={!loading}
+          />
+          <TouchableOpacity
+            style={styles.eyeButton}
+            onPress={() => setShowPassword(!showPassword)}
+            disabled={loading}
+          >
+            <MaterialIcons
+              name={showPassword ? "visibility-off" : "visibility"}
+              size={20}
+              color="#6b7280"
+            />
+          </TouchableOpacity>
+        </View>
+        {password && (
+          <Text style={styles.helperText}>Minimum 6 characters</Text>
+        )}
+        <View style={styles.passwordContainer}>
+          <TextInput
+            style={[
+              styles.input,
+              styles.passwordInput,
+              (error && password !== confirmPassword) || passwordMatchError
+                ? styles.inputError
+                : null,
+            ]}
+            placeholder="Confirm Password"
+            placeholderTextColor="#9ca3af"
+            value={confirmPassword}
+            onChangeText={(text) => {
+              setConfirmPassword(text);
+              setError(null);
+            }}
+            secureTextEntry={!showConfirmPassword}
+            autoComplete="password-new"
+            editable={!loading}
+          />
+          <TouchableOpacity
+            style={styles.eyeButton}
+            onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+            disabled={loading}
+          >
+            <MaterialIcons
+              name={showConfirmPassword ? "visibility-off" : "visibility"}
+              size={20}
+              color="#6b7280"
+            />
+          </TouchableOpacity>
+        </View>
+        {passwordMatchError && (
+          <Text style={styles.errorHelperText}>{passwordMatchError}</Text>
+        )}
+        {confirmPassword && !passwordMatchError && password === confirmPassword && (
+          <Text style={styles.successHelperText}>✓ Passwords match</Text>
+        )}
         <TouchableOpacity
           style={[styles.button, loading && styles.buttonDisabled]}
           onPress={handleSignup}
@@ -246,6 +298,33 @@ const styles = StyleSheet.create({
     color: "white",
     fontWeight: "bold",
     fontSize: 16,
+  },
+  passwordContainer: {
+    position: "relative",
+  },
+  passwordInput: {
+    paddingRight: 50,
+  },
+  eyeButton: {
+    position: "absolute",
+    right: 12,
+    top: 12,
+    padding: 4,
+  },
+  helperText: {
+    fontSize: 12,
+    color: "#64748b",
+    marginTop: 4,
+  },
+  errorHelperText: {
+    fontSize: 12,
+    color: "#ef4444",
+    marginTop: 4,
+  },
+  successHelperText: {
+    fontSize: 12,
+    color: "#10b981",
+    marginTop: 4,
   },
   dividerContainer: {
     flexDirection: "row",

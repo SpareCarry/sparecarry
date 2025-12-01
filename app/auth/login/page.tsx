@@ -15,7 +15,8 @@ import {
 } from "../../../components/ui/card";
 import { createClient } from "../../../lib/supabase/client";
 import { getAuthCallbackUrl } from "../../../lib/supabase/mobile";
-import { Mail, Loader2, Lock } from "lucide-react";
+import { getUserFriendlyErrorMessage } from "../../../lib/utils/auth-errors";
+import { Mail, Loader2, Lock, Eye, EyeOff } from "lucide-react";
 
 function LoginPageContent() {
   const router = useRouter();
@@ -36,7 +37,18 @@ function LoginPageContent() {
     }
     return false;
   });
+  const [showPassword, setShowPassword] = useState(false);
+  const [magicLinkCooldown, setMagicLinkCooldown] = useState(0);
   const supabase = createClient();
+
+  // Magic link cooldown timer
+  useEffect(() => {
+    if (magicLinkCooldown <= 0) return;
+    const timer = setInterval(() => {
+      setMagicLinkCooldown((prev) => Math.max(prev - 1, 0));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [magicLinkCooldown]);
 
   // Get redirect URL from query params
   const redirectTo = searchParams.get("redirect") || "/home";
@@ -174,7 +186,7 @@ function LoginPageContent() {
     } catch (error: any) {
       setMessage({
         type: "error",
-        text: error.message || "Invalid email or password",
+        text: getUserFriendlyErrorMessage(error),
       });
       setLoading(false);
     }
@@ -218,12 +230,13 @@ function LoginPageContent() {
 
       setMessage({
         type: "success",
-        text: "Check your email for the magic link!",
+        text: "Check your email for the magic link! Click the link in the email to sign in. The link will expire in 1 hour.",
       });
+      setMagicLinkCooldown(60); // 60 second cooldown
     } catch (error: any) {
       setMessage({
         type: "error",
-        text: error.message || "Failed to send magic link",
+        text: getUserFriendlyErrorMessage(error),
       });
     } finally {
       setLoading(false);
@@ -253,7 +266,7 @@ function LoginPageContent() {
     } catch (error: any) {
       setMessage({
         type: "error",
-        text: error.message || `Failed to sign in with ${provider}`,
+        text: getUserFriendlyErrorMessage(error),
       });
     } finally {
       // Always reset loading state, even if OAuth redirects (for edge cases)
@@ -321,16 +334,34 @@ function LoginPageContent() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="password">Password</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  autoComplete="current-password"
-                  placeholder="Enter your password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  disabled={loading}
-                />
+                <div className="relative">
+                  <Input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    autoComplete="current-password"
+                    placeholder="Enter your password"
+                    value={password}
+                    onChange={(e) => {
+                      setPassword(e.target.value);
+                      setMessage(null); // Clear errors when typing
+                    }}
+                    required
+                    disabled={loading}
+                    className="pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700"
+                    disabled={loading}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
+                  </button>
+                </div>
               </div>
 
               <div className="flex items-center space-x-2">
@@ -378,9 +409,12 @@ function LoginPageContent() {
                   autoComplete="email"
                   placeholder="you@example.com"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    setMessage(null); // Clear errors when typing
+                  }}
                   required
-                  disabled={loading}
+                  disabled={loading || magicLinkCooldown > 0}
                 />
               </div>
 
@@ -392,15 +426,28 @@ function LoginPageContent() {
                 </p>
               </div>
 
+              {magicLinkCooldown > 0 && (
+                <div className="rounded-md bg-blue-50 p-3 text-sm text-blue-800">
+                  <p>
+                    Please wait {magicLinkCooldown} seconds before requesting another magic link.
+                  </p>
+                </div>
+              )}
+
               <Button
                 type="submit"
                 className="w-full bg-teal-600 hover:bg-teal-700"
-                disabled={loading}
+                disabled={loading || magicLinkCooldown > 0}
               >
                 {loading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Sending...
+                  </>
+                ) : magicLinkCooldown > 0 ? (
+                  <>
+                    <Mail className="mr-2 h-4 w-4" />
+                    Resend in {magicLinkCooldown}s
                   </>
                 ) : (
                   <>
@@ -409,6 +456,17 @@ function LoginPageContent() {
                   </>
                 )}
               </Button>
+
+              {message?.type === "success" && (
+                <div className="rounded-md bg-blue-50 p-3 text-sm text-blue-800">
+                  <p className="font-medium mb-2">Check your email!</p>
+                  <ul className="list-disc list-inside space-y-1 text-blue-700">
+                    <li>Click the link in the email to sign in</li>
+                    <li>Check your spam folder if you don&apos;t see it</li>
+                    <li>The link expires in 1 hour</li>
+                  </ul>
+                </div>
+              )}
             </form>
           )}
 
@@ -465,15 +523,27 @@ function LoginPageContent() {
             </div>
           )}
 
-          <p className="text-center text-sm text-slate-600">
-            Don&apos;t have an account?{" "}
-            <Link
-              href="/auth/signup?forceSignup=true"
-              className="text-teal-600 hover:underline"
-            >
-              Sign up
-            </Link>
-          </p>
+          <div className="space-y-2">
+            {loginMethod === "password" && (
+              <p className="text-center text-sm">
+                <Link
+                  href="/auth/reset-password"
+                  className="text-teal-600 hover:underline"
+                >
+                  Forgot password?
+                </Link>
+              </p>
+            )}
+            <p className="text-center text-sm text-slate-600">
+              Don&apos;t have an account?{" "}
+              <Link
+                href="/auth/signup?forceSignup=true"
+                className="text-teal-600 hover:underline"
+              >
+                Sign up
+              </Link>
+            </p>
+          </div>
         </CardContent>
       </Card>
     </div>

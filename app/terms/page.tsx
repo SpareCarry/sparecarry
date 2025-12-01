@@ -162,7 +162,57 @@ export default function TermsPage() {
           <Card>
             <CardContent className="p-8">
               <h2 className="mb-4 text-2xl font-bold text-slate-900">
-                4. Escrow and Payments
+                4. Customs, Duties, and Taxes
+              </h2>
+              <p className="mb-4 text-slate-700">
+                You are solely responsible for customs compliance, accurate value
+                declarations, and all duties, taxes, and fees associated with your
+                shipments.
+              </p>
+              <ul className="mb-4 list-inside list-disc space-y-2 text-slate-700">
+                <li>
+                  <strong>Accurate Declarations:</strong> You must accurately
+                  declare the value of all items. Misdeclaration of values is
+                  illegal and may result in penalties, fines, or legal action.
+                </li>
+                <li>
+                  <strong>Customs Compliance:</strong> You are responsible for
+                  complying with all import/export laws and regulations in both
+                  the origin and destination countries.
+                </li>
+                <li>
+                  <strong>Duties and Taxes:</strong> You are responsible for all
+                  duties, taxes, customs fees, and any other charges imposed by
+                  customs authorities. These costs are not included in the
+                  platform fees or rewards.
+                </li>
+                <li>
+                  <strong>Platform Role:</strong> SpareCarry is a matching
+                  platform that connects travelers with requesters. We are not a
+                  customs broker, shipping company, or legal advisor. We provide
+                  information only, not legal advice.
+                </li>
+                <li>
+                  <strong>No Platform Liability:</strong> SpareCarry is not
+                  responsible for customs delays, seizures, penalties, or any
+                  consequences resulting from inaccurate declarations or
+                  non-compliance with customs regulations.
+                </li>
+              </ul>
+              <p className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-slate-700">
+                <strong>Important:</strong> Customs authorities may verify
+                information and inspect items. False declarations may result in
+                penalties, legal action, and account suspension. If you are unsure
+                about customs requirements, consult with a customs broker or legal
+                advisor before posting a request.
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-8">
+              <h2 className="mb-4 text-2xl font-bold text-slate-900">
+                5. Escrow and Payments
               </h2>
               <p className="mb-4 text-slate-700">
                 We use Stripe to hold payments in escrow until delivery is
@@ -210,7 +260,7 @@ export default function TermsPage() {
           <Card>
             <CardContent className="p-8">
               <h2 className="mb-4 text-2xl font-bold text-slate-900">
-                5. Refund Policy
+                6. Refund Policy
               </h2>
               <p className="mb-4 text-slate-700">
                 We want you to have a great experience. Here&apos;s our refund
@@ -262,7 +312,7 @@ export default function TermsPage() {
           <Card>
             <CardContent className="p-8">
               <h2 className="mb-4 text-2xl font-bold text-slate-900">
-                6. Limitation of Liability
+                7. Limitation of Liability
               </h2>
               <p className="mb-4 text-slate-700">
                 SpareCarry is a platform that connects users. We are not
@@ -298,7 +348,7 @@ export default function TermsPage() {
           <Card>
             <CardContent className="p-8">
               <h2 className="mb-4 text-2xl font-bold text-slate-900">
-                7. User Responsibilities
+                8. User Responsibilities
               </h2>
               <div className="space-y-4">
                 <div>
@@ -364,7 +414,7 @@ export default function TermsPage() {
           <Card>
             <CardContent className="p-8">
               <h2 className="mb-4 text-2xl font-bold text-slate-900">
-                9. Changes to Terms
+                10. Changes to Terms
               </h2>
               <p className="text-slate-700">
                 We may update these terms from time to time. We&apos;ll notify
@@ -379,7 +429,7 @@ export default function TermsPage() {
           <Card>
             <CardContent className="p-8">
               <h2 className="mb-4 text-2xl font-bold text-slate-900">
-                10. Contact Us
+                11. Contact Us
               </h2>
               <p className="mb-4 text-slate-700">
                 Questions about these terms? We&apos;re here to help:

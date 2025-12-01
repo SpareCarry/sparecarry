@@ -5,18 +5,18 @@
 
 METADATA
 ----------------------------------------------------------------------
-Generated: 2025-11-28T10:58:57.036Z
+Generated: 2025-11-30T20:49:32.138Z
 Node Version: v24.11.1
 Working Directory: C:\SpareCarry
 Script Path: C:\SpareCarry\scripts\test-report-utils.js
-Duration: 9.74 seconds
+Duration: 0.72 seconds
 
 SUMMARY
 ----------------------------------------------------------------------
 Total Tests: 3
-Passed: 2
-Failed: 1
-Success Rate: 66.7%
+Passed: 1
+Failed: 2
+Success Rate: 33.3%
 
 DETAILED RESULTS
 ----------------------------------------------------------------------
@@ -27,37 +27,12 @@ DETAILED RESULTS
      count: 8
 
 2. API Endpoints
-   Status: ✅ PASSED
-   Details:
-     accessible: 5
-     endpoints:
-       [
-         {
-           "endpoint": "/api/matches/auto-match",
-           "status": "error",
-           "error": "The operation was aborted due to timeout"
-         },
-         {
-           "endpoint": "/api/payments/create-intent",
-           "status": 500
-         },
-         {
-           "endpoint": "/api/payments/confirm-delivery",
-           "status": 500
-         },
-         {
-           "endpoint": "/api/payments/auto-release",
-           "status": 500
-         },
-         {
-           "endpoint": "/api/notifications/register-token",
-           "status": 500
-         }
-       ]
+   Status: ❌ FAILED
+   Error: Endpoints not found: /api/matches/auto-match, /api/payments/create-intent, /api/payments/confirm-delivery, /api/payments/auto-release, /api/notifications/register-token
 
 3. Auto-Release Cron
    Status: ❌ FAILED
-   Error: Unexpected status: 500
+   Error: Unexpected status: 404
 
 
 ----------------------------------------------------------------------

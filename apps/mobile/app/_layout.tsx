@@ -10,6 +10,7 @@ console.log("");
 import { Stack, useRouter, useSegments } from "expo-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useEffect } from "react";
+import { checkARCapability } from "../lib/utils/arChecker";
 
 // Wrap all imports in try-catch to catch module-level errors
 let createClient: any;
@@ -222,6 +223,17 @@ export default function RootLayout() {
       console.warn("   App will continue but authentication may not work");
     }
 
+    // Check AR capability on app start
+    checkARCapability()
+      .then((isARCapable) => {
+        console.log(`📷 AR Capability: ${isARCapable ? "✅ Supported" : "❌ Not Supported"}`);
+        mobileLogger.info("AR capability checked", { isARCapable });
+      })
+      .catch((error) => {
+        console.error("❌ Failed to check AR capability:", error);
+        mobileLogger.error("Failed to check AR capability", { error });
+      });
+
     mobileLogger.info("Mobile app started");
 
     // Cleanup on app exit
@@ -278,6 +290,26 @@ export default function RootLayout() {
           }}
           listeners={{
             focus: () => mobileLogger.debug("Screen focused: auto-measure"),
+          }}
+        />
+        <Stack.Screen
+          name="(modals)/ARMeasurementScreen"
+          options={{
+            headerShown: false,
+            presentation: "fullScreenModal",
+          }}
+          listeners={{
+            focus: () => mobileLogger.debug("Screen focused: ARMeasurementScreen"),
+          }}
+        />
+        <Stack.Screen
+          name="(modals)/ReferencePhotoScreen"
+          options={{
+            headerShown: false,
+            presentation: "fullScreenModal",
+          }}
+          listeners={{
+            focus: () => mobileLogger.debug("Screen focused: ReferencePhotoScreen"),
           }}
         />
         <Stack.Screen

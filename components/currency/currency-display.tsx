@@ -74,7 +74,7 @@ export function CurrencyDisplay({
 
   return (
     <span className={cn("inline-flex flex-col", className)}>
-      <span>{formatted.primary}</span>
+      <span className="text-base font-semibold">{formatted.primary}</span>
       {showSecondary && formatted.secondary && (
         <span className="text-xs text-slate-400">{formatted.secondary}</span>
       )}

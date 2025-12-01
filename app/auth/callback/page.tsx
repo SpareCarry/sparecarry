@@ -4,6 +4,7 @@ import { useEffect, Suspense, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { getAppScheme } from "@/lib/supabase/mobile";
+import { getUserFriendlyErrorMessage } from "@/lib/utils/auth-errors";
 
 function AuthCallbackContent() {
   const router = useRouter();
@@ -90,8 +91,10 @@ function AuthCallbackContent() {
         if (queryError || hashError) {
           // Handle error - redirect to login with error message
           const error = queryError || hashError;
-          const errorMessage =
-            errorDescription || error || "Authentication failed";
+          const errorMessage = getUserFriendlyErrorMessage({
+            code: errorCode,
+            message: errorDescription || error || "Authentication failed",
+          });
           safePush(
             `/auth/login?error=invalid_link&message=${encodeURIComponent(errorMessage)}&redirect=${encodeURIComponent(redirectTo)}`
           );
@@ -120,8 +123,9 @@ function AuthCallbackContent() {
 
           if (sessionError) {
             console.error("Error setting session:", sessionError);
+            const friendlyMessage = getUserFriendlyErrorMessage(sessionError);
             safePush(
-              `/auth/login?error=auth_failed&message=${encodeURIComponent(sessionError.message)}&redirect=${encodeURIComponent(redirectTo)}`
+              `/auth/login?error=auth_failed&message=${encodeURIComponent(friendlyMessage)}&redirect=${encodeURIComponent(redirectTo)}`
             );
             return;
           }
@@ -149,8 +153,9 @@ function AuthCallbackContent() {
 
           if (exchangeError) {
             console.error("Error exchanging code for session:", exchangeError);
+            const friendlyMessage = getUserFriendlyErrorMessage(exchangeError);
             safePush(
-              `/auth/login?error=auth_failed&message=${encodeURIComponent(exchangeError.message)}&redirect=${encodeURIComponent(redirectTo)}`
+              `/auth/login?error=auth_failed&message=${encodeURIComponent(friendlyMessage)}&redirect=${encodeURIComponent(redirectTo)}`
             );
             return;
           }
@@ -213,8 +218,9 @@ function AuthCallbackContent() {
       } catch (error: any) {
         console.error("Auth callback error:", error);
         const redirectTo = searchParams.get("redirect") || "/home";
+        const friendlyMessage = getUserFriendlyErrorMessage(error);
         safePush(
-          `/auth/login?error=auth_failed&message=${encodeURIComponent(error.message || "An unexpected error occurred")}&redirect=${encodeURIComponent(redirectTo)}`
+          `/auth/login?error=auth_failed&message=${encodeURIComponent(friendlyMessage)}&redirect=${encodeURIComponent(redirectTo)}`
         );
       }
     };

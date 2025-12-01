@@ -78,9 +78,122 @@ import {
   checkPlaneRestrictions,
   getPlaneRestrictionDetails,
 } from "../../lib/utils/plane-restrictions";
-import { Plane, Ship, Sparkles } from "lucide-react";
+import { Plane, Ship, Sparkles, ChevronDown, ChevronUp } from "lucide-react";
 import { LocationFieldGroup } from "../../components/location/LocationFieldGroup";
 import { Place } from "../../lib/services/location";
+import { detectItemSpecs } from "../../lib/utils/weight-estimation";
+
+// Simplified collapsible plane restriction warning component
+function PlaneRestrictionWarning({
+  reason,
+  length,
+  width,
+  height,
+  weight,
+  restrictedItems,
+  category,
+  originCountry,
+  destinationCountry,
+}: {
+  reason: string;
+  length: number;
+  width: number;
+  height: number;
+  weight: number;
+  restrictedItems: boolean;
+  category?: string;
+  originCountry: string;
+  destinationCountry: string;
+}) {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const restrictionDetails = getPlaneRestrictionDetails({
+    weight,
+    length,
+    width,
+    height,
+    restrictedItems,
+    category,
+    originCountry,
+    destinationCountry,
+  });
+
+  return (
+    <div className="mt-4">
+      <button
+        type="button"
+        onClick={() => setIsExpanded(!isExpanded)}
+        className="flex w-full items-center justify-between rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-left transition-colors hover:bg-amber-100"
+      >
+        <div className="flex items-center gap-2">
+          <AlertCircle className="h-4 w-4 text-amber-600" />
+          <span className="text-sm font-medium text-amber-900">
+            Plane Transport Not Available
+          </span>
+        </div>
+        {isExpanded ? (
+          <ChevronUp className="h-4 w-4 text-amber-600" />
+        ) : (
+          <ChevronDown className="h-4 w-4 text-amber-600" />
+        )}
+      </button>
+      {isExpanded && (
+        <div className="mt-2 rounded-lg border border-amber-200 bg-amber-50 p-4">
+          <p className="mb-3 text-xs text-amber-800">{reason}</p>
+          <div className="space-y-2 text-xs">
+            <h4 className="font-semibold text-amber-900">
+              Plane Transport Restrictions
+            </h4>
+            <div className="space-y-1 text-amber-800">
+              <div className="flex justify-between">
+                <span>Weight (≤32kg):</span>
+                <span
+                  className={
+                    restrictionDetails.fitsCheckedBaggage
+                      ? "text-green-600"
+                      : "text-red-600"
+                  }
+                >
+                  {weight.toFixed(1)}kg
+                  {restrictionDetails.fitsCheckedBaggage ? " ✓" : " ✗"}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span>Total Dimensions (≤158cm):</span>
+                <span
+                  className={
+                    restrictionDetails.fitsCheckedBaggage
+                      ? "text-green-600"
+                      : "text-red-600"
+                  }
+                >
+                  {length + width + height}cm
+                  {restrictionDetails.fitsCheckedBaggage ? " ✓" : " ✗"}
+                </span>
+              </div>
+              <div
+                className={`flex justify-between ${
+                  restrictionDetails.fitsOversized
+                    ? "text-amber-600"
+                    : "text-red-600"
+                }`}
+              >
+                <span>Oversized (≤45kg, ≤320cm):</span>
+                <span>
+                  {restrictionDetails.fitsOversized
+                    ? "⚠ May require extra fees"
+                    : "✗ Exceeds limits"}
+                </span>
+              </div>
+            </div>
+            <p className="mt-2 text-xs text-amber-700">
+              Boat transport is available below ↓
+            </p>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 function ShippingEstimatorContent() {
   const router = useRouter();
@@ -295,6 +408,10 @@ function ShippingEstimatorContent() {
       if (restrictedItemsParam === "true") {
         setRestrictedItems(true);
         setSelectedTransportMethod("boat"); // Auto-select boat if restricted
+      } else {
+        // If not restricted and both options available, default to boat (usually cheaper)
+        // User can change it if they prefer plane
+        setSelectedTransportMethod("boat");
       }
       if (fromLat && fromLon) {
         setOriginalFromLat(parseFloat(fromLat));
@@ -336,6 +453,16 @@ function ShippingEstimatorContent() {
       if (categoryParam) setOriginalCategory(categoryParam);
       if (categoryOtherDescriptionParam)
         setOriginalCategoryOtherDescription(categoryOtherDescriptionParam);
+
+      // Auto-detect category from title/description if not already set
+      if ((titleParam || descriptionParam) && !categoryParam) {
+        const searchText = `${titleParam || ""} ${descriptionParam || ""}`.toLowerCase();
+        const detectedSpecs = detectItemSpecs(searchText, "", undefined);
+        if (detectedSpecs?.category) {
+          setCategory(detectedSpecs.category);
+          setOriginalCategory(detectedSpecs.category);
+        }
+      }
 
       if (weightParam) setWeight(weightParam);
       if (lengthParam) setLength(lengthParam);
@@ -704,8 +831,10 @@ function ShippingEstimatorContent() {
         estimate.canTransportByPlane === false
           ? "boat"
           : selectedTransportMethod === "auto"
-            ? "any"
-            : selectedTransportMethod, // Set preferred method based on restrictions
+            ? (estimate.spareCarryPlanePrice > 0 && estimate.spareCarryBoatPrice > 0
+                ? (estimate.spareCarryPlanePrice < estimate.spareCarryBoatPrice ? "plane" : "boat")
+                : estimate.spareCarryPlanePrice > 0 ? "plane" : "boat")
+            : selectedTransportMethod, // Set preferred method based on restrictions, or choose cheapest if auto
       selectedCourier,
       courierPrice: estimate.courierPrice,
       spareCarryPlanePrice: estimate.spareCarryPlanePrice,
@@ -955,58 +1084,64 @@ function ShippingEstimatorContent() {
             {/* Transport Method Toggle */}
             <div className="space-y-2">
               <Label>Preferred Transport Method</Label>
-              <div className="flex gap-2 rounded-lg bg-slate-100 p-1">
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (!restrictedItems) {
-                      setSelectedTransportMethod("plane");
-                    }
-                  }}
-                  disabled={
-                    restrictedItems || estimate?.canTransportByPlane === false
-                  }
-                  className={`flex flex-1 items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition-colors ${
-                    selectedTransportMethod === "plane" &&
-                    !restrictedItems &&
-                    estimate?.canTransportByPlane !== false
-                      ? "bg-white text-slate-900 shadow-sm"
-                      : "text-slate-600 hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-50"
-                  }`}
-                >
-                  <Plane className="h-4 w-4" />
-                  Plane
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setSelectedTransportMethod("boat")}
-                  className={`flex flex-1 items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition-colors ${
-                    selectedTransportMethod === "boat"
-                      ? "bg-white text-slate-900 shadow-sm"
-                      : "text-slate-600 hover:text-slate-900"
-                  }`}
-                >
-                  <Ship className="h-4 w-4" />
-                  Boat
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setSelectedTransportMethod("auto")}
-                  className={`flex flex-1 items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition-colors ${
-                    selectedTransportMethod === "auto"
-                      ? "bg-white text-slate-900 shadow-sm"
-                      : "text-slate-600 hover:text-slate-900"
-                  }`}
-                >
-                  <Sparkles className="h-4 w-4" />
-                  Auto
-                </button>
-              </div>
-              <p className="text-xs text-slate-500">
-                {restrictedItems
-                  ? "Plane transport is not available for restricted items."
-                  : "Choose your preferred transport method, or select Auto to let us choose the best option."}
-              </p>
+              {estimate?.canTransportByPlane !== false && !restrictedItems ? (
+                <>
+                  <div className="flex gap-2 rounded-lg bg-slate-100 p-1">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedTransportMethod("plane")}
+                      className={`flex flex-1 items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition-colors ${
+                        selectedTransportMethod === "plane"
+                          ? "bg-white text-slate-900 shadow-sm"
+                          : "text-slate-600 hover:text-slate-900"
+                      }`}
+                    >
+                      <Plane className="h-4 w-4" />
+                      Plane
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedTransportMethod("boat")}
+                      className={`flex flex-1 items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition-colors ${
+                        selectedTransportMethod === "boat"
+                          ? "bg-white text-slate-900 shadow-sm"
+                          : "text-slate-600 hover:text-slate-900"
+                      }`}
+                    >
+                      <Ship className="h-4 w-4" />
+                      Boat
+                    </button>
+                  </div>
+                  <p className="text-xs text-slate-500">
+                    Select your preferred transport method. This will be used when you post your request.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <div className="flex gap-2 rounded-lg bg-slate-100 p-1">
+                    <button
+                      type="button"
+                      disabled
+                      className="flex flex-1 items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-medium text-slate-400 cursor-not-allowed opacity-50"
+                    >
+                      <Plane className="h-4 w-4" />
+                      Plane (Not Available)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedTransportMethod("boat")}
+                      className={`flex flex-1 items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition-colors ${
+                        selectedTransportMethod === "boat"
+                          ? "bg-teal-600 text-white shadow-sm font-semibold"
+                          : "bg-white text-slate-900 shadow-sm border-2 border-teal-500"
+                      }`}
+                    >
+                      <Ship className="h-4 w-4" />
+                      Boat (Required)
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
 
             {/* Restricted Items */}
@@ -1369,142 +1504,6 @@ function ShippingEstimatorContent() {
                     );
                   })()}
 
-                {/* Plane Restriction Warning with Detailed Breakdown */}
-                {estimate.canTransportByPlane === false &&
-                  estimate.planeRestrictionReason &&
-                  (() => {
-                    const lengthNum = parseFloat(length) || 0;
-                    const widthNum = parseFloat(width) || 0;
-                    const heightNum = parseFloat(height) || 0;
-                    const weightNum = parseFloat(weight) || 0;
-                    const restrictionDetails = getPlaneRestrictionDetails({
-                      weight: weightNum,
-                      length: lengthNum,
-                      width: widthNum,
-                      height: heightNum,
-                      restrictedItems,
-                      category: category || undefined,
-                      originCountry: originCountryIso2,
-                      destinationCountry: destinationCountryIso2,
-                    });
-
-                    return (
-                      <div className="rounded-lg border-2 border-amber-200 bg-amber-50 p-4">
-                        <div className="flex items-start gap-2">
-                          <AlertCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-amber-600" />
-                          <div className="flex-1">
-                            <div className="mb-2 text-sm font-medium text-amber-900">
-                              Plane Transport Not Available
-                            </div>
-                            <div className="mb-3 text-xs text-amber-800">
-                              {estimate.planeRestrictionReason}
-                            </div>
-
-                            {/* Detailed Breakdown */}
-                            <Popover>
-                              <PopoverTrigger asChild>
-                                <button className="text-xs font-medium text-amber-700 underline hover:text-amber-900">
-                                  Why can&apos;t I use plane? →
-                                </button>
-                              </PopoverTrigger>
-                              <PopoverContent className="w-96" align="start">
-                                <div className="space-y-3">
-                                  <h4 className="text-sm font-semibold">
-                                    Plane Transport Restrictions
-                                  </h4>
-
-                                  {/* Size/Weight Breakdown */}
-                                  <div className="space-y-2">
-                                    <div className="text-xs font-medium text-slate-700">
-                                      Size & Weight Check:
-                                    </div>
-                                    <div className="space-y-1 text-xs">
-                                      <div
-                                        className={`flex justify-between ${restrictionDetails.fitsCarryOn ? "text-green-600" : "text-slate-600"}`}
-                                      >
-                                        <span>
-                                          Carry-on (≤7kg, ≤55×40×23cm):
-                                        </span>
-                                        <span>
-                                          {restrictionDetails.fitsCarryOn
-                                            ? "✓ Fits"
-                                            : "✗ Too large/heavy"}
-                                        </span>
-                                      </div>
-                                      <div
-                                        className={`flex justify-between ${restrictionDetails.fitsCheckedBaggage ? "text-green-600" : "text-slate-600"}`}
-                                      >
-                                        <span>
-                                          Checked baggage (≤32kg, ≤158cm):
-                                        </span>
-                                        <span>
-                                          {restrictionDetails.fitsCheckedBaggage
-                                            ? "✓ Fits"
-                                            : "✗ Too large/heavy"}
-                                        </span>
-                                      </div>
-                                      <div
-                                        className={`flex justify-between ${restrictionDetails.fitsOversized ? "text-amber-600" : "text-red-600"}`}
-                                      >
-                                        <span>Oversized (≤45kg, ≤320cm):</span>
-                                        <span>
-                                          {restrictionDetails.fitsOversized
-                                            ? "⚠ May require extra fees"
-                                            : "✗ Exceeds limits"}
-                                        </span>
-                                      </div>
-                                    </div>
-                                  </div>
-
-                                  {/* Current Item Specs */}
-                                  <div className="space-y-1 border-t pt-2 text-xs">
-                                    <div className="font-medium text-slate-700">
-                                      Your Item:
-                                    </div>
-                                    <div className="text-slate-600">
-                                      Weight: {weightNum.toFixed(1)}kg |
-                                      Dimensions: {lengthNum.toFixed(0)}×
-                                      {widthNum.toFixed(0)}×
-                                      {heightNum.toFixed(0)}cm | Total:{" "}
-                                      {(
-                                        lengthNum +
-                                        widthNum +
-                                        heightNum
-                                      ).toFixed(0)}
-                                      cm
-                                    </div>
-                                  </div>
-
-                                  {restrictedItems && (
-                                    <div className="border-t pt-2">
-                                      <div className="text-xs font-medium text-red-600">
-                                        Restricted Items:
-                                      </div>
-                                      <div className="text-xs text-slate-600">
-                                        Contains restricted goods that cannot be
-                                        transported by plane.
-                                      </div>
-                                    </div>
-                                  )}
-
-                                  <div className="border-t pt-2">
-                                    <p className="text-xs text-slate-500">
-                                      Boat transport is available for all items,
-                                      including oversized and restricted goods.
-                                    </p>
-                                  </div>
-                                </div>
-                              </PopoverContent>
-                            </Popover>
-
-                            <div className="mt-2 text-xs font-medium text-amber-700">
-                              Boat transport is available below ↓
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })()}
 
                 {/* SpareCarry Boat */}
                 <div className="rounded-lg border-2 border-blue-200 bg-blue-50 p-4">
@@ -1529,6 +1528,22 @@ function ShippingEstimatorContent() {
                     className="text-sm font-semibold"
                   />
                 </div>
+
+                {/* Plane Restriction Warning - Show below SpareCarry estimates */}
+                {estimate.canTransportByPlane === false &&
+                  estimate.planeRestrictionReason && (
+                    <PlaneRestrictionWarning
+                      reason={estimate.planeRestrictionReason}
+                      length={parseFloat(length) || 0}
+                      width={parseFloat(width) || 0}
+                      height={parseFloat(height) || 0}
+                      weight={parseFloat(weight) || 0}
+                      restrictedItems={restrictedItems}
+                      category={category || undefined}
+                      originCountry={originCountryIso2}
+                      destinationCountry={destinationCountryIso2}
+                    />
+                  )}
 
                 {/* Premium CTA Card - Only show for non-premium users and users who have completed 3+ deliveries */}
                 {/* Hide for first 3 deliveries since they already get 0% platform fee (early supporter benefit) */}
@@ -1676,6 +1691,15 @@ function ShippingEstimatorContent() {
                             weight_kg: parseFloat(weight) || 0,
                             value_usd: parseFloat(declaredValue) || 0,
                             max_reward: suggestedReward,
+                            restricted_items: restrictedItems,
+                            preferred_method:
+                              estimate.canTransportByPlane === false
+                                ? "boat"
+                                : selectedTransportMethod === "auto"
+                                  ? (estimate.spareCarryPlanePrice > 0 && estimate.spareCarryBoatPrice > 0
+                                      ? (estimate.spareCarryPlanePrice < estimate.spareCarryBoatPrice ? "plane" : "boat")
+                                      : estimate.spareCarryPlanePrice > 0 ? "plane" : "boat")
+                                  : selectedTransportMethod,
                             selectedCourier,
                             courierPrice: estimate.courierPrice,
                             spareCarryPlanePrice: estimate.spareCarryPlanePrice,
@@ -1683,6 +1707,11 @@ function ShippingEstimatorContent() {
                             platformFeePlane: estimate.platformFeePlane,
                             platformFeeBoat: estimate.platformFeeBoat,
                             size_tier: sizeTier,
+                            // Include title, description, and category if they were provided
+                            title: originalTitle || undefined,
+                            description: originalDescription || undefined,
+                            category: originalCategory || category || undefined,
+                            category_other_description: originalCategoryOtherDescription || undefined,
                           };
                           router.push(
                             `/home/post-request?prefill=${encodeURIComponent(JSON.stringify(prefillData))}`

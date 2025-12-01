@@ -29,6 +29,8 @@ import {
   FormTemplates,
   type RequestTemplate,
 } from "@sparecarry/ui";
+import { getARCapability } from "../../lib/utils/arChecker";
+import { ARMeasurementResult } from "../../lib/types/measurement";
 import {
   calculateShippingEstimate,
   type ShippingEstimateInput,
@@ -38,8 +40,16 @@ import { useUserPreferences } from "@sparecarry/hooks/useUserPreferences";
 import { cmToInches, kgToLbs } from "@sparecarry/lib/utils/imperial";
 import {
   formatCurrencyWithConversion,
+  detectUserCurrency,
+  convertCurrency,
+  formatCurrency,
   CURRENCIES,
 } from "@sparecarry/lib/utils/currency";
+import {
+  estimateWeightFromFeel,
+  detectItemSpecs,
+  type WeightFeel,
+} from "@root-lib/utils/weight-estimation";
 
 export default function PostRequestScreen() {
   const router = useRouter();
@@ -54,18 +64,32 @@ export default function PostRequestScreen() {
   const [description, setDescription] = useState("");
   const [fromLocation, setFromLocation] = useState("");
   const [toLocation, setToLocation] = useState("");
-  const [deadline, setDeadline] = useState(new Date());
-  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [deadlineUrgency, setDeadlineUrgency] = useState<"3" | "7" | "14" | "14+">("14+");
+  const [deadline, setDeadline] = useState(() => {
+    const date = new Date();
+    date.setDate(date.getDate() + 30);
+    return date;
+  });
   const [maxReward, setMaxReward] = useState("");
+  const [suggestedRewardRange, setSuggestedRewardRange] = useState<{
+    min: number;
+    max: number;
+    base: number;
+  } | null>(null);
   const [weight, setWeight] = useState("");
   const [length, setLength] = useState("");
   const [width, setWidth] = useState("");
   const [height, setHeight] = useState("");
+  const [weightFeel, setWeightFeel] = useState<WeightFeel | null>(null);
+  const [lastWeightFeel, setLastWeightFeel] = useState<WeightFeel | null>(null);
+  const [weightManuallySet, setWeightManuallySet] = useState(false);
   const [preferredMethod, setPreferredMethod] = useState<
     "plane" | "boat" | "any"
   >("any");
   const [restrictedItems, setRestrictedItems] = useState(false);
   const [prohibitedItemsConfirmed, setProhibitedItemsConfirmed] =
+    useState(false);
+  const [customsComplianceConfirmed, setCustomsComplianceConfirmed] =
     useState(false);
   const [photos, setPhotos] = useState<string[]>([]);
   const [uploadingPhotos, setUploadingPhotos] = useState(false);
@@ -83,7 +107,8 @@ export default function PostRequestScreen() {
   const [showTemplates, setShowTemplates] = useState(false);
 
   // User preferences
-  const { preferImperial, preferredCurrency } = useUserPreferences();
+  const { preferImperial } = useUserPreferences();
+  const preferredCurrency = detectUserCurrency(); // Get user's currency from browser locale
 
   // Get subscription status for premium pricing
   const { data: subscriptionStatus } = useQuery({
@@ -285,11 +310,24 @@ export default function PostRequestScreen() {
 
           console.log("[AutoCalc] Suggested reward:", suggestedReward);
 
+          // Calculate a range (like Airbnb): ±20% for acceptance likelihood
+          const suggestedMin = Math.round(suggestedReward * 0.8);
+          const suggestedMax = Math.round(suggestedReward * 1.2);
+          
+          // Store range for display
+          setSuggestedRewardRange({
+            min: suggestedMin,
+            max: suggestedMax,
+            base: suggestedReward,
+          });
+
           // Only update if it's a valid amount (at least $50)
           if (suggestedReward >= 50) {
             console.log("[AutoCalc] Updating max reward to:", suggestedReward);
-            setMaxReward(suggestedReward.toString());
-            validateField("maxReward", suggestedReward.toString());
+            // Convert to user's currency for input
+            const userCurrencyAmount = convertCurrency(suggestedReward, "USD", preferredCurrency);
+            setMaxReward(Math.round(userCurrencyAmount).toString());
+            validateField("maxReward", Math.round(userCurrencyAmount).toString());
           } else {
             console.log(
               "[AutoCalc] Suggested reward too low:",
@@ -413,14 +451,27 @@ export default function PostRequestScreen() {
               suggestedReward
             );
 
+            // Calculate a range (like Airbnb): ±20% for acceptance likelihood
+            const suggestedMin = Math.round(suggestedReward * 0.8);
+            const suggestedMax = Math.round(suggestedReward * 1.2);
+            
+            // Store range for display
+            setSuggestedRewardRange({
+              min: suggestedMin,
+              max: suggestedMax,
+              base: suggestedReward,
+            });
+
             // Only update if it's a valid amount (at least $50)
             if (suggestedReward >= 50) {
               console.log(
                 "[AutoCalc] Updating max reward to:",
                 suggestedReward
               );
-              setMaxReward(suggestedReward.toString());
-              validateField("maxReward", suggestedReward.toString());
+              // Convert to user's currency for input
+              const userCurrencyAmount = convertCurrency(suggestedReward, "USD", preferredCurrency);
+              setMaxReward(Math.round(userCurrencyAmount).toString());
+              validateField("maxReward", Math.round(userCurrencyAmount).toString());
             } else {
               console.log(
                 "[AutoCalc] Suggested reward too low:",
@@ -464,12 +515,148 @@ export default function PostRequestScreen() {
     restrictedItems,
   ]);
 
+  // Auto-update weight when dimensions change (if weight feel is selected)
+  useEffect(() => {
+    const activeWeightFeel = weightFeel || lastWeightFeel;
+    
+    if (activeWeightFeel && length && width && height) {
+      const l = parseFloat(length) || 0;
+      const w = parseFloat(width) || 0;
+      const h = parseFloat(height) || 0;
+      
+      if (l > 0 && w > 0 && h > 0 && !weightManuallySet) {
+        const estimated = estimateWeightFromFeel(l, w, h, activeWeightFeel);
+        setWeight(Math.round(estimated).toString()); // Round to whole number
+        validateField("weight", Math.round(estimated).toString());
+      }
+    }
+  }, [weightFeel, lastWeightFeel, length, width, height, weightManuallySet]);
+
+  // Store weight feel selection
+  useEffect(() => {
+    if (weightFeel) {
+      setLastWeightFeel(weightFeel);
+      setWeightManuallySet(false);
+    }
+  }, [weightFeel]);
+
+  // Track when user manually changes weight
+  useEffect(() => {
+    if (weight && (weightFeel || lastWeightFeel)) {
+      const weightValue = parseFloat(weight) || 0;
+      const l = parseFloat(length) || 0;
+      const w = parseFloat(width) || 0;
+      const h = parseFloat(height) || 0;
+      
+      if (l > 0 && w > 0 && h > 0) {
+        const estimated = estimateWeightFromFeel(l, w, h, weightFeel || lastWeightFeel!);
+        if (Math.abs(weightValue - estimated) > 1) {
+          setWeightManuallySet(true);
+        }
+      }
+    }
+  }, [weight, weightFeel, lastWeightFeel, length, width, height]);
+
+  // Auto-fill item specs (weight, dimensions, category) from title/description - updates in real-time
+  useEffect(() => {
+    // Always check for specs and update dynamically as user types
+    const hasTitleOrDesc = (title && title.trim()) || (description && description.trim());
+    
+    if (hasTitleOrDesc) {
+      const specs = detectItemSpecs(
+        title || "",
+        description || "",
+        undefined // category not available in mobile form yet
+      );
+      
+      if (specs) {
+        // Auto-fill weight (always update if detected - user can override by typing)
+        if (!weight || specs.source?.includes("estimated")) {
+          setWeight(Math.round(specs.weight).toString());
+          validateField("weight", Math.round(specs.weight).toString());
+        }
+        
+        // Auto-fill dimensions (always update if detected)
+        if (!length || !width || !height || specs.source?.includes("estimated")) {
+          setLength(Math.round(specs.dimensions.length).toString());
+          setWidth(Math.round(specs.dimensions.width).toString());
+          setHeight(Math.round(specs.dimensions.height).toString());
+          validateField("length", Math.round(specs.dimensions.length).toString());
+          validateField("width", Math.round(specs.dimensions.width).toString());
+          validateField("height", Math.round(specs.dimensions.height).toString());
+        }
+      }
+    }
+  }, [title, description, weight, length, width, height]);
+
+  // Auto-set to boat if restricted items is checked
+  useEffect(() => {
+    if (restrictedItems && preferredMethod !== "boat") {
+      setPreferredMethod("boat");
+    }
+  }, [restrictedItems, preferredMethod]);
+
+  // Auto-set to boat if weight/dimensions exceed plane limits
+  useEffect(() => {
+    const weightKg = parseFloat(weight || "0");
+    const lengthCm = parseFloat(length || "0");
+    const widthCm = parseFloat(width || "0");
+    const heightCm = parseFloat(height || "0");
+    
+    // Plane limits: typically 23-32kg per bag, 158cm total linear dimensions
+    const PLANE_MAX_WEIGHT_KG = 32;
+    const PLANE_MAX_LINEAR_CM = 158; // length + width + height
+    
+    const totalLinear = lengthCm + widthCm + heightCm;
+    const exceedsWeight = weightKg > PLANE_MAX_WEIGHT_KG;
+    const exceedsDimensions = totalLinear > PLANE_MAX_LINEAR_CM;
+    const exceedsPlaneLimits = exceedsWeight || exceedsDimensions;
+    
+    if (exceedsPlaneLimits && preferredMethod === "plane") {
+      setPreferredMethod("boat");
+    }
+  }, [weight, length, width, height, preferredMethod]);
+
   // Load Auto-Measure results when returning from camera (using useFocusEffect instead of polling)
   useFocusEffect(
     useCallback(() => {
       const loadPrefillData = async () => {
         try {
-          // Load auto-measure results
+          // Load AR measurement results (new format)
+          const arResult = await AsyncStorage.getItem("arMeasurementResult");
+          if (arResult) {
+            try {
+              const measurement: ARMeasurementResult = JSON.parse(arResult);
+              
+              // Convert to cm (AR uses meters, photo uses cm)
+              let lengthCm = measurement.L;
+              let widthCm = measurement.W;
+              let heightCm = measurement.H;
+              
+              // If confidence is High, it's AR and measurements are in meters
+              if (measurement.confidence === "High") {
+                lengthCm = measurement.L * 100; // Convert meters to cm
+                widthCm = measurement.W * 100;
+                heightCm = measurement.H * 100;
+              }
+              
+              setLength(lengthCm.toFixed(1));
+              setWidth(widthCm.toFixed(1));
+              setHeight(heightCm.toFixed(1));
+              setIsAutoEstimated(true);
+              
+              // Add photo if available
+              if (measurement.photoUri) {
+                setPhotos((prev) => [...prev, measurement.photoUri]);
+              }
+              
+              await AsyncStorage.removeItem("arMeasurementResult");
+            } catch (parseError) {
+              console.error("Error parsing AR measurement result:", parseError);
+            }
+          }
+          
+          // Also check for legacy auto-measure results
           const result = await AsyncStorage.getItem("autoMeasureResult");
           if (result) {
             const dimensions = JSON.parse(result);
@@ -480,7 +667,7 @@ export default function PostRequestScreen() {
             await AsyncStorage.removeItem("autoMeasureResult");
           }
 
-          // Load auto-measure photos
+          // Load auto-measure photos (legacy format)
           const storedPhotos = await AsyncStorage.getItem("autoMeasurePhotos");
           if (storedPhotos) {
             try {
@@ -522,6 +709,8 @@ export default function PostRequestScreen() {
                 setRestrictedItems(state.restrictedItems);
               if (state.prohibitedItemsConfirmed !== undefined)
                 setProhibitedItemsConfirmed(state.prohibitedItemsConfirmed);
+              if (state.customsComplianceConfirmed !== undefined)
+                setCustomsComplianceConfirmed(state.customsComplianceConfirmed);
               if (state.photos && state.photos.length > 0)
                 setPhotos(state.photos);
               await AsyncStorage.removeItem("postRequestFormState");
@@ -573,8 +762,23 @@ export default function PostRequestScreen() {
     }, [])
   );
 
-  const handleAutoMeasure = () => {
-    router.push("/auto-measure");
+  const handleAutoMeasure = async () => {
+    try {
+      // Check AR capability
+      const isARCapable = await getARCapability();
+      
+      if (isARCapable) {
+        // Route to AR measurement screen (high confidence)
+        router.push("/(modals)/ARMeasurementScreen");
+      } else {
+        // Route to reference photo screen (low confidence fallback)
+        router.push("/(modals)/ReferencePhotoScreen");
+      }
+    } catch (error) {
+      console.error("[PostRequest] Error checking AR capability:", error);
+      // Fallback to reference photo screen on error
+      router.push("/(modals)/ReferencePhotoScreen");
+    }
   };
 
   // Validate field on change
@@ -778,6 +982,10 @@ export default function PostRequestScreen() {
       validationErrors.restrictedItems =
         'Restricted items (batteries, fuel, etc.) can only be transported by boat. Please change preferred method to "Boat" or "Any"';
     }
+    if (!customsComplianceConfirmed) {
+      validationErrors.customsCompliance =
+        "You must confirm that you understand your customs compliance responsibilities";
+    }
 
     // Validate photos - at least 3 required
     if (photos.length < 3) {
@@ -861,6 +1069,7 @@ export default function PostRequestScreen() {
           height_cm: parseFloat(height),
           preferred_method: preferredMethod,
           restricted_items: restrictedItems,
+          customs_compliance_confirmed: customsComplianceConfirmed,
           status: "open",
           photos: photoUrls.length > 0 ? photoUrls : null,
         })
@@ -1105,71 +1314,154 @@ export default function PostRequestScreen() {
           </View>
 
           <View style={styles.field}>
-            <Text style={styles.label}>Deadline *</Text>
-
-            {/* Quick Date Select Buttons */}
-            <View style={styles.quickDateButtons}>
+            <Text style={styles.label}>How soon do you need this? *</Text>
+            <View style={styles.urgencyButtons}>
               <TouchableOpacity
-                style={styles.quickDateButton}
+                style={[
+                  styles.urgencyButton,
+                  deadlineUrgency === "3" && styles.urgencyButtonActive,
+                ]}
                 onPress={() => {
-                  const nextWeek = new Date();
-                  nextWeek.setDate(nextWeek.getDate() + 7);
-                  setDeadline(nextWeek);
+                  setDeadlineUrgency("3");
+                  const newDate = new Date();
+                  newDate.setDate(newDate.getDate() + 3);
+                  setDeadline(newDate);
                 }}
               >
-                <Text style={styles.quickDateButtonText}>Next Week</Text>
+                <MaterialIcons
+                  name="schedule"
+                  size={20}
+                  color={deadlineUrgency === "3" ? "#fff" : "#14b8a6"}
+                />
+                <Text
+                  style={[
+                    styles.urgencyButtonText,
+                    deadlineUrgency === "3" && styles.urgencyButtonTextActive,
+                  ]}
+                >
+                  Under 3 days
+                </Text>
+                <Text
+                  style={[
+                    styles.urgencyButtonSubtext,
+                    deadlineUrgency === "3" && styles.urgencyButtonSubtextActive,
+                  ]}
+                >
+                  +30% premium
+                </Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={styles.quickDateButton}
+                style={[
+                  styles.urgencyButton,
+                  deadlineUrgency === "7" && styles.urgencyButtonActive,
+                ]}
                 onPress={() => {
-                  const nextMonth = new Date();
-                  nextMonth.setMonth(nextMonth.getMonth() + 1);
-                  setDeadline(nextMonth);
+                  setDeadlineUrgency("7");
+                  const newDate = new Date();
+                  newDate.setDate(newDate.getDate() + 7);
+                  setDeadline(newDate);
                 }}
               >
-                <Text style={styles.quickDateButtonText}>Next Month</Text>
+                <MaterialIcons
+                  name="schedule"
+                  size={20}
+                  color={deadlineUrgency === "7" ? "#fff" : "#14b8a6"}
+                />
+                <Text
+                  style={[
+                    styles.urgencyButtonText,
+                    deadlineUrgency === "7" && styles.urgencyButtonTextActive,
+                  ]}
+                >
+                  Under 7 days
+                </Text>
+                <Text
+                  style={[
+                    styles.urgencyButtonSubtext,
+                    deadlineUrgency === "7" && styles.urgencyButtonSubtextActive,
+                  ]}
+                >
+                  +15% premium
+                </Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={styles.quickDateButton}
+                style={[
+                  styles.urgencyButton,
+                  deadlineUrgency === "14" && styles.urgencyButtonActive,
+                ]}
                 onPress={() => {
-                  const threeMonths = new Date();
-                  threeMonths.setMonth(threeMonths.getMonth() + 3);
-                  setDeadline(threeMonths);
+                  setDeadlineUrgency("14");
+                  const newDate = new Date();
+                  newDate.setDate(newDate.getDate() + 14);
+                  setDeadline(newDate);
                 }}
               >
-                <Text style={styles.quickDateButtonText}>+3 Months</Text>
+                <MaterialIcons
+                  name="schedule"
+                  size={20}
+                  color={deadlineUrgency === "14" ? "#fff" : "#14b8a6"}
+                />
+                <Text
+                  style={[
+                    styles.urgencyButtonText,
+                    deadlineUrgency === "14" && styles.urgencyButtonTextActive,
+                  ]}
+                >
+                  Under 14 days
+                </Text>
+                <Text
+                  style={[
+                    styles.urgencyButtonSubtext,
+                    deadlineUrgency === "14" && styles.urgencyButtonSubtextActive,
+                  ]}
+                >
+                  +5% premium
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[
+                  styles.urgencyButton,
+                  deadlineUrgency === "14+" && styles.urgencyButtonActive,
+                ]}
+                onPress={() => {
+                  setDeadlineUrgency("14+");
+                  const newDate = new Date();
+                  newDate.setDate(newDate.getDate() + 30);
+                  setDeadline(newDate);
+                }}
+              >
+                <MaterialIcons
+                  name="schedule"
+                  size={20}
+                  color={deadlineUrgency === "14+" ? "#fff" : "#14b8a6"}
+                />
+                <Text
+                  style={[
+                    styles.urgencyButtonText,
+                    deadlineUrgency === "14+" && styles.urgencyButtonTextActive,
+                  ]}
+                >
+                  14+ days
+                </Text>
+                <Text
+                  style={[
+                    styles.urgencyButtonSubtext,
+                    deadlineUrgency === "14+" && styles.urgencyButtonSubtextActive,
+                  ]}
+                >
+                  No rush
+                </Text>
               </TouchableOpacity>
             </View>
-
-            <TouchableOpacity
-              style={styles.dateButton}
-              onPress={() => setShowDatePicker(true)}
-            >
-              <MaterialIcons name="calendar-today" size={20} color="#14b8a6" />
-              <Text style={styles.dateText}>
-                {deadline.toLocaleDateString()}
-              </Text>
-            </TouchableOpacity>
-            {showDatePicker && (
-              <DateTimePicker
-                value={deadline}
-                mode="date"
-                display={Platform.OS === "ios" ? "spinner" : "default"}
-                onChange={(event, selectedDate) => {
-                  setShowDatePicker(Platform.OS === "ios");
-                  if (selectedDate) {
-                    setDeadline(selectedDate);
-                  }
-                }}
-                minimumDate={new Date()}
-              />
-            )}
+            <Text style={styles.hint}>
+              Urgency affects pricing. Faster delivery = higher reward needed.
+            </Text>
           </View>
 
           <View style={styles.field}>
             <View style={styles.rewardHeader}>
               <Text style={styles.label}>
-                Max Reward ({CURRENCIES[preferredCurrency]?.symbol || "$"}) *
+                Max Reward ({CURRENCIES[preferredCurrency]?.code || "USD"}) *
               </Text>
               <TouchableOpacity
                 style={styles.estimateLink}
@@ -1214,6 +1506,7 @@ export default function PostRequestScreen() {
                     preferredMethod,
                     restrictedItems,
                     prohibitedItemsConfirmed,
+                    customsComplianceConfirmed,
                     photos,
                   };
                   AsyncStorage.setItem(
@@ -1228,48 +1521,64 @@ export default function PostRequestScreen() {
                 <Text style={styles.estimateLinkText}>Estimate Reward</Text>
               </TouchableOpacity>
             </View>
-            <TextInput
-              style={[styles.input, errors.maxReward && styles.inputError]}
-              value={maxReward}
-              onChangeText={(text) => {
-                // Only update if user is manually editing (not auto-calculated)
-                // We check if the text is different from what we would auto-calculate
-                // This prevents the auto-calculation from being overwritten by user input
-                setMaxReward(text);
-                validateField("maxReward", text);
-              }}
-              placeholder="50"
-              keyboardType="numeric"
-              editable={true}
-            />
+            <View style={styles.currencyInputContainer}>
+              <TextInput
+                style={[styles.input, styles.currencyInput, errors.maxReward && styles.inputError]}
+                value={maxReward}
+                onChangeText={(text) => {
+                  setMaxReward(text);
+                  validateField("maxReward", text);
+                }}
+                placeholder="50"
+                keyboardType="numeric"
+                editable={true}
+              />
+              <Text style={styles.currencyCode}>
+                {CURRENCIES[preferredCurrency]?.code || "USD"}
+              </Text>
+            </View>
             {maxReward &&
               !isNaN(parseFloat(maxReward)) &&
               parseFloat(maxReward) > 0 &&
               (() => {
                 const rewardValue = parseFloat(maxReward);
-                const currencyDisplay = formatCurrencyWithConversion(
-                  rewardValue,
-                  preferredCurrency,
-                  "USD"
-                );
+                // Convert from user's currency to USD for display
+                const usdValue = convertCurrency(rewardValue, preferredCurrency, "USD");
                 return (
                   <Text style={styles.conversionText}>
-                    {currencyDisplay.secondary
-                      ? `${currencyDisplay.primary} (${currencyDisplay.secondary})`
-                      : currencyDisplay.primary}
+                    ≈ {formatCurrency(usdValue, "USD")} USD
                   </Text>
                 );
               })()}
+            {suggestedRewardRange && !errors.maxReward && (
+              <View style={styles.suggestedRangeBox}>
+                <Text style={styles.suggestedRangeTitle}>
+                  💡 Suggested range (most likely to get accepted):
+                </Text>
+                <Text style={styles.suggestedRangeText}>
+                  {formatCurrency(
+                    convertCurrency(suggestedRewardRange.min, "USD", preferredCurrency),
+                    preferredCurrency
+                  )}{" "}
+                  - {formatCurrency(
+                    convertCurrency(suggestedRewardRange.max, "USD", preferredCurrency),
+                    preferredCurrency
+                  )}
+                </Text>
+                <Text style={styles.suggestedRangeSubtext}>
+                  Based on similar requests and shipping costs
+                </Text>
+              </View>
+            )}
             {errors.maxReward ? (
               <Text style={styles.errorText}>{errors.maxReward}</Text>
             ) : (
               <View style={styles.rewardHint}>
                 <Text style={styles.hint}>
-                  Minimum:{" "}
-                  {
-                    formatCurrencyWithConversion(50, preferredCurrency, "USD")
-                      .primary
-                  }
+                  Minimum: {formatCurrency(
+                    convertCurrency(50, "USD", preferredCurrency),
+                    preferredCurrency
+                  )}
                 </Text>
                 {isAutoCalculatingReward && (
                   <Text style={styles.autoCalculatingText}>Calculating...</Text>
@@ -1406,6 +1715,77 @@ export default function PostRequestScreen() {
             )}
           </View>
 
+          {/* Weight Feel Selector - Prominent placement */}
+          <View style={styles.weightFeelContainer}>
+            <View style={styles.weightFeelHeader}>
+              <Text style={styles.weightFeelTitle}>💡 How heavy does it feel?</Text>
+              <MaterialIcons name="info-outline" size={18} color="#14b8a6" />
+            </View>
+            <Text style={styles.weightFeelHint}>
+              Don't know the exact weight? Just tell us how heavy it feels and we'll estimate it from your dimensions!
+            </Text>
+            <View style={styles.weightFeelButtons}>
+              {([
+                { value: "very_light" as WeightFeel, label: "🪶 Very Light", desc: "pillow, foam" },
+                { value: "light" as WeightFeel, label: "📱 Light", desc: "laptop, electronics" },
+                { value: "medium" as WeightFeel, label: "📦 Medium", desc: "backpack, common" },
+                { value: "heavy" as WeightFeel, label: "🏋️ Heavy", desc: "toolbox, metal" },
+                { value: "very_heavy" as WeightFeel, label: "⚙️ Very Heavy", desc: "car battery" },
+              ]).map((option) => (
+                <TouchableOpacity
+                  key={option.value}
+                  style={[
+                    styles.weightFeelButton,
+                    (weightFeel || lastWeightFeel) === option.value && styles.weightFeelButtonActive,
+                  ]}
+                  onPress={() => {
+                    setWeightFeel(option.value);
+                    setWeightManuallySet(false);
+                  }}
+                >
+                  <Text
+                    style={[
+                      styles.weightFeelButtonText,
+                      (weightFeel || lastWeightFeel) === option.value && styles.weightFeelButtonTextActive,
+                    ]}
+                  >
+                    {option.label}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.weightFeelButtonDesc,
+                      (weightFeel || lastWeightFeel) === option.value && styles.weightFeelButtonDescActive,
+                    ]}
+                  >
+                    {option.desc}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+            {(weightFeel || lastWeightFeel) && length && width && height && (
+              <View style={styles.weightEstimateDisplay}>
+                <Text style={styles.weightEstimateText}>
+                  ✨ Weight updates automatically when dimensions change
+                </Text>
+                {weightManuallySet && (
+                  <TouchableOpacity
+                    onPress={() => {
+                      setWeightManuallySet(false);
+                      if (lastWeightFeel) {
+                        setWeightFeel(lastWeightFeel);
+                      }
+                    }}
+                    style={styles.reEnableButton}
+                  >
+                    <Text style={styles.reEnableButtonText}>
+                      Re-enable auto-update
+                    </Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+            )}
+          </View>
+
           <View style={styles.field}>
             <Text style={styles.label}>Weight (kg) *</Text>
             <TextInput
@@ -1413,6 +1793,7 @@ export default function PostRequestScreen() {
               value={weight}
               onChangeText={(text) => {
                 setWeight(text);
+                setWeightManuallySet(true); // Mark as manually set
                 validateField("weight", text);
               }}
               placeholder="0"
@@ -1429,71 +1810,102 @@ export default function PostRequestScreen() {
             {errors.weight && (
               <Text style={styles.errorText}>{errors.weight}</Text>
             )}
-
-            {/* Weight Estimation Button */}
-            {length && width && height && (
-              <TouchableOpacity
-                style={styles.estimateButton}
-                onPress={() => {
-                  const l = parseFloat(length) || 0;
-                  const w = parseFloat(width) || 0;
-                  const h = parseFloat(height) || 0;
-                  if (l > 0 && w > 0 && h > 0) {
-                    // Simple weight estimation: volume / density factor
-                    // Small items: 5000, Medium: 4000, Large: 3000
-                    const volume = l * w * h;
-                    const densityFactor =
-                      volume < 1000 ? 5000 : volume < 10000 ? 4000 : 3000;
-                    const estimatedWeight =
-                      Math.round((volume / densityFactor) * 10) / 10; // Round to 1 decimal
-                    setWeight(estimatedWeight.toString());
-                    validateField("weight", estimatedWeight.toString());
-                  }
-                }}
-              >
-                <MaterialIcons name="calculate" size={16} color="#14b8a6" />
-                <Text style={styles.estimateButtonText}>
-                  Estimate from dimensions
-                </Text>
-              </TouchableOpacity>
-            )}
           </View>
 
           <View style={styles.field}>
             <Text style={styles.label}>Preferred Method *</Text>
-            <View style={styles.methodRow}>
-              {(["plane", "boat", "any"] as const).map((method) => (
-                <TouchableOpacity
-                  key={method}
-                  style={[
-                    styles.methodButton,
-                    preferredMethod === method && styles.methodButtonActive,
-                  ]}
-                  onPress={() => setPreferredMethod(method)}
-                >
-                  <MaterialIcons
-                    name={
-                      method === "plane"
-                        ? "flight"
-                        : method === "boat"
-                          ? "directions-boat"
-                          : "swap-horiz"
-                    }
-                    size={20}
-                    color={preferredMethod === method ? "#fff" : "#14b8a6"}
-                  />
-                  <Text
-                    style={[
-                      styles.methodButtonText,
-                      preferredMethod === method &&
-                        styles.methodButtonTextActive,
-                    ]}
-                  >
-                    {method.charAt(0).toUpperCase() + method.slice(1)}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
+            {(() => {
+              // Check if weight/dimensions exceed plane limits
+              const weightKg = parseFloat(weight || "0");
+              const lengthCm = parseFloat(length || "0");
+              const widthCm = parseFloat(width || "0");
+              const heightCm = parseFloat(height || "0");
+              const PLANE_MAX_WEIGHT_KG = 32;
+              const PLANE_MAX_LINEAR_CM = 158;
+              const totalLinear = lengthCm + widthCm + heightCm;
+              const exceedsWeight = weightKg > PLANE_MAX_WEIGHT_KG;
+              const exceedsDimensions = totalLinear > PLANE_MAX_LINEAR_CM;
+              const exceedsPlaneLimits = exceedsWeight || exceedsDimensions;
+              const mustUseBoat = restrictedItems || exceedsPlaneLimits;
+              const effectiveMethod = mustUseBoat ? "boat" : preferredMethod;
+              
+              return (
+                <>
+                  <View style={styles.methodRow}>
+                    {(["plane", "boat", "any"] as const).map((method) => {
+                      const isDisabled = method === "plane" && mustUseBoat;
+                      return (
+                        <TouchableOpacity
+                          key={method}
+                          style={[
+                            styles.methodButton,
+                            effectiveMethod === method && styles.methodButtonActive,
+                            isDisabled && styles.methodButtonDisabled,
+                          ]}
+                          onPress={() => {
+                            if (!isDisabled) {
+                              setPreferredMethod(method);
+                            }
+                          }}
+                          disabled={isDisabled}
+                        >
+                          <MaterialIcons
+                            name={
+                              method === "plane"
+                                ? "flight"
+                                : method === "boat"
+                                  ? "directions-boat"
+                                  : "swap-horiz"
+                            }
+                            size={20}
+                            color={
+                              isDisabled
+                                ? "#ccc"
+                                : effectiveMethod === method
+                                  ? "#fff"
+                                  : "#14b8a6"
+                            }
+                          />
+                          <Text
+                            style={[
+                              styles.methodButtonText,
+                              effectiveMethod === method &&
+                                styles.methodButtonTextActive,
+                              isDisabled && styles.methodButtonTextDisabled,
+                            ]}
+                          >
+                            {method.charAt(0).toUpperCase() + method.slice(1)}
+                            {isDisabled && " (N/A)"}
+                          </Text>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
+                  {mustUseBoat && (
+                    <View style={styles.warningBox}>
+                      <MaterialIcons
+                        name="info"
+                        size={20}
+                        color="#d97706"
+                        style={styles.warningIcon}
+                      />
+                      <View style={styles.warningContent}>
+                        <Text style={styles.warningTitle}>
+                          Transport method set to Boat
+                        </Text>
+                        <Text style={styles.warningText}>
+                          {restrictedItems
+                            ? "Restricted items (batteries, fuel, etc.) cannot be transported by plane due to airline regulations."
+                            : exceedsPlaneLimits
+                            ? `Item exceeds plane limits (max ${PLANE_MAX_WEIGHT_KG}kg, ${PLANE_MAX_LINEAR_CM}cm total dimensions). Airlines typically limit checked baggage to ${PLANE_MAX_WEIGHT_KG}kg per bag and ${PLANE_MAX_LINEAR_CM}cm total linear dimensions (length + width + height).`
+                            : ""}
+                        </Text>
+                      </View>
+                    </View>
+                  )}
+                </>
+              );
+            })()}
           </View>
 
           <View style={styles.field}>
@@ -1535,6 +1947,58 @@ export default function PostRequestScreen() {
               </TouchableOpacity>
             </View>
           )}
+
+          <View style={styles.field}>
+            <View style={styles.complianceBox}>
+              <TouchableOpacity
+                style={styles.checkboxRow}
+                onPress={() =>
+                  setCustomsComplianceConfirmed(!customsComplianceConfirmed)
+                }
+              >
+                <MaterialIcons
+                  name={
+                    customsComplianceConfirmed
+                      ? "check-box"
+                      : "check-box-outline-blank"
+                  }
+                  size={24}
+                  color={customsComplianceConfirmed ? "#14b8a6" : "#999"}
+                />
+                <View style={styles.checkboxLabelContainer}>
+                  <Text style={styles.checkboxLabel}>
+                    I understand I am responsible for customs compliance,
+                    accurate value declarations, and all duties/taxes
+                  </Text>
+                  <MaterialIcons
+                    name="info-outline"
+                    size={18}
+                    color="#d97706"
+                    style={styles.infoIcon}
+                  />
+                </View>
+              </TouchableOpacity>
+              <View style={styles.complianceWarning}>
+                <MaterialIcons
+                  name="warning"
+                  size={16}
+                  color="#d97706"
+                  style={styles.warningIcon}
+                />
+                <Text style={styles.complianceWarningText}>
+                  You must accurately declare item values and comply with all
+                  customs regulations. You are responsible for all duties,
+                  taxes, and fees. SpareCarry provides information only, not
+                  legal advice.
+                </Text>
+              </View>
+              {errors.customsCompliance && (
+                <Text style={styles.errorText}>
+                  {errors.customsCompliance}
+                </Text>
+              )}
+            </View>
+          </View>
 
           <View style={styles.field}>
             <View style={styles.photoHeader}>
@@ -1730,38 +2194,43 @@ const styles = StyleSheet.create({
     marginTop: 4,
     fontStyle: "italic",
   },
-  dateButton: {
+  urgencyButtons: {
     flexDirection: "row",
-    alignItems: "center",
+    flexWrap: "wrap",
     gap: 8,
+    marginBottom: 8,
+  },
+  urgencyButton: {
+    flex: 1,
+    minWidth: "45%",
     backgroundColor: "#fff",
-    borderWidth: 1,
-    borderColor: "#e5e7eb",
+    borderWidth: 2,
+    borderColor: "#b2f5ea",
     borderRadius: 8,
     padding: 12,
+    alignItems: "center",
+    gap: 4,
   },
-  dateText: {
-    fontSize: 16,
-    color: "#333",
+  urgencyButtonActive: {
+    backgroundColor: "#14b8a6",
+    borderColor: "#0d9488",
   },
-  quickDateButtons: {
-    flexDirection: "row",
-    gap: 8,
-    marginBottom: 12,
-    flexWrap: "wrap",
-  },
-  quickDateButton: {
-    backgroundColor: "#e0f7fa",
-    borderWidth: 1,
-    borderColor: "#14b8a6",
-    borderRadius: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-  },
-  quickDateButtonText: {
-    fontSize: 12,
+  urgencyButtonText: {
+    fontSize: 13,
     fontWeight: "600",
     color: "#14b8a6",
+    textAlign: "center",
+  },
+  urgencyButtonTextActive: {
+    color: "#fff",
+  },
+  urgencyButtonSubtext: {
+    fontSize: 10,
+    color: "#64748b",
+    textAlign: "center",
+  },
+  urgencyButtonSubtextActive: {
+    color: "#e0f7fa",
   },
   methodRow: {
     flexDirection: "row",
@@ -1782,6 +2251,11 @@ const styles = StyleSheet.create({
   methodButtonActive: {
     backgroundColor: "#14b8a6",
   },
+  methodButtonDisabled: {
+    backgroundColor: "#f5f5f5",
+    borderColor: "#ccc",
+    opacity: 0.6,
+  },
   methodButtonText: {
     fontSize: 14,
     fontWeight: "600",
@@ -1789,6 +2263,37 @@ const styles = StyleSheet.create({
   },
   methodButtonTextActive: {
     color: "#fff",
+  },
+  methodButtonTextDisabled: {
+    color: "#999",
+  },
+  warningBox: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 10,
+    marginTop: 12,
+    padding: 12,
+    backgroundColor: "#fef3c7",
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#fbbf24",
+  },
+  warningIcon: {
+    marginTop: 2,
+  },
+  warningContent: {
+    flex: 1,
+  },
+  warningTitle: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#92400e",
+    marginBottom: 4,
+  },
+  warningText: {
+    fontSize: 12,
+    color: "#78350f",
+    lineHeight: 18,
   },
   checkboxRow: {
     flexDirection: "row",
@@ -2000,6 +2505,88 @@ const styles = StyleSheet.create({
     color: "#14b8a6",
     fontWeight: "600",
   },
+  weightFeelContainer: {
+    backgroundColor: "#e0f7fa",
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 20,
+    borderWidth: 2,
+    borderColor: "#14b8a6",
+  },
+  weightFeelHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginBottom: 8,
+  },
+  weightFeelTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#0d9488",
+  },
+  weightFeelHint: {
+    fontSize: 13,
+    color: "#0d9488",
+    marginBottom: 12,
+    lineHeight: 18,
+  },
+  weightFeelButtons: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+  weightFeelButton: {
+    flex: 1,
+    minWidth: "30%",
+    backgroundColor: "#fff",
+    borderRadius: 8,
+    padding: 12,
+    borderWidth: 2,
+    borderColor: "#b2f5ea",
+    alignItems: "center",
+  },
+  weightFeelButtonActive: {
+    backgroundColor: "#14b8a6",
+    borderColor: "#0d9488",
+  },
+  weightFeelButtonText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#14b8a6",
+    marginBottom: 4,
+  },
+  weightFeelButtonTextActive: {
+    color: "#fff",
+  },
+  weightFeelButtonDesc: {
+    fontSize: 11,
+    color: "#64748b",
+  },
+  weightFeelButtonDescActive: {
+    color: "#e0f7fa",
+  },
+  weightEstimateDisplay: {
+    marginTop: 12,
+    padding: 10,
+    backgroundColor: "#fff",
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#14b8a6",
+  },
+  weightEstimateText: {
+    fontSize: 13,
+    color: "#0d9488",
+    fontWeight: "500",
+  },
+  reEnableButton: {
+    marginTop: 8,
+  },
+  reEnableButtonText: {
+    fontSize: 12,
+    color: "#14b8a6",
+    fontWeight: "600",
+    textDecorationLine: "underline",
+  },
   rewardHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -2029,5 +2616,75 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: "#14b8a6",
     fontStyle: "italic",
+  },
+  currencyInputContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  currencyInput: {
+    flex: 1,
+  },
+  currencyCode: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#64748b",
+    minWidth: 40,
+  },
+  suggestedRangeBox: {
+    marginTop: 12,
+    padding: 12,
+    backgroundColor: "#f0fdfa",
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#14b8a6",
+  },
+  suggestedRangeTitle: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#0d9488",
+    marginBottom: 4,
+  },
+  suggestedRangeText: {
+    fontSize: 14,
+    fontWeight: "500",
+    color: "#14b8a6",
+    marginBottom: 4,
+  },
+  suggestedRangeSubtext: {
+    fontSize: 11,
+    color: "#64748b",
+    fontStyle: "italic",
+  },
+  complianceBox: {
+    marginTop: 16,
+    padding: 12,
+    backgroundColor: "#fef3c7",
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#f59e0b",
+  },
+  checkboxLabelContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  infoIcon: {
+    width: 16,
+    height: 16,
+    tintColor: "#f59e0b",
+  },
+  complianceWarning: {
+    marginTop: 8,
+    padding: 8,
+    backgroundColor: "#fef2f2",
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: "#fca5a5",
+  },
+  complianceWarningText: {
+    fontSize: 11,
+    color: "#dc2626",
+    lineHeight: 16,
   },
 });

@@ -1,0 +1,38 @@
+name: Generate Android Project Artifact (Fix Prebuild)
+
+on:
+  workflow_dispatch: # Allows manual triggering from the GitHub UI
+
+jobs:
+  generate_project:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: ⬇️ Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: ⚙️ Setup Node.js 20 & pnpm
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: 📥 Install Dependencies
+        # Must install pnpm globally first for monorepo use
+        run: |
+          npm install -g pnpm
+          pnpm install --frozen-lockfile
+
+      - name: 🧹 Clean & Run Expo Prebuild (on apps/mobile)
+        working-directory: ./apps/mobile
+        run: |
+          # The Windows-bugged prebuild is now run on a safe Linux runner
+          npx expo prebuild --platform android --clean
+
+      - name: 📦 Archive Generated Android Project
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-project-for-sdk54-fix
+          # Path to the generated directory relative to the repository root
+          path: apps/mobile/android
+          retention-days: 1 # Keep the artifact for 1 day to save storage

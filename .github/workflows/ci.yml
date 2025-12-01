@@ -74,7 +74,6 @@ jobs:
         env:
           NEXT_PUBLIC_SENTRY_DSN: ${{ secrets.NEXT_PUBLIC_SENTRY_DSN }}
           DRY_RUN: true
-        continue-on-error: true
 
       - name: Run TypeScript check
         run: pnpm typecheck
@@ -327,4 +326,3 @@ jobs:
           echo "| Android Build | ${{ needs.build-android.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "| iOS Build | ${{ needs.build-ios.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Type Check | ${{ needs.type-check.result }} |" >> $GITHUB_STEP_SUMMARY
-

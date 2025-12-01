@@ -64,7 +64,6 @@ jobs:
         run: pnpm typecheck:coverage
 
       - name: Sentry Health Check
-        continue-on-error: true
         run: |
           if [ -n "${{ secrets.NEXT_PUBLIC_SENTRY_DSN }}" ]; then
             node scripts/sentry-healthcheck.js

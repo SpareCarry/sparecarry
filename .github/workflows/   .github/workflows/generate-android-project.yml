@@ -1,38 +1,37 @@
-   name: Generate Android Project (Prebuild Fix)
+name: Generate Android Project (Prebuild Fix)
 
-   on:
-     workflow_dispatch: # Allows manual trigger from GitHub Actions tab
+on:
+  workflow_dispatch: # Allows manual trigger from GitHub Actions tab
 
-   jobs:
-     prebuild:
-       runs-on: ubuntu-latest # Use Linux runner where the bug does not exist
+jobs:
+  prebuild:
+    runs-on: ubuntu-latest # Use Linux runner where the bug does not exist
 
-       steps:
-         - name: ⬇️ Checkout Repository
-           uses: actions/checkout@v4
-           with:
-             # Required for committing the changes back
-             token: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: ⬇️ Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          # Required for committing the changes back
+          token: ${{ secrets.GITHUB_TOKEN }}
 
-         - name: ⚙️ Setup Node.js 20 & pnpm
-           uses: actions/setup-node@v4
-           with:
-             node-version: '20'
-             cache: 'pnpm'
+      - name: ⚙️ Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
 
-         - name: 📥 Install Dependencies
-           run: |
-             npm install -g pnpm
-             pnpm install --frozen-lockfile
+      - name: 📥 Install Dependencies
+        run: |
+          npm install -g pnpm
+          pnpm install --frozen-lockfile
 
-         - name: 🧹 Clean & Run Expo Prebuild (on apps/mobile)
-           working-directory: ./apps/mobile
-           run: |
-             npx expo prebuild --platform android --clean
+      - name: 🧹 Clean & Run Expo Prebuild (on apps/mobile)
+        working-directory: ./apps/mobile
+        run: |
+          npx expo prebuild --platform android --clean
 
-         - name: ⬆️ Commit Generated Android Project
-           uses: EndBug/add-and-commit@v9
-           with:
-             add: 'apps/mobile/android'
-             message: 'ci: chore(android): Auto-generate apps/mobile/android via Linux runner to fix Windows prebuild bug'
-             default_author: github_actions
+      - name: ⬆️ Commit Generated Android Project
+        uses: EndBug/add-and-commit@v9
+        with:
+          add: 'apps/mobile/android'
+          message: 'ci: chore(android): Auto-generate apps/mobile/android via Linux runner to fix Windows prebuild bug'
+          default_author: github_actions

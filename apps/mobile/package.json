@@ -77,10 +77,6 @@
     "babel-plugin-module-resolver": "^5.0.2",
     "typescript": "^5.3.0"
   },
-  "overrides": {
-    "react": "18.3.1",
-    "react-dom": "18.3.1"
-  },
   "expo": {
     "install": {
       "exclude": [

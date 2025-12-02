@@ -125,7 +125,7 @@ async function loadImageData(uri: string): Promise<ImageData | null> {
     const size = await new Promise<{ width: number; height: number }>((resolve, reject) => {
       Image.getSize(
         uri,
-        (width, height) => resolve({ width, height }),
+        (width: number, height: number) => resolve({ width, height }),
         reject
       );
     });

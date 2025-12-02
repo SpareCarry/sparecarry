@@ -173,12 +173,16 @@ export async function unloadMLModel(): Promise<void> {
  * In production, replace with actual model loading
  */
 function createMockMLModel(): MLModel {
+  let isLoaded = false;
+  
   return {
-    isLoaded: false,
+    get isLoaded() {
+      return isLoaded;
+    },
     load: async () => {
       // Simulate model loading delay
       await new Promise(resolve => setTimeout(resolve, 1000));
-      (this as MLModel).isLoaded = true;
+      isLoaded = true;
       console.log("[MLDetection] Mock model loaded");
     },
     detect: async (imageUri: string, frameWidth: number, frameHeight: number) => {
@@ -198,7 +202,7 @@ function createMockMLModel(): MLModel {
       };
     },
     unload: async () => {
-      (this as MLModel).isLoaded = false;
+      isLoaded = false;
       console.log("[MLDetection] Mock model unloaded");
     },
   };
@@ -292,7 +296,7 @@ async function preprocessImageForTF(imageUri: string, tf: any): Promise<any> {
     const size = await new Promise<{ width: number; height: number }>((resolve, reject) => {
       Image.getSize(
         imageUri,
-        (width, height) => resolve({ width, height }),
+        (width: number, height: number) => resolve({ width, height }),
         reject
       );
     });

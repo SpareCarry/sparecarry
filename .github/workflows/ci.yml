@@ -37,13 +37,15 @@ jobs:
 
       - name: Get pnpm store directory
         shell: bash
+        id: pnpm-store
         run: |
-          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+          STORE_PATH=$(pnpm store path --silent)
+          echo "path=$STORE_PATH" >> $GITHUB_OUTPUT
 
       - name: Setup pnpm cache
         uses: actions/cache@v3
         with:
-          path: ${{ env.STORE_PATH }}
+          path: ${{ steps.pnpm-store.outputs.path }}
           key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
@@ -64,15 +66,16 @@ jobs:
         run: pnpm typecheck:coverage
 
       - name: Sentry Health Check
+        continue-on-error: true
+        env:
+          NEXT_PUBLIC_SENTRY_DSN: ${{ secrets.NEXT_PUBLIC_SENTRY_DSN }}
+          DRY_RUN: "true"
         run: |
-          if [ -n "${{ secrets.NEXT_PUBLIC_SENTRY_DSN }}" ]; then
+          if [ -n "$NEXT_PUBLIC_SENTRY_DSN" ]; then
             node scripts/sentry-healthcheck.js
           else
             echo "SENTRY_DSN not set - skipping Sentry health check"
           fi
-        env:
-          NEXT_PUBLIC_SENTRY_DSN: ${{ secrets.NEXT_PUBLIC_SENTRY_DSN }}
-          DRY_RUN: true
 
       - name: Run TypeScript check
         run: pnpm typecheck

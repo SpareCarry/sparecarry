@@ -1,0 +1,84 @@
+const path = require('path');
+
+// Explicitly set project root for monorepo compatibility
+// This helps Expo CLI find the project root in monorepo setups
+const projectRoot = path.resolve(__dirname);
+
+module.exports = {
+  expo: {
+    name: "SpareCarry",
+    slug: "sparecarry",
+    version: "0.1.0",
+    jsEngine: "jsc",
+    orientation: "portrait",
+    icon: "./assets/icon.png",
+    userInterfaceStyle: "automatic",
+    splash: {
+      image: "./assets/splash.png",
+      resizeMode: "contain",
+      backgroundColor: "#14b8a6"
+    },
+    ios: {
+      supportsTablet: true,
+      bundleIdentifier: "com.sparecarry.app",
+      infoPlist: {
+        NSCameraUsageDescription: "SpareCarry needs camera access to take photos of items and measure dimensions.",
+        NSLocationWhenInUseUsageDescription: "SpareCarry needs location access to find nearby trips and requests.",
+        NSLocationAlwaysUsageDescription: "SpareCarry needs location access to find nearby trips and requests.",
+        NSPhotoLibraryUsageDescription: "SpareCarry needs photo library access to select images."
+      }
+    },
+    android: {
+      adaptiveIcon: {
+        foregroundImage: "./assets/icon.png",
+        backgroundColor: "#14b8a6"
+      },
+      package: "com.sparecarry.app",
+      jsEngine: "jsc",
+      permissions: [
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE",
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION"
+      ]
+    },
+    web: {
+      favicon: "./assets/favicon.png"
+    },
+    plugins: [
+      "expo-router",
+      "expo-dev-client",
+      "react-native-reanimated/plugin",
+      [
+        "expo-location",
+        {
+          locationAlwaysAndWhenInUsePermission: "SpareCarry needs location access to find nearby trips and requests."
+        }
+      ],
+      [
+        "expo-camera",
+        {
+          cameraPermission: "SpareCarry needs camera access to take photos of items and measure dimensions."
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          icon: "./assets/icon.png",
+          color: "#14b8a6"
+        }
+      ]
+    ],
+    scheme: "sparecarry",
+    extra: {
+      router: {
+        origin: false
+      },
+      eas: {
+        projectId: "252620b4-c84e-4dd5-9d76-31bfd5e22854"
+      }
+    }
+  }
+};
+

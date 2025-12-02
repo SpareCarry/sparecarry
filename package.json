@@ -216,12 +216,6 @@
     "rimraf": "^5.0.0",
     "inflight": "npm:once@^1.4.0"
   },
-  "overrides": {
-    "react": "19.1.0",
-    "react-dom": "19.1.0",
-    "react-native": "0.81.5",
-    "nanoid": "3.3.7"
-  },
   "engines": {
     "node": ">=22 <25",
     "pnpm": ">=8.0.0"

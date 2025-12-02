@@ -764,20 +764,11 @@ export default function PostRequestScreen() {
 
   const handleAutoMeasure = async () => {
     try {
-      // Check AR capability
-      const isARCapable = await getARCapability();
-      
-      if (isARCapable) {
-        // Route to AR measurement screen (high confidence)
-        router.push("/(modals)/ARMeasurementScreen");
-      } else {
-        // Route to reference photo screen (low confidence fallback)
-        router.push("/(modals)/ReferencePhotoScreen");
-      }
+      // Route to new auto-measure screen with automatic detection
+      router.push("/auto-measure");
     } catch (error) {
-      console.error("[PostRequest] Error checking AR capability:", error);
-      // Fallback to reference photo screen on error
-      router.push("/(modals)/ReferencePhotoScreen");
+      console.error("[PostRequest] Error navigating to auto-measure:", error);
+      Alert.alert("Error", "Failed to open auto-measure camera. Please try again.");
     }
   };
 

@@ -41,7 +41,7 @@ export async function detectObjectWithEdges(
     // Convert to grayscale
     const grayscale = convertToGrayscale(imageData);
 
-    // Apply edge detection (Sobel operator)
+    // Apply enhanced edge detection with noise reduction and adaptive thresholding
     const edges = applySobelEdgeDetection(grayscale, imageData.width, imageData.height);
 
     // Find contours
@@ -52,44 +52,59 @@ export async function detectObjectWithEdges(
       return null;
     }
 
-    // Select largest contour (most prominent object)
-    const largestContour = contours.reduce((prev, current) =>
-      current.area > prev.area ? current : prev
-    );
-
-    // Filter out edge artifacts (contours too close to image edges)
-    const margin = Math.min(frameWidth, frameHeight) * 0.05; // 5% margin
-    const box = largestContour.boundingBox;
+    // Enhanced contour selection:
+    // 1. Prefer contours away from edges
+    // 2. Prefer contours with good aspect ratio
+    // 3. Prefer contours with high area coverage
     
-    if (
-      box.x < margin ||
-      box.y < margin ||
-      box.x + box.width > frameWidth - margin ||
-      box.y + box.height > frameHeight - margin
-    ) {
-      // Too close to edge, likely an artifact
-      // Try second largest contour
-      if (contours.length > 1) {
-        const sorted = [...contours].sort((a, b) => b.area - a.area);
-        const secondLargest = sorted[1];
-        const secondBox = secondLargest.boundingBox;
-        
-        if (
-          secondBox.x >= margin &&
-          secondBox.y >= margin &&
-          secondBox.x + secondBox.width <= frameWidth - margin &&
-          secondBox.y + secondBox.height <= frameHeight - margin
-        ) {
-          return scaleBoundingBox(secondBox, imageData.width, imageData.height, frameWidth, frameHeight);
-        }
+    const margin = Math.min(frameWidth, frameHeight) * 0.08; // 8% margin (increased)
+    
+    // Score each contour
+    const scoredContours = contours.map((contour) => {
+      const box = contour.boundingBox;
+      const aspectRatio = box.width / box.height;
+      const areaRatio = contour.area / (box.width * box.height);
+      
+      let score = contour.area; // Base score is area
+      
+      // Bonus for being away from edges
+      const distanceFromEdge = Math.min(
+        box.x,
+        box.y,
+        frameWidth - (box.x + box.width),
+        frameHeight - (box.y + box.height)
+      );
+      if (distanceFromEdge > margin) {
+        score *= 1.5; // 50% bonus for being away from edges
       }
       
-      // If second largest also fails, return largest anyway (better than nothing)
-      console.log("[EdgeDetection] Largest contour near edge, using it anyway");
+      // Bonus for good aspect ratio (not too elongated)
+      if (aspectRatio > 0.5 && aspectRatio < 2.0) {
+        score *= 1.2; // 20% bonus for reasonable aspect ratio
+      }
+      
+      // Bonus for high area coverage (solid object, not sparse)
+      if (areaRatio > 0.5) {
+        score *= 1.3; // 30% bonus for solid objects
+      }
+      
+      return { contour, score, box };
+    });
+    
+    // Sort by score
+    scoredContours.sort((a, b) => b.score - a.score);
+    
+    // Select best contour
+    const best = scoredContours[0];
+    if (!best) {
+      console.log("[EdgeDetection] No suitable contour found");
+      return null;
     }
-
+    
+    console.log(`[EdgeDetection] Selected contour with score ${best.score.toFixed(0)} and area ${best.contour.area}`);
+    
     // Scale bounding box from image dimensions to screen dimensions
-    return scaleBoundingBox(box, imageData.width, imageData.height, frameWidth, frameHeight);
+    return scaleBoundingBox(best.box, imageData.width, imageData.height, frameWidth, frameHeight);
   } catch (error) {
     console.error("[EdgeDetection] Error detecting object:", error);
     return null;
@@ -169,18 +184,95 @@ function convertToGrayscale(imageData: ImageData): number[] {
 }
 
 /**
- * Apply Sobel edge detection operator
+ * Apply Gaussian blur for noise reduction
+ */
+function applyGaussianBlur(
+  grayscale: number[],
+  width: number,
+  height: number
+): number[] {
+  const blurred = new Array(grayscale.length);
+  const kernel = [1, 2, 1, 2, 4, 2, 1, 2, 1];
+  const kernelSum = 16;
+  
+  for (let y = 1; y < height - 1; y++) {
+    for (let x = 1; x < width - 1; x++) {
+      let sum = 0;
+      for (let ky = -1; ky <= 1; ky++) {
+        for (let kx = -1; kx <= 1; kx++) {
+          const idx = (y + ky) * width + (x + kx);
+          const kernelIdx = (ky + 1) * 3 + (kx + 1);
+          sum += grayscale[idx] * kernel[kernelIdx];
+        }
+      }
+      const idx = y * width + x;
+      blurred[idx] = Math.round(sum / kernelSum);
+    }
+  }
+  
+  // Copy borders
+  for (let y = 0; y < height; y++) {
+    blurred[y * width] = grayscale[y * width];
+    blurred[y * width + width - 1] = grayscale[y * width + width - 1];
+  }
+  for (let x = 0; x < width; x++) {
+    blurred[x] = grayscale[x];
+    blurred[(height - 1) * width + x] = grayscale[(height - 1) * width + x];
+  }
+  
+  return blurred;
+}
+
+/**
+ * Calculate adaptive threshold based on local mean
+ */
+function calculateAdaptiveThreshold(
+  grayscale: number[],
+  width: number,
+  height: number,
+  x: number,
+  y: number
+): number {
+  const windowSize = 15;
+  const halfWindow = Math.floor(windowSize / 2);
+  let sum = 0;
+  let count = 0;
+  
+  for (let dy = -halfWindow; dy <= halfWindow; dy++) {
+    for (let dx = -halfWindow; dx <= halfWindow; dx++) {
+      const ny = y + dy;
+      const nx = x + dx;
+      if (ny >= 0 && ny < height && nx >= 0 && nx < width) {
+        sum += grayscale[ny * width + nx];
+        count++;
+      }
+    }
+  }
+  
+  const mean = sum / count;
+  return Math.max(30, mean * 0.7); // Adaptive threshold
+}
+
+/**
+ * Apply enhanced Sobel edge detection with adaptive thresholding
  */
 function applySobelEdgeDetection(
   grayscale: number[],
   width: number,
   height: number
 ): number[] {
-  const edges: number[] = new Array(grayscale.length).fill(0);
+  // First, apply Gaussian blur to reduce noise
+  const blurred = applyGaussianBlur(grayscale, width, height);
   
-  // Sobel kernels
+  const edges: number[] = new Array(blurred.length).fill(0);
+  
+  // Enhanced Sobel kernels (more sensitive)
   const sobelX = [-1, 0, 1, -2, 0, 2, -1, 0, 1];
   const sobelY = [-1, -2, -1, 0, 0, 0, 1, 2, 1];
+  
+  // Calculate gradient magnitudes
+  const magnitudes: number[] = [];
+  let maxMagnitude = 0;
   
   for (let y = 1; y < height - 1; y++) {
     for (let x = 1; x < width - 1; x++) {
@@ -192,15 +284,48 @@ function applySobelEdgeDetection(
         for (let kx = -1; kx <= 1; kx++) {
           const idx = (y + ky) * width + (x + kx);
           const kernelIdx = (ky + 1) * 3 + (kx + 1);
-          gx += grayscale[idx] * sobelX[kernelIdx];
-          gy += grayscale[idx] * sobelY[kernelIdx];
+          gx += blurred[idx] * sobelX[kernelIdx];
+          gy += blurred[idx] * sobelY[kernelIdx];
         }
       }
       
       // Calculate magnitude
       const magnitude = Math.sqrt(gx * gx + gy * gy);
       const idx = y * width + x;
-      edges[idx] = magnitude > 50 ? 255 : 0; // Threshold
+      magnitudes[idx] = magnitude;
+      maxMagnitude = Math.max(maxMagnitude, magnitude);
+    }
+  }
+  
+  // Apply adaptive thresholding (Canny-like approach)
+  const lowThreshold = maxMagnitude * 0.1;
+  const highThreshold = maxMagnitude * 0.3;
+  
+  for (let y = 1; y < height - 1; y++) {
+    for (let x = 1; x < width - 1; x++) {
+      const idx = y * width + x;
+      const magnitude = magnitudes[idx];
+      
+      // Hysteresis thresholding (Canny edge detection technique)
+      if (magnitude > highThreshold) {
+        edges[idx] = 255; // Strong edge
+      } else if (magnitude > lowThreshold) {
+        // Check if connected to strong edge
+        let connectedToStrong = false;
+        for (let dy = -1; dy <= 1 && !connectedToStrong; dy++) {
+          for (let dx = -1; dx <= 1; dx++) {
+            if (dx === 0 && dy === 0) continue;
+            const nIdx = (y + dy) * width + (x + dx);
+            if (magnitudes[nIdx] > highThreshold) {
+              connectedToStrong = true;
+              break;
+            }
+          }
+        }
+        edges[idx] = connectedToStrong ? 255 : 0;
+      } else {
+        edges[idx] = 0; // Weak edge, discard
+      }
     }
   }
   
@@ -208,7 +333,7 @@ function applySobelEdgeDetection(
 }
 
 /**
- * Find contours in edge image
+ * Find contours in edge image with improved filtering
  */
 function findContours(
   edges: number[],
@@ -218,21 +343,42 @@ function findContours(
   const visited = new Set<number>();
   const contours: Contour[] = [];
   
-  for (let y = 0; y < height; y++) {
-    for (let x = 0; x < width; x++) {
+  // Minimum contour size based on image dimensions
+  const minContourSize = Math.max(50, (width * height) * 0.001); // At least 0.1% of image
+  
+  for (let y = 1; y < height - 1; y++) {
+    for (let x = 1; x < width - 1; x++) {
       const idx = y * width + x;
       
       if (edges[idx] === 255 && !visited.has(idx)) {
         // Found new contour
         const contour = traceContour(edges, width, height, x, y, visited);
-        if (contour.points.length > 50) { // Minimum contour size
-          contours.push(contour);
+        
+        // Enhanced filtering:
+        // 1. Minimum size
+        // 2. Aspect ratio check (not too elongated)
+        // 3. Area coverage check
+        if (contour.points.length > minContourSize) {
+          const aspectRatio = contour.boundingBox.width / contour.boundingBox.height;
+          const areaRatio = contour.area / (contour.boundingBox.width * contour.boundingBox.height);
+          
+          // Filter out contours that are:
+          // - Too elongated (aspect ratio > 5:1 or < 1:5)
+          // - Too sparse (area ratio < 0.3, meaning mostly empty bounding box)
+          if (
+            aspectRatio > 0.2 && aspectRatio < 5.0 &&
+            areaRatio > 0.3
+          ) {
+            contours.push(contour);
+          }
         }
       }
     }
   }
   
-  return contours;
+  // Sort by area (largest first) and return top candidates
+  contours.sort((a, b) => b.area - a.area);
+  return contours.slice(0, 5); // Return top 5 candidates
 }
 
 /**

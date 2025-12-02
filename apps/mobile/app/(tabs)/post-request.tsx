@@ -762,15 +762,7 @@ export default function PostRequestScreen() {
     }, [])
   );
 
-  const handleAutoMeasure = async () => {
-    try {
-      // Route to new auto-measure screen with automatic detection
-      router.push("/auto-measure");
-    } catch (error) {
-      console.error("[PostRequest] Error navigating to auto-measure:", error);
-      Alert.alert("Error", "Failed to open auto-measure camera. Please try again.");
-    }
-  };
+  // Manual entry only - auto-measure removed due to build issues
 
   // Validate field on change
   const validateField = (field: string, value: string | number) => {
@@ -1581,13 +1573,6 @@ export default function PostRequestScreen() {
           <View style={styles.field}>
             <View style={styles.dimensionsHeader}>
               <Text style={styles.label}>Dimensions (cm) *</Text>
-              <TouchableOpacity
-                style={styles.autoMeasureButton}
-                onPress={handleAutoMeasure}
-              >
-                <MaterialIcons name="camera-alt" size={18} color="#14b8a6" />
-                <Text style={styles.autoMeasureButtonText}>Auto-Measure</Text>
-              </TouchableOpacity>
             </View>
 
             {/* Quick Dimension Presets */}
@@ -1624,6 +1609,17 @@ export default function PostRequestScreen() {
                 }}
               >
                 <Text style={styles.presetButtonText}>Large (50×40×30)</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.presetButton}
+                onPress={() => {
+                  setLength("80");
+                  setWidth("60");
+                  setHeight("40");
+                  setIsAutoEstimated(false);
+                }}
+              >
+                <Text style={styles.presetButtonText}>Extra Large (80×60×40)</Text>
               </TouchableOpacity>
             </View>
 
@@ -1701,7 +1697,7 @@ export default function PostRequestScreen() {
               </Text>
             ) : (
               <Text style={styles.hint}>
-                Tap Auto-Measure to use camera or use presets above
+                Enter dimensions manually or use presets above
               </Text>
             )}
           </View>

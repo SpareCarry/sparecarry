@@ -20,46 +20,64 @@ config.watchFolders = [
   path.resolve(workspaceRoot, "assets"), // Root assets folder (courierRates, customs JSON, etc.)
 ];
 
-// Ensure Metro resolves to app node_modules first (avoid duplicate react)
-config.resolver = {
-  ...config.resolver,
-  nodeModulesPaths: [
-    // Prefer the root node_modules where pnpm actually installs React/RN
-    rootNodeModules,
-    path.resolve(projectRoot, "node_modules"),
-  ],
-  // Force React, React-DOM, and React-Native to resolve from mobile app's node_modules
-  // This prevents multiple React instances in monorepo
-  extraNodeModules: {
-    // Explicitly map React packages to the single root node_modules
-    // With pnpm, this is where the real packages live (symlinked into apps)
-    react: path.join(rootNodeModules, "react"),
-    "react-dom": path.join(rootNodeModules, "react-dom"),
-    "react-native": path.join(rootNodeModules, "react-native"),
-    // Ensure JSX runtime also resolves from the same React instance
-    "react/jsx-runtime": path.join(
+  // Ensure Metro resolves to app node_modules first (avoid duplicate react)
+  const mobileReactPath = path.resolve(projectRoot, "node_modules", "react");
+  const mobileReactDomPath = path.resolve(projectRoot, "node_modules", "react-dom");
+  const mobileReactNativePath = path.resolve(projectRoot, "node_modules", "react-native");
+  
+  config.resolver = {
+    ...config.resolver,
+    nodeModulesPaths: [
+      // Prefer mobile app's node_modules where React 19.1.0 is actually installed
+      path.resolve(projectRoot, "node_modules"),
+      // Root node_modules as fallback
       rootNodeModules,
-      "node_modules",
-      "react",
-      "jsx-runtime.js"
-    ),
-    "react/jsx-dev-runtime": path.join(
-      rootNodeModules,
-      "node_modules",
-      "react",
-      "jsx-dev-runtime.js"
-    ),
+    ],
+    // Force React, React-DOM, and React-Native to resolve from mobile app's node_modules
+    // This prevents multiple React instances in monorepo
+    extraNodeModules: {
+      // Point to mobile app's node_modules where React 19.1.0 is installed
+      react: mobileReactPath,
+      "react-dom": mobileReactDomPath,
+      "react-native": mobileReactNativePath,
+      // Ensure JSX runtime also resolves from the same React instance
+      "react/jsx-runtime": path.resolve(mobileReactPath, "jsx-runtime.js"),
+      "react/jsx-dev-runtime": path.resolve(mobileReactPath, "jsx-dev-runtime.js"),
+    },
+    // Intercept ALL React resolution requests to force single instance
+    resolveRequest: (context, moduleName, platform) => {
+      // Force all React imports to use the mobile app's React instance
+      if (moduleName === "react" || moduleName.startsWith("react/")) {
+        if (moduleName === "react") {
+          return {
+            filePath: path.resolve(mobileReactPath, "index.js"),
+            type: "sourceFile",
+          };
+        } else if (moduleName === "react/jsx-runtime") {
+          return {
+            filePath: path.resolve(mobileReactPath, "jsx-runtime.js"),
+            type: "sourceFile",
+          };
+        } else if (moduleName === "react/jsx-dev-runtime") {
+          return {
+            filePath: path.resolve(mobileReactPath, "jsx-dev-runtime.js"),
+            type: "sourceFile",
+          };
+        }
+      }
+      // Use default resolution for everything else
+      return context.resolveRequest(context, moduleName, platform);
+    },
+    // Metro aliases for root-level folders (allows importing from root-level code)
+    alias: {
+      "@root-lib": path.resolve(workspaceRoot, "lib"),
+      "@root-src": path.resolve(workspaceRoot, "src"),
+      "@root-config": path.resolve(workspaceRoot, "config"),
+      "@root-utils": path.resolve(workspaceRoot, "utils"),
+    },
+    // include cjs extension (helps with some hoisted libs)
+    sourceExts: [...config.resolver.sourceExts, "cjs", "ts", "tsx"],
   },
-  // Metro aliases for root-level folders (allows importing from root-level code)
-  alias: {
-    "@root-lib": path.resolve(workspaceRoot, "lib"),
-    "@root-src": path.resolve(workspaceRoot, "src"),
-    "@root-config": path.resolve(workspaceRoot, "config"),
-    "@root-utils": path.resolve(workspaceRoot, "utils"),
-  },
-  // include cjs extension (helps with some hoisted libs)
-  sourceExts: [...config.resolver.sourceExts, "cjs", "ts", "tsx"],
-};
 
 // Keep transform options
 config.transformer = {

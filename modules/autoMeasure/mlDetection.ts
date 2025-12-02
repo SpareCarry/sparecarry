@@ -8,6 +8,9 @@
 import { BoundingBox } from "./types";
 import { Dimensions as ScreenDimensions } from "react-native";
 
+// Conditional import to avoid breaking the build if TensorFlow.js is incompatible
+// The require() calls in loadMLModel() will handle errors gracefully
+
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = ScreenDimensions.get("window");
 
 interface MLModel {
@@ -51,22 +54,38 @@ export async function initializeMLModel(): Promise<void> {
  * Load ML model using TensorFlow.js and COCO-SSD
  * Uses free pre-trained model from TensorFlow Hub
  * No API calls, no training, no costs - all processing on device
+ * 
+ * Note: TensorFlow.js React Native has compatibility issues with Expo SDK 54
+ * This will use a fallback until a compatible version is available
  */
 async function loadMLModel(): Promise<void> {
   try {
     console.log("[MLDetection] Loading ML model...");
     
-    // Check if TensorFlow.js is available
+    // Check if TensorFlow.js is available and compatible
     let tf: any;
     let cocoSsd: any;
     
     try {
+      // Try to require TensorFlow.js - may fail due to compatibility issues
       tf = require("@tensorflow/tfjs");
       await tf.ready();
       cocoSsd = require("@tensorflow-models/coco-ssd");
     } catch (requireError) {
-      console.warn("[MLDetection] TensorFlow.js not available, using fallback:", requireError);
-      // Fallback to mock model if TensorFlow.js is not installed
+      console.warn("[MLDetection] TensorFlow.js not available or incompatible:", requireError);
+      console.warn("[MLDetection] Using fallback - ML detection will use edge detection instead");
+      // Fallback to mock model if TensorFlow.js is not installed or incompatible
+      mlModel = createMockMLModel();
+      await mlModel.load();
+      return;
+    }
+    
+    // Additional check: Verify expo-gl is available (required by tfjs-react-native)
+    try {
+      require("expo-gl");
+    } catch (expoGlError) {
+      console.warn("[MLDetection] expo-gl not available, TensorFlow.js may not work properly");
+      console.warn("[MLDetection] Using fallback - ML detection will use edge detection instead");
       mlModel = createMockMLModel();
       await mlModel.load();
       return;

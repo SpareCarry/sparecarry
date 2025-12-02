@@ -11,6 +11,7 @@ import { Stack, useRouter, useSegments } from "expo-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { checkARCapability } from "../lib/utils/arChecker";
+import { initializeObjectDetection } from "../../../modules/autoMeasure/objectDetection";
 
 // Wrap all imports in try-catch to catch module-level errors
 let createClient: any;
@@ -163,12 +164,13 @@ function NavigationHandler() {
       },
     });
 
-    // Dev mode: Skip authentication
+    // Dev mode: Skip authentication but allow testing auth pages
     if (isDevMode()) {
+      // Allow access to auth pages for testing
       const inAuthGroup = segments[0] === "auth";
       if (inAuthGroup) {
-        mobileLogger.info("Dev mode: Redirecting from auth to tabs");
-        router.replace("/(tabs)");
+        mobileLogger.info("Dev mode: Allowing access to auth pages for testing");
+        return; // Don't redirect, allow user to test auth pages
       }
       return;
     }
@@ -182,11 +184,13 @@ function NavigationHandler() {
       });
       router.replace("/auth/login");
     } else if (user && inAuthGroup) {
-      // Redirect to home if authenticated and on auth screen
-      mobileLogger.info("Authenticated, redirecting to tabs", {
-        route: currentRoute,
-      });
-      router.replace("/(tabs)");
+      // Allow testing auth pages even when authenticated (comment out to re-enable redirect)
+      // Uncomment the lines below to redirect authenticated users away from auth pages:
+      // mobileLogger.info("Authenticated, redirecting to tabs", {
+      //   route: currentRoute,
+      // });
+      // router.replace("/(tabs)");
+      mobileLogger.info("Authenticated user on auth page - allowing for testing");
     }
   }, [user, loading, segments, router]);
 
@@ -232,6 +236,18 @@ export default function RootLayout() {
       .catch((error) => {
         console.error("❌ Failed to check AR capability:", error);
         mobileLogger.error("Failed to check AR capability", { error });
+      });
+
+    // Initialize object detection for auto-measure feature
+    initializeObjectDetection()
+      .then(() => {
+        console.log("🤖 Object detection initialized for auto-measure");
+        mobileLogger.info("Object detection initialized");
+      })
+      .catch((error) => {
+        console.warn("⚠️ Failed to initialize object detection:", error);
+        mobileLogger.warn("Failed to initialize object detection", { error });
+        // Non-critical, app continues to work with manual mode
       });
 
     mobileLogger.info("Mobile app started");

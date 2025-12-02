@@ -23,9 +23,11 @@ import { CameraView, CameraType, useCameraPermissions } from "expo-camera";
 import { useRouter } from "expo-router";
 import { MaterialIcons } from "@expo/vector-icons";
 import { ManualBoundingBox } from "./ManualBoundingBox";
-import { calculateDimensionsFromBox, getDistanceHint } from "./calculateDimensions";
+import { calculateDimensionsFromBox } from "./calculateDimensions";
 import { useTiltDetection } from "./useTiltDetection";
 import { useAutoMeasurePhoto } from "./useAutoMeasurePhoto";
+import { initializeObjectDetection, detectObject } from "./objectDetection";
+import { MeasurementOverlay } from "./measurementOverlay";
 import {
   MeasurementResult,
   CapturedPhoto,
@@ -129,6 +131,10 @@ export function AutoMeasureCamera({
   const [waitingForNextAngle, setWaitingForNextAngle] = useState(false);
   const [capturedPhotos, setCapturedPhotos] = useState<CapturedPhoto[]>([]);
   const [photoPreference, setPhotoPreference] = useState<"always" | "never" | "ask">("ask");
+  const [autoDetectionMode] = useState(true); // Always auto mode, toggle removed
+  const [isDetecting, setIsDetecting] = useState(false);
+  const [detectionError, setDetectionError] = useState<string | null>(null);
+  const detectionIntervalRef = useRef<NodeJS.Timeout | null>(null);
   
   const cameraRef = useRef<CameraView>(null);
   const viewShotRef = useRef<any>(null);
@@ -146,6 +152,62 @@ export function AutoMeasureCamera({
       console.error("[AutoMeasureCamera] Photo capture error:", error);
     },
   });
+
+  // Initialize object detection on mount
+  useEffect(() => {
+    initializeObjectDetection().catch((error) => {
+      console.warn("[AutoMeasureCamera] Failed to initialize object detection:", error);
+    });
+  }, []);
+
+  // Auto-detect object using frame processor when available
+  // Frame processor processes frames in real-time without taking photos
+  useEffect(() => {
+    if (!autoDetectionMode || showAdjustment || waitingForNextAngle) {
+      return;
+    }
+
+    // Try to use frame processor if available
+    try {
+      const { isFrameProcessorAvailable, createObjectDetectionFrameProcessor } = require("./frameProcessor");
+      
+      if (isFrameProcessorAvailable()) {
+        console.log("[AutoMeasureCamera] Using frame processor for real-time detection");
+        
+        // Create frame processor callback
+        const handleFrameDetection = (detectedBox: BoundingBox | null) => {
+          if (detectedBox) {
+            setBoundingBox(detectedBox);
+            const measurement = calculateMeasurement(detectedBox);
+            setCurrentMeasurement(measurement);
+            setDetectionError(null);
+          } else {
+            // Only show error after multiple failures
+            if (detectionError) {
+              setDetectionError("No object detected");
+            }
+          }
+        };
+        
+        // Note: Frame processor integration requires react-native-vision-camera
+        // For now, we'll use a fallback approach
+        // Full implementation would attach frame processor to camera component
+        console.log("[AutoMeasureCamera] Frame processor available but requires camera component update");
+      } else {
+        console.log("[AutoMeasureCamera] Frame processor not available, using manual mode");
+      }
+    } catch (error) {
+      console.warn("[AutoMeasureCamera] Frame processor not available:", error);
+    }
+    
+    // Clear any existing interval
+    return () => {
+      if (detectionIntervalRef.current) {
+        clearInterval(detectionIntervalRef.current);
+        detectionIntervalRef.current = null;
+      }
+    };
+  }, [autoDetectionMode, showAdjustment, waitingForNextAngle, calculateMeasurement, detectionError]);
 
   // Load photo preference
   useEffect(() => {
@@ -173,9 +235,9 @@ export function AutoMeasureCamera({
     };
   }, []);
 
-  // Handle capture
+  // Handle capture - user presses button to take ONE photo
   const handleCapture = useCallback(async () => {
-    if (!cameraRef.current || isCapturing) return;
+    if (!cameraRef.current || isCapturing || isCapturingPhoto) return;
 
     try {
       triggerHaptic("medium");
@@ -186,7 +248,7 @@ export function AutoMeasureCamera({
       setCurrentMeasurement(measurement);
       setAdjustableDimensions({ ...measurement.dimensions });
 
-      // Capture photo with overlay
+      // Capture photo with overlay (this is the actual photo the user wants)
       let capturedPhoto: CapturedPhoto | null = null;
       if (viewShotRef.current && ViewShot) {
         try {
@@ -194,43 +256,44 @@ export function AutoMeasureCamera({
           if (photo) {
             capturedPhoto = {
               ...photo,
-              photoType: captureAngle === 1 ? "main" : captureAngle === 2 ? "side" : "reference",
+              photoType: captureAngle === null ? "main" : captureAngle === 1 ? "main" : captureAngle === 2 ? "side" : "reference",
             };
+            setCapturedPhotos((prev) => [...prev, capturedPhoto!]);
+            triggerHaptic("success");
           }
         } catch (error) {
           console.warn("[AutoMeasureCamera] Photo capture failed:", error);
+          Alert.alert("Error", "Failed to capture photo. Please try again.");
         }
       }
 
-      if (capturedPhoto) {
-        setCapturedPhotos((prev) => [...prev, capturedPhoto!]);
-      }
-
-      // If first capture, ask about multi-angle
+      // Handle multi-angle flow
       if (captureAngle === null) {
+        // First capture - ask if user wants to add more angles
         setCaptureAngle(1);
         setWaitingForNextAngle(true);
-        triggerHaptic("success");
       } else if (captureAngle === 1) {
         // After first, ask for side view
         setCaptureAngle(2);
         setWaitingForNextAngle(true);
       } else if (captureAngle === 2) {
-        // After second, ask for third
+        // After second, ask for third angle
         setCaptureAngle(3);
         setWaitingForNextAngle(true);
       } else {
-        // All done
+        // All angles captured - show adjustment screen
         setShowAdjustment(true);
+        setWaitingForNextAngle(false);
       }
 
       setIsCapturing(false);
     } catch (error) {
       console.error("[AutoMeasureCamera] Capture error:", error);
       triggerHaptic("error");
+      Alert.alert("Error", "Failed to capture measurement. Please try again.");
       setIsCapturing(false);
     }
-  }, [boundingBox, isCapturing, captureAngle, calculateMeasurement, captureView]);
+  }, [boundingBox, isCapturing, isCapturingPhoto, captureAngle, calculateMeasurement, captureView]);
 
   // Handle using measurement
   const handleUseMeasurement = useCallback(async () => {
@@ -325,16 +388,11 @@ export function AutoMeasureCamera({
     );
   }
 
-  // Adjustment screen (inline)
-  if (showAdjustment && adjustableDimensions) {
-    const distanceHint = getDistanceHint(boundingBox);
-    
-    return (
-      <View style={styles.adjustmentContainer}>
-        <Text style={styles.adjustmentTitle}>Dimensions</Text>
-        {distanceHint && (
-          <Text style={styles.distanceHint}>{distanceHint.hint}</Text>
-        )}
+    // Adjustment screen (inline)
+    if (showAdjustment && adjustableDimensions) {
+      return (
+        <View style={styles.adjustmentContainer}>
+          <Text style={styles.adjustmentTitle}>Dimensions</Text>
 
         {(["length", "width", "height"] as const).map((dim) => (
           <View key={dim} style={styles.adjustmentRow}>
@@ -433,30 +491,41 @@ export function AutoMeasureCamera({
           </View>
         )}
 
-        {/* Manual bounding box */}
-        <ManualBoundingBox
-          onBoxChange={setBoundingBox}
-          initialBox={boundingBox}
-        />
-
-        {/* Dimensions label on box */}
-        {currentMeasurement && (
-          <View
-            style={[
-              styles.dimensionsLabel,
-              {
-                left: boundingBox.x,
-                top: boundingBox.y - 35,
-              },
-            ]}
-          >
-            <Text style={styles.dimensionsLabelText}>
-              L: {Math.round(currentMeasurement.dimensions.length)}cm ×{" "}
-              W: {Math.round(currentMeasurement.dimensions.width)}cm ×{" "}
-              H: {Math.round(currentMeasurement.dimensions.height)}cm
-            </Text>
-          </View>
+        {/* Auto-detection overlay or manual bounding box */}
+        {autoDetectionMode && currentMeasurement ? (
+          <MeasurementOverlay
+            boundingBox={boundingBox}
+            dimensions={currentMeasurement.dimensions}
+            showDimensions={true}
+          />
+        ) : (
+          <>
+            <ManualBoundingBox
+              onBoxChange={setBoundingBox}
+              initialBox={boundingBox}
+            />
+            {/* Dimensions label on box */}
+            {currentMeasurement && (
+              <View
+                style={[
+                  styles.dimensionsLabel,
+                  {
+                    left: boundingBox.x,
+                    top: boundingBox.y - 35,
+                  },
+                ]}
+              >
+                <Text style={styles.dimensionsLabelText}>
+                  L: {Math.round(currentMeasurement.dimensions.length)}cm ×{" "}
+                  W: {Math.round(currentMeasurement.dimensions.width)}cm ×{" "}
+                  H: {Math.round(currentMeasurement.dimensions.height)}cm
+                </Text>
+              </View>
+            )}
+          </>
         )}
+
+        {/* Auto-detection status - will be enabled when frame processor is implemented */}
 
         {/* Tilt warning (subtle) */}
         {showTiltWarning && (
@@ -470,18 +539,6 @@ export function AutoMeasureCamera({
           </View>
         )}
 
-        {/* Distance hint (subtle) */}
-        {!currentMeasurement && (() => {
-          const hint = getDistanceHint(boundingBox);
-          if (hint && hint.state !== "perfect") {
-            return (
-              <View style={styles.distanceHintContainer}>
-                <Text style={styles.distanceHintText}>{hint.hint}</Text>
-              </View>
-            );
-          }
-          return null;
-        })()}
 
         {/* Multi-angle prompt */}
         {waitingForNextAngle && (
@@ -489,24 +546,33 @@ export function AutoMeasureCamera({
             <View style={styles.anglePromptBox}>
               <Text style={styles.anglePromptText}>
                 {captureAngle === 1
-                  ? "Add side view for better accuracy?"
+                  ? "Photo captured! Add side view for better accuracy?"
                   : captureAngle === 2
-                    ? "Add another angle?"
+                    ? "Side view captured! Add top view?"
                     : "All angles captured"}
+              </Text>
+              <Text style={styles.anglePromptHint}>
+                {captureAngle === 1
+                  ? "Re-align camera to show the side of the object, then press Capture"
+                  : captureAngle === 2
+                    ? "Re-align camera to show the top of the object, then press Capture"
+                    : ""}
               </Text>
               <View style={styles.anglePromptActions}>
                 <TouchableOpacity
                   style={styles.anglePromptButton}
                   onPress={handleSkipAngle}
                 >
-                  <Text style={styles.anglePromptButtonText}>Skip</Text>
+                  <Text style={styles.anglePromptButtonText}>Done</Text>
                 </TouchableOpacity>
                 {captureAngle !== 3 && (
                   <TouchableOpacity
                     style={[styles.anglePromptButton, styles.anglePromptButtonPrimary]}
                     onPress={handleAddAngle}
                   >
-                    <Text style={[styles.anglePromptButtonText, styles.anglePromptButtonTextPrimary]}>Add</Text>
+                    <Text style={[styles.anglePromptButtonText, styles.anglePromptButtonTextPrimary]}>
+                      Add {captureAngle === 1 ? "Side" : "Top"} View
+                    </Text>
                   </TouchableOpacity>
                 )}
               </View>
@@ -525,6 +591,7 @@ export function AutoMeasureCamera({
           >
             <Text style={styles.gridButtonText}>⊞</Text>
           </TouchableOpacity>
+
 
           <TouchableOpacity
             style={styles.flipButton}
@@ -653,23 +720,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "600",
   },
-  // Distance hint
-  distanceHintContainer: {
-    position: "absolute",
-    top: 100,
-    left: 0,
-    right: 0,
-    alignItems: "center",
-    zIndex: 50,
-  },
-  distanceHintText: {
-    color: "#fff",
-    fontSize: 12,
-    backgroundColor: "rgba(0, 0, 0, 0.6)",
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 8,
-  },
   // Multi-angle prompt
   anglePromptContainer: {
     position: "absolute",
@@ -692,6 +742,13 @@ const styles = StyleSheet.create({
   anglePromptText: {
     fontSize: 16,
     color: "#333",
+    marginBottom: 8,
+    textAlign: "center",
+    fontWeight: "600",
+  },
+  anglePromptHint: {
+    fontSize: 14,
+    color: "#666",
     marginBottom: 16,
     textAlign: "center",
   },
@@ -740,6 +797,41 @@ const styles = StyleSheet.create({
     fontSize: 20,
     color: "#fff",
   },
+  autoButton: {
+    padding: 12,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    borderRadius: 8,
+  },
+  autoButtonActive: {
+    backgroundColor: "rgba(20, 184, 166, 0.8)",
+  },
+  autoButtonText: {
+    fontSize: 20,
+  },
+  autoDetectionStatus: {
+    position: "absolute",
+    top: 60,
+    left: 0,
+    right: 0,
+    alignItems: "center",
+    zIndex: 50,
+  },
+  autoDetectionText: {
+    color: "#fff",
+    fontSize: 12,
+    backgroundColor: "rgba(0, 0, 0, 0.6)",
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+  },
+  autoDetectionErrorText: {
+    color: "#f59e0b",
+    fontSize: 12,
+    backgroundColor: "rgba(0, 0, 0, 0.6)",
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+  },
   flipButton: {
     padding: 12,
     backgroundColor: "rgba(0, 0, 0, 0.5)",
@@ -782,12 +874,6 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginBottom: 8,
     color: "#333",
-    textAlign: "center",
-  },
-  distanceHint: {
-    fontSize: 14,
-    color: "#666",
-    marginBottom: 24,
     textAlign: "center",
   },
   adjustmentRow: {
@@ -860,4 +946,5 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
 });
+
 

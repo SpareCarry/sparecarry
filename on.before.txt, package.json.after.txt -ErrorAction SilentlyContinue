@@ -44,15 +44,6 @@
       "expo-router",
       "expo-dev-client",
       [
-        "@react-native-google-signin/google-signin",
-        {
-          "iosUrlScheme": "com.googleusercontent.apps.216820312290-tn2san23aqmuj1rteg2m072hso73ooap",
-          "androidGoogleSignInOptions": {
-            "webClientId": "216820312290-tn2san23aqmuj1rteg2m072hso73ooap.apps.googleusercontent.com"
-          }
-        }
-      ],
-      [
         "expo-location",
         {
           "locationAlwaysAndWhenInUsePermission": "SpareCarry needs location access to find nearby trips and requests."

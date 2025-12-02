@@ -1,11 +1,11 @@
 /**
- * Root index route - redirects to tabs
+ * Root index route - redirects to login for testing
  * This handles the initial "/" route
  */
 
 import { Redirect } from "expo-router";
 
 export default function Index() {
-  // Use Redirect component for immediate, reliable redirect
-  return <Redirect href="/(tabs)" />;
+  // Redirect to login page for testing
+  return <Redirect href="/auth/login" />;
 }

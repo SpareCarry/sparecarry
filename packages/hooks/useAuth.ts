@@ -295,14 +295,24 @@ export function useAuth() {
   const signInWithOAuth = async (provider: "google" | "apple" | "github") => {
     setState((prev) => ({ ...prev, loading: true, error: null }));
 
-    // Try native Google Sign-In on Android first (one-tap)
-    if (provider === "google") {
+    // Feature flag: allow disabling native Google Sign-In cleanly if setup isn't complete.
+    const enableNativeGoogle =
+      process.env.EXPO_PUBLIC_ENABLE_NATIVE_GOOGLE_SIGNIN === "true";
+
+    // Try native Google Sign-In on Android first (one-tap) when enabled.
+    if (provider === "google" && enableNativeGoogle) {
       try {
         // Check if we're on Android platform
         const Platform = require("react-native")?.Platform;
         if (Platform?.OS === "android") {
-          const { signInWithGoogleNativeToSupabase } = require("@sparecarry/mobile/lib/auth/googleSignIn");
-          const { session, user, error: nativeError } = await signInWithGoogleNativeToSupabase();
+          const {
+            signInWithGoogleNativeToSupabase,
+          } = require("@sparecarry/mobile/lib/auth/googleSignIn");
+          const {
+            session,
+            user,
+            error: nativeError,
+          } = await signInWithGoogleNativeToSupabase();
 
           if (!nativeError && session) {
             // Native sign-in successful
@@ -316,11 +326,17 @@ export function useAuth() {
           }
 
           // Native sign-in failed - fall through to browser OAuth
-          console.log("[useAuth] Native Google Sign-In failed, falling back to browser OAuth:", nativeError?.message);
+          console.log(
+            "[useAuth] Native Google Sign-In failed, falling back to browser OAuth:",
+            nativeError?.message
+          );
         }
       } catch (nativeError: any) {
         // Native sign-in not available or error - fall through to browser OAuth
-        console.log("[useAuth] Native Google Sign-In not available, using browser OAuth:", nativeError?.message);
+        console.log(
+          "[useAuth] Native Google Sign-In not available, using browser OAuth:",
+          nativeError?.message
+        );
         // Continue to browser OAuth below
       }
     }

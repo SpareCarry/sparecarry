@@ -14,6 +14,9 @@ module.exports = function (api) {
             "@sparecarry/lib": "../../packages/lib",
             "@sparecarry/hooks": "../../packages/hooks",
             "@sparecarry/ui": "../../packages/ui",
+            // Allow shared hooks to import the mobile Google Sign-In helper
+            "@sparecarry/mobile/lib/auth/googleSignIn":
+              "./lib/auth/googleSignIn",
           },
         },
       ],

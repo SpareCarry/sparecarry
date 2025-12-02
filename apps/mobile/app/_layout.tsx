@@ -11,7 +11,7 @@ import { Stack, useRouter, useSegments } from "expo-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { checkARCapability } from "../lib/utils/arChecker";
-import { initializeObjectDetection } from "../../../modules/autoMeasure/objectDetection";
+import { configureGoogleSignIn } from "../lib/auth/googleSignIn";
 
 // Wrap all imports in try-catch to catch module-level errors
 let createClient: any;
@@ -164,33 +164,25 @@ function NavigationHandler() {
       },
     });
 
-    // Dev mode: Skip authentication but allow testing auth pages
-    if (isDevMode()) {
-      // Allow access to auth pages for testing
-      const inAuthGroup = segments[0] === "auth";
-      if (inAuthGroup) {
-        mobileLogger.info("Dev mode: Allowing access to auth pages for testing");
-        return; // Don't redirect, allow user to test auth pages
-      }
-      return;
+    // Always allow access to auth pages for testing (both dev and production)
+    const inAuthGroup = segments[0] === "auth";
+    if (inAuthGroup) {
+      mobileLogger.info("Allowing access to auth pages for testing");
+      return; // Don't redirect, allow user to test auth pages
     }
 
-    // Production: Require authentication
-    const inAuthGroup = segments[0] === "auth";
-    if (!user && !inAuthGroup) {
-      // Redirect to login if not authenticated
+    // Dev mode: Skip authentication checks for non-auth pages
+    if (isDevMode()) {
+      return; // Allow access to all pages in dev mode
+    }
+
+    // Production: Require authentication for non-auth pages
+    if (!user) {
+      // Redirect to login if not authenticated and not on auth page
       mobileLogger.warn("Not authenticated, redirecting to login", {
         route: currentRoute,
       });
       router.replace("/auth/login");
-    } else if (user && inAuthGroup) {
-      // Allow testing auth pages even when authenticated (comment out to re-enable redirect)
-      // Uncomment the lines below to redirect authenticated users away from auth pages:
-      // mobileLogger.info("Authenticated, redirecting to tabs", {
-      //   route: currentRoute,
-      // });
-      // router.replace("/(tabs)");
-      mobileLogger.info("Authenticated user on auth page - allowing for testing");
     }
   }, [user, loading, segments, router]);
 
@@ -238,17 +230,15 @@ export default function RootLayout() {
         mobileLogger.error("Failed to check AR capability", { error });
       });
 
-    // Initialize object detection for auto-measure feature
-    initializeObjectDetection()
-      .then(() => {
-        console.log("🤖 Object detection initialized for auto-measure");
-        mobileLogger.info("Object detection initialized");
-      })
-      .catch((error) => {
-        console.warn("⚠️ Failed to initialize object detection:", error);
-        mobileLogger.warn("Failed to initialize object detection", { error });
-        // Non-critical, app continues to work with manual mode
-      });
+    // Configure native Google Sign-In for Android (one-tap)
+    try {
+      configureGoogleSignIn();
+      console.log("✅ Google Sign-In configured for native one-tap");
+    } catch (error) {
+      console.warn("⚠️ Failed to configure Google Sign-In:", error);
+      // Non-critical - browser OAuth will work as fallback
+    }
+
 
     mobileLogger.info("Mobile app started");
 

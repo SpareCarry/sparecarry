@@ -11,16 +11,16 @@
     "start:tunnel": "expo start --tunnel --clear",
     "start:lan": "expo start --lan --clear",
     "start:no-check": "EXPO_NO_DOTENV=1 expo start --no-dev-client",
-    "android": "expo run:android",
-    "android:device": "expo run:android --device",
-    "android:apk": "expo run:android --variant release",
-    "ios": "expo run:ios",
+    "android": "npx @expo/cli@latest run:android",
+    "android:device": "npx @expo/cli@latest run:android --device",
+    "android:apk": "npx @expo/cli@latest run:android --variant release",
+    "ios": "npx @expo/cli@latest run:ios",
     "build:dev": "eas build --platform android --profile development",
     "build:preview": "eas build --platform android --profile preview",
     "build:prod": "eas build --platform android --profile production",
     "web": "expo start --web",
-    "prebuild": "expo prebuild",
-    "prebuild:clean": "expo prebuild --clean",
+    "prebuild": "npx @expo/cli@latest prebuild",
+    "prebuild:clean": "npx @expo/cli@latest prebuild --clean",
     "clear-cache": "node scripts/clear-cache.js || powershell -ExecutionPolicy Bypass -File scripts/clear-cache.ps1",
     "sync-env": "node scripts/sync-env-from-root.js",
     "get-lan-ip": "node scripts/get-lan-ip.js",
@@ -30,6 +30,7 @@
     "test:continuous": "cd ../.. && pnpm test:continuous"
   },
   "dependencies": {
+    "@expo/config-plugins": "^54.0.2",
     "@expo/metro-runtime": "^6.1.2",
     "@expo/vector-icons": "^15.0.3",
     "@react-native-async-storage/async-storage": "2.2.0",
@@ -73,8 +74,7 @@
     "@types/react": "~18.2.0",
     "@types/react-dom": "~18.2.0",
     "babel-plugin-module-resolver": "^5.0.2",
-    "typescript": "^5.3.0",
-    "@expo/cli": "54.0.10"
+    "typescript": "^5.3.0"
   },
   "overrides": {
     "react": "18.3.1",

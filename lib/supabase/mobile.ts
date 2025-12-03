@@ -134,25 +134,13 @@ export function getAppScheme(): string | undefined {
  * This is because email links open in browsers first, which can't handle custom schemes directly
  */
 export function getAuthCallbackUrl(redirectPath: string = "/home"): string {
-  // Priority 1: Use EXPO_PUBLIC_APP_URL if set (for mobile development/production)
-  const expoAppUrl = process.env.EXPO_PUBLIC_APP_URL;
-  if (expoAppUrl) {
-    return `${expoAppUrl}/auth/callback?redirect=${encodeURIComponent(redirectPath)}`;
-  }
+  console.log("[getAuthCallbackUrl] Constructing callback URL:", {
+    redirectPath,
+    hasWindow: typeof window !== "undefined",
+    timestamp: new Date().toISOString(),
+  });
 
-  // Priority 2: Use NEXT_PUBLIC_APP_URL if set
-  const nextAppUrl = process.env.NEXT_PUBLIC_APP_URL;
-  if (nextAppUrl && !nextAppUrl.includes("localhost")) {
-    return `${nextAppUrl}/auth/callback?redirect=${encodeURIComponent(redirectPath)}`;
-  }
-
-  // Server-side: return web URL (use NEXT_PUBLIC_APP_URL or localhost)
-  if (typeof window === "undefined") {
-    const baseUrl = nextAppUrl || "http://localhost:3000";
-    return `${baseUrl}/auth/callback?redirect=${encodeURIComponent(redirectPath)}`;
-  }
-
-  // Client-side: Check if we're on mobile
+  // Check if we're on mobile
   const isMobile =
     typeof window !== "undefined" &&
     (!!(window as any).__expo ||
@@ -160,53 +148,58 @@ export function getAuthCallbackUrl(redirectPath: string = "/home"): string {
       (typeof (window as any).navigator !== "undefined" &&
         (window as any).navigator.product === "ReactNative"));
 
-  if (isMobile) {
-    // On mobile, localhost won't work - need network IP or production URL
-    // Try to get from window.location if available (webview)
-    const origin = (window as any).location?.origin;
-    if (
-      origin &&
-      !origin.includes("localhost") &&
-      !origin.includes("127.0.0.1")
-    ) {
-      return `${origin}/auth/callback?redirect=${encodeURIComponent(redirectPath)}`;
-    }
-
-    // If we're on mobile and no proper URL is set, warn and use production URL
-    if (process.env.NODE_ENV === "production" || nextAppUrl) {
-      const fallbackUrl = nextAppUrl || "https://sparecarry.com";
+  // Priority 1: Use EXPO_PUBLIC_APP_URL if set (should point to accessible web server)
+  // For mobile OAuth to work, this must be an accessible HTTP/HTTPS URL
+  // Either: 1) Start Next.js server on port 3000, OR 2) Use production URL
+  const expoAppUrl = process.env.EXPO_PUBLIC_APP_URL;
+  if (expoAppUrl) {
+    // Verify it's a valid HTTP/HTTPS URL (Supabase requires this)
+    if (expoAppUrl.startsWith("http://") || expoAppUrl.startsWith("https://")) {
+      const url = `${expoAppUrl}/auth/callback?redirect=${encodeURIComponent(redirectPath)}`;
+      console.log("[getAuthCallbackUrl] Using EXPO_PUBLIC_APP_URL:", url);
+      console.log("[getAuthCallbackUrl] ⚠️ Make sure this URL is accessible and Next.js server is running!");
+      return url;
+    } else {
       console.warn(
-        "[getAuthCallbackUrl] Using fallback URL for mobile:",
-        fallbackUrl
+        "[getAuthCallbackUrl] EXPO_PUBLIC_APP_URL must be HTTP/HTTPS for Supabase OAuth:",
+        expoAppUrl
       );
-      return `${fallbackUrl}/auth/callback?redirect=${encodeURIComponent(redirectPath)}`;
     }
-
-    // Development: Try to use Expo dev server URL
-    // Expo dev server typically runs on the network IP
-    // User should set EXPO_PUBLIC_APP_URL to their network IP (e.g., http://192.168.1.100:3000)
-    console.warn(
-      "[getAuthCallbackUrl] ⚠️ Mobile app needs EXPO_PUBLIC_APP_URL set to your network IP.\n" +
-        "📝 Add this to your .env.local file:\n" +
-        "   EXPO_PUBLIC_APP_URL=http://YOUR_IP:3000\n" +
-        '🔍 Find your IP: Run "node apps/mobile/scripts/get-network-ip.js"\n' +
-        "💡 Using localhost fallback (won't work on mobile - OAuth will fail)"
-    );
-
-    // Last resort: return localhost (won't work but prevents crash)
-    // This will cause OAuth to fail, but at least the app won't crash
-    return `http://localhost:3000/auth/callback?redirect=${encodeURIComponent(redirectPath)}`;
   }
 
-  // Web: Use window.location or fallback
-  const origin =
-    (typeof window !== "undefined" &&
-      (window as any).location &&
-      (window as any).location.origin) ||
-    nextAppUrl ||
-    "http://localhost:3000";
+  // Priority 2: Client-side - Use current page origin to match what user is actually on
+  // This handles both localhost (desktop) and IP address (mobile) dynamically
+  if (typeof window !== "undefined" && window.location && window.location.origin) {
+    const origin = window.location.origin;
+    const url = `${origin}/auth/callback?redirect=${encodeURIComponent(redirectPath)}`;
+    console.log("[getAuthCallbackUrl] Using current page origin (client-side):", url);
+    console.log("[getAuthCallbackUrl] This ensures callback URL matches the actual URL the user is accessing");
+    return url;
+  }
 
-  return `${origin}/auth/callback?redirect=${encodeURIComponent(redirectPath)}`;
+  // Priority 3: Use NEXT_PUBLIC_APP_URL if set (fallback for server-side rendering)
+  const nextAppUrl = process.env.NEXT_PUBLIC_APP_URL;
+  if (nextAppUrl) {
+    const url = `${nextAppUrl}/auth/callback?redirect=${encodeURIComponent(redirectPath)}`;
+    console.log("[getAuthCallbackUrl] Using NEXT_PUBLIC_APP_URL (server-side fallback):", url);
+    return url;
+  }
+
+  // Final fallback: should rarely be reached
+
+  // Fallback for server-side or when window is not available
+  const fallbackUrl = "http://localhost:3000";
+  const finalUrl = `${fallbackUrl}/auth/callback?redirect=${encodeURIComponent(redirectPath)}`;
+  
+  // Validate the constructed URL
+  try {
+    new URL(finalUrl);
+    console.log("[getAuthCallbackUrl] Final callback URL (fallback):", finalUrl);
+  } catch (error) {
+    console.error("[getAuthCallbackUrl] Invalid URL constructed:", finalUrl, error);
+  }
+
+  return finalUrl;
 }
 
 /**

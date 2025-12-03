@@ -13,6 +13,7 @@ import { Star } from "lucide-react";
 import { createClient } from "../../lib/supabase/client";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { useRouter } from "next/navigation";
+import { useToastNotification } from "../../lib/hooks/use-toast-notification";
 
 interface RatingRecord {
   id: string;
@@ -37,6 +38,7 @@ export function RatingModal({
 }: RatingModalProps) {
   const router = useRouter();
   const supabase = createClient() as SupabaseClient;
+  const toast = useToastNotification();
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
   const [comment, setComment] = useState("");
@@ -94,7 +96,7 @@ export function RatingModal({
       console.error("Error submitting rating:", error);
       const message =
         error instanceof Error ? error.message : "Failed to submit rating";
-      alert(message);
+      toast.showFormError("submit rating", message);
     } finally {
       setLoading(false);
     }

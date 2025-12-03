@@ -37,7 +37,7 @@ import {
   Clock,
   Target,
 } from "lucide-react";
-import { format } from "date-fns";
+import { format, addDays } from "date-fns";
 import { Tier1Integration } from "./tier1-integration";
 import { PhotoUploader } from "../../modules/tier1Features/photos";
 import { useSearchParams } from "next/navigation";
@@ -51,6 +51,8 @@ import { getSizeTier } from "../../lib/utils/size-tier";
 import Link from "next/link";
 import { WeightDisplay, DimensionsDisplay } from "../imperial/imperial-display";
 import { AutoMeasureButton } from "./AutoMeasureButton";
+import { ItemTemplateSelector } from "./item-template-selector";
+import type { ItemTemplate } from "../../lib/data/item-templates";
 import {
   trackPostCreated,
   trackRestrictedItemsSelected,
@@ -88,6 +90,8 @@ import {
 } from "../ui/tooltip";
 import { PurchaseOptions } from "../purchase/purchase-options";
 import { CurrencyDisplay } from "../currency/currency-display";
+import { ITEM_CATEGORIES } from "../../lib/utils/categories";
+import { useToastNotification } from "../../lib/hooks/use-toast-notification";
 
 const postRequestSchema = z
   .object({
@@ -118,6 +122,7 @@ const postRequestSchema = z
       .union([z.number().nonnegative(), z.literal(""), z.null()])
       .optional()
       .transform((val) => (val === "" ? undefined : val)),
+    fragile: z.boolean().default(false), // Fragile item requiring extra care
     restricted_items: z.boolean().default(false), // Restricted goods - only boat transport
     emergency: z.boolean().default(false),
     emergency_days: z.number().optional(), // Days until deadline for emergency
@@ -179,6 +184,7 @@ export function PostRequestForm() {
   const queryClient = useQueryClient();
   const searchParams = useSearchParams();
   const supabase = createClient() as SupabaseClient;
+  const toast = useToastNotification();
   const [photos, setPhotos] = useState<File[]>([]);
   const [fromPlace, setFromPlace] = useState<PlaceResult | null>(null);
   const [toPlace, setToPlace] = useState<PlaceResult | null>(null);
@@ -209,6 +215,7 @@ export function PostRequestForm() {
   const [destinationCountryIso2, setDestinationCountryIso2] =
     useState<string>("");
   const [loading, setLoading] = useState(false);
+  const [showTemplateSelector, setShowTemplateSelector] = useState(false);
 
   // Get user and subscription status
   const { user } = useUser();
@@ -256,6 +263,7 @@ export function PostRequestForm() {
   const deadlineLatest = watch("deadline_latest");
   const [deadlineUrgency, setDeadlineUrgency] = useState<"3" | "7" | "14" | "14+">("14+");
   const boatEtaDays = undefined; // Not used for requests, only trips
+  const fragile = watch("fragile") || false;
   const restrictedItems = watch("restricted_items") || false;
   const emergency = watch("emergency") || false;
 
@@ -311,6 +319,31 @@ export function PostRequestForm() {
       setDistance(null);
     }
   }, [departurePlace, arrivalPlace]);
+
+  // Calculate deadline dates from urgency selector
+  useEffect(() => {
+    const today = new Date();
+    let latestDate: Date;
+    let earliestDate: Date;
+
+    if (deadlineUrgency === "3") {
+      latestDate = addDays(today, 3);
+      earliestDate = today;
+    } else if (deadlineUrgency === "7") {
+      latestDate = addDays(today, 7);
+      earliestDate = addDays(today, 1);
+    } else if (deadlineUrgency === "14") {
+      latestDate = addDays(today, 14);
+      earliestDate = addDays(today, 3);
+    } else {
+      // "14+"
+      latestDate = addDays(today, 30);
+      earliestDate = addDays(today, 7);
+    }
+
+    setValue("deadline_earliest", format(earliestDate, "yyyy-MM-dd"));
+    setValue("deadline_latest", format(latestDate, "yyyy-MM-dd"));
+  }, [deadlineUrgency, setValue]);
 
   // Calculate shipping estimate using the same service as shipping estimator
   const shippingEstimateMemo = useMemo(() => {
@@ -598,9 +631,9 @@ export function PostRequestForm() {
           heightCm: parseFloat(height.toString()) || undefined,
           category: category || undefined,
           preferredMethod: preferredMethod as "plane" | "boat" | "any",
-          restrictedItems: restrictedItems || false,
-          fragile: false, // Add fragile field if available
-          declaredValue: declaredValue
+      restrictedItems: restrictedItems || false,
+      fragile: fragile || false,
+      declaredValue: declaredValue
             ? parseFloat(declaredValue.toString())
             : undefined,
           distanceKm: distance ?? undefined,
@@ -689,10 +722,12 @@ export function PostRequestForm() {
       value_usd: declaredValue,
       max_reward: maxReward,
       preferred_method: preferredMethod,
+      fragile,
       restricted_items: restrictedItems,
       emergency,
       deadline_earliest: deadlineEarliest,
       deadline_latest: deadlineLatest,
+      deadline_urgency: deadlineUrgency,
     };
 
     // Serialize form data to compare with previous
@@ -742,10 +777,12 @@ export function PostRequestForm() {
     declaredValue,
     maxReward,
     preferredMethod,
+    fragile,
     restrictedItems,
     emergency,
     deadlineEarliest,
     deadlineLatest,
+    deadlineUrgency,
     departurePlace,
     arrivalPlace,
   ]);
@@ -810,8 +847,12 @@ export function PostRequestForm() {
             setValue("max_reward", prefillData.max_reward);
           if (prefillData.preferred_method)
             setValue("preferred_method", prefillData.preferred_method);
+          if (prefillData.fragile !== undefined)
+            setValue("fragile", prefillData.fragile);
           if (prefillData.restricted_items !== undefined)
             setValue("restricted_items", prefillData.restricted_items);
+          if (prefillData.deadline_urgency)
+            setDeadlineUrgency(prefillData.deadline_urgency);
 
           // Set coordinates if available
           if (prefillData.departure_lat && prefillData.departure_lon) {
@@ -910,6 +951,8 @@ export function PostRequestForm() {
                 setValue("max_reward", formData.max_reward);
               if (formData.preferred_method)
                 setValue("preferred_method", formData.preferred_method);
+              if (formData.fragile !== undefined)
+                setValue("fragile", formData.fragile);
               if (formData.restricted_items !== undefined)
                 setValue("restricted_items", formData.restricted_items);
               if (formData.emergency !== undefined)
@@ -918,6 +961,8 @@ export function PostRequestForm() {
                 setValue("deadline_earliest", formData.deadline_earliest);
               if (formData.deadline_latest)
                 setValue("deadline_latest", formData.deadline_latest);
+              if (formData.deadline_urgency)
+                setDeadlineUrgency(formData.deadline_urgency);
 
               // Restore location places from sessionStorage
               const savedDeparturePlace = sessionStorage.getItem(
@@ -1169,20 +1214,97 @@ export function PostRequestForm() {
       // Invalidate feed query to refresh
       queryClient.invalidateQueries({ queryKey: ["feed"] });
 
+      // Show success message
+      toast.showFormSuccess("Request created");
+
       // Redirect to browse page
       router.push("/home");
     } catch (error) {
       console.error("Error creating request:", error);
       const message =
         error instanceof Error ? error.message : "Failed to create request";
-      alert(message);
+      toast.showFormError("create request", message);
     } finally {
       setLoading(false);
     }
   };
 
+  const handleTemplateSelect = (
+    template: ItemTemplate,
+    specs: {
+      weight: number;
+      dimensions: { length: number; width: number; height: number };
+    } | null
+  ) => {
+    // Fill in title and description
+    setValue("title", template.title);
+    setValue("description", template.description);
+    
+    // Set category
+    if (template.category) {
+      setValue("category", template.category);
+      trackCategorySelected(template.category, false);
+    }
+
+    // Fill in specs if available
+    if (specs) {
+      setValue("weight_kg", specs.weight);
+      setValue("length_cm", specs.dimensions.length);
+      setValue("width_cm", specs.dimensions.width);
+      setValue("height_cm", specs.dimensions.height);
+      
+      // Set detected weight state to show the auto-detected message
+      setDetectedWeight({
+        weight: specs.weight,
+        confidence: "high",
+        source: `Template: ${template.title}`,
+      });
+    }
+
+    // Trigger item specs detection (in case template didn't provide specs)
+    if (!specs) {
+      const detected = detectItemSpecs(
+        template.title,
+        template.description,
+        template.category
+      );
+      if (detected) {
+        setValue("weight_kg", detected.weight);
+        setValue("length_cm", detected.dimensions.length);
+        setValue("width_cm", detected.dimensions.width);
+        setValue("height_cm", detected.dimensions.height);
+        setDetectedWeight({
+          weight: detected.weight,
+          confidence: "high",
+          source: detected.source,
+        });
+      }
+    }
+  };
+
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+      {/* Quick Select Template Button */}
+      <div className="flex items-center justify-between rounded-lg border border-teal-200 bg-teal-50 p-4">
+        <div>
+          <p className="font-medium text-teal-900">
+            Quick Select Common Boat Item
+          </p>
+          <p className="text-sm text-teal-700">
+            Choose from pre-filled templates for batteries, anchors, sails, and
+            more. Specs will be auto-filled!
+          </p>
+        </div>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => setShowTemplateSelector(true)}
+          className="border-teal-300 bg-white text-teal-700 hover:bg-teal-100"
+        >
+          Browse Templates
+        </Button>
+      </div>
+
       {/* Title */}
       <div className="space-y-2">
         <Label htmlFor="title">Item Title *</Label>
@@ -1867,7 +1989,7 @@ export function PostRequestForm() {
 
       {/* Category Field - Manual Dropdown */}
       <div className="space-y-2">
-        <Label htmlFor="category">Category</Label>
+        <Label htmlFor="category">Category (Optional)</Label>
         <Select
           value={category || ""}
           onValueChange={(value) => {
@@ -1881,16 +2003,11 @@ export function PostRequestForm() {
             <SelectValue placeholder="Select a category (optional)" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="electronics">Electronics</SelectItem>
-            <SelectItem value="marine">Marine Equipment</SelectItem>
-            <SelectItem value="food">Food & Beverages</SelectItem>
-            <SelectItem value="clothing">Clothing & Apparel</SelectItem>
-            <SelectItem value="tools">Tools & Hardware</SelectItem>
-            <SelectItem value="medical">Medical Supplies</SelectItem>
-            <SelectItem value="automotive">Automotive Parts</SelectItem>
-            <SelectItem value="sports">Sports & Recreation</SelectItem>
-            <SelectItem value="books">Books & Media</SelectItem>
-            <SelectItem value="other">Other</SelectItem>
+            {ITEM_CATEGORIES.map((cat) => (
+              <SelectItem key={cat.value} value={cat.value}>
+                {cat.label}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
         {category === "other" && (
@@ -1919,6 +2036,55 @@ export function PostRequestForm() {
         }
         onSelectRetailer={(retailer) => setValue("purchase_retailer", retailer)}
       />
+
+      {/* Fragile Items Checkbox */}
+      <div className="flex items-start gap-2 rounded-lg border border-slate-200 bg-slate-50 p-4">
+        <input
+          id="fragile"
+          type="checkbox"
+          {...register("fragile")}
+          className="mt-0.5 h-4 w-4 rounded border-slate-300 text-teal-600 focus:ring-teal-600"
+        />
+        <div className="flex-1">
+          <Label
+            htmlFor="fragile"
+            className="flex cursor-pointer items-center gap-2 font-medium"
+          >
+            Fragile item (requires extra care)
+            <Popover>
+              <PopoverTrigger asChild>
+                <button
+                  type="button"
+                  className="text-slate-400 hover:text-slate-600"
+                >
+                  <Info className="h-4 w-4" />
+                </button>
+              </PopoverTrigger>
+              <PopoverContent className="w-80">
+                <div className="space-y-2">
+                  <h4 className="text-sm font-semibold">Fragile Items</h4>
+                  <p className="text-xs text-slate-600">
+                    Fragile items require extra care and handling. This includes:
+                  </p>
+                  <ul className="list-inside list-disc space-y-1 text-xs text-slate-600">
+                    <li>Glass items</li>
+                    <li>Electronics</li>
+                    <li>Artwork</li>
+                    <li>Ceramics</li>
+                    <li>Antiques</li>
+                  </ul>
+                  <p className="mt-2 text-xs font-medium text-amber-600">
+                    A 15% premium applies to ensure proper handling.
+                  </p>
+                </div>
+              </PopoverContent>
+            </Popover>
+          </Label>
+          <p className="mt-1 text-xs text-slate-500">
+            Select if your item requires extra care during transport
+          </p>
+        </div>
+      </div>
 
       {/* Restricted Items Checkbox */}
       <div className="flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 p-4">
@@ -2345,6 +2511,10 @@ export function PostRequestForm() {
                   );
                 // Include restricted items flag
                 if (restrictedItems) params.append("restricted_items", "true");
+                // Include fragile flag
+                if (fragile) params.append("fragile", "true");
+                // Include urgency
+                if (deadlineUrgency) params.append("deadline_urgency", deadlineUrgency);
                 params.append("returnTo", "post-request");
                 return `/shipping-estimator?${params.toString()}`;
               })()}
@@ -2556,6 +2726,13 @@ export function PostRequestForm() {
           "Post Request"
         )}
       </Button>
+
+      {/* Item Template Selector */}
+      <ItemTemplateSelector
+        open={showTemplateSelector}
+        onClose={() => setShowTemplateSelector(false)}
+        onSelectTemplate={handleTemplateSelect}
+      />
     </form>
   );
 }

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getStripeInstance } from "@/lib/stripe/server";
 import { createClient } from "@/lib/supabase/server";
 import { isDevMode } from "@/config/devMode";
+import { withErrorHandling, handleAuthError, handleValidationError, createSuccessResponse } from "@/lib/utils/api-error-handler";
 
 export async function POST(request: NextRequest) {
   try {
@@ -135,12 +136,15 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    return NextResponse.json({ url: checkoutSession.url });
-  } catch (error: any) {
-    console.error("[API] Error creating checkout session:", error);
-    return NextResponse.json(
-      { error: error.message || "Failed to create checkout session" },
-      { status: 500 }
+    return createSuccessResponse({ url: checkoutSession.url });
+  } catch (error: unknown) {
+    // Error handling is done by withErrorHandling wrapper if used
+    // For now, keep existing error handling but use standardized format
+    return withErrorHandling(
+      async () => {
+        throw error;
+      },
+      { operation: "create checkout session" }
     );
   }
 }

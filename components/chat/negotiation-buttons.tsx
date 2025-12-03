@@ -14,6 +14,8 @@ import { createClient } from "../../lib/supabase/client";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { useRouter } from "next/navigation";
 import { playNotificationSound } from "../../lib/notifications/expo-notifications";
+import { MatchAcceptanceWaiverModal } from "../modals/match-acceptance-waiver-modal";
+import { useToastNotification } from "../../lib/hooks/use-toast-notification";
 
 interface NegotiationButtonsProps {
   proposedAmount: number;
@@ -31,9 +33,11 @@ export function NegotiationButtons({
   onAccept,
 }: NegotiationButtonsProps) {
   const [loading, setLoading] = useState<string | null>(null);
+  const [showWaiverModal, setShowWaiverModal] = useState(false);
   const supabase = createClient() as SupabaseClient;
   const queryClient = useQueryClient();
   const router = useRouter();
+  const toast = useToastNotification();
 
   // Calculate counter amounts (±10% or ±$20, whichever is larger)
   const counterLower = Math.max(
@@ -93,11 +97,15 @@ export function NegotiationButtons({
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["match", matchId] });
       queryClient.invalidateQueries({ queryKey: ["conversation", matchId] });
+      toast.showSuccess(`Deal accepted at $${proposedAmount.toFixed(0)}!`, { title: "Deal Accepted" });
 
       // Trigger payment flow if requester accepted
       if (isRequester && onAccept) {
         onAccept();
       }
+    },
+    onError: (error) => {
+      toast.showApiError("accept deal", error instanceof Error ? error.message : undefined);
     },
   });
 
@@ -155,6 +163,25 @@ export function NegotiationButtons({
   });
 
   const handleAccept = async () => {
+    // Show waiver modal for travelers (non-requesters)
+    if (!isRequester) {
+      setShowWaiverModal(true);
+      return;
+    }
+
+    // For requesters, proceed directly
+    setLoading("accept");
+    try {
+      await acceptMutation.mutateAsync();
+    } catch (error) {
+      console.error("Error accepting price:", error);
+    } finally {
+      setLoading(null);
+    }
+  };
+
+  const handleAcceptWithWaiver = async () => {
+    setShowWaiverModal(false);
     setLoading("accept");
     try {
       await acceptMutation.mutateAsync();
@@ -226,6 +253,13 @@ export function NegotiationButtons({
             : "Accept to confirm the deal"}
         </p>
       </CardContent>
+
+      {/* Waiver Modal for Travelers */}
+      <MatchAcceptanceWaiverModal
+        open={showWaiverModal}
+        onClose={() => setShowWaiverModal(false)}
+        onConfirm={handleAcceptWithWaiver}
+      />
     </Card>
   );
 }

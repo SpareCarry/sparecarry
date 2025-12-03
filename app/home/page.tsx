@@ -42,6 +42,7 @@ interface FeedItem {
   user_subscribed?: boolean;
   user_supporter?: boolean;
   emergency?: boolean;
+  trip_type?: "plane" | "boat"; // For trips only
 }
 
 // Helper function to add timeout to promises to prevent hanging
@@ -219,6 +220,7 @@ async function fetchFeed(
           user_verified_identity: profile?.verified_identity || false,
           user_subscribed: isSubscriber || false,
           user_supporter: isSupporter || false,
+          trip_type: trip.type || undefined, // 'plane' or 'boat'
         };
       });
 
@@ -252,11 +254,21 @@ async function fetchFeed(
         };
       });
 
-    // Combine and sort by supporter status first, then subscription status, then match score, then created_at
+    // Combine and sort by: supporters -> boat trips -> verified sailors -> subscribers -> match score -> created_at
     const allItems = [...tripItems, ...requestItems].sort((a, b) => {
       // Supporters first (highest priority)
       if (a.user_supporter && !b.user_supporter) return -1;
       if (!a.user_supporter && b.user_supporter) return 1;
+
+      // Then boat trips (prioritize boat/yacht community)
+      const aIsBoat = a.trip_type === "boat";
+      const bIsBoat = b.trip_type === "boat";
+      if (aIsBoat && !bIsBoat) return -1;
+      if (!aIsBoat && bIsBoat) return 1;
+
+      // Then verified sailors (build trust in boat community)
+      if (a.user_verified_sailor && !b.user_verified_sailor) return -1;
+      if (!a.user_verified_sailor && b.user_verified_sailor) return 1;
 
       // Then subscribers
       if (a.user_subscribed && !b.user_subscribed) return -1;
@@ -485,7 +497,7 @@ export default function BrowsePage() {
       <div className="mb-6">
         <h1 className="text-3xl font-bold text-slate-900">Browse</h1>
         <p className="mt-1 text-slate-600">
-          Find trips and requests that match your needs
+          Find yacht trips and boat delivery requests in the marina network
         </p>
       </div>
 

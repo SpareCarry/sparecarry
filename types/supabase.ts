@@ -95,6 +95,8 @@ export interface User {
   average_rating: number;
   total_referrals_count?: number;
   karma_points: number;
+  terms_accepted_at?: string | null;
+  terms_version?: string | null;
   created_at?: string;
   updated_at?: string;
 }
@@ -116,6 +118,8 @@ export interface UserInsert {
   average_rating?: number;
   total_referrals_count?: number;
   karma_points?: number;
+  terms_accepted_at?: string | null;
+  terms_version?: string | null;
 }
 
 export interface UserUpdate {
@@ -134,6 +138,8 @@ export interface UserUpdate {
   average_rating?: number;
   total_referrals_count?: number;
   karma_points?: number;
+  terms_accepted_at?: string | null;
+  terms_version?: string | null;
 }
 
 // ============================================

@@ -5,13 +5,13 @@
   "main": "./index.ts",
   "types": "./index.ts",
   "peerDependencies": {
-    "react": "^18.0.0",
+    "react": "^18.0.0 || ^19.0.0",
     "react-native": "0.76.0"
   },
   "dependencies": {
     "@sparecarry/hooks": "workspace:*"
   },
   "devDependencies": {
-    "@types/react": "~18.2.0"
+    "@types/react": "^18.2.0 || ^19.0.0"
   }
 }

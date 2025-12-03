@@ -37,7 +37,32 @@ function SignupPageContent() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [passwordMatchError, setPasswordMatchError] = useState<string | null>(null);
   const [magicLinkCooldown, setMagicLinkCooldown] = useState(0);
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [envError, setEnvError] = useState<string | null>(null);
   const supabase = createClient();
+
+  // Validate environment variables on mount
+  useEffect(() => {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+    if (!supabaseUrl || !supabaseKey) {
+      const missing = [];
+      if (!supabaseUrl) missing.push("NEXT_PUBLIC_SUPABASE_URL");
+      if (!supabaseKey) missing.push("NEXT_PUBLIC_SUPABASE_ANON_KEY");
+      setEnvError(
+        `Missing required environment variables: ${missing.join(", ")}. Please check your configuration.`
+      );
+      console.error("[Auth] Missing environment variables:", missing);
+    } else {
+      setEnvError(null);
+      console.log("[Auth] Environment variables validated:", {
+        hasUrl: !!supabaseUrl,
+        hasKey: !!supabaseKey,
+        urlPrefix: supabaseUrl.substring(0, 20) + "...",
+      });
+    }
+  }, []);
 
   // Magic link cooldown timer
   useEffect(() => {
@@ -140,6 +165,27 @@ function SignupPageContent() {
     setMessage(null);
     setPasswordMatchError(null);
 
+    // Validate environment variables
+    if (envError) {
+      setMessage({
+        type: "error",
+        text: envError,
+      });
+      setLoading(false);
+      return;
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email || !emailRegex.test(email)) {
+      setMessage({
+        type: "error",
+        text: "Please enter a valid email address.",
+      });
+      setLoading(false);
+      return;
+    }
+
     if (password !== confirmPassword) {
       setPasswordMatchError("Passwords don't match");
       setMessage({
@@ -159,16 +205,61 @@ function SignupPageContent() {
       return;
     }
 
+    if (!termsAccepted) {
+      setMessage({
+        type: "error",
+        text: "You must accept the Terms of Service and acknowledge the Disclaimer to create an account",
+      });
+      setLoading(false);
+      return;
+    }
+
     try {
+      console.log("[Auth] Starting password signup:", {
+        email,
+        timestamp: new Date().toISOString(),
+        method: "password",
+      });
+
+      const callbackUrl = getAuthCallbackUrl(redirectTo);
+      console.log("[Auth] Signup callback URL:", callbackUrl);
+
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          emailRedirectTo: getAuthCallbackUrl(redirectTo),
+          emailRedirectTo: callbackUrl,
         },
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error("[Auth] Password signup error:", {
+          code: error.status,
+          message: error.message,
+          name: error.name,
+          stack: error.stack,
+          email,
+          timestamp: new Date().toISOString(),
+        });
+        throw error;
+      }
+
+      // Save terms acceptance if user was created
+      if (data.user) {
+        const termsVersion = new Date().toISOString().split("T")[0]; // Use date as version
+        const { error: updateError } = await (supabase
+          .from("users") as any)
+          .update({
+            terms_accepted_at: new Date().toISOString(),
+            terms_version: termsVersion,
+          })
+          .eq("id", data.user.id);
+
+        if (updateError) {
+          console.error("Failed to save terms acceptance:", updateError);
+          // Don't block signup if update fails - user is still created
+        }
+      }
 
       // Check if email confirmation is required
       // If user exists but no session, email confirmation is required
@@ -197,11 +288,36 @@ function SignupPageContent() {
           text: "Account created! Please check your email to verify your account.",
         });
       }
-    } catch (error: any) {
-      setMessage({
-        type: "error",
-        text: getUserFriendlyErrorMessage(error),
+
+      console.log("[Auth] Password signup successful:", {
+        userId: data.user?.id,
+        email: data.user?.email,
+        requiresConfirmation: !data.session,
+        timestamp: new Date().toISOString(),
       });
+    } catch (error: any) {
+      const errorDetails = {
+        message: error?.message || String(error),
+        code: error?.code || error?.status,
+        name: error?.name,
+        stack: error?.stack,
+        email,
+        timestamp: new Date().toISOString(),
+      };
+      console.error("[Auth] Password signup failed:", errorDetails);
+      
+      const userMessage = getUserFriendlyErrorMessage(error);
+      if (process.env.NODE_ENV === "development") {
+        setMessage({
+          type: "error",
+          text: `${userMessage}\n\n[Debug] ${error?.code || error?.message || String(error)}`,
+        });
+      } else {
+        setMessage({
+          type: "error",
+          text: userMessage,
+        });
+      }
       setLoading(false);
     } finally {
       setLoading(false);
@@ -213,14 +329,49 @@ function SignupPageContent() {
     setLoading(true);
     setMessage(null);
 
+    // Validate environment variables
+    if (envError) {
+      setMessage({
+        type: "error",
+        text: envError,
+      });
+      setLoading(false);
+      return;
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email || !emailRegex.test(email)) {
+      setMessage({
+        type: "error",
+        text: "Please enter a valid email address.",
+      });
+      setLoading(false);
+      return;
+    }
+
+    if (!termsAccepted) {
+      setMessage({
+        type: "error",
+        text: "You must accept the Terms of Service and acknowledge the Disclaimer to create an account",
+      });
+      setLoading(false);
+      return;
+    }
+
     try {
+      console.log("[Auth] Starting magic link signup:", {
+        email,
+        timestamp: new Date().toISOString(),
+        method: "magic_link",
+      });
+
       // Get the appropriate callback URL (always web URL for magic links)
       // Magic links must use web URLs because email links open in browsers first
       const callbackUrl = getAuthCallbackUrl(redirectTo);
-      console.log("Sending magic link to:", email);
-      console.log("Callback URL:", callbackUrl);
+      console.log("[Auth] Magic link callback URL:", callbackUrl);
       console.log(
-        "Platform:",
+        "[Auth] Platform:",
         typeof window !== "undefined" && (window as any).Capacitor
           ? "mobile"
           : "web"
@@ -231,10 +382,15 @@ function SignupPageContent() {
         !callbackUrl.startsWith("http://") &&
         !callbackUrl.startsWith("https://")
       ) {
-        throw new Error("Invalid callback URL. Magic links must use web URLs.");
+        const errorMsg = "Invalid callback URL. Magic links must use web URLs.";
+        console.error("[Auth] Magic link callback URL validation failed:", {
+          callbackUrl,
+          redirectTo,
+        });
+        throw new Error(errorMsg);
       }
 
-      const { error } = await supabase.auth.signInWithOtp({
+      const { data, error } = await supabase.auth.signInWithOtp({
         email,
         options: {
           emailRedirectTo: callbackUrl,
@@ -242,18 +398,55 @@ function SignupPageContent() {
         },
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error("[Auth] Magic link error:", {
+          code: error.status,
+          message: error.message,
+          name: error.name,
+          stack: error.stack,
+          email,
+          callbackUrl,
+          timestamp: new Date().toISOString(),
+        });
+        throw error;
+      }
 
+      console.log("[Auth] Magic link sent successfully:", {
+        email,
+        timestamp: new Date().toISOString(),
+      });
+
+      // Note: Terms acceptance will be saved when user completes magic link signup
+      // We can't save it here because user record doesn't exist yet
+      
       setMessage({
         type: "success",
         text: "Check your email for the magic link! Click the link in the email to complete signup. The link will expire in 1 hour.",
       });
       setMagicLinkCooldown(60); // 60 second cooldown
     } catch (error: any) {
-      setMessage({
-        type: "error",
-        text: getUserFriendlyErrorMessage(error),
-      });
+      const errorDetails = {
+        message: error?.message || String(error),
+        code: error?.code || error?.status,
+        name: error?.name,
+        stack: error?.stack,
+        email,
+        timestamp: new Date().toISOString(),
+      };
+      console.error("[Auth] Magic link signup failed:", errorDetails);
+      
+      const userMessage = getUserFriendlyErrorMessage(error);
+      if (process.env.NODE_ENV === "development") {
+        setMessage({
+          type: "error",
+          text: `${userMessage}\n\n[Debug] ${error?.code || error?.message || String(error)}`,
+        });
+      } else {
+        setMessage({
+          type: "error",
+          text: userMessage,
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -262,32 +455,116 @@ function SignupPageContent() {
   // TODO: Add Apple Sign-In support in the future (requires $99/year Apple Developer Account)
   // See docs/OAUTH_SETUP.md for setup instructions
   const handleOAuth = async (provider: "google") => {
+    // Validate environment variables
+    if (envError) {
+      setMessage({
+        type: "error",
+        text: envError,
+      });
+      return;
+    }
+
+    if (!termsAccepted) {
+      setMessage({
+        type: "error",
+        text: "You must accept the Terms of Service and acknowledge the Disclaimer to create an account",
+      });
+      return;
+    }
+
     setLoading(true);
     setMessage(null);
+    
     try {
+      console.log("[Auth] Starting OAuth signup:", {
+        provider,
+        timestamp: new Date().toISOString(),
+        method: "oauth",
+      });
+
       // Get the appropriate callback URL (mobile deep link or web URL)
       const callbackUrl = getAuthCallbackUrl(redirectTo);
+      console.log("[Auth] OAuth callback URL:", callbackUrl);
 
-      const { error } = await supabase.auth.signInWithOAuth({
+      // Validate callback URL
+      if (!callbackUrl || (!callbackUrl.startsWith("http://") && !callbackUrl.startsWith("https://") && !callbackUrl.startsWith("sparecarry://"))) {
+        const errorMsg = "Invalid callback URL configuration for OAuth.";
+        console.error("[Auth] OAuth callback URL validation failed:", {
+          callbackUrl,
+          redirectTo,
+        });
+        throw new Error(errorMsg);
+      }
+
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
           redirectTo: callbackUrl,
         },
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error("[Auth] OAuth error:", {
+          code: error.status,
+          message: error.message,
+          name: error.name,
+          stack: error.stack,
+          provider,
+          callbackUrl,
+          timestamp: new Date().toISOString(),
+        });
+        throw error;
+      }
+
+      console.log("[Auth] OAuth redirect initiated:", {
+        provider,
+        url: data?.url,
+        timestamp: new Date().toISOString(),
+      });
+      
+      // Note: Terms acceptance will be saved when user completes OAuth signup
+      // We can't save it here because OAuth redirects immediately
+      
       // If successful, OAuth will redirect - loading state will reset on redirect
       // But we still reset it here in case redirect doesn't happen immediately
       // The finally block ensures it's always reset
     } catch (error: any) {
-      setMessage({
-        type: "error",
-        text: getUserFriendlyErrorMessage(error),
-      });
+      const errorDetails = {
+        message: error?.message || String(error),
+        code: error?.code || error?.status,
+        name: error?.name,
+        stack: error?.stack,
+        provider,
+        timestamp: new Date().toISOString(),
+      };
+      console.error("[Auth] OAuth signup failed:", errorDetails);
+      
+      const userMessage = getUserFriendlyErrorMessage(error);
+      // Check if it's a provider configuration error
+      if (error?.message?.includes("provider") || error?.code === "provider_not_enabled") {
+        setMessage({
+          type: "error",
+          text: "Google sign-in is not configured. Please contact support or try another sign-in method.",
+        });
+      } else {
+        if (process.env.NODE_ENV === "development") {
+          setMessage({
+            type: "error",
+            text: `${userMessage}\n\n[Debug] ${error?.code || error?.message || String(error)}`,
+          });
+        } else {
+          setMessage({
+            type: "error",
+            text: userMessage,
+          });
+        }
+      }
     } finally {
-      // Always reset loading state, even if OAuth redirects (for edge cases)
-      // Note: If redirect happens, this component will unmount, so this is safe
-      setLoading(false);
+      // Only reset if we didn't redirect (error case)
+      // OAuth redirect will unmount the component
+      setTimeout(() => {
+        setLoading(false);
+      }, 100);
     }
   };
 
@@ -421,10 +698,51 @@ function SignupPageContent() {
                 )}
               </div>
 
+              {/* Terms Acceptance Checkbox */}
+              <div className="space-y-2">
+                <div className="flex items-start gap-2">
+                  <input
+                    id="terms-accepted"
+                    type="checkbox"
+                    checked={termsAccepted}
+                    onChange={(e) => {
+                      setTermsAccepted(e.target.checked);
+                      setMessage(null);
+                    }}
+                    className="mt-1 h-4 w-4 rounded border-slate-300 text-teal-600 focus:ring-teal-600"
+                    required
+                  />
+                  <Label
+                    htmlFor="terms-accepted"
+                    className="text-sm leading-5 text-slate-700"
+                  >
+                    By creating an account, you agree to our{" "}
+                    <Link
+                      href="/terms"
+                      target="_blank"
+                      className="text-teal-600 hover:underline"
+                    >
+                      Terms of Service
+                    </Link>{" "}
+                    and acknowledge our{" "}
+                    <Link
+                      href="/disclaimer"
+                      target="_blank"
+                      className="text-teal-600 hover:underline"
+                    >
+                      Disclaimer
+                    </Link>
+                    . You understand that SpareCarry is a matching platform only,
+                    not a shipping or delivery service, and you are responsible for
+                    your own transactions.
+                  </Label>
+                </div>
+              </div>
+
               <Button
                 type="submit"
                 className="w-full bg-teal-600 hover:bg-teal-700"
-                disabled={loading}
+                disabled={loading || !termsAccepted}
               >
                 {loading ? (
                   <>
@@ -475,10 +793,51 @@ function SignupPageContent() {
                 </div>
               )}
 
+              {/* Terms Acceptance Checkbox */}
+              <div className="space-y-2">
+                <div className="flex items-start gap-2">
+                  <input
+                    id="terms-accepted-magic"
+                    type="checkbox"
+                    checked={termsAccepted}
+                    onChange={(e) => {
+                      setTermsAccepted(e.target.checked);
+                      setMessage(null);
+                    }}
+                    className="mt-1 h-4 w-4 rounded border-slate-300 text-teal-600 focus:ring-teal-600"
+                    required
+                  />
+                  <Label
+                    htmlFor="terms-accepted-magic"
+                    className="text-sm leading-5 text-slate-700"
+                  >
+                    By creating an account, you agree to our{" "}
+                    <Link
+                      href="/terms"
+                      target="_blank"
+                      className="text-teal-600 hover:underline"
+                    >
+                      Terms of Service
+                    </Link>{" "}
+                    and acknowledge our{" "}
+                    <Link
+                      href="/disclaimer"
+                      target="_blank"
+                      className="text-teal-600 hover:underline"
+                    >
+                      Disclaimer
+                    </Link>
+                    . You understand that SpareCarry is a matching platform only,
+                    not a shipping or delivery service, and you are responsible for
+                    your own transactions.
+                  </Label>
+                </div>
+              </div>
+
               <Button
                 type="submit"
                 className="w-full bg-teal-600 hover:bg-teal-700"
-                disabled={loading || magicLinkCooldown > 0}
+                disabled={loading || magicLinkCooldown > 0 || !termsAccepted}
               >
                 {loading ? (
                   <>
@@ -528,7 +887,7 @@ function SignupPageContent() {
             type="button"
             variant="outline"
             onClick={() => handleOAuth("google")}
-            disabled={loading}
+            disabled={loading || !termsAccepted}
             className="w-full"
           >
             <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
@@ -552,6 +911,43 @@ function SignupPageContent() {
             Google
           </Button>
 
+          {/* Environment Error Display */}
+          {envError && (
+            <div className="rounded-md border border-red-300 bg-red-50 p-4 text-sm text-red-800">
+              <p className="font-semibold">Configuration Error</p>
+              <p className="mt-1">{envError}</p>
+            </div>
+          )}
+
+          {/* Debug Panel (Development Only) */}
+          {process.env.NODE_ENV === "development" && (
+            <details className="rounded-md border border-slate-200 bg-slate-50 p-3 text-xs">
+              <summary className="cursor-pointer font-medium text-slate-700">
+                Debug Info
+              </summary>
+              <div className="mt-2 space-y-1 text-slate-600">
+                <p>
+                  <strong>Supabase URL:</strong>{" "}
+                  {process.env.NEXT_PUBLIC_SUPABASE_URL
+                    ? `${process.env.NEXT_PUBLIC_SUPABASE_URL.substring(0, 30)}...`
+                    : "Not set"}
+                </p>
+                <p>
+                  <strong>Supabase Key:</strong>{" "}
+                  {process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+                    ? "Set (hidden)"
+                    : "Not set"}
+                </p>
+                <p>
+                  <strong>Callback URL:</strong> {getAuthCallbackUrl(redirectTo)}
+                </p>
+                <p>
+                  <strong>Redirect To:</strong> {redirectTo}
+                </p>
+              </div>
+            </details>
+          )}
+
           {message && (
             <div
               className={`rounded-md p-3 text-sm ${
@@ -560,7 +956,7 @@ function SignupPageContent() {
                   : "border border-red-200 bg-red-50 text-red-800"
               }`}
             >
-              {message.text}
+              <div className="whitespace-pre-wrap">{message.text}</div>
             </div>
           )}
 

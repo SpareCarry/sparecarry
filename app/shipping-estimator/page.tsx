@@ -82,6 +82,11 @@ import { Plane, Ship, Sparkles, ChevronDown, ChevronUp } from "lucide-react";
 import { LocationFieldGroup } from "../../components/location/LocationFieldGroup";
 import { Place } from "../../lib/services/location";
 import { detectItemSpecs } from "../../lib/utils/weight-estimation";
+import { ITEM_CATEGORIES } from "../../lib/utils/categories";
+import { AutoMeasureButton } from "../../components/forms/AutoMeasureButton";
+import { ItemTemplateSelector } from "../../components/forms/item-template-selector";
+import type { ItemTemplate } from "../../lib/data/item-templates";
+import { Clock } from "lucide-react";
 
 // Simplified collapsible plane restriction warning component
 function PlaneRestrictionWarning({
@@ -226,7 +231,8 @@ function ShippingEstimatorContent() {
     "plane" | "boat" | "auto"
   >("auto");
   const [fragile, setFragile] = useState<boolean>(false);
-  const [deadlineDate, setDeadlineDate] = useState<string>("");
+  const [deadlineUrgency, setDeadlineUrgency] = useState<"3" | "7" | "14" | "14+">("14+");
+  const [showTemplateSelector, setShowTemplateSelector] = useState(false);
   const FREE_DELIVERIES_LIMIT = 1;
   const promoDaysLeft = getDaysLeft();
   const isPromoActive = promoDaysLeft > 0;
@@ -306,6 +312,29 @@ function ShippingEstimatorContent() {
   // Get available options
   const availableCouriers = getAvailableCouriers();
 
+  // Calculate deadline date from urgency
+  const calculateDeadlineDate = (urgency: "3" | "7" | "14" | "14+"): string => {
+    const today = new Date();
+    if (urgency === "3") {
+      const date = new Date(today);
+      date.setDate(date.getDate() + 3);
+      return date.toISOString().split("T")[0];
+    } else if (urgency === "7") {
+      const date = new Date(today);
+      date.setDate(date.getDate() + 7);
+      return date.toISOString().split("T")[0];
+    } else if (urgency === "14") {
+      const date = new Date(today);
+      date.setDate(date.getDate() + 14);
+      return date.toISOString().split("T")[0];
+    } else {
+      // "14+" - use a default future date (e.g., 30 days)
+      const date = new Date(today);
+      date.setDate(date.getDate() + 30);
+      return date.toISOString().split("T")[0];
+    }
+  };
+
   // Save form data to sessionStorage whenever it changes (for back navigation)
   const prevFormDataRef = useRef<string>("");
   const isInitialMountRef = useRef(true);
@@ -330,7 +359,7 @@ function ShippingEstimatorContent() {
       category,
       selectedTransportMethod,
       fragile,
-      deadlineDate,
+      deadlineUrgency,
       fromPlaceLat: fromPlace?.lat,
       fromPlaceLon: fromPlace?.lon,
       fromPlaceName: fromPlace?.name,
@@ -371,7 +400,7 @@ function ShippingEstimatorContent() {
     category,
     selectedTransportMethod,
     fragile,
-    deadlineDate,
+    deadlineUrgency,
     fromPlace,
     toPlace,
     originalFromLat,
@@ -412,6 +441,18 @@ function ShippingEstimatorContent() {
         // If not restricted and both options available, default to boat (usually cheaper)
         // User can change it if they prefer plane
         setSelectedTransportMethod("boat");
+      }
+      
+      // Store fragile flag from post request form if available
+      const fragileParam = searchParams?.get("fragile");
+      if (fragileParam === "true") {
+        setFragile(true);
+      }
+      
+      // Store deadline urgency from post request form if available
+      const deadlineUrgencyParam = searchParams?.get("deadline_urgency");
+      if (deadlineUrgencyParam && ["3", "7", "14", "14+"].includes(deadlineUrgencyParam)) {
+        setDeadlineUrgency(deadlineUrgencyParam as "3" | "7" | "14" | "14+");
       }
       if (fromLat && fromLon) {
         setOriginalFromLat(parseFloat(fromLat));
@@ -571,7 +612,12 @@ function ShippingEstimatorContent() {
           if (formData.selectedTransportMethod)
             setSelectedTransportMethod(formData.selectedTransportMethod);
           if (formData.fragile !== undefined) setFragile(formData.fragile);
-          if (formData.deadlineDate) setDeadlineDate(formData.deadlineDate);
+          if (formData.deadlineUrgency)
+            setDeadlineUrgency(formData.deadlineUrgency);
+          else if (formData.deadlineDate) {
+            // Backward compatibility: convert old deadlineDate to urgency if needed
+            // This handles old sessionStorage data that might still have deadlineDate
+          }
           // Restore location places if available
           if (formData.fromPlaceLat && formData.fromPlaceLon) {
             setFromPlace({
@@ -712,6 +758,8 @@ function ShippingEstimatorContent() {
       category: category || undefined, // Include category if provided
     };
 
+    const deadlineDate = calculateDeadlineDate(deadlineUrgency);
+    
     const result = calculateShippingEstimate({
       ...input,
       fragile: fragile,
@@ -739,7 +787,7 @@ function ShippingEstimatorContent() {
     restrictedItems,
     category,
     fragile,
-    deadlineDate,
+    deadlineUrgency,
     fromPlace,
     toPlace,
     originalFromLat,
@@ -826,7 +874,9 @@ function ShippingEstimatorContent() {
       description: originalDescription || undefined,
       category: originalCategory || category || undefined, // Use current category or original
       category_other_description: originalCategoryOtherDescription || undefined,
+      fragile: fragile, // Include fragile flag
       restricted_items: restrictedItems, // Include restricted items flag
+      deadline_urgency: deadlineUrgency, // Include urgency selector
       preferred_method:
         estimate.canTransportByPlane === false
           ? "boat"
@@ -901,7 +951,48 @@ function ShippingEstimatorContent() {
     category,
     restrictedItems,
     selectedTransportMethod,
+    fragile,
+    deadlineUrgency,
   ]);
+
+  const handleTemplateSelect = (
+    template: ItemTemplate,
+    specs: {
+      weight: number;
+      dimensions: { length: number; width: number; height: number };
+    } | null
+  ) => {
+    // Store title and description for when user navigates to post request
+    setOriginalTitle(template.title);
+    setOriginalDescription(template.description);
+    
+    // Set category
+    if (template.category) {
+      setCategory(template.category);
+      setOriginalCategory(template.category);
+    }
+
+    // Fill in specs if available
+    if (specs) {
+      setWeight(specs.weight.toString());
+      setLength(specs.dimensions.length.toString());
+      setWidth(specs.dimensions.width.toString());
+      setHeight(specs.dimensions.height.toString());
+    } else {
+      // Try to detect specs from template
+      const detected = detectItemSpecs(
+        template.title,
+        template.description,
+        template.category
+      );
+      if (detected) {
+        setWeight(detected.weight.toString());
+        setLength(detected.dimensions.length.toString());
+        setWidth(detected.dimensions.width.toString());
+        setHeight(detected.dimensions.height.toString());
+      }
+    }
+  };
 
   return (
     <div className="mx-auto min-h-screen max-w-4xl px-4 py-6 pb-24 lg:pb-6">
@@ -1002,41 +1093,72 @@ function ShippingEstimatorContent() {
               />
             </div>
 
+            {/* Quick Select Template Button */}
+            <div className="flex items-center justify-between rounded-lg border border-teal-200 bg-teal-50 p-4">
+              <div>
+                <p className="font-medium text-teal-900">
+                  Quick Select Common Boat Item
+                </p>
+                <p className="text-sm text-teal-700">
+                  Choose from pre-filled templates. Category, dimensions, and
+                  weight will be auto-filled!
+                </p>
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setShowTemplateSelector(true)}
+                className="border-teal-300 bg-white text-teal-700 hover:bg-teal-100"
+              >
+                Browse Templates
+              </Button>
+            </div>
+
             {/* Dimensions */}
-            <div className="grid grid-cols-3 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="length">Length (cm) *</Label>
-                <Input
-                  id="length"
-                  type="number"
-                  step="0.1"
-                  value={length}
-                  onChange={(e) => setLength(e.target.value)}
-                  placeholder="20"
-                />
+            <div className="space-y-2">
+              <Label>Dimensions (cm) *</Label>
+              <div className="grid grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="length">Length</Label>
+                  <Input
+                    id="length"
+                    type="number"
+                    step="0.1"
+                    value={length}
+                    onChange={(e) => setLength(e.target.value)}
+                    placeholder="20"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="width">Width</Label>
+                  <Input
+                    id="width"
+                    type="number"
+                    step="0.1"
+                    value={width}
+                    onChange={(e) => setWidth(e.target.value)}
+                    placeholder="15"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="height">Height</Label>
+                  <Input
+                    id="height"
+                    type="number"
+                    step="0.1"
+                    value={height}
+                    onChange={(e) => setHeight(e.target.value)}
+                    placeholder="10"
+                  />
+                </div>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="width">Width (cm) *</Label>
-                <Input
-                  id="width"
-                  type="number"
-                  step="0.1"
-                  value={width}
-                  onChange={(e) => setWidth(e.target.value)}
-                  placeholder="15"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="height">Height (cm) *</Label>
-                <Input
-                  id="height"
-                  type="number"
-                  step="0.1"
-                  value={height}
-                  onChange={(e) => setHeight(e.target.value)}
-                  placeholder="10"
-                />
-              </div>
+              <AutoMeasureButton
+                onMeasurementComplete={(dimensions) => {
+                  setLength(dimensions.length_cm.toString());
+                  setWidth(dimensions.width_cm.toString());
+                  setHeight(dimensions.height_cm.toString());
+                }}
+              />
             </div>
 
             {/* Weight */}
@@ -1144,67 +1266,6 @@ function ShippingEstimatorContent() {
               )}
             </div>
 
-            {/* Restricted Items */}
-            <div className="space-y-2">
-              <div className="flex items-start gap-2">
-                <input
-                  type="checkbox"
-                  id="restricted_items"
-                  checked={restrictedItems}
-                  onChange={(e) => {
-                    setRestrictedItems(e.target.checked);
-                    if (e.target.checked) {
-                      setSelectedTransportMethod("boat"); // Auto-select boat if restricted
-                    }
-                  }}
-                  className="mt-1"
-                />
-                <Label
-                  htmlFor="restricted_items"
-                  className="flex-1 cursor-pointer"
-                >
-                  <div className="flex items-center gap-2 font-medium">
-                    Contains restricted goods
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <button
-                          type="button"
-                          className="text-slate-400 hover:text-slate-600"
-                        >
-                          <Info className="h-4 w-4" />
-                        </button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-80">
-                        <div className="space-y-2">
-                          <h4 className="text-sm font-semibold">
-                            Restricted Goods
-                          </h4>
-                          <p className="text-xs text-slate-600">
-                            Items that cannot be transported by plane include:
-                          </p>
-                          <ul className="list-inside list-disc space-y-1 text-xs text-slate-600">
-                            <li>Lithium batteries (over 100Wh)</li>
-                            <li>Flammable liquids and gases</li>
-                            <li>Explosives and weapons</li>
-                            <li>Corrosive materials</li>
-                            <li>Toxic or radioactive substances</li>
-                          </ul>
-                          <p className="mt-2 text-xs text-slate-500">
-                            These items can only be transported by boat due to
-                            airline safety regulations.
-                          </p>
-                        </div>
-                      </PopoverContent>
-                    </Popover>
-                  </div>
-                  <div className="text-xs font-normal text-slate-500">
-                    Lithium batteries, flammable items, liquids, etc. (Boat
-                    transport only)
-                  </div>
-                </Label>
-              </div>
-            </div>
-
             {/* Category (optional, for better restriction checking) */}
             <div className="space-y-2">
               <Label htmlFor="category">Item Category (Optional)</Label>
@@ -1215,24 +1276,81 @@ function ShippingEstimatorContent() {
                 }
               >
                 <SelectTrigger id="category">
-                  <SelectValue placeholder="Select category" />
+                  <SelectValue placeholder="Select category (optional)" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="none">None</SelectItem>
-                  <SelectItem value="electronics">Electronics</SelectItem>
-                  <SelectItem value="marine">Marine Equipment</SelectItem>
-                  <SelectItem value="food">Food & Beverages</SelectItem>
-                  <SelectItem value="clothing">Clothing & Apparel</SelectItem>
-                  <SelectItem value="tools">Tools & Hardware</SelectItem>
-                  <SelectItem value="medical">Medical Supplies</SelectItem>
-                  <SelectItem value="automotive">Automotive Parts</SelectItem>
-                  <SelectItem value="sports">Sports & Recreation</SelectItem>
-                  <SelectItem value="books">Books & Media</SelectItem>
-                  <SelectItem value="other">Other</SelectItem>
+                  {ITEM_CATEGORIES.map((cat) => (
+                    <SelectItem key={cat.value} value={cat.value}>
+                      {cat.label}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
               <p className="text-xs text-slate-500">
                 Helps determine transport restrictions
+              </p>
+            </div>
+
+            {/* Deadline Urgency */}
+            <div className="space-y-2">
+              <Label htmlFor="deadline_urgency">How soon do you need this? (Optional)</Label>
+              <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
+                <button
+                  type="button"
+                  onClick={() => setDeadlineUrgency("3")}
+                  className={`flex flex-col items-center justify-center gap-1 rounded-lg border-2 p-3 transition-colors ${
+                    deadlineUrgency === "3"
+                      ? "border-teal-600 bg-teal-50 text-teal-900"
+                      : "border-slate-200 bg-white text-slate-700 hover:border-teal-300 hover:bg-teal-50/50"
+                  }`}
+                >
+                  <Clock className="h-5 w-5" />
+                  <span className="text-sm font-medium">Under 3 days</span>
+                  <span className="text-xs text-slate-500">+30% premium</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDeadlineUrgency("7")}
+                  className={`flex flex-col items-center justify-center gap-1 rounded-lg border-2 p-3 transition-colors ${
+                    deadlineUrgency === "7"
+                      ? "border-teal-600 bg-teal-50 text-teal-900"
+                      : "border-slate-200 bg-white text-slate-700 hover:border-teal-300 hover:bg-teal-50/50"
+                  }`}
+                >
+                  <Clock className="h-5 w-5" />
+                  <span className="text-sm font-medium">Under 7 days</span>
+                  <span className="text-xs text-slate-500">+15% premium</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDeadlineUrgency("14")}
+                  className={`flex flex-col items-center justify-center gap-1 rounded-lg border-2 p-3 transition-colors ${
+                    deadlineUrgency === "14"
+                      ? "border-teal-600 bg-teal-50 text-teal-900"
+                      : "border-slate-200 bg-white text-slate-700 hover:border-teal-300 hover:bg-teal-50/50"
+                  }`}
+                >
+                  <Clock className="h-5 w-5" />
+                  <span className="text-sm font-medium">Under 14 days</span>
+                  <span className="text-xs text-slate-500">+5% premium</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDeadlineUrgency("14+")}
+                  className={`flex flex-col items-center justify-center gap-1 rounded-lg border-2 p-3 transition-colors ${
+                    deadlineUrgency === "14+"
+                      ? "border-teal-600 bg-teal-50 text-teal-900"
+                      : "border-slate-200 bg-white text-slate-700 hover:border-teal-300 hover:bg-teal-50/50"
+                  }`}
+                >
+                  <Clock className="h-5 w-5" />
+                  <span className="text-sm font-medium">14+ days</span>
+                  <span className="text-xs text-slate-500">No rush</span>
+                </button>
+              </div>
+              <p className="text-xs text-slate-500">
+                Urgency affects pricing. Faster delivery = higher reward needed.
               </p>
             </div>
 
@@ -1288,21 +1406,65 @@ function ShippingEstimatorContent() {
               </div>
             </div>
 
-            {/* Deadline Date (Optional) */}
+            {/* Restricted Items */}
             <div className="space-y-2">
-              <Label htmlFor="deadline_date">Deadline Date (Optional)</Label>
-              <Input
-                type="date"
-                id="deadline_date"
-                value={deadlineDate}
-                onChange={(e) => setDeadlineDate(e.target.value)}
-                min={new Date().toISOString().split("T")[0]}
-                className="w-full"
-              />
-              <p className="text-xs text-slate-500">
-                Urgent shipments may have a premium: 5% for &lt;14 days, 15% for
-                &lt;7 days, 30% for &lt;3 days
-              </p>
+              <div className="flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 p-4">
+                <input
+                  type="checkbox"
+                  id="restricted_items"
+                  checked={restrictedItems}
+                  onChange={(e) => {
+                    setRestrictedItems(e.target.checked);
+                    if (e.target.checked) {
+                      setSelectedTransportMethod("boat"); // Auto-select boat if restricted
+                    }
+                  }}
+                  className="mt-1 h-4 w-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500"
+                />
+                <Label
+                  htmlFor="restricted_items"
+                  className="flex-1 cursor-pointer"
+                >
+                  <div className="flex items-center gap-2 font-medium">
+                    Contains restricted goods
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <button
+                          type="button"
+                          className="text-slate-400 hover:text-slate-600"
+                        >
+                          <Info className="h-4 w-4" />
+                        </button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-80">
+                        <div className="space-y-2">
+                          <h4 className="text-sm font-semibold">
+                            Restricted Goods
+                          </h4>
+                          <p className="text-xs text-slate-600">
+                            Items that cannot be transported by plane include:
+                          </p>
+                          <ul className="list-inside list-disc space-y-1 text-xs text-slate-600">
+                            <li>Lithium batteries (over 100Wh)</li>
+                            <li>Flammable liquids and gases</li>
+                            <li>Explosives and weapons</li>
+                            <li>Corrosive materials</li>
+                            <li>Toxic or radioactive substances</li>
+                          </ul>
+                          <p className="mt-2 text-xs text-slate-500">
+                            These items can only be transported by boat due to
+                            airline safety regulations.
+                          </p>
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                  <div className="text-xs font-normal text-slate-500">
+                    Lithium batteries, flammable items, liquids, etc. (Boat
+                    transport only)
+                  </div>
+                </Label>
+              </div>
             </div>
 
             {/* Courier Selection */}
@@ -1712,6 +1874,8 @@ function ShippingEstimatorContent() {
                             description: originalDescription || undefined,
                             category: originalCategory || category || undefined,
                             category_other_description: originalCategoryOtherDescription || undefined,
+                            fragile: fragile,
+                            deadline_urgency: deadlineUrgency,
                           };
                           router.push(
                             `/home/post-request?prefill=${encodeURIComponent(JSON.stringify(prefillData))}`
@@ -1773,6 +1937,13 @@ function ShippingEstimatorContent() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Item Template Selector */}
+      <ItemTemplateSelector
+        open={showTemplateSelector}
+        onClose={() => setShowTemplateSelector(false)}
+        onSelectTemplate={handleTemplateSelect}
+      />
     </div>
   );
 }

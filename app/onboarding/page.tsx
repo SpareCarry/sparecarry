@@ -47,8 +47,8 @@ const onboardingSteps = [
     icon: CreditCard,
   },
   {
-    title: "Sailor Info",
-    description: "Optional boat verification",
+    title: "Tell Us About Your Boat",
+    description: "Add your boat details for verified sailor status",
     icon: Ship,
   },
   {

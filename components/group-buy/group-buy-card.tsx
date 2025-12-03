@@ -8,6 +8,7 @@ import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { createClient } from "../../lib/supabase/client";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { useToastNotification } from "../../lib/hooks/use-toast-notification";
 
 interface GroupBuyCardProps {
   groupBuy: {
@@ -29,6 +30,7 @@ type RequestRecord = {
 
 export function GroupBuyCard({ groupBuy, onJoin }: GroupBuyCardProps) {
   const t = useTranslations("groupBuy");
+  const toast = useToastNotification();
   const [joining, setJoining] = useState(false);
   const supabase = createClient() as SupabaseClient;
 
@@ -40,7 +42,7 @@ export function GroupBuyCard({ groupBuy, onJoin }: GroupBuyCardProps) {
       } = await supabase.auth.getUser();
 
       if (!user) {
-        alert("Please sign in to join group buy");
+        toast.showAuthError("Please sign in to join group buy");
         return;
       }
 
@@ -65,7 +67,7 @@ export function GroupBuyCard({ groupBuy, onJoin }: GroupBuyCardProps) {
       }
 
       if (existingMatch?.id) {
-        alert("You're already in this group buy");
+        toast.showWarning("You're already in this group buy", { title: "Already Joined" });
         return;
       }
 
@@ -75,7 +77,7 @@ export function GroupBuyCard({ groupBuy, onJoin }: GroupBuyCardProps) {
       console.error("Error joining group buy:", error);
       const message =
         error instanceof Error ? error.message : "Failed to join group buy";
-      alert(message);
+      toast.showApiError("join group buy", message);
     } finally {
       setJoining(false);
     }

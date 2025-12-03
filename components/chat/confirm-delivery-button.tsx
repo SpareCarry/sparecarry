@@ -5,6 +5,7 @@ import { Button } from "../ui/button";
 import { CheckCircle2, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
+import { useToastNotification } from "../../lib/hooks/use-toast-notification";
 
 interface ConfirmDeliveryButtonProps {
   matchId: string;
@@ -13,6 +14,7 @@ interface ConfirmDeliveryButtonProps {
 export function ConfirmDeliveryButton({ matchId }: ConfirmDeliveryButtonProps) {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const toast = useToastNotification();
   const [loading, setLoading] = useState(false);
 
   const handleConfirm = async () => {
@@ -40,7 +42,7 @@ export function ConfirmDeliveryButton({ matchId }: ConfirmDeliveryButtonProps) {
       console.error("Error confirming delivery:", error);
       const message =
         error instanceof Error ? error.message : "Failed to confirm delivery";
-      alert(message);
+      toast.showApiError("confirm delivery", message);
     } finally {
       setLoading(false);
     }

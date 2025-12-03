@@ -17,6 +17,7 @@ import { Label } from "../ui/label";
 import { Textarea } from "../ui/textarea";
 import { Loader2, Mail, CheckCircle2 } from "lucide-react";
 import { useUser } from "../../hooks/useUser";
+import { useToastNotification } from "../../lib/hooks/use-toast-notification";
 
 const supportFormSchema = z.object({
   subject: z.string().min(1, "Subject is required"),
@@ -38,6 +39,7 @@ export function ContactSupportForm({
   matchId,
 }: ContactSupportFormProps) {
   const { user } = useUser();
+  const toast = useToastNotification();
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [ticketNumber, setTicketNumber] = useState<string | null>(null);
@@ -92,9 +94,7 @@ export function ContactSupportForm({
       }, 3000);
     } catch (error) {
       console.error("Error submitting support form:", error);
-      alert(
-        "Failed to submit support request. Please try again or email ryanhbrooks@gmail.com directly."
-      );
+      toast.showFormError("submit support request", "Please try again or email support directly.");
     } finally {
       setLoading(false);
     }

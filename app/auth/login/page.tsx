@@ -18,6 +18,59 @@ import { getAuthCallbackUrl } from "../../../lib/supabase/mobile";
 import { getUserFriendlyErrorMessage } from "../../../lib/utils/auth-errors";
 import { Mail, Loader2, Lock, Eye, EyeOff } from "lucide-react";
 
+// Debug panel component that only renders on client to prevent hydration errors
+function DebugPanel({ redirectTo }: { redirectTo: string }) {
+  const [mounted, setMounted] = useState(false);
+  const [callbackUrl, setCallbackUrl] = useState<string>("");
+
+  useEffect(() => {
+    setMounted(true);
+    // Only call getAuthCallbackUrl on client side after mount
+    setCallbackUrl(getAuthCallbackUrl(redirectTo));
+  }, [redirectTo]);
+
+  if (!mounted) {
+    return (
+      <details className="rounded-md border border-slate-200 bg-slate-50 p-3 text-xs">
+        <summary className="cursor-pointer font-medium text-slate-700">
+          Debug Info
+        </summary>
+        <div className="mt-2 space-y-1 text-slate-600">
+          <p>Loading...</p>
+        </div>
+      </details>
+    );
+  }
+
+  return (
+    <details className="rounded-md border border-slate-200 bg-slate-50 p-3 text-xs">
+      <summary className="cursor-pointer font-medium text-slate-700">
+        Debug Info
+      </summary>
+      <div className="mt-2 space-y-1 text-slate-600">
+        <p>
+          <strong>Supabase URL:</strong>{" "}
+          {process.env.NEXT_PUBLIC_SUPABASE_URL
+            ? `${process.env.NEXT_PUBLIC_SUPABASE_URL.substring(0, 30)}...`
+            : "Not set"}
+        </p>
+        <p>
+          <strong>Supabase Key:</strong>{" "}
+          {process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+            ? "Set (hidden)"
+            : "Not set"}
+        </p>
+        <p>
+          <strong>Callback URL:</strong> {callbackUrl}
+        </p>
+        <p>
+          <strong>Redirect To:</strong> {redirectTo}
+        </p>
+      </div>
+    </details>
+  );
+}
+
 function LoginPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -39,7 +92,31 @@ function LoginPageContent() {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [magicLinkCooldown, setMagicLinkCooldown] = useState(0);
+  const [envError, setEnvError] = useState<string | null>(null);
   const supabase = createClient();
+
+  // Validate environment variables on mount
+  useEffect(() => {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+    if (!supabaseUrl || !supabaseKey) {
+      const missing = [];
+      if (!supabaseUrl) missing.push("NEXT_PUBLIC_SUPABASE_URL");
+      if (!supabaseKey) missing.push("NEXT_PUBLIC_SUPABASE_ANON_KEY");
+      setEnvError(
+        `Missing required environment variables: ${missing.join(", ")}. Please check your configuration.`
+      );
+      console.error("[Auth] Missing environment variables:", missing);
+    } else {
+      setEnvError(null);
+      console.log("[Auth] Environment variables validated:", {
+        hasUrl: !!supabaseUrl,
+        hasKey: !!supabaseKey,
+        urlPrefix: supabaseUrl.substring(0, 20) + "...",
+      });
+    }
+  }, []);
 
   // Magic link cooldown timer
   useEffect(() => {
@@ -132,7 +209,33 @@ function LoginPageContent() {
     setLoading(true);
     setMessage(null);
 
+    // Validate environment variables
+    if (envError) {
+      setMessage({
+        type: "error",
+        text: envError,
+      });
+      setLoading(false);
+      return;
+    }
+
+    // Validate email format
+    if (!email || !email.includes("@")) {
+      setMessage({
+        type: "error",
+        text: "Please enter a valid email address.",
+      });
+      setLoading(false);
+      return;
+    }
+
     try {
+      console.log("[Auth] Starting password login:", {
+        email,
+        timestamp: new Date().toISOString(),
+        method: "password",
+      });
+
       // Store remember me preference
       if (typeof window !== "undefined") {
         localStorage.setItem("rememberMe", rememberMe ? "true" : "false");
@@ -143,7 +246,17 @@ function LoginPageContent() {
         password,
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error("[Auth] Password login error:", {
+          code: error.status,
+          message: error.message,
+          name: error.name,
+          stack: error.stack,
+          email,
+          timestamp: new Date().toISOString(),
+        });
+        throw error;
+      }
 
       // Wait for session to be established
       const {
@@ -180,14 +293,38 @@ function LoginPageContent() {
         // Continue anyway - the middleware will handle it on next request
       }
 
+      console.log("[Auth] Password login successful:", {
+        userId: data.user?.id,
+        email: data.user?.email,
+        timestamp: new Date().toISOString(),
+      });
+
       // Force a full page reload to ensure middleware can establish session cookies
       // This is critical for server-side API routes to read the session
       window.location.href = redirectTo;
     } catch (error: any) {
-      setMessage({
-        type: "error",
-        text: getUserFriendlyErrorMessage(error),
-      });
+      const errorDetails = {
+        message: error?.message || String(error),
+        code: error?.code || error?.status,
+        name: error?.name,
+        stack: error?.stack,
+        email,
+        timestamp: new Date().toISOString(),
+      };
+      console.error("[Auth] Password login failed:", errorDetails);
+      
+      const userMessage = getUserFriendlyErrorMessage(error);
+      if (process.env.NODE_ENV === "development") {
+        setMessage({
+          type: "error",
+          text: `${userMessage}\n\n[Debug] ${error?.code || error?.message || String(error)}`,
+        });
+      } else {
+        setMessage({
+          type: "error",
+          text: userMessage,
+        });
+      }
       setLoading(false);
     }
   };
@@ -197,14 +334,40 @@ function LoginPageContent() {
     setLoading(true);
     setMessage(null);
 
+    // Validate environment variables
+    if (envError) {
+      setMessage({
+        type: "error",
+        text: envError,
+      });
+      setLoading(false);
+      return;
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email || !emailRegex.test(email)) {
+      setMessage({
+        type: "error",
+        text: "Please enter a valid email address.",
+      });
+      setLoading(false);
+      return;
+    }
+
     try {
+      console.log("[Auth] Starting magic link request:", {
+        email,
+        timestamp: new Date().toISOString(),
+        method: "magic_link",
+      });
+
       // Get the appropriate callback URL (always web URL for magic links)
       // Magic links must use web URLs because email links open in browsers first
       const callbackUrl = getAuthCallbackUrl(redirectTo);
-      console.log("Sending magic link to:", email);
-      console.log("Callback URL:", callbackUrl);
+      console.log("[Auth] Magic link callback URL:", callbackUrl);
       console.log(
-        "Platform:",
+        "[Auth] Platform:",
         typeof window !== "undefined" && (window as any).Capacitor
           ? "mobile"
           : "web"
@@ -215,10 +378,15 @@ function LoginPageContent() {
         !callbackUrl.startsWith("http://") &&
         !callbackUrl.startsWith("https://")
       ) {
-        throw new Error("Invalid callback URL. Magic links must use web URLs.");
+        const errorMsg = "Invalid callback URL. Magic links must use web URLs.";
+        console.error("[Auth] Magic link callback URL validation failed:", {
+          callbackUrl,
+          redirectTo,
+        });
+        throw new Error(errorMsg);
       }
 
-      const { error } = await supabase.auth.signInWithOtp({
+      const { data, error } = await supabase.auth.signInWithOtp({
         email,
         options: {
           emailRedirectTo: callbackUrl,
@@ -226,7 +394,23 @@ function LoginPageContent() {
         },
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error("[Auth] Magic link error:", {
+          code: error.status,
+          message: error.message,
+          name: error.name,
+          stack: error.stack,
+          email,
+          callbackUrl,
+          timestamp: new Date().toISOString(),
+        });
+        throw error;
+      }
+
+      console.log("[Auth] Magic link sent successfully:", {
+        email,
+        timestamp: new Date().toISOString(),
+      });
 
       setMessage({
         type: "success",
@@ -234,10 +418,28 @@ function LoginPageContent() {
       });
       setMagicLinkCooldown(60); // 60 second cooldown
     } catch (error: any) {
-      setMessage({
-        type: "error",
-        text: getUserFriendlyErrorMessage(error),
-      });
+      const errorDetails = {
+        message: error?.message || String(error),
+        code: error?.code || error?.status,
+        name: error?.name,
+        stack: error?.stack,
+        email,
+        timestamp: new Date().toISOString(),
+      };
+      console.error("[Auth] Magic link failed:", errorDetails);
+      
+      const userMessage = getUserFriendlyErrorMessage(error);
+      if (process.env.NODE_ENV === "development") {
+        setMessage({
+          type: "error",
+          text: `${userMessage}\n\n[Debug] ${error?.code || error?.message || String(error)}`,
+        });
+      } else {
+        setMessage({
+          type: "error",
+          text: userMessage,
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -246,32 +448,114 @@ function LoginPageContent() {
   // TODO: Add Apple Sign-In support in the future (requires $99/year Apple Developer Account)
   // See docs/OAUTH_SETUP.md for setup instructions
   const handleOAuth = async (provider: "google") => {
+    // Validate environment variables
+    if (envError) {
+      setMessage({
+        type: "error",
+        text: envError,
+      });
+      return;
+    }
+
     setLoading(true);
     setMessage(null);
+    
     try {
+      console.log("[Auth] Starting OAuth login:", {
+        provider,
+        timestamp: new Date().toISOString(),
+        method: "oauth",
+      });
+
       // Get the appropriate callback URL (mobile deep link or web URL)
       const callbackUrl = getAuthCallbackUrl(redirectTo);
+      console.log("[Auth] OAuth callback URL:", callbackUrl);
+      
+      // IMPORTANT: This callbackUrl MUST match what's configured in:
+      // 1. Supabase Dashboard → Authentication → URL Configuration → Redirect URLs
+      // 2. Google Cloud Console → OAuth 2.0 Client → Authorized redirect URIs
+      // If Google redirects to homepage instead of callback, check these configurations.
 
-      const { error } = await supabase.auth.signInWithOAuth({
+      // Validate callback URL
+      if (!callbackUrl || (!callbackUrl.startsWith("http://") && !callbackUrl.startsWith("https://") && !callbackUrl.startsWith("sparecarry://"))) {
+        const errorMsg = "Invalid callback URL configuration for OAuth.";
+        console.error("[Auth] OAuth callback URL validation failed:", {
+          callbackUrl,
+          redirectTo,
+        });
+        throw new Error(errorMsg);
+      }
+
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
           redirectTo: callbackUrl,
         },
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error("[Auth] OAuth error:", {
+          code: error.status,
+          message: error.message,
+          name: error.name,
+          stack: error.stack,
+          provider,
+          callbackUrl,
+          timestamp: new Date().toISOString(),
+        });
+        throw error;
+      }
+
+      console.log("[Auth] OAuth redirect initiated:", {
+        provider,
+        url: data?.url,
+        timestamp: new Date().toISOString(),
+      });
+
       // If successful, OAuth will redirect - loading state will reset on redirect
       // But we still reset it here in case redirect doesn't happen immediately
       // The finally block ensures it's always reset
     } catch (error: any) {
-      setMessage({
-        type: "error",
-        text: getUserFriendlyErrorMessage(error),
-      });
-    } finally {
+      const errorDetails = {
+        message: error?.message || String(error),
+        code: error?.code || error?.status,
+        name: error?.name,
+        stack: error?.stack,
+        provider,
+        timestamp: new Date().toISOString(),
+      };
+      console.error("[Auth] OAuth failed:", errorDetails);
+      
+      const userMessage = getUserFriendlyErrorMessage(error);
+      // Check if it's a provider configuration error
+      if (error?.message?.includes("provider") || error?.code === "provider_not_enabled") {
+        setMessage({
+          type: "error",
+          text: "Google sign-in is not configured. Please contact support or try another sign-in method.",
+        });
+      } else {
+        if (process.env.NODE_ENV === "development") {
+          setMessage({
+            type: "error",
+            text: `${userMessage}\n\n[Debug] ${error?.code || error?.message || String(error)}`,
+          });
+        } else {
+          setMessage({
+            type: "error",
+            text: userMessage,
+          });
+        }
+      }
+      
       // Always reset loading state, even if OAuth redirects (for edge cases)
       // Note: If redirect happens, this component will unmount, so this is safe
       setLoading(false);
+    } finally {
+      // Only reset if we didn't redirect (error case)
+      // OAuth redirect will unmount the component
+      setTimeout(() => {
+        setLoading(false);
+      }, 100);
     }
   };
 
@@ -511,6 +795,19 @@ function LoginPageContent() {
             Google
           </Button>
 
+          {/* Environment Error Display */}
+          {envError && (
+            <div className="rounded-md border border-red-300 bg-red-50 p-4 text-sm text-red-800">
+              <p className="font-semibold">Configuration Error</p>
+              <p className="mt-1">{envError}</p>
+            </div>
+          )}
+
+          {/* Debug Panel (Development Only) */}
+          {process.env.NODE_ENV === "development" && (
+            <DebugPanel redirectTo={redirectTo} />
+          )}
+
           {message && (
             <div
               className={`rounded-md p-3 text-sm ${
@@ -519,7 +816,7 @@ function LoginPageContent() {
                   : "border border-red-200 bg-red-50 text-red-800"
               }`}
             >
-              {message.text}
+              <div className="whitespace-pre-wrap">{message.text}</div>
             </div>
           )}
 

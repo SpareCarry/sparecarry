@@ -17,6 +17,7 @@ import { Infinity, Loader2, X } from "lucide-react";
 import { useLifetimeAvailability } from "../../lib/hooks/use-lifetime-availability";
 import { createClient } from "../../lib/supabase/client";
 import { useQuery } from "@tanstack/react-query";
+import { useToastNotification } from "../../lib/hooks/use-toast-notification";
 
 interface LifetimeOfferScreenProps {
   onSkip: () => void;
@@ -29,6 +30,7 @@ export function LifetimeOfferScreen({
 }: LifetimeOfferScreenProps) {
   const router = useRouter();
   const supabase = createClient();
+  const toast = useToastNotification();
   const [loading, setLoading] = useState(false);
   const { available, loading: availabilityLoading } = useLifetimeAvailability();
 
@@ -97,7 +99,7 @@ export function LifetimeOfferScreen({
       console.error("Error:", error);
       const message =
         error instanceof Error ? error.message : "Failed to start checkout";
-      alert(message);
+      toast.showApiError("start checkout", message);
       setLoading(false);
     }
   };

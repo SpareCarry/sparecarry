@@ -136,13 +136,21 @@ function FeedCardComponent({ item, onClick }: FeedCardProps) {
         <div className="flex items-start gap-3">
           {/* Icon Badge */}
           <div
-            className={cn(
+              className={cn(
               "flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full",
-              isTrip ? "bg-blue-100" : "bg-purple-100"
+              isTrip && item.trip_type === "boat"
+                ? "bg-teal-100"
+                : isTrip
+                  ? "bg-blue-100"
+                  : "bg-purple-100"
             )}
           >
             {isTrip ? (
-              <Plane className="h-6 w-6 text-blue-600" />
+              item.trip_type === "boat" ? (
+                <Ship className="h-6 w-6 text-teal-600" />
+              ) : (
+                <Plane className="h-6 w-6 text-blue-600" />
+              )
             ) : (
               <Ship className="h-6 w-6 text-purple-600" />
             )}
@@ -155,10 +163,20 @@ function FeedCardComponent({ item, onClick }: FeedCardProps) {
                 <div className="mb-1 flex items-center gap-2">
                   <span className="font-semibold text-slate-900">
                     {item.from_location}
+                    {isTrip && item.trip_type === "boat" && (
+                      <span className="ml-1 text-xs font-normal text-teal-600">
+                        (Marina)
+                      </span>
+                    )}
                   </span>
                   <span className="text-slate-400">→</span>
                   <span className="font-semibold text-slate-900">
                     {item.to_location}
+                    {isTrip && item.trip_type === "boat" && (
+                      <span className="ml-1 text-xs font-normal text-teal-600">
+                        (Marina)
+                      </span>
+                    )}
                   </span>
                 </div>
                 <div className="flex items-center gap-2 text-sm text-slate-600">
@@ -181,8 +199,10 @@ function FeedCardComponent({ item, onClick }: FeedCardProps) {
                   premium_member={item.user_subscribed}
                   size="sm"
                 />
+                {item.user_verified_sailor && (
+                  <VerifiedSailorBadge size="sm" className="ring-2 ring-teal-200" />
+                )}
                 {item.user_supporter && <SupporterBadge size="sm" />}
-                {item.user_verified_sailor && <VerifiedSailorBadge size="sm" />}
               </div>
             </div>
 
@@ -214,6 +234,11 @@ function FeedCardComponent({ item, onClick }: FeedCardProps) {
                   ? "Fast (3–10 days)"
                   : "Cheap (2–8 weeks, zero customs)"}
               </Badge>
+              {isTrip && item.trip_type === "boat" && (
+                <Badge variant="outline" className="border-teal-300 bg-teal-50 text-teal-700 text-xs">
+                  ⚓ Boat Trip
+                </Badge>
+              )}
               {isTrip && (
                 <Badge variant="outline" className="text-xs">
                   {item.spare_volume_liters}L capacity

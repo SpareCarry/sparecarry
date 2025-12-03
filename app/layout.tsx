@@ -9,11 +9,26 @@ import { SessionSync } from "@/components/auth/session-sync";
 import { OfflineBanner } from "@/components/ui/offline-banner";
 import { SkipLink } from "@/components/ui/skip-link";
 
+// Determine base URL - use environment variable if set, otherwise default to production
+const getMetadataBase = () => {
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_SITE_URL;
+  if (appUrl) {
+    try {
+      // If it's a local/development URL (http://), use it
+      return new URL(appUrl);
+    } catch {
+      // If invalid, fall back to production
+    }
+  }
+  // Default to production HTTPS URL
+  return new URL("https://sparecarry.com");
+};
+
 export const metadata: Metadata = {
   title: "SpareCarry – Earn $200–$3,000 using spare space you already have",
   description:
     "Get anything delivered by people already going your way — by plane in days or by boat for 80% less. SpareCarry – The traveler & sailor courier app",
-  metadataBase: new URL("https://sparecarry.com"),
+  metadataBase: getMetadataBase(),
   alternates: {
     canonical: "/",
   },

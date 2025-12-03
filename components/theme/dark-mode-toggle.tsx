@@ -7,6 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 import { createClient } from "../../lib/supabase/client";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { useUser } from "../../hooks/useUser";
+import { useToastNotification } from "../../lib/hooks/use-toast-notification";
 
 type SupporterThemeStatus = {
   supporter_status?: "active" | "inactive" | null;
@@ -14,6 +15,7 @@ type SupporterThemeStatus = {
 
 export function DarkModeToggle() {
   const supabase = createClient() as SupabaseClient;
+  const toast = useToastNotification();
   const [mounted, setMounted] = useState(false);
   const [isDark, setIsDark] = useState(false);
 
@@ -56,8 +58,9 @@ export function DarkModeToggle() {
   const toggleTheme = () => {
     if (!isSupporter) {
       // Show message that this is supporter-only
-      alert(
-        "Dark mode is an exclusive feature for Supporters. Become a Supporter to unlock this and more!"
+      toast.showInfo(
+        "Dark mode is an exclusive feature for Supporters. Become a Supporter to unlock this and more!",
+        { title: "Supporter Feature" }
       );
       return;
     }

@@ -109,15 +109,46 @@ export function createClient(): TypedSupabaseClient {
     process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ||
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-  // During static export build, env vars may not be set
-  // Return a client with placeholder values that will fail gracefully at runtime
+  // Validate environment variables and throw descriptive errors
   if (!supabaseUrl || !supabaseAnonKey) {
+    const missing = [];
+    if (!supabaseUrl) {
+      missing.push(
+        process.env.EXPO_PUBLIC_SUPABASE_URL
+          ? "EXPO_PUBLIC_SUPABASE_URL"
+          : "NEXT_PUBLIC_SUPABASE_URL"
+      );
+    }
+    if (!supabaseAnonKey) {
+      missing.push(
+        process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY
+          ? "EXPO_PUBLIC_SUPABASE_ANON_KEY"
+          : "NEXT_PUBLIC_SUPABASE_ANON_KEY"
+      );
+    }
+
+    // In client-side, log error but allow graceful degradation for static builds
+    if (typeof window !== "undefined") {
+      console.error(
+        `[Supabase Client] Missing environment variables: ${missing.join(", ")}`
+      );
+      console.error(
+        "[Supabase Client] Authentication will not work until these are configured."
+      );
+    }
+
+    // During static export build, env vars may not be set
+    // Return a client with placeholder values that will fail gracefully at runtime
     // Still check if mobile to return appropriate client type
     if (typeof window !== "undefined" && isMobile()) {
       if (!mobileClientInstance) {
         try {
           mobileClientInstance = createMobileClient() as TypedSupabaseClient;
         } catch (error) {
+          console.error(
+            "[Supabase Client] Mobile client creation failed:",
+            error
+          );
           // Fallback to browser client if mobile client creation fails
           mobileClientInstance = createBrowserClient<Database>(
             "https://placeholder.supabase.co",
@@ -138,6 +169,17 @@ export function createClient(): TypedSupabaseClient {
     return browserClientInstance;
   }
 
+  // Validate URL format
+  try {
+    new URL(supabaseUrl);
+  } catch (error) {
+    console.error(
+      "[Supabase Client] Invalid SUPABASE_URL format:",
+      supabaseUrl.substring(0, 50) + "..."
+    );
+    // Still create client, but log error
+  }
+
   // Check if we're in a mobile Capacitor environment
   if (typeof window !== "undefined" && isMobile()) {
     if (!mobileClientInstance) {
@@ -151,11 +193,28 @@ export function createClient(): TypedSupabaseClient {
   // createBrowserClient from @supabase/ssr automatically handles cookie syncing
   // It uses localStorage for client-side and syncs to cookies for SSR
   if (!browserClientInstance) {
-    browserClientInstance = createBrowserClient<Database>(
-      supabaseUrl,
-      supabaseAnonKey
-    );
-    browserClientInstance = withTestModeAuth(browserClientInstance);
+    try {
+      browserClientInstance = createBrowserClient<Database>(
+        supabaseUrl,
+        supabaseAnonKey
+      );
+      browserClientInstance = withTestModeAuth(browserClientInstance);
+      
+      // Validate client was created successfully
+      if (!browserClientInstance || !browserClientInstance.auth) {
+        console.error(
+          "[Supabase Client] Client created but auth methods not available"
+        );
+      } else {
+        console.log("[Supabase Client] Browser client created successfully");
+      }
+    } catch (error) {
+      console.error("[Supabase Client] Failed to create browser client:", error);
+      // Re-throw to prevent silent failures
+      throw new Error(
+        `Failed to initialize Supabase client: ${error instanceof Error ? error.message : String(error)}`
+      );
+    }
   }
   return browserClientInstance;
 }

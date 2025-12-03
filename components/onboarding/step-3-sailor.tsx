@@ -101,11 +101,10 @@ export function OnboardingStep3({ onComplete }: OnboardingStep3Props) {
               <Ship className="mt-1 h-8 w-8 flex-shrink-0 text-teal-600" />
               <div>
                 <h3 className="mb-1 font-semibold text-slate-900">
-                  Are you a sailor?
+                  Do you have a boat?
                 </h3>
                 <CardDescription>
-                  If you plan to deliver items by boat, you can get verified as
-                  a sailor. This is optional and can be done later.
+                  Get verified as a sailor to build trust in the yacht community. Verified sailors get priority in the feed and are trusted by yachties looking for reliable deliveries. You can add this information later if needed.
                 </CardDescription>
               </div>
             </div>
@@ -117,7 +116,7 @@ export function OnboardingStep3({ onComplete }: OnboardingStep3Props) {
             onClick={() => setIsSailor(true)}
             className="flex-1 bg-teal-600 hover:bg-teal-700"
           >
-            Yes, I&apos;m a Sailor
+            Yes, I Have a Boat
           </Button>
           <Button
             onClick={() => setIsSailor(false)}

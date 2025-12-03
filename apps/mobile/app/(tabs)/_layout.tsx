@@ -6,6 +6,8 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 export default function TabsLayout() {
   const insets = useSafeAreaInsets();
 
+  // QueryClientProvider is defined in the root layout (_layout.tsx)
+  // All tab screens receive React Query context from there
   return (
     <Tabs
       screenOptions={{

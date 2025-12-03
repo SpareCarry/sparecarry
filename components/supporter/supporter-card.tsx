@@ -10,6 +10,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { Loader2 } from "lucide-react";
 import { SupporterBadge } from "../badges/supporter-badge";
 import { useUser } from "../../hooks/useUser";
+import { useToastNotification } from "../../lib/hooks/use-toast-notification";
 
 type SupporterStatus = {
   supporter_status?: "active" | "inactive" | null;
@@ -19,6 +20,7 @@ type SupporterStatus = {
 
 export function SupporterCard() {
   const supabase = createClient() as SupabaseClient;
+  const toast = useToastNotification();
   const [loading, setLoading] = useState(false);
 
   // Use shared hook to prevent duplicate queries
@@ -76,7 +78,7 @@ export function SupporterCard() {
       window.location.href = url;
     } catch (error) {
       console.error("Error creating checkout:", error);
-      alert("Failed to start checkout. Please try again.");
+      toast.showApiError("start checkout");
     } finally {
       setLoading(false);
     }

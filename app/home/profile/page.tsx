@@ -20,6 +20,7 @@ import { LifetimeMarketingBanner } from "../../../components/subscription/lifeti
 import { KarmaDisplay } from "../../../components/karma/karma-display";
 import { useUser } from "../../../hooks/useUser";
 import { ProfileSettings } from "../../../components/profile/profile-settings";
+import { ProfileSkeleton } from "../../../components/profile/profile-skeleton";
 import { useEffect, Suspense } from "react";
 
 type ProfileRecord = {
@@ -135,6 +136,23 @@ function ProfilePageContent() {
 
   // Show loading only if actively loading (not stuck)
   if (userLoading && !userError) {
+    return (
+      <div className="mx-auto max-w-4xl px-4 py-6">
+        <ProfileSkeleton />
+      </div>
+    );
+  }
+
+  if (profileLoading && !profileError) {
+    return (
+      <div className="mx-auto max-w-4xl px-4 py-6">
+        <ProfileSkeleton />
+      </div>
+    );
+  }
+
+  // Fallback loading state
+  if ((userLoading || profileLoading) && !userError && !profileError) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-teal-600" />

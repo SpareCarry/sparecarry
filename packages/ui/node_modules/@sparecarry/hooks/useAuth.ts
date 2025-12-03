@@ -118,6 +118,44 @@ export function useAuth() {
       return;
     }
 
+    // TEMPORARY: Hardcoded bypass flag for MOBILE ONLY (change this to skip auth on mobile)
+    // Check if we're on mobile before applying bypass
+    let isMobile = false;
+    try {
+      // Try to detect if we're in React Native/Expo (mobile)
+      if (typeof require !== 'undefined') {
+        try {
+          const Platform = require('react-native')?.Platform;
+          isMobile = Platform?.OS === 'ios' || Platform?.OS === 'android';
+        } catch {
+          // Not React Native, probably web
+          isMobile = false;
+        }
+      }
+    } catch {
+      isMobile = false;
+    }
+
+    const SKIP_AUTH_MOBILE = true; // Only affects mobile app, not web
+    const bypassAuth = isMobile && (
+      SKIP_AUTH_MOBILE || // Hardcoded bypass (mobile only)
+      process.env.EXPO_PUBLIC_DEV_MODE === "true" || 
+      process.env.EXPO_PUBLIC_BYPASS_AUTH === "true"
+    );
+
+    if (bypassAuth) {
+      console.log("🔓 [useAuth] Auth bypass enabled - using dev user");
+      const devUser = getDevModeUser();
+      const devSession = createDevSession(devUser);
+      setState({
+        user: devUser,
+        session: devSession,
+        loading: false,
+        error: null,
+      });
+      return; // Skip actual auth check
+    }
+
     // Dev mode: Return mock user immediately
     if (isDevModeEnabled()) {
       const devUser = getDevModeUser();
@@ -296,8 +334,9 @@ export function useAuth() {
     setState((prev) => ({ ...prev, loading: true, error: null }));
 
     // Feature flag: allow disabling native Google Sign-In cleanly if setup isn't complete.
+    // Default to true (enabled) for Android - set EXPO_PUBLIC_ENABLE_NATIVE_GOOGLE_SIGNIN=false to disable
     const enableNativeGoogle =
-      process.env.EXPO_PUBLIC_ENABLE_NATIVE_GOOGLE_SIGNIN === "true";
+      process.env.EXPO_PUBLIC_ENABLE_NATIVE_GOOGLE_SIGNIN !== "false";
 
     // Try native Google Sign-In on Android first (one-tap) when enabled.
     if (provider === "google" && enableNativeGoogle) {

@@ -32,6 +32,7 @@ import {
   trackPostCreated,
   trackLocationSelected,
 } from "../../lib/analytics/tracking";
+import { useToastNotification } from "../../lib/hooks/use-toast-notification";
 
 const planeTripSchema = z.object({
   type: z.literal("plane"),
@@ -212,6 +213,7 @@ export function PostTripForm() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const supabase = createClient() as SupabaseClient;
+  const toast = useToastNotification();
   const [tripType, setTripType] = useState<"plane" | "boat" | null>(null);
   const [loading, setLoading] = useState(false);
   const [showLithiumWarning, setShowLithiumWarning] = useState(false);
@@ -367,13 +369,16 @@ export function PostTripForm() {
       // Invalidate feed query to refresh
       queryClient.invalidateQueries({ queryKey: ["feed"] });
 
+      // Show success message
+      toast.showFormSuccess("Trip posted");
+      
       // Redirect to browse page
       router.push("/home");
     } catch (error) {
       console.error("Error creating trip:", error);
       const message =
         error instanceof Error ? error.message : "Failed to create trip";
-      alert(message);
+      toast.showFormError("create trip", message);
     } finally {
       setLoading(false);
     }

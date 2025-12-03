@@ -26,6 +26,8 @@ CREATE TABLE IF NOT EXISTS public.users (
   completed_deliveries_count INTEGER DEFAULT 0, -- Number of completed deliveries
   average_rating DECIMAL(3, 2), -- Average rating from completed deliveries
   total_referrals_count INTEGER DEFAULT 0, -- Total number of users referred
+  terms_accepted_at TIMESTAMP WITH TIME ZONE, -- When user first accepted terms
+  terms_version TEXT, -- Version/date of terms accepted (for tracking updates)
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );

@@ -17,6 +17,7 @@ import {
   Place,
 } from "../../lib/services/location";
 import { LOCATION_CONFIG } from "../../config/location.config";
+import { useToastNotification } from "../../lib/hooks/use-toast-notification";
 
 interface LocationDraggablePickerProps {
   isOpen: boolean;
@@ -35,6 +36,7 @@ export function LocationDraggablePicker({
   showMarinaSnap = false,
   className = "",
 }: LocationDraggablePickerProps) {
+  const toast = useToastNotification();
   const [currentPosition, setCurrentPosition] = useState<{
     lat: number;
     lon: number;
@@ -119,15 +121,15 @@ export function LocationDraggablePicker({
         setCurrentPosition({ lat: nearest.lat, lon: nearest.lon });
         setSelectedPlace(nearest);
       } else {
-        alert("No marinas found nearby. Try adjusting your position manually.");
+        toast.showWarning("No marinas found nearby. Try adjusting your position manually.", { title: "No Marinas Found" });
       }
     } catch (error) {
       console.error("Snap to marina error:", error);
-      alert("Failed to find nearby marina. Please try again.");
+      toast.showError("Failed to find nearby marina. Please try again.", { title: "Error" });
     } finally {
       setIsSnapping(false);
     }
-  }, [currentPosition]);
+  }, [currentPosition, toast]);
 
   // Handle confirm
   const handleConfirm = useCallback(() => {

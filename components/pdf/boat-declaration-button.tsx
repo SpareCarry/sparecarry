@@ -12,6 +12,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { useUser } from "../../hooks/useUser";
+import { useToastNotification } from "../../lib/hooks/use-toast-notification";
 
 interface BoatDeclarationButtonProps {
   matchId: string;
@@ -42,6 +43,7 @@ type MatchDeclaration = {
 
 export function BoatDeclarationButton({ matchId }: BoatDeclarationButtonProps) {
   const supabase = createClient() as SupabaseClient;
+  const toast = useToastNotification();
   const [generating, setGenerating] = useState(false);
 
   const { data: match } = useQuery<MatchDeclaration | null>({
@@ -127,7 +129,7 @@ export function BoatDeclarationButton({ matchId }: BoatDeclarationButtonProps) {
       generateBoatDeclarationPDF(declarationData);
     } catch (error) {
       console.error("Error generating PDF:", error);
-      alert("Failed to generate PDF. Please try again.");
+      toast.showApiError("generate PDF");
     } finally {
       setGenerating(false);
     }

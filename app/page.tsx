@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "../components/ui/button";
 import {
@@ -11,7 +11,6 @@ import {
   CardTitle,
 } from "../components/ui/card";
 import { WaitlistForm } from "../components/waitlist-form";
-import { createClient } from "../lib/supabase/client";
 import {
   Plane,
   Ship,
@@ -27,12 +26,20 @@ import Link from "next/link";
 
 export default function Home() {
   const router = useRouter();
-  const supabase = createClient();
   const [waitlistOpen, setWaitlistOpen] = useState(false);
   const [travelType, setTravelType] = useState<"plane" | "boat" | undefined>();
   const [loading, setLoading] = useState(false);
 
-  const handleTravelClick = async (type: "plane" | "boat") => {
+  // REMOVED: Homepage redirect logic that was breaking PKCE flow
+  // The OAuth callback must go DIRECTLY to /auth/callback, not through the homepage.
+  // This intermediate redirect was causing the code_verifier to be lost from localStorage.
+  // 
+  // If Google redirects to homepage instead of callback:
+  // 1. Check Supabase Dashboard -> Authentication -> URL Configuration
+  // 2. Ensure Site URL matches your actual origin (localhost:3000 for web dev)
+  // 3. Ensure Redirect URLs includes your callback URL
+
+  const handleTravelClick = (type: "plane" | "boat") => {
     console.log("Button clicked:", type);
 
     // Prevent multiple clicks
@@ -41,25 +48,30 @@ export default function Home() {
       return;
     }
 
-    setLoading(true);
-    setTravelType(type);
-
-    // Always redirect to login first - let login page handle redirect if already authenticated
-    // This ensures users always go through login flow
-    const loginUrl = `/auth/login?redirect=/home&forceLogin=true`;
     try {
-      console.log("Redirecting to login page");
-      await router.push(loginUrl);
-    } catch (pushError) {
-      console.error("Router.push failed, using window.location:", pushError);
-    } finally {
+      setLoading(true);
+      setTravelType(type);
+
+      // Always redirect to login first - let login page handle redirect if already authenticated
+      // This ensures users always go through login flow
+      const loginUrl = `/auth/login?redirect=/home&forceLogin=true`;
+      
+      console.log("Redirecting to login page:", loginUrl);
+      
+      // Use window.location.href for reliable navigation across all environments
+      // This works better on mobile browsers and avoids router issues
       if (typeof window !== "undefined") {
-        window.location.href = loginUrl;
-      }
-      // Reset loading state after a short delay
-      setTimeout(() => {
+        // Small delay to ensure state updates before navigation
+        setTimeout(() => {
+          window.location.href = loginUrl;
+        }, 50);
+      } else {
+        console.error("window is undefined, cannot redirect");
         setLoading(false);
-      }, 100);
+      }
+    } catch (error) {
+      console.error("Error in handleTravelClick:", error);
+      setLoading(false);
     }
   };
 
@@ -82,41 +94,26 @@ export default function Home() {
       >
         <div className="container relative z-10 mx-auto max-w-6xl text-center">
           <h1 className="mb-6 text-5xl font-bold leading-tight text-white md:text-7xl lg:text-8xl">
-            SpareCarry – Earn $200–$3,000 using spare space you already have
+            Get boat parts & supplies delivered by fellow yachties sailing your route
           </h1>
           <p className="mx-auto mb-12 max-w-3xl text-xl text-white/90 md:text-2xl">
-            Get anything delivered by people already going your way — by plane
-            in days or by boat for 80% less.
+            The yacht delivery network connecting sailors and yachties. Get items delivered marina-to-marina for 80% less than shipping, or earn money using your boat&apos;s spare space.
           </p>
           <div className="relative z-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
             <Button
-              onClick={async (e) => {
+              onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                console.log("Plane button clicked");
-                await handleTravelClick("plane");
+                console.log("Boat button clicked - handler fired");
+                handleTravelClick("boat");
               }}
-              disabled={loading}
-              className="relative z-10 w-full bg-teal-600 px-8 py-6 text-lg text-xl font-semibold text-white hover:bg-teal-700 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
-              size="lg"
-              type="button"
-            >
-              {loading && travelType === "plane" ? (
-                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-              ) : (
-                <Plane className="mr-2 h-5 w-5" />
-              )}
-              ✈ I&apos;m traveling by Plane
-            </Button>
-            <Button
-              onClick={async (e) => {
+              onMouseDown={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                console.log("Boat button clicked");
-                await handleTravelClick("boat");
               }}
               disabled={loading}
-              className="relative z-10 w-full bg-slate-900 px-8 py-6 text-lg text-xl font-semibold text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
+              className="relative z-50 w-full bg-teal-600 px-8 py-6 text-lg text-xl font-semibold text-white hover:bg-teal-700 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto cursor-pointer"
+              style={{ pointerEvents: 'auto', position: 'relative', zIndex: 50 }}
               size="lg"
               type="button"
             >
@@ -126,6 +123,30 @@ export default function Home() {
                 <Ship className="mr-2 h-5 w-5" />
               )}
               ⚓ I&apos;m sailing by Boat
+            </Button>
+            <Button
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log("Plane button clicked - handler fired");
+                handleTravelClick("plane");
+              }}
+              onMouseDown={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+              disabled={loading}
+              className="relative z-50 w-full bg-slate-900 px-8 py-6 text-lg text-xl font-semibold text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto cursor-pointer"
+              style={{ pointerEvents: 'auto', position: 'relative', zIndex: 50 }}
+              size="lg"
+              type="button"
+            >
+              {loading && travelType === "plane" ? (
+                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+              ) : (
+                <Plane className="mr-2 h-5 w-5" />
+              )}
+              ✈ I&apos;m traveling by Plane
             </Button>
           </div>
         </div>
@@ -145,8 +166,7 @@ export default function Home() {
               </CardHeader>
               <CardContent>
                 <CardDescription>
-                  Travelers post their routes. Requesters post what they need
-                  delivered.
+                  Sailors post their marina routes. Yachties post what they need delivered—batteries, anchors, sails, and more.
                 </CardDescription>
               </CardContent>
             </Card>
@@ -158,8 +178,7 @@ export default function Home() {
               </CardHeader>
               <CardContent>
                 <CardDescription>
-                  Our platform automatically matches travelers with requesters
-                  on the same route.
+                  Our platform automatically matches sailors with yachties on the same marina route.
                 </CardDescription>
               </CardContent>
             </Card>
@@ -183,7 +202,7 @@ export default function Home() {
               </CardHeader>
               <CardContent>
                 <CardDescription>
-                  Traveler delivers, requester confirms, payment is released.
+                  Sailor delivers at the marina, yachty confirms, payment is released.
                 </CardDescription>
               </CardContent>
             </Card>
@@ -198,6 +217,34 @@ export default function Home() {
             Real examples
           </h2>
           <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+            <Card className="bg-gradient-to-br from-slate-50 to-blue-50">
+              <CardHeader>
+                <Ship className="mb-4 h-10 w-10 text-slate-900" />
+                <CardTitle className="text-2xl">
+                  Sail St. Martin → Grenada, carry battery → earn $1,800
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <CardDescription className="text-base">
+                  A verified sailor sailing from Port de Plaisance Marina to Port Louis Marina can transport a 200Ah marine battery and earn $1,800—great income for a Caribbean passage.
+                </CardDescription>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-gradient-to-br from-teal-50 to-green-50">
+              <CardHeader>
+                <Package className="mb-4 h-10 w-10 text-teal-600" />
+                <CardTitle className="text-2xl">
+                  Get a 200Ah battery to Grenada for $250 instead of $2,200 shipping
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <CardDescription className="text-base">
+                  A yachty in Grenada needs a marine battery delivered to Port Louis Marina. Instead of paying $2,200 for shipping and customs, they pay $250 to a fellow sailor already sailing that route.
+                </CardDescription>
+              </CardContent>
+            </Card>
+
             <Card className="bg-gradient-to-br from-blue-50 to-teal-50">
               <CardHeader>
                 <Plane className="mb-4 h-10 w-10 text-teal-600" />
@@ -207,42 +254,7 @@ export default function Home() {
               </CardHeader>
               <CardContent>
                 <CardDescription className="text-base">
-                  A traveler flying from Miami to St. Martin can easily carry
-                  20kg of electronics and earn $450—more than covering their
-                  checked bag fee.
-                </CardDescription>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-gradient-to-br from-slate-50 to-blue-50">
-              <CardHeader>
-                <Ship className="mb-4 h-10 w-10 text-slate-900" />
-                <CardTitle className="text-2xl">
-                  Sail Panama → Tahiti, carry outboard → earn $1,800
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CardDescription className="text-base">
-                  A sailor heading from Panama to Tahiti can transport an
-                  outboard motor and earn $1,800—significant income for a long
-                  passage.
-                </CardDescription>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-gradient-to-br from-teal-50 to-green-50">
-              <CardHeader>
-                <Package className="mb-4 h-10 w-10 text-teal-600" />
-                <CardTitle className="text-2xl">
-                  Get a 200Ah battery to Grenada for $250 instead of $2,200
-                  shipping
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CardDescription className="text-base">
-                  A requester needs a marine battery in Grenada. Instead of
-                  paying $2,200 for shipping and customs, they pay $250 to a
-                  traveler already going there.
+                  A traveler flying from Miami to St. Martin can easily carry 20kg of electronics and earn $450—more than covering their checked bag fee.
                 </CardDescription>
               </CardContent>
             </Card>
@@ -318,7 +330,7 @@ export default function Home() {
             <div className="mb-4 md:mb-0">
               <h3 className="text-2xl font-bold">SpareCarry</h3>
               <p className="text-gray-400">
-                SpareCarry – The traveler & sailor courier app
+                SpareCarry – The yacht delivery network for sailors and yachties
               </p>
             </div>
             <div className="flex gap-6">

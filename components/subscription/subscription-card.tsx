@@ -20,6 +20,7 @@ import { Loader2 } from "lucide-react";
 import { SupporterBadge } from "../badges/supporter-badge";
 import { useLifetimeAvailability } from "../../lib/hooks/use-lifetime-availability";
 import { useUser } from "../../hooks/useUser";
+import { useToastNotification } from "../../lib/hooks/use-toast-notification";
 
 type SubscriptionStatus = {
   subscription_status?: "active" | "trialing" | "canceled" | "past_due" | null;
@@ -36,6 +37,7 @@ type LifetimeStatus = {
 export function SubscriptionCard() {
   const supabase = createClient() as SupabaseClient;
   const router = useRouter();
+  const toast = useToastNotification();
   const [loading, setLoading] = useState<string | null>(null);
 
   // Use shared hook to prevent duplicate queries
@@ -238,7 +240,7 @@ export function SubscriptionCard() {
           : "Failed to start subscription. Please try again.";
 
       // Show a more user-friendly error message
-      alert(message);
+      toast.showApiError("start subscription", message);
     } finally {
       setLoading(null);
     }
@@ -263,7 +265,7 @@ export function SubscriptionCard() {
         error instanceof Error
           ? error.message
           : "Failed to open subscription portal";
-      alert(message);
+      toast.showApiError("open subscription portal", message);
     } finally {
       setLoading(null);
     }

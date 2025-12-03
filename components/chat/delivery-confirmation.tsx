@@ -20,6 +20,7 @@ import {
   meetupLocations,
   type MeetupLocation,
 } from "../../lib/data/meetup-locations";
+import { useToastNotification } from "../../lib/hooks/use-toast-notification";
 
 interface DeliveryConfirmationProps {
   matchId: string;
@@ -45,6 +46,7 @@ export function DeliveryConfirmation({
   onComplete,
 }: DeliveryConfirmationProps) {
   const supabase = createClient() as SupabaseClient;
+  const toast = useToastNotification();
   const [photos, setPhotos] = useState<File[]>([]);
   const [gpsLat, setGpsLat] = useState("");
   const [gpsLng, setGpsLng] = useState("");
@@ -118,7 +120,7 @@ export function DeliveryConfirmation({
     if (photos.length + files.length <= 6) {
       setPhotos([...photos, ...files]);
     } else {
-      alert("Maximum 6 photos allowed");
+      toast.showWarning("Maximum 6 photos allowed", { title: "Photo Limit" });
     }
   };
 
@@ -140,11 +142,11 @@ export function DeliveryConfirmation({
         },
         (error) => {
           console.error("Error getting location:", error);
-          alert("Unable to get your location. Please select manually.");
+          toast.showWarning("Unable to get your location. Please select manually.", { title: "Location Error" });
         }
       );
     } else {
-      alert("Geolocation is not supported by your browser.");
+      toast.showWarning("Geolocation is not supported by your browser.", { title: "Not Supported" });
     }
   };
 
@@ -183,12 +185,14 @@ export function DeliveryConfirmation({
     e.preventDefault();
 
     if (photos.length === 0) {
-      alert("Please upload at least one photo of the item handover");
+      toast.showValidationError("photo upload");
+      toast.showWarning("Please upload at least one photo of the item handover", { title: "Photo Required" });
       return;
     }
 
     if (!gpsLat || !gpsLng) {
-      alert("Please select a location on the map or use GPS");
+      toast.showValidationError("location");
+      toast.showWarning("Please select a location on the map or use GPS", { title: "Location Required" });
       return;
     }
 
@@ -275,7 +279,7 @@ export function DeliveryConfirmation({
       console.error("Error confirming delivery:", error);
       const message =
         error instanceof Error ? error.message : "Failed to confirm delivery";
-      alert(message);
+      toast.showApiError("confirm delivery", message);
     } finally {
       setLoading(false);
     }

@@ -10,6 +10,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "../ui/button";
 import { Camera, Info } from "lucide-react";
+import { useToastNotification } from "../../lib/hooks/use-toast-notification";
 
 interface AutoMeasureButtonProps {
   onMeasurementComplete: (
@@ -23,6 +24,7 @@ export function AutoMeasureButton({
   onMeasurementComplete,
   className,
 }: AutoMeasureButtonProps) {
+  const toast = useToastNotification();
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
@@ -48,8 +50,9 @@ export function AutoMeasureButton({
   const handleClick = () => {
     if (!isMobile) {
       // Web: Show info message
-      alert(
-        "Auto-measure is only available in the mobile app. Please download the SpareCarry app to use this feature."
+      toast.showInfo(
+        "Auto-measure is only available in the mobile app. Please download the SpareCarry app to use this feature.",
+        { title: "Mobile Only Feature" }
       );
       return;
     }

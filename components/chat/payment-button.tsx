@@ -32,6 +32,7 @@ import { CurrencyDisplay } from "../currency/currency-display";
 import { getPromoCardToShow } from "../../lib/promo/promo-utils";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { useUser } from "../../hooks/useUser";
+import { PaymentWaiverModal } from "../modals/payment-waiver-modal";
 import {
   calculateMaxKarmaUsage,
   convertKarmaToCredit,
@@ -70,6 +71,7 @@ export function PaymentButton({ match }: PaymentButtonProps) {
   const [creatingIntent, setCreatingIntent] = useState(false);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
+  const [showPaymentWaiver, setShowPaymentWaiver] = useState(false);
 
   // Use shared hook to prevent duplicate queries
   const { user } = useUser();
@@ -223,6 +225,12 @@ export function PaymentButton({ match }: PaymentButtonProps) {
   }, [karmaLimitDisplay, useCredits]);
 
   const handlePayment = async () => {
+    // Show waiver modal before proceeding
+    setShowPaymentWaiver(true);
+  };
+
+  const handlePaymentWithWaiver = async () => {
+    setShowPaymentWaiver(false);
     setCreatingIntent(true);
     setCheckoutError(null);
     setClientSecret(null);
@@ -548,6 +556,13 @@ export function PaymentButton({ match }: PaymentButtonProps) {
           </CardContent>
         </Card>
       )}
+
+      {/* Payment Waiver Modal */}
+      <PaymentWaiverModal
+        open={showPaymentWaiver}
+        onClose={() => setShowPaymentWaiver(false)}
+        onConfirm={handlePaymentWithWaiver}
+      />
     </div>
   );
 }

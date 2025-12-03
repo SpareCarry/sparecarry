@@ -23,32 +23,32 @@ interface OnboardingStep4Props {
 
 const roles = [
   {
-    id: "traveler",
-    title: "Plane Traveler",
-    description: "I travel by plane and want to earn money carrying items",
-    icon: Plane,
-    color: "bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100",
-  },
-  {
     id: "sailor",
-    title: "Sailor",
-    description: "I sail by boat and want to earn money carrying items",
+    title: "Sailor / Yachty",
+    description: "I sail by boat and want to earn money using my boat's spare space for deliveries",
     icon: Ship,
     color: "bg-teal-50 border-teal-200 text-teal-700 hover:bg-teal-100",
   },
   {
     id: "requester",
-    title: "Need Stuff Delivered",
-    description: "I need items delivered and want to save on shipping",
+    title: "Need Boat Parts & Supplies",
+    description: "I need marine items delivered to my boat/location and want to save on shipping",
     icon: Package,
     color: "bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100",
   },
   {
     id: "all",
-    title: "All of the Above",
-    description: "I want to both travel and request deliveries",
+    title: "Both Sailor & Requester",
+    description: "I want to both sail and request deliveries within the yacht community",
     icon: Users,
     color: "bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100",
+  },
+  {
+    id: "traveler",
+    title: "Plane Traveler",
+    description: "I travel by plane and want to earn money carrying items",
+    icon: Plane,
+    color: "bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100",
   },
 ];
 
@@ -135,8 +135,7 @@ export function OnboardingStep4({ onComplete }: OnboardingStep4Props) {
           Choose Your Primary Role
         </h3>
         <p className="text-slate-600">
-          Select how you&apos;ll primarily use CarrySpace. You can change this
-          later.
+          Select how you&apos;ll primarily use SpareCarry. Choose &quot;Sailor/Yachty&quot; if you have a boat and want to earn money delivering items, or &quot;Need Boat Parts & Supplies&quot; if you need items delivered. You can change this later.
         </p>
       </div>
 

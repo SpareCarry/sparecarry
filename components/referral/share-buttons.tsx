@@ -9,12 +9,14 @@ import {
   Linkedin,
   Link2,
 } from "lucide-react";
+import { useToastNotification } from "../../lib/hooks/use-toast-notification";
 
 interface ShareButtonsProps {
   referralCode: string;
 }
 
 export function ShareButtons({ referralCode }: ShareButtonsProps) {
+  const toast = useToastNotification();
   const shareUrl =
     typeof window !== "undefined"
       ? `${window.location.origin}/r/${referralCode}`
@@ -50,7 +52,7 @@ export function ShareButtons({ referralCode }: ShareButtonsProps) {
 
   const handleCopyLink = async () => {
     await navigator.clipboard.writeText(shareUrl);
-    alert("Link copied to clipboard!");
+    toast.showCopiedToClipboard("Link");
   };
 
   return (

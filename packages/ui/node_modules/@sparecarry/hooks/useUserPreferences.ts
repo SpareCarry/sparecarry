@@ -1,6 +1,9 @@
 /**
  * Hook to get user preferences (imperial/metric, currency)
  * For mobile and web compatibility
+ * 
+ * IMPORTANT: This hook requires QueryClientProvider to be available in the React tree.
+ * Ensure your root layout wraps the app with <QueryClientProvider client={queryClient}>
  */
 
 import { useQuery } from "@tanstack/react-query";
@@ -13,11 +16,18 @@ export function useUserPreferences() {
   const { user } = useAuth();
   const supabase = createClient();
 
+  // Check if dev user
+  const isDevUser = user?.id === "dev-user-id";
+  
+  // MUST always call hooks in the same order (React rules)
+  // Even for dev users, we must call useQuery (but disable it)
+  // useQuery requires QueryClientProvider even when disabled
+  // If provider isn't available, this will throw an error
   const { data: preferImperial, isLoading: imperialLoading } =
     useQuery<boolean>({
       queryKey: ["user-imperial-preference", user?.id],
       queryFn: async (): Promise<boolean> => {
-        if (!user || user.id === "dev-user-id") {
+        if (!user || isDevUser) {
           return shouldUseImperial();
         }
 
@@ -36,16 +46,16 @@ export function useUserPreferences() {
           ?.prefer_imperial_units;
         return imperial ?? shouldUseImperial();
       },
-      enabled: !!user,
-      staleTime: 5 * 60 * 1000, // Cache for 5 minutes
-      placeholderData: shouldUseImperial(), // Use default while loading
+      enabled: !!user && !isDevUser, // Disable for dev users
+      staleTime: 5 * 60 * 1000,
+      placeholderData: shouldUseImperial(),
     });
 
   const { data: preferredCurrency, isLoading: currencyLoading } =
     useQuery<string>({
       queryKey: ["user-currency", user?.id],
       queryFn: async (): Promise<string> => {
-        if (!user || user.id === "dev-user-id") {
+        if (!user || isDevUser) {
           return detectCurrency();
         }
 
@@ -64,10 +74,19 @@ export function useUserPreferences() {
           ?.preferred_currency;
         return currency || detectCurrency();
       },
-      enabled: !!user,
-      staleTime: 5 * 60 * 1000, // Cache for 5 minutes
-      placeholderData: detectCurrency(), // Use default while loading
+      enabled: !!user && !isDevUser, // Disable for dev users
+      staleTime: 5 * 60 * 1000,
+      placeholderData: detectCurrency(),
     });
+
+  // For dev users, return defaults (queries are disabled but hooks were called)
+  if (isDevUser) {
+    return {
+      preferImperial: shouldUseImperial(),
+      preferredCurrency: detectCurrency(),
+      isLoading: false,
+    };
+  }
 
   return {
     preferImperial: preferImperial ?? shouldUseImperial(),
